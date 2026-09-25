@@ -57,7 +57,7 @@
           <div class="field-row" style="margin-top:8px"><div class="field"><label for="aNum">Número</label><input id="aNum" inputmode="numeric"></div><div class="field"><label for="aCompl">Complemento</label><input id="aCompl" autocomplete="address-line2" placeholder="Opcional"></div></div>
           <div class="field" style="margin-top:8px"><label for="aBairro">Bairro</label><input id="aBairro"></div>
           <div class="field-row" style="margin-top:8px"><div class="field"><label for="aCidade">Cidade</label><input id="aCidade" autocomplete="address-level2"></div><div class="field"><label for="aUf">UF</label><input id="aUf" maxlength="2" autocomplete="address-level1" style="text-transform:uppercase"></div></div>
-          <p class="muted" style="font-size:12px">O endereço é usado só para esta entrega.</p>
+          <p class="muted" style="font-size:12px">O endereço é usado só para esta entrega. Depois de enviado, esta tela mostra só bairro e cidade.</p>
         </div>
         <div class="bottom-cta"><button class="btn citron full" type="submit">Confirmar entrega</button></div>
       </form>`;
@@ -85,7 +85,7 @@
       EM_PREPARACAO:()=>`<h2>Estamos preparando seu pedido</h2><p class="muted">Você recebe um aviso no WhatsApp quando ele ${pedido.modalidade==='Retirada'?'estiver pronto para retirada':'sair para entrega'}.</p>
         <div class="proto-tools"><button class="btn secondary" type="button" data-go="${pedido.modalidade==='Retirada'?'PRONTO_PARA_RETIRADA':pedido.modalidade.startsWith('Envio')?'ENVIADO':'SAIU_PARA_ENTREGA'}">Protótipo: avançar</button></div>`,
       PRONTO_PARA_RETIRADA:()=>`<h2>Pronto para retirada</h2><p class="muted">Leve nome, WhatsApp e o código do pedido.</p>
-        <div class="card citron" style="text-align:center"><div class="muted" style="color:var(--ink)">Código de retirada</div><div class="price" style="font-size:34px">R-1048</div></div>
+        <div class="card citron" style="text-align:center"><div class="muted" style="color:var(--ink)">Código de retirada</div><div class="price" style="font-size:34px;letter-spacing:.08em">Q4K7MX</div></div>
         <p class="muted" style="margin-top:12px">Endereço e horário da loja: [a preencher pela loja].</p>`,
       SAIU_PARA_ENTREGA:()=>`<h2>Saiu para entrega</h2><p class="muted">O motoboy está a caminho${pedido.endereco?' de '+escaparHtml(pedido.endereco):''}. Tenha alguém para receber.</p>`,
       ENVIADO:()=>`<h2>Pedido enviado</h2><p class="muted">Código de rastreio: <strong>AB123456789BR</strong></p>`,
@@ -130,9 +130,13 @@
   }
 
   function ir(c){
+    // Se a ação partiu do cartão, o foco vai para o título do novo conteúdo (o botão tocado deixou de existir).
+    const deDentro=$('actionCard').contains(document.activeElement);
     pedido.cenario=c;
     if(c==='FRETE_A_PAGAR')pedido.freteAte=Date.now()+PRAZO_FRETE_MS;
     $('scenario').value=c;render();
+    const h=$('actionCard').querySelector('h2');
+    if(deDentro&&h){h.tabIndex=-1;h.focus();}
   }
   function render(){badge();passos();resumo();acao();}
 

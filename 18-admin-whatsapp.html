@@ -24,7 +24,9 @@
     <section class="card">
       <h2>Fila de envio</h2>
       <div class="grid grid-3" id="queueStats"></div>
-      <p class="hint">As mensagens saem uma por vez, com intervalo aleatório, para parecer uso humano e reduzir o risco de bloqueio do número. Se a conexão cair, elas esperam na fila e saem quando voltar.</p>
+      <p class="hint">As mensagens saem uma por vez, com intervalo aleatório, para parecer uso humano e reduzir o risco de bloqueio do número. Reserva criada, lembrete, pagamento confirmado e expiração saem primeiro. Lembrete que perdeu o sentido (reserva paga ou quase no fim) é descartado. O código de verificação não entra na fila: sai na hora, como resposta. Se a conexão cair, as mensagens esperam na fila e saem quando voltar.</p>
+      <label class="switch" style="margin-top:6px"><input type="checkbox" id="launchMode"> <strong>Modo lançamento</strong></label>
+      <p class="hint" id="launchHint">Desligado: 4 a 9 s entre mensagens, até 120 por hora.</p>
       <div class="grid grid-2" style="margin-top:10px">
         <div class="field"><label for="gapMin">Intervalo entre mensagens (segundos)</label><div class="toolbar" style="flex-wrap:nowrap"><input id="gapMin" type="number" min="2" value="4" aria-label="Mínimo"><span class="muted">a</span><input id="gapMax" type="number" min="3" value="9" aria-label="Máximo"></div></div>
         <div class="field"><label for="perHour">Máximo por hora</label><input id="perHour" type="number" min="10" value="120"></div>

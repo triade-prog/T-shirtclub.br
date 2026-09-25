@@ -86,6 +86,7 @@
 
   function expirar(motivo){
     encerrada=true;
+    $('timerAnnounce').textContent='A reserva expirou.';
     $('timerLabel').textContent='Reserva encerrada';$('reserveTimer').textContent='00:00';
     $('stateBadge').className='badge danger';$('stateBadge').textContent='EXPIRADO';
     $('paymentNotice').className='notice danger';
@@ -105,7 +106,7 @@
     restante--;
     $('reserveTimer').textContent=mmss(Math.max(0,restante));
     $('reserveProgress').style.width=`${restante/PRAZO*100}%`;
-    if(restante<=300&&!lembrete){lembrete=true;toast('Lembrete enviado no WhatsApp: faltam 5 minutos.');}
+    if(restante<=300&&!lembrete){lembrete=true;$('timerAnnounce').textContent='Faltam 5 minutos para a reserva expirar.';toast('Lembrete enviado no WhatsApp: faltam 5 minutos.');}
     if(restante<=0){
       if(cobranca&&cobranca.status==='PENDENTE'){
         tolerancia=TOLERANCIA;

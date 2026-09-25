@@ -35,14 +35,14 @@
     </div>
     <div class="table-wrap" style="margin-top:14px">
       <table>
-        <thead><tr><th>Pedido</th><th>Cliente</th><th>Modalidade</th><th>Destino</th><th class="num">Frete</th><th>Situação</th><th>Prazo para pagar</th><th></th></tr></thead>
+        <thead><tr><th>Pedido</th><th>Cliente</th><th>Modalidade</th><th>Destino</th><th class="num">Frete</th><th>Situação</th><th>Prazo para pagar</th><th><span class="sr-only">Ações</span></th></tr></thead>
         <tbody id="freightRows"></tbody>
       </table>
     </div>
     <p class="hint">Se a cliente trocar a modalidade para retirada antes de pagar, o pedido sai desta fila e a cotação é cancelada.</p>
   </section>
 
-  <div class="pending-rule" style="margin-top:16px"><strong>Regra pendente (decisão D8).</strong> A especificação ainda não define o que acontece quando o frete não é pago em 2 horas. Por enquanto o pedido fica em "Prazo vencido", aparece como alerta no painel e nada acontece automaticamente: o administrador pode recalcular ou falar com a cliente.</div>
+  <div class="notice" style="margin-top:16px"><strong>Frete não pago em 2 horas (decisão D8):</strong> o pedido continua pago, fica em "Prazo vencido" e aparece como alerta no painel. Nada acontece automaticamente: o administrador recalcula ou combina com a cliente.</div>
 
   <div class="modal" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
     <form class="modal-box wide" id="quoteForm" novalidate>

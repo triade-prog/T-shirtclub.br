@@ -21,8 +21,8 @@
     <section class="card">
       <h2>Seus dados</h2>
       <form id="reserveForm" class="grid">
-        <div class="field"><label for="name">Nome</label><input id="name" required placeholder="Seu nome completo"></div>
-        <div class="field"><label for="phone">WhatsApp</label><input id="phone" required inputmode="tel" placeholder="(00) 00000-0000"></div>
+        <div class="field"><label for="name">Nome</label><input id="name" required autocomplete="name" placeholder="Seu nome completo"></div>
+        <div class="field"><label for="phone">WhatsApp</label><input id="phone" type="tel" required autocomplete="tel-national" placeholder="(00) 00000-0000"></div>
         <div class="field"><label for="delivery">Intenção inicial de entrega</label>
           <select id="delivery" required>
             <option value="">Selecione</option><option>Retirada</option><option>Entrega local / motoboy</option><option>Envio para outra cidade</option>

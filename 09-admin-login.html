@@ -19,23 +19,16 @@
   <div class="login-box">
     <div class="kicker">Área administrativa</div>
     <h1>Entrar no painel</h1>
-    <p class="muted">Acesso exclusivo da equipe da loja. Não existe cadastro público: novos administradores são convidados por outro administrador.</p>
+    <p class="muted">Acesso exclusivo da loja. Não existe cadastro público.</p>
 
     <form class="card" id="stepPassword" novalidate>
       <div class="list">
         <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" placeholder="voce@loja.com.br" required></div>
-        <div class="field"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div>
+        <div class="field"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required></div>
         <button class="btn" type="submit">Entrar</button>
         <button class="btn ghost" type="button" id="forgotBtn">Esqueci minha senha</button>
       </div>
-      <p class="hint" id="attemptsHint">Após 5 senhas erradas, o acesso fica bloqueado por 15 minutos.</p>
-    </form>
-
-    <form class="card" id="stepMfa" hidden novalidate>
-      <h3>Verificação em duas etapas</h3>
-      <p class="muted">Digite o código de 6 dígitos do seu aplicativo autenticador.</p>
-      <div class="field"><label for="mfaCode">Código</label><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
-      <div class="toolbar" style="margin-top:12px"><button class="btn" type="submit">Confirmar</button><button class="btn ghost" type="button" id="backBtn">Voltar</button></div>
+      <p class="hint" id="attemptsHint">Após 5 senhas erradas nesta rede, o acesso por ela fica bloqueado por 15 minutos. Tentativas de outra rede não travam o seu acesso.</p>
     </form>
 
     <div class="notice" style="margin-top:16px">No MVP todos os administradores têm as mesmas permissões. Cada login e cada ação relevante ficam registrados na auditoria.</div>

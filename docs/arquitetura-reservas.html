@@ -130,6 +130,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
   <ol>
     <li><a href="#aprovar">0. Decisões e pendências</a></li>
     <li><a href="#revisao">1. Revisão da especificação</a></li>
+    <li><a href="#revisao-geral">1b. Revisão geral (v8)</a></li>
     <li><a href="#stack">2. Arquitetura e stack</a></li>
     <li><a href="#mobile">2b. Celular e PWA</a></li>
     <li><a href="#estados">3. Máquina de estados</a></li>
@@ -147,20 +148,21 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <li><a href="#codigo">14. Organização do código</a></li>
     <li><a href="#fases">15. Plano de entrega</a></li>
     <li><a href="#testes">16. Estratégia de testes</a></li>
+    <li><a href="#publicacao">17. Checklist de publicação</a></li>
   </ol>
 </nav>
 
 <main>
 <header class="top">
-  <p class="eyebrow">Desenho técnico · versão 7</p>
+  <p class="eyebrow">Desenho técnico · versão 8</p>
   <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
   <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
   <div class="meta">
-    <span><b>Fonte:</b> especificacao_funcional_sistema_reserva.html + telas 00 a 08</span>
+    <span><b>Fonte:</b> especificacao_funcional_sistema_reserva.html + telas 00 a 22</span>
     <span><b>Data:</b> 25/09/2026</span>
     <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
   </div>
-  <div class="callout"><p><b>Versão 7.</b> Registra o domínio <code>tshirtclub.pt</code> e o volume de menos de 50 pessoas simultâneas. O desenvolvimento (F1) só começa depois da revisão geral pedida em 25/09.</p></div>
+  <div class="callout"><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
   <div class="flow" aria-label="Fluxo principal">
     <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
     <span class="st res">RESERVADO</span><span class="arrow">→</span>
@@ -267,17 +269,88 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
   <h3>WhatsApp, privacidade e abuso</h3>
   <div class="findings">
     <div class="finding"><span class="id">R15</span><h5>O link da reserva no WhatsApp pode violar a regra 22 <span class="sev aj">Decidido</span></h5>
-      <p>Um link do tipo <code>/reserva/1048</code> expõe a reserva só pelo número, que é fácil de adivinhar. <b>Decisão:</b> cada reserva ganha uma chave aleatória na criação (<code>/r/k7Qm2xPz9aLw4tRb</code>). O link só mostra aquela reserva e não depende de sessão nem de validade.</p></div>
+      <p>Um link do tipo <code>/reserva/1048</code> expõe a reserva só pelo número, que é fácil de adivinhar. <b>Decisão:</b> cada reserva ganha uma chave aleatória na criação (<code>/r/k7Qm2xPz9aLw4tRb</code>). O link só mostra aquela reserva e não depende de sessão. Ajustado na v8 (G3): só leitura e pagamento, chave guardada como hash e fora dos logs.</p></div>
     <div class="finding"><span class="id">R16</span><h5>Contadores de OTP podem ser zerados reiniciando o fluxo <span class="sev alto">Alto</span></h5>
-      <p><b>Resolução:</b> os contadores ficam no servidor, por telefone e numa janela de 30 min (D10). Há também limite por IP e captcha invisível (Cloudflare Turnstile) antes de enviar o código. Cada mensagem de autenticação custa dinheiro e é alvo de fraude de disparo em massa.</p></div>
+      <p><b>Resolução:</b> os contadores ficam no servidor, por telefone e numa janela de 30 min (D10). Há também captcha invisível (Cloudflare Turnstile) ao criar a tentativa e limites por telefone e por remetente no webhook (ver G15). Na verificação invertida o código só vai para quem escreveu à loja, o que já corta o disparo em massa.</p></div>
     <div class="finding"><span class="id">R17</span><h5>O "nono dígito" nos IDs do WhatsApp <span class="sev alto">Alto</span></h5>
       <p>O <code>wa_id</code> de alguns celulares brasileiros chega sem o 9 (ex.: 55 77 8809-xxxx em vez de 55 77 9 8809-xxxx). Sem normalização, o "Minha reserva" não encontraria a cliente. <b>Resolução:</b> o telefone canônico é E.164 com o 9, e a busca por mensagem recebida aceita as duas formas.</p></div>
     <div class="finding"><span class="id">R18</span><h5>Mensagens iniciadas pela loja exigem template aprovado <span class="sev aj">Não se aplica: ferramenta não oficial</span></h5>
-      <p>Fora da janela de 24 h, só templates aprovados pela Meta podem ser enviados, e a aprovação leva tempo. <b>Resolução:</b> o catálogo de templates está na seção 10 e deve ser submetido já na fase F2.</p></div>
+      <p>Na API oficial, fora da janela de 24 h só saem templates aprovados pela Meta. Com a Z-API (W1) não há aprovação de templates. <b>Resolução:</b> o catálogo de mensagens da seção 10 continua valendo como lista fechada de textos; só precisa ser submetido à Meta se a loja migrar para a API oficial (plano B).</p></div>
     <div class="finding"><span class="id">R19</span><h5>Faltam telas: pagamentos em análise, cálculo de frete e login admin <span class="sev aj">Telas criadas (09, 12 e 13)</span></h5>
       <p>O painel (tela 06) mostra o alerta de "pagamento fora da tolerância", mas não há tela para resolvê-lo. <b>Resolução:</b> incluídas no escopo do admin (F9).</p></div>
     <div class="finding"><span class="id">R20</span><h5>Para trocar itens, a cliente depende do admin <span class="sev aj">Observação</span></h5>
       <p>A regra 11 exige cancelar para trocar, e o cancelamento só sai com aprovação do admin. Enquanto isso, a cliente não consegue criar outra reserva (limite de 1 ativa). Mantive como está na especificação. Se virar atrito, dá para liberar a autodesistência nos primeiros minutos.</p></div>
+  </div>
+</section>
+
+<!-- 1b -->
+<section id="revisao-geral">
+  <p class="secnum">01b</p>
+  <h2>Revisão geral de 25/09 (versão 8)</h2>
+  <p class="sub">Revisão pedida pela loja antes da F1, cobrindo segurança (pagamento, webhooks, LGPD, link com chave), boas práticas web e desempenho no celular, testes e publicação, acessibilidade e textos. Os achados estão em ordem de gravidade. Cada um diz a resolução e onde ela foi aplicada. O relatório completo está em <code>docs/REVISAO-GERAL.md</code>.</p>
+
+  <h3>Crítico</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">G1</span><h5>O cookie de sessão da cliente seria de terceiros e não funcionaria no iPhone <span class="sev crit">Crítico</span></h5>
+      <p>A loja fica em <code>tshirtclub.pt</code> e as Edge Functions em <code>&lt;projeto&gt;.supabase.co</code>. Um cookie gravado pelo domínio do Supabase é de terceiros: o Safari bloqueia, e o Chrome está restringindo. A sessão depois do código, a reserva ativa e o link da reserva quebrariam justamente no celular. <b>Resolução:</b> o navegador só fala com o próprio domínio. <code>tshirtclub.pt/api/*</code> é um repasse fino no Next.js (route handler) que chama as Edge Functions no servidor, com um segredo de repasse e o IP real da cliente em cabeçalho. O cookie vira de primeira parte: <code>__Host-sessao</code>, <code>httpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>, <code>Path=/</code>. O painel faz o mesmo em <code>admin.tshirtclub.pt</code>. As Edge Functions só aceitam chamadas com o segredo de repasse. Aplicado nas seções 2, 11 e 13.</p></div>
+  </div>
+
+  <h3>Alto</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">G2</span><h5>Pagamento estornado ou contestado depois de confirmado não tem caminho <span class="sev alto">Alto</span></h5>
+      <p>Se a cliente pede estorno ao banco ou abre contestação (chargeback) depois de PAGAMENTO_CONFIRMADO, nada no desenho avisa a loja, e a peça pode ser entregue sem pagamento. <b>Resolução:</b> o webhook trata <code>refunded</code>, <code>charged_back</code> e <code>cancelled</code> em pagamento já aplicado. Cria uma linha em <code>payment_disputes</code>, mostra alerta no painel e grava auditoria. O estado oficial não muda (é pós-venda, regra 16), mas T5 (Entregue) passa a exigir que não exista disputa aberta. Aplicado nas seções 3, 4, 8 e 10.</p></div>
+    <div class="finding"><span class="id">G3</span><h5>Webhook do Mercado Pago: assinatura, conferências e resposta não estavam especificadas <span class="sev alto">Alto</span></h5>
+      <p>O desenho dizia "verifica a assinatura", mas não como, e tinha duas regras de resposta (200 rápido e 500 em falha). <b>Resolução:</b> validar o cabeçalho <code>x-signature</code> (HMAC-SHA256 do manifesto <code>id:&lt;data.id&gt;;request-id:&lt;x-request-id&gt;;ts:&lt;ts&gt;;</code> com a chave secreta do webhook), comparar em tempo constante e recusar <code>ts</code> com mais de 5 min. Depois, gravar na inbox e responder 200; o processamento sai da requisição (worker e reconciliação). Na consulta à API, conferir <code>external_reference</code> = id da nossa tentativa, valor e moeda (BRL) iguais aos da cobrança, e que o pagamento é da conta da loja. Valor divergente vai para análise (<code>VALOR_DIVERGENTE</code>) e nunca confirma. Aplicado na seção 8.</p></div>
+    <div class="finding"><span class="id">G4</span><h5>Webhook da Z-API: sem assinatura e com remetentes que não são a cliente <span class="sev alto">Alto</span></h5>
+      <p>A Z-API não assina os webhooks. Além disso, o número da loja é usado pela equipe no celular, então chegam também mensagens enviadas pela própria loja (<code>fromMe</code>), de grupos, de status e de canais. Com a mudança do WhatsApp para identificadores LID, o remetente pode chegar sem o número de telefone. <b>Resolução:</b> URL do webhook com um segmento secreto de 32+ caracteres aleatórios, trocável (<code>/webhooks/whatsapp/&lt;segredo&gt;</code>), comparado em tempo constante. Descartar <code>fromMe</code>, grupos, status, canais e mensagens com mais de 10 min (reenvio antigo). Limite por remetente: 20 mensagens por 10 min; acima disso, só registra. <b>Verificar na F3 com a conta real</b> como a Z-API entrega o remetente LID. Se não houver telefone no evento, a resposta é "Não conseguimos confirmar o seu número; responda com o número do WhatsApp", e nenhum código é enviado. Aplicado na seção 7.</p></div>
+    <div class="finding"><span class="id">G5</span><h5>A fila do WhatsApp não dá conta do pico de lançamento <span class="sev alto">Alto</span></h5>
+      <p>Com 50 clientes ao mesmo tempo saem perto de 200 mensagens em 20 min (reserva criada, lembrete, pagamento ou expiração). O ritmo da tela 18 (4 a 9 s entre mensagens, máximo de 120 por hora) levaria mais de uma hora para esvaziar a fila: o lembrete de 5 min chegaria depois de a reserva expirar, e o link da reserva chegaria atrasado. <b>Resolução:</b> prioridade na outbox (1: reserva criada, lembrete, pagamento confirmado, expiração; 2: demais). Validade por mensagem: o lembrete é descartado se a reserva já saiu de RESERVADO ou se falta menos de 1 min. O código continua fora da fila, como resposta imediata. Um "modo lançamento" no painel usa 2 a 4 s entre mensagens e teto de 600 por hora; o risco de banimento continua aceito pela loja (W2). Teste de vazão no F5. Aplicado nas seções 7 e 12 e na tela 18.</p></div>
+    <div class="finding"><span class="id">G6</span><h5>Link da reserva: chave guardada em texto, exposta em logs e sem limite do que permite <span class="sev alto">Alto</span></h5>
+      <p>O link não expira e é repassado com facilidade (conversa encaminhada). A chave ficaria em texto no banco, nos logs de acesso da Vercel e na pré-visualização de link do WhatsApp. O link também abre a tela de entrega com endereço. <b>Resolução:</b> o formato passa a <code>https://tshirtclub.pt/r#&lt;chave&gt;</code>. O fragmento depois do <code>#</code> não vai ao servidor, a logs nem ao robô de pré-visualização: a página lê a chave e a envia no corpo de <code>POST /api/v1/r</code>. O banco guarda só <code>sha256(chave)</code>. O link abre uma sessão limitada àquela reserva. Ela permite ver o andamento, pagar, pedir cancelamento e confirmar a entrega. Depois de informado, o endereço aparece só com bairro e cidade. Passados 30 dias do estado final, o link mostra só número e estado. Respostas com <code>Cache-Control: no-store</code>, <code>Referrer-Policy: no-referrer</code> e <code>noindex</code>. Aplicado nas seções 4, 7 e 11.</p></div>
+    <div class="finding"><span class="id">G7</span><h5>Login do painel: o bloqueio por conta vira ataque, e não há segundo fator <span class="sev alto">Alto</span></h5>
+      <p>Com um único administrador, 5 senhas erradas de qualquer pessoa na internet bloqueiam a loja por 15 min, inclusive durante um lançamento. O Supabase Auth também não tem bloqueio por conta nativo. Além disso, sem segundo fator, uma senha vazada dá acesso a estornos e a todos os dados das clientes. <b>Resolução:</b> o login passa pelo <code>api-admin</code>. O bloqueio de 15 min vale para o par e-mail + IP, e não para a conta inteira. Turnstile a partir do 3º erro, espera crescente e aviso por e-mail a cada bloqueio. "Esqueci minha senha" sempre funciona. Sessão do painel de até 12 h. <b>Recomendação:</b> reabrir a decisão e ligar o autenticador (TOTP), que é gratuito no Supabase Auth. A decisão atual (sem segundo fator) foi mantida, e o protótipo foi alinhado a ela. Aplicado nas seções 13 e 17 e na tela 09.</p></div>
+    <div class="finding"><span class="id">G8</span><h5>Colar o código não funcionava: 6 caixas de 1 dígito <span class="sev alto">Alto</span></h5>
+      <p>O fluxo W3 manda a cliente tocar em "Copiar código" no WhatsApp e colar no site. Na tela 03, o campo tinha 6 caixas com 1 dígito cada, e colar deixava só o primeiro número. <b>Resolução:</b> um campo só, com <code>inputmode="numeric"</code>, <code>autocomplete="one-time-code"</code> e 6 dígitos, que aceita colar o código com espaço ou traço. Também vale para a tela 05. Corrigido no protótipo.</p></div>
+    <div class="finding"><span class="id">G9</span><h5>LGPD: faltavam prazos de guarda, atendimento à titular e cuidado com a auditoria <span class="sev alto">Alto</span></h5>
+      <p>Só o OTP tinha prazo de guarda. A auditoria, somente de inserção, guardaria nome e telefone para sempre, e não havia procedimento para pedido de exclusão nem região dos dados. <b>Resolução:</b> tabela de guarda na seção 13 (OTP e tentativas: 30 dias; IP em hash: 30 dias; mensagens recebidas: 90 dias; endereço: prazo da loja após a entrega; reservas e pagamentos: 5 anos, prazo fiscal a confirmar com a contabilidade). A auditoria referencia <code>customer_id</code>, e não o telefone ou o nome. Pedido de exclusão vira anonimização (nome e telefone trocados por hash) do que não é obrigação legal. Dados no Supabase em São Paulo (<code>sa-east-1</code>) e funções da Vercel em <code>gru1</code>. A política lista todos os operadores, e há plano de incidente com comunicação à ANPD em 3 dias úteis. Aplicado na seção 13, na política (tela 20) e no checklist.</p></div>
+    <div class="finding"><span class="id">G10</span><h5>Os planos gratuitos não servem para a loja em produção <span class="sev alto">Alto</span></h5>
+      <p>No plano gratuito do Supabase, o projeto pausa depois de 7 dias sem uso (a loja vive de lançamentos espaçados) e não tem backup diário. O plano Hobby da Vercel é só para uso não comercial. Os jobs a cada 10 s também somam cerca de 560 mil chamadas de função por mês, acima da cota gratuita. <b>Resolução:</b> Supabase Pro e Vercel Pro na publicação. O worker só é chamado quando há trabalho (G21). Os valores devem ser conferidos antes de contratar. Aplicado na seção 17.</p></div>
+  </div>
+
+  <h3>Médio</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">G11</span><h5>Limites por IP bloqueiam clientes que dividem o mesmo IP <span class="sev med">Médio</span></h5>
+      <p>As operadoras móveis no Brasil usam CGNAT: muitas clientes saem pelo mesmo IP. Num lançamento, o Wi-Fi da loja faz o mesmo. "5 telefones por IP por hora" barraria clientes legítimas. <b>Resolução:</b> os limites principais são por telefone e por tentativa, com Turnstile. O limite por IP fica alto (60 tentativas por hora) e serve de alarme, não de bloqueio fino. Aplicado na seção 7.</p></div>
+    <div class="finding"><span class="id">G12</span><h5>A tentativa de reserva não estava presa ao navegador que a criou <span class="sev med">Médio</span></h5>
+      <p>Quem soubesse o id da tentativa poderia confirmar ou trocar itens a partir de outro aparelho, e faltava a rota que o site consulta a cada 2 s. <b>Resolução:</b> ao criar a tentativa, o servidor grava um cookie <code>__Host-tentativa</code> (hash no banco). <code>GET</code>, <code>confirm</code> e <code>items</code> exigem esse cookie. Nova rota <code>GET /v1/reservation-attempts/:id</code>. Aplicado nas seções 4 e 11.</p></div>
+    <div class="finding"><span class="id">G13</span><h5>As rotas ainda descreviam o envio de código pelo site <span class="sev med">Médio</span></h5>
+      <p>As rotas <code>POST /v1/otp-sessions/:id/resend</code> e "cria a tentativa e envia o código", e o erro <code>NO_WHATSAPP</code>, são da verificação antiga. Na W3, quem pede o código é a cliente, pelo WhatsApp. <b>Resolução:</b> rotas refeitas para a W3, com consulta por tentativa (<code>/v1/lookup-attempts</code>). Aplicado na seção 11 e no diagrama da seção 5.</p></div>
+    <div class="finding"><span class="id">G14</span><h5>PIX com expiração curta: o Mercado Pago não aceita menos de 30 min <span class="sev med">Médio</span></h5>
+      <p>A documentação do Mercado Pago indica que <code>date_of_expiration</code> do PIX vai de 30 min a 30 dias. Portanto, a cobrança não pode nascer vencendo no minuto 20. <b>Resolução:</b> criar com 30 min e sempre cancelar via API (<code>status = cancelled</code>) em <code>grace_until</code>. Se o banco da cliente pagar no meio do cancelamento, o caso vai para análise. Confirmar no ambiente de teste. Aplicado na seção 6.</p></div>
+    <div class="finding"><span class="id">G15</span><h5>O código de retirada era previsível <span class="sev med">Médio</span></h5>
+      <p>O protótipo mostrava <code>R-1048</code>, o próprio número da reserva, que é sequencial. Com nome e WhatsApp, fáceis de descobrir, alguém poderia retirar o pedido de outra pessoa. <b>Resolução:</b> <code>pickup_code</code> aleatório de 6 caracteres sem ambiguidade (sem 0/O, 1/I), único entre pedidos abertos. Corrigido na especificação (regra 17) e nas telas 07 e 19.</p></div>
+    <div class="finding"><span class="id">G16</span><h5>Faltavam cabeçalhos de segurança e política de conteúdo (CSP) <span class="sev med">Médio</span></h5>
+      <p><b>Resolução:</b> nos dois apps, HSTS, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code> (e <code>no-referrer</code> em <code>/r</code>), <code>Permissions-Policy</code> mínima e CSP com nonce, liberando só Mercado Pago (SDK e iframes do cartão) e Turnstile. O painel também recebe <code>frame-ancestors 'none'</code>. Para o cartão, usar os campos seguros do Mercado Pago (Card Payment Brick), em iframe, para ficar no PCI SAQ-A. Aplicado na seção 13.</p></div>
+    <div class="finding"><span class="id">G17</span><h5>Desempenho no celular: scripts de terceiros, consultas repetidas e cache <span class="sev med">Médio</span></h5>
+      <p><b>Resolução:</b> o SDK do Mercado Pago só carrega quando a cliente escolhe cartão, e o Turnstile só na tela de dados. O QR do PIX vem pronto do provedor, como imagem, sem biblioteca de QR. As consultas a cada 2 e 3 s param com a aba oculta e espaçam depois de 1 min. A fonte usa a do sistema, ou uma auto-hospedada com <code>next/font</code>. O service worker nunca guarda <code>/api</code> nem <code>/r</code>. Aplicado na seção 2b.</p></div>
+    <div class="finding"><span class="id">G18</span><h5>Testes: faltavam o relógio controlável e vários cenários <span class="sev med">Médio</span></h5>
+      <p>Os casos "14min59s" e "20min01s" não se testam com <code>now()</code> fixo. <b>Resolução:</b> toda função lê <code>app_now()</code>, que nos testes pode ser adiantado. Foram incluídos cenários de assinatura de webhook, contestação, IDOR, RLS para <code>anon</code>, vazão da fila, remetente LID e nono dígito, ponta a ponta no celular (Playwright), acessibilidade automática (axe) e ensaio de restauração de backup. Aplicado na seção 16.</p></div>
+    <div class="finding"><span class="id">G19</span><h5>Acessibilidade das telas <span class="sev med">Médio</span></h5>
+      <p>A revisão automática (axe) e a manual nas 23 telas encontraram: rosa de texto com contraste 2,99:1 em todas as telas (mínimo 4,5:1), foco quase invisível nos campos, botões +/− de 36 px, erros só num aviso que some em 2,2 s, filtro sem rótulo, tabelas sem acesso pelo teclado e cabeçalhos vazios. <b>Resolução:</b> corrigidos no protótipo (cor <code>--pink-ink</code>, foco visível, alvos de 44 px, aviso de 5 s ou mais, rótulos). Requisitos para a produção na seção 2b: erro junto do campo, cronômetro anunciado só aos 5 min e no fim, foco preservado ao atualizar a tela.</p></div>
+  </div>
+
+  <h3>Baixo</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">G20</span><h5>Onde ficam os contadores de limite <span class="sev aj">Baixo</span></h5>
+      <p>As Edge Functions não guardam estado entre chamadas. <b>Resolução:</b> tabela <code>rate_limits</code> no Postgres com função <code>hit_rate_limit(chave, janela, máximo)</code>. Para menos de 50 pessoas, não é preciso Redis. Aplicado na seção 4.</p></div>
+    <div class="finding"><span class="id">G21</span><h5>O worker era chamado a cada 10 s mesmo sem trabalho <span class="sev aj">Baixo</span></h5>
+      <p><b>Resolução:</b> a varredura SQL só chama o worker por <code>pg_net</code> quando há mensagem na fila, tolerância vencida ou pagamento a reconciliar. Aplicado na seção 12.</p></div>
+    <div class="finding"><span class="id">G22</span><h5>Pacote <code>domain</code> compartilhado entre Deno e Node <span class="sev aj">Baixo</span></h5>
+      <p>O mesmo TypeScript precisa rodar no Next.js (Node) e nas Edge Functions (Deno). <b>Resolução:</b> definir na F1 a importação (caminho relativo com extensão <code>.ts</code> e <code>deno.json</code>), sem dependências de runtime no pacote. Aplicado na seção 14.</p></div>
+    <div class="finding"><span class="id">G23</span><h5>Textos divergentes entre documentos e telas <span class="sev aj">Baixo</span></h5>
+      <p>Havia divergências entre documentos e telas: login com segundo fator no protótipo contra a decisão de não ter; aviso de "regra pendente" do frete, que já estava decidida; "saldos por SKU" com tamanho único; reserva <code>#0992</code> com sequência que começa em 1001; política sem Z-API, Turnstile e cookie de sessão; "24 páginas" (são 23: 00 a 22); "seletor de tamanho" e <code>meta-cloud.ts</code> na organização do código. <b>Resolução:</b> tudo corrigido.</p></div>
+    <div class="finding"><span class="id">G24</span><h5>Senha do admin: regras de composição em vez de comprimento <span class="sev aj">Baixo</span></h5>
+      <p><b>Resolução:</b> no mínimo 12 caracteres, sem exigir tipos de caractere, com checagem contra senhas vazadas (proteção do Supabase Auth) e bloqueio do nome da loja. Corrigido na tela 22.</p></div>
   </div>
 </section>
 
@@ -296,6 +369,9 @@ flowchart LR
   subgraph Loja
     ADM[Painel admin - Next.js]
   end
+  subgraph Vercel
+    BFF[repasse /api no mesmo domínio]
+  end
   subgraph Supabase
     API[api-public]
     AAPI[api-admin]
@@ -306,9 +382,9 @@ flowchart LR
     CRON[pg_cron]
   end
   PAY[Provedor de pagamento]
-  META[API de WhatsApp - Z-API ou Evolution]
-  WEB --> API --> DB
-  ADM --> AAPI --> DB
+  META[API de WhatsApp - Z-API]
+  WEB --> BFF --> API --> DB
+  ADM --> BFF --> AAPI --> DB
   API --> PAY
   API --> META
   PAY -- webhook --> WHP --> DB
@@ -330,10 +406,11 @@ flowchart LR
       <tr><td>Webhooks</td><td><code>webhook-payments</code>, <code>webhook-whatsapp</code></td><td>Verificam a assinatura, gravam o evento bruto (inbox idempotente) e processam.</td></tr>
       <tr><td>Worker</td><td>Edge Function <code>worker</code>, chamada pelo pg_cron via pg_net</td><td>Envio da outbox de WhatsApp, reconciliação de pagamentos, expirações que exigem consulta ao provedor.</td></tr>
       <tr><td>Jobs SQL</td><td>pg_cron (intervalos em segundos)</td><td>Varredura de expiração, lembrete de 5 min e vencimento de frete. Não dependem de HTTP.</td></tr>
+      <tr><td>Repasse <code>/api</code></td><td>Route handler do Next.js, na Vercel (região <code>gru1</code>)</td><td>O navegador só fala com <code>tshirtclub.pt</code> e <code>admin.tshirtclub.pt</code>. O repasse chama as Edge Functions no servidor com o segredo de repasse e o IP real da cliente. Os cookies de sessão são de primeira parte (G1). Não há regra de negócio aqui.</td></tr>
       <tr><td>Front</td><td>Next.js (App Router, React) + Tailwind, na Vercel</td><td>Dois apps: <code>web</code> (loja e área da cliente, mobile-first, PWA) e <code>admin</code> (painel). Nenhum dos dois acessa tabelas diretamente.</td></tr>
     </tbody>
   </table></div>
-  <div class="callout"><p><b>Por que o front não usa o cliente Supabase direto nas tabelas:</b> a cliente não tem login, então qualquer acesso anônimo às tabelas seria uma superfície de ataque. O RLS nega tudo para <code>anon</code> e <code>authenticated</code>, e todo acesso passa pelas Edge Functions.</p></div>
+  <div class="callout"><p><b>Por que o front não usa o cliente Supabase direto nas tabelas:</b> a cliente não tem login, então qualquer acesso anônimo às tabelas seria uma superfície de ataque. O RLS nega tudo para <code>anon</code> e <code>authenticated</code>, e todo acesso passa pelas Edge Functions, sempre pelo repasse do próprio domínio.</p></div>
 </section>
 
 <!-- 2b -->
@@ -350,8 +427,12 @@ flowchart LR
       <tr><td>Metas de desempenho</td><td>Em 4G e num Android intermediário: LCP &lt; 2,5 s, INP &lt; 200 ms, CLS &lt; 0,1. JavaScript inicial da loja abaixo de 150 KB comprimido. Medido no CI com Lighthouse.</td></tr>
       <tr><td>PIX no celular</td><td>Botão principal "Copiar código PIX", com instruções para colar no app do banco. QR code como segunda opção, para quem está no computador.</td></tr>
       <tr><td>PWA</td><td>Manifesto, ícones e service worker que guarda só a casca do app e as imagens. Preço, estoque e reserva vêm sempre da rede. Android: instalação pelo aviso do Chrome. iPhone: "Adicionar à Tela de Início" pelo menu Compartilhar, com um aviso na loja ensinando.</td></tr>
+      <tr><td>Scripts de terceiros</td><td>O SDK do Mercado Pago carrega só quando a cliente escolhe cartão. O Turnstile carrega só na tela de dados. O QR do PIX vem do provedor como imagem (<code>qr_code_base64</code>), sem biblioteca de QR na loja.</td></tr>
+      <tr><td>Consultas repetidas</td><td>A tentativa (2 s) e o pagamento (3 s) são consultados só com a aba visível (<code>visibilitychange</code>). Depois de 1 min, o intervalo cresce até 10 s. Cada resposta traz <code>server_now</code>.</td></tr>
+      <tr><td>Fontes e cache</td><td>Fonte do sistema, ou uma fonte auto-hospedada com <code>next/font</code> (sem ir ao Google no carregamento). O service worker nunca guarda <code>/api</code>, <code>/r</code> nem páginas com dados da cliente.</td></tr>
+      <tr><td>Acessibilidade</td><td>WCAG 2.2 AA. Texto com contraste de pelo menos 4,5:1 (o rosa da marca em texto usa <code>--pink-ink #C2185B</code>). Foco sempre visível. Erros escritos junto do campo (<code>aria-describedby</code>), e não só num aviso que some. O código de 6 dígitos fica num campo só, com <code>autocomplete="one-time-code"</code>, e aceita colar. O cronômetro não é lido a cada segundo: um aviso <code>aria-live</code> fala aos 5 min e no fim. Atualizar a tela não tira o foco do botão tocado. Animações respeitam <code>prefers-reduced-motion</code>. Verificado no CI com axe.</td></tr>
       <tr><td>Notificações</td><td>Continuam pelo WhatsApp. Notificação push do navegador fica fora do MVP; no iPhone ela só funciona com o app adicionado à tela inicial.</td></tr>
-      <tr><td>Picos de acesso</td><td>Volume informado: menos de 50 pessoas ao mesmo tempo em lançamentos. O teste de carga simula 100 (margem de 2×), com várias clientes disputando a última peça. Pool de conexões do Supabase (modo transação) e limite de requisições por IP nas rotas de reserva e código. Para esse volume, os planos de entrada do Supabase e da Vercel devem bastar; confirmo os limites de cada plano antes de contratar.</td></tr>
+      <tr><td>Picos de acesso</td><td>Volume informado: menos de 50 pessoas ao mesmo tempo em lançamentos. O teste de carga simula 100 (margem de 2×), com várias clientes disputando a última peça. Pool de conexões do Supabase (modo transação) e limites por telefone e por tentativa nas rotas de reserva e código. O limite por IP é alto por causa do CGNAT das operadoras (G11). Planos: Supabase Pro e Vercel Pro, porque o gratuito do Supabase pausa sem uso e o Hobby da Vercel não permite uso comercial (G10).</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -383,7 +464,7 @@ stateDiagram-v2
       <tr><td>T2</td><td><span class="st res">RESERVADO</span> → <span class="st pag">PAGAMENTO_CONFIRMADO</span></td><td><code>PagamentoAprovado</code><br>provedor (verificado na API)</td><td>Pagamento da reserva com finalidade PRODUTOS · valor igual ao total · <code>approved_at ≤ prazo efetivo</code> · pagamento ainda não aplicado</td><td><code>qty_reserved −= q; qty_sold += q</code> · pagamento aplicado · cancelamento pendente → PREJUDICADA · cria o registro de entrega em <code>AGUARDANDO_MODALIDADE</code> · outbox · auditoria</td></tr>
       <tr><td>T3</td><td><span class="st res">RESERVADO</span> → <span class="st exp">EXPIRADO</span></td><td><code>PrazoEsgotado</code><br>sistema (job)</td><td><code>now() ≥ expires_at</code> sem tentativa pendente anterior ao prazo, <b>ou</b> <code>now() ≥ grace_until</code> depois da consulta ao provedor</td><td><code>qty_reserved −= q</code> · <code>closure_reason = PRAZO_ESGOTADO</code> · cancela cobranças pendentes · cancelamento pendente → PREJUDICADA · avalia o bloqueio por abuso · outbox · auditoria</td></tr>
       <tr><td>T4</td><td><span class="st res">RESERVADO</span> → <span class="st exp">EXPIRADO</span></td><td><code>CancelamentoAprovado</code><br>admin</td><td>Solicitação PENDENTE · reserva ainda RESERVADO · dentro do prazo efetivo · motivo preenchido</td><td>Libera o estoque · <code>closure_reason = CANCELAMENTO_APROVADO</code> · cancela cobranças pendentes · outbox · auditoria</td></tr>
-      <tr><td>T5</td><td><span class="st pag">PAGAMENTO_CONFIRMADO</span> → <span class="st ent">ENTREGUE</span></td><td><code>MarcarEntregue</code><br>admin</td><td>Substatus em <code>PRONTO_PARA_RETIRADA</code>, <code>SAIU_PARA_ENTREGA</code> ou <code>ENVIADO</code> · frete pago quando exigido</td><td><code>delivered_at</code>, <code>delivered_by</code> · outbox <code>pedido_entregue</code> · auditoria</td></tr>
+      <tr><td>T5</td><td><span class="st pag">PAGAMENTO_CONFIRMADO</span> → <span class="st ent">ENTREGUE</span></td><td><code>MarcarEntregue</code><br>admin</td><td>Substatus em <code>PRONTO_PARA_RETIRADA</code>, <code>SAIU_PARA_ENTREGA</code> ou <code>ENVIADO</code> · frete pago quando exigido · nenhuma disputa de pagamento aberta (G2)</td><td><code>delivered_at</code>, <code>delivered_by</code> · outbox <code>pedido_entregue</code> · auditoria</td></tr>
     </tbody>
   </table></div>
   <p><b>Proibidas</b> (o gatilho <code>trg_reservation_transition_guard</code> rejeita com erro): qualquer saída de EXPIRADO ou ENTREGUE, PAGAMENTO_CONFIRMADO → EXPIRADO/RESERVADO, e qualquer mudança do número da reserva.</p>
@@ -435,7 +516,7 @@ fulfillment_substatus AGUARDANDO_MODALIDADE | AGUARDANDO_CALCULO_FRETE | AGUARDA
 payment_purpose      PRODUTOS | FRETE
 payment_method       a forma única escolhida em D3
 payment_status       CRIADO | PENDENTE | APROVADO | RECUSADO | CANCELADO | FALHOU | EM_ANALISE | ESTORNADO
-review_reason        APROVADO_APOS_TOLERANCIA | RESERVA_ENCERRADA
+review_reason        APROVADO_APOS_TOLERANCIA | RESERVA_ENCERRADA | VALOR_DIVERGENTE
 cancel_status        PENDENTE | APROVADA | RECUSADA | PREJUDICADA
 otp_purpose          RESERVA | CONSULTA
 stock_movement_kind  ENTRADA | AJUSTE | RESERVA | LIBERACAO | VENDA
@@ -462,7 +543,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
       <tr><td><code>otp_codes</code></td><td>id, session_id, <b>code_hash</b> (HMAC-SHA256 com pepper), expires_at (+5 min), attempts_used (máx. 2), status, wa_message_id</td><td>O código nunca é gravado em texto puro. Emitir um código novo invalida o anterior.</td></tr>
       <tr><td><code>phone_blocks</code></td><td>id, customer_id, status (ATIVO, LIBERADO), trigger_reservations uuid[], created_at, released_at, released_by, release_reason</td><td>Índice único parcial: um bloqueio ATIVO por cliente.</td></tr>
       <tr><td><code>phone_block_decisions</code></td><td>id, block_id, decision (LIBERAR, MANTER), reason, admin_id, created_at</td><td>"Manter bloqueado" também fica registrado.</td></tr>
-      <tr><td><code>customer_sessions</code></td><td>id, phone_e164, token_hash, scope (TELEFONE ou RESERVA:id), expires_at, revoked_at</td><td>Criada depois de um OTP ou de um link assinado. Cookie httpOnly.</td></tr>
+      <tr><td><code>customer_sessions</code></td><td>id, phone_e164, token_hash, scope (TELEFONE ou RESERVA:id), expires_at, revoked_at</td><td>Criada depois de um OTP (escopo TELEFONE) ou ao abrir o link da reserva (escopo RESERVA:id, G6). Cookie <code>__Host-sessao</code>, de primeira parte (G1).</td></tr>
     </tbody>
   </table></div>
 
@@ -470,8 +551,8 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   <div class="tbl"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
-      <tr><td><code>reservation_attempts</code></td><td>id, customer_name, phone_e164, delivery_intent, items jsonb, expected_total_cents, otp_session_id, status (AGUARDANDO_VALIDACAO, VERIFICADA, CONVERTIDA, FALHOU_ESTOQUE, ABANDONADA), reservation_id, ip_hash</td><td>É o "Selecionado" do lado do servidor. Serve de chave de idempotência da criação.</td></tr>
-      <tr><td><code>reservations</code></td><td>id, <b>number</b> (sequence, começa em 1001), <b>access_key</b> (aleatória, única), payment_method (fixada na primeira cobrança), coupon_code, customer_id, phone_e164, customer_name, <b>status</b>, closure_reason, delivery_intent, subtotal_cents, discount_cents, total_cents, <b>created_at, expires_at, grace_until</b>, reminder_enqueued_at, payment_confirmed_at, expired_at, delivered_at, delivered_by, attempt_id</td><td><code>UNIQUE (customer_id) WHERE status = 'RESERVADO'</code> garante 1 ativa por telefone no banco.<br><code>CHECK ((status = 'EXPIRADO') = (closure_reason IS NOT NULL))</code></td></tr>
+      <tr><td><code>reservation_attempts</code></td><td>id, customer_name, phone_e164, delivery_intent, items jsonb, expected_total_cents, otp_session_id, status (AGUARDANDO_VALIDACAO, VERIFICADA, CONVERTIDA, FALHOU_ESTOQUE, ABANDONADA), reservation_id, ip_hash, <b>browser_token_hash</b></td><td>É o "Selecionado" do lado do servidor. Serve de chave de idempotência da criação. Só o navegador com o cookie <code>__Host-tentativa</code> consulta, confirma ou troca itens (G12).</td></tr>
+      <tr><td><code>reservations</code></td><td>id, <b>number</b> (sequence, começa em 1001), <b>access_key_hash</b> (sha256 da chave aleatória, único; a chave em si não fica no banco, G6), payment_method (fixada na primeira cobrança), coupon_code, customer_id, phone_e164, customer_name, <b>status</b>, closure_reason, delivery_intent, subtotal_cents, discount_cents, total_cents, <b>created_at, expires_at, grace_until</b>, reminder_enqueued_at, payment_confirmed_at, expired_at, delivered_at, delivered_by, attempt_id</td><td><code>UNIQUE (customer_id) WHERE status = 'RESERVADO'</code> garante 1 ativa por telefone no banco.<br><code>CHECK ((status = 'EXPIRADO') = (closure_reason IS NOT NULL))</code></td></tr>
       <tr><td><code>reservation_items</code></td><td>id, reservation_id, product_id, name_snapshot, <b>list_price_cents, unit_price_cents</b>, qty, discounts jsonb</td><td><code>CHECK (qty BETWEEN 1 AND 2)</code>. Preço de tabela, preço final e descontos ficam congelados.</td></tr>
       <tr><td><code>reservation_transitions</code></td><td>id, reservation_id, from_status, to_status, event, actor_type, actor_id, reason, created_at</td><td>Preenchida pelo gatilho guardião. É a linha do tempo do detalhe admin.</td></tr>
       <tr><td><code>cancellation_requests</code></td><td>id, reservation_id, status, customer_note, requested_at, decided_at, decided_by, decision_reason</td><td>Único parcial: uma PENDENTE por reserva.</td></tr>
@@ -485,13 +566,15 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
       <tr><td><code>payments</code></td><td>id, reservation_id, purpose, shipping_quote_id, provider, method, <b>idempotency_key</b>, <b>provider_payment_id</b>, amount_cents, status, provider_status, <b>created_at</b>, approved_at, pix_qr, pix_expires_at, <b>applied</b>, review_reason</td><td><code>UNIQUE (provider, provider_payment_id)</code> · <code>UNIQUE (idempotency_key)</code> · <code>UNIQUE (reservation_id, purpose) WHERE applied</code>: só um pagamento efetivo por finalidade · <code>UNIQUE (reservation_id, purpose) WHERE status IN ('CRIADO','PENDENTE')</code>: uma cobrança em curso. A forma da primeira cobrança fica gravada na reserva (<code>reservations.payment_method</code>); nova tentativa só pela mesma forma, e só depois que a anterior foi recusada ou cancelada.</td></tr>
       <tr><td><code>payment_events</code></td><td>id, provider, provider_event_id, payment_ref, payload jsonb, signature_ok, received_at, processed_at, error</td><td>Inbox de webhooks. <code>UNIQUE (provider, provider_event_id)</code>: um reenvio vira no-op.</td></tr>
       <tr><td><code>payment_reviews</code></td><td>id, payment_id, reservation_id, reason, status (ABERTA, RESOLVIDA), resolution (ESTORNAR, CONVERTER_EM_PEDIDO), new_reservation_id, decided_by, note</td><td>Fila de análise administrativa (D6).</td></tr>
-      <tr><td><code>fulfillments</code></td><td>reservation_id (PK), mode, substatus, address jsonb, pickup_code, tracking_code, confirmed_at, updated_at</td><td>Endereço só quando a modalidade exige (LGPD).</td></tr>
+      <tr><td><code>payment_disputes</code></td><td>id, payment_id, reservation_id, kind (ESTORNO, CONTESTACAO, CANCELAMENTO), provider_status, status (ABERTA, RESOLVIDA), opened_at, resolved_at, resolved_by, note</td><td>Pagamento já aplicado que voltou (G2). Alerta no painel. Enquanto houver uma ABERTA, T5 é recusado.</td></tr>
+      <tr><td><code>fulfillments</code></td><td>reservation_id (PK), mode, substatus, address jsonb, pickup_code, tracking_code, confirmed_at, updated_at</td><td>Endereço só quando a modalidade exige (LGPD). <code>pickup_code</code> aleatório de 6 caracteres sem ambiguidade, único entre pedidos abertos, nunca derivado do número (G15).</td></tr>
       <tr><td><code>shipping_quotes</code></td><td>id, reservation_id, mode, amount_cents, calculated_by, calculated_at, <b>pay_until</b> (+2 h), status (AGUARDANDO_PAGAMENTO, PAGO, VENCIDO, SUBSTITUIDO)</td><td>Uma cotação ativa por pedido.</td></tr>
-      <tr><td><code>outbox_messages</code></td><td>id, <b>dedupe_key</b> (único), phone_e164, template, params jsonb, status, attempts, next_attempt_at, provider_message_id, last_error, created_at, sent_at, delivered_at</td><td>Gravada na mesma transação da mudança de estado. Nenhuma notificação se perde ou duplica.</td></tr>
-      <tr><td><code>whatsapp_inbound</code></td><td>id, wa_message_id (único), from_wa_id, text, received_at, handled_as</td><td>Idempotência do webhook de entrada.</td></tr>
+      <tr><td><code>outbox_messages</code></td><td>id, <b>dedupe_key</b> (único), phone_e164, template, params jsonb, <b>priority</b> (1 ou 2), <b>valid_until</b>, status, attempts, next_attempt_at, provider_message_id, last_error, created_at, sent_at, delivered_at</td><td>Gravada na mesma transação da mudança de estado. Nenhuma notificação se perde ou duplica. Sai por prioridade; passada a validade, ou se a reserva já mudou de estado, é descartada com registro (G5).</td></tr>
+      <tr><td><code>whatsapp_inbound</code></td><td>id, wa_message_id (único), from_wa_id, text, received_at, handled_as</td><td>Idempotência do webhook de entrada. O texto é apagado em 90 dias (G9).</td></tr>
       <tr><td><code>admin_users</code></td><td>id (auth.users), name, active</td><td>Todos com as mesmas permissões no MVP.</td></tr>
-      <tr><td><code>audit_log</code></td><td>id bigserial, occurred_at, actor_type, actor_id, action, entity_type, entity_id, reservation_id, data jsonb, ip_hash</td><td>Gatilho bloqueia <code>UPDATE</code> e <code>DELETE</code>. Sobrevive a zeragens de contador.</td></tr>
-      <tr><td><code>app_settings</code></td><td>key, value jsonb</td><td>15 min, 5 min, 9 peças, 2 por produto, 3/30 d, 2 h, limite de "últimas unidades", notificações opcionais ligadas. Nada fica fixo no código.</td></tr>
+      <tr><td><code>audit_log</code></td><td>id bigserial, occurred_at, actor_type, actor_id, action, entity_type, entity_id, reservation_id, data jsonb, ip_hash</td><td>Gatilho bloqueia <code>UPDATE</code> e <code>DELETE</code>. Sobrevive a zeragens de contador. Referencia a cliente por <code>customer_id</code>; nome, telefone e endereço não entram em <code>data</code> (G9).</td></tr>
+      <tr><td><code>rate_limits</code></td><td>key, window_start, hits</td><td>Contadores de limite (telefone, tentativa, remetente, IP) usados por <code>hit_rate_limit()</code>. Linhas antigas apagadas a cada hora (G20).</td></tr>
+      <tr><td><code>app_settings</code></td><td>key, value jsonb</td><td>15 min, 5 min, 9 peças, 2 por produto, 3/30 d, 2 h, limite de "últimas unidades", notificações opcionais ligadas, ritmo da fila e modo lançamento, prazos de guarda. Nada fica fixo no código. Toda função lê a hora por <code>app_now()</code>, que os testes podem adiantar (G18).</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -540,10 +623,12 @@ sequenceDiagram
   participant A as api-public
   participant DB as PostgreSQL
   participant W as WhatsApp
-  C->>A: POST /v1/reservation-attempts (itens, nome, telefone)
+  C->>A: POST /v1/reservation-attempts (itens, nome, telefone, Turnstile)
   A->>DB: valida regras e pré-checa bloqueio, reserva ativa e estoque
-  A->>DB: cria tentativa + sessão OTP
-  A->>W: mensagem com o código (ou verificação invertida, W3)
+  A->>DB: cria tentativa + sessão OTP + referência curta
+  A-->>C: referência e link wa.me (cookie da tentativa)
+  C->>W: cliente envia "Quero meu código (ref. K7Q2)"
+  W->>A: webhook-whatsapp: confere remetente e responde com o código
   C->>A: POST /v1/reservation-attempts/:id/confirm (código)
   A->>DB: verify_otp() e create_reservation() na mesma transação
   Note over DB: trava cliente, trava produtos em ordem,<br/>confere tudo, reserva, grava outbox e auditoria
@@ -612,7 +697,7 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
 
   <ul>
     <li><b>Prazo efetivo</b>, em uma função só, usada por todos: <code>effective_deadline(r) = COALESCE(r.grace_until, r.expires_at)</code>.</li>
-    <li><b>PIX com prazo alinhado:</b> a cobrança é criada com expiração em <code>expires_at + 5 min</code> quando o provedor aceita expiração curta. Se não aceitar, o worker cancela via API no fim da tolerância. Assim o banco da cliente recusa o pagamento tardio, e a análise manual fica rara.</li>
+    <li><b>PIX com prazo alinhado:</b> o Mercado Pago indica expiração mínima de 30 min para o PIX, então a cobrança nasce com 30 min, e o worker sempre a cancela via API (<code>status = cancelled</code>) em <code>grace_until</code>, ou no fim dos 15 min se ela não iniciou tolerância. Assim o banco da cliente recusa o pagamento tardio. Se o pagamento cair no meio do cancelamento, vai para análise (G14). Confirmar o mínimo no ambiente de teste.</li>
     <li><b>Lembrete de 5 min:</b> quando <code>now() ≥ expires_at − 5 min</code>, a reserva está RESERVADO e o lembrete ainda não foi enfileirado, entra na outbox com <code>dedupe_key = 'lembrete:' || id</code>.</li>
     <li><b>Folga do job:</b> a varredura roda a cada 10 s. No pior caso, o estoque fica preso até 10 s além do prazo, mas toda operação de escrita já trata <code>now() ≥ prazo efetivo</code> como vencida (<code>start_payment</code> recusa, <code>create_reservation</code> libera antes).</li>
     <li><b>Rede de segurança:</b> se o worker HTTP cair, a varredura SQL expira sozinha qualquer reserva com <code>now() ≥ grace_until + 2 min</code>. O estoque nunca fica preso indefinidamente. Uma aprovação tardia cai em análise.</li>
@@ -627,7 +712,7 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
   <h3>Ferramenta não oficial: como reduzir o risco de banimento</h3>
   <ul>
     <li><b>Verificação invertida (W3):</b> a cliente manda a primeira mensagem. O sistema quase só responde conversas abertas por ela.</li>
-    <li><b>Ritmo humano:</b> a fila da outbox envia uma mensagem por vez, com intervalo aleatório de alguns segundos e limite por minuto e por hora. Nunca dispara em massa.</li>
+    <li><b>Ritmo humano, com prioridade:</b> a fila da outbox envia uma mensagem por vez, com intervalo aleatório e teto por hora. Prioridade 1 (reserva criada, lembrete, pagamento confirmado, expiração) sai antes da 2. O lembrete tem validade e é descartado se não fizer mais sentido. No "modo lançamento", ligado no painel, o intervalo cai para 2 a 4 s e o teto sobe para 600 por hora; fora dele, 4 a 9 s e 120 por hora (G5).</li>
     <li><b>Sem link encurtado e texto variado:</b> cada template tem 2 ou 3 variações de texto, sorteadas. O link é o domínio da loja.</li>
     <li><b>Monitor da conexão:</b> o worker consulta o status da sessão a cada minuto. Se cair, alerta no painel com o QR code para reconectar, e as mensagens esperam na fila. Nada se perde.</li>
     <li><b>Plano B pronto:</b> a interface <code>WhatsAppProvider</code> tem as implementações não oficial, oficial (Cloud API) e falsa (testes). Mudar é trocar uma configuração.</li>
@@ -638,7 +723,7 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
   <ol>
     <li>Ao informar nome e WhatsApp, o servidor cria a tentativa com uma <b>referência curta</b> (ex.: <code>K7Q2</code>), única entre as tentativas abertas.</li>
     <li>O site mostra o botão "Receber código no WhatsApp": link <code>https://wa.me/5577998155772?text=Quero meu código da reserva (ref. K7Q2)</code>. Na consulta, o texto é "Quero consultar minhas reservas (ref. …)".</li>
-    <li>O webhook da Z-API recebe a mensagem, acha a tentativa pela referência e confere se o remetente é o telefone informado (com e sem o nono dígito). Número diferente recebe "Este número não é o da reserva" e nenhum código.</li>
+    <li>O webhook da Z-API recebe a mensagem, acha a tentativa pela referência e confere se o remetente é o telefone informado (com e sem o nono dígito). Número diferente recebe "Este número não é o da reserva" e nenhum código. Remetente sem telefone no evento (identificador LID) não recebe código (G4).</li>
     <li>O sistema responde na mesma conversa: "Seu código de verificação é 482193…", com botão "Copiar código" quando a Z-API conseguir enviá-lo; se não, só o texto.</li>
     <li>O site acompanha a tentativa (consulta a cada 2 s) e mostra o campo do código assim que ele é enviado. A cliente digita e segue o fluxo normal.</li>
     <li>"Pedir novo código" é enviar a mensagem de novo. Cada novo envio conta como reenvio.</li>
@@ -651,7 +736,7 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
     <dt>reenvios</dt><dd>2 novos códigos por sessão (até 3 códigos), pedidos pela cliente reenviando a mensagem. Intervalo mínimo de 30 s entre códigos</dd>
     <dt>bloqueio</dt><dd>30 min por telefone, para as duas finalidades, conforme D10</dd>
     <dt>janela</dt><dd>A sessão OTP dura até ser verificada ou até 30 min de inatividade. Recomeçar o fluxo reaproveita a sessão e os contadores</dd>
-    <dt>anti-abuso</dt><dd>Turnstile no primeiro envio · no máximo 5 telefones distintos por IP por hora · no máximo 10 envios por IP por hora</dd>
+    <dt>anti-abuso</dt><dd>Turnstile ao criar a tentativa · limites por telefone (os da D10) e por tentativa · no webhook, até 20 mensagens por remetente em 10 min · por IP, só um teto alto (60 tentativas por hora), por causa do CGNAT das operadoras (G11)</dd>
     <dt>comparação</dt><dd>Em tempo constante. A resposta de erro diz quantas tentativas restam, mas não revela se o telefone existe</dd>
   </dl>
 
@@ -666,14 +751,19 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
 
   <h3>Entrada: "Minha reserva"</h3>
   <ol>
-    <li>O webhook confere o token secreto configurado na ferramenta (cabeçalho ou parâmetro) e deduplica por <code>wa_message_id</code>.</li>
+    <li>O webhook só existe numa URL com segmento secreto de 32+ caracteres (<code>/webhooks/whatsapp/&lt;segredo&gt;</code>), comparado em tempo constante e trocável sem deploy. Deduplica por <code>wa_message_id</code>. Descarta <code>fromMe</code> (a equipe respondendo pelo celular), grupos, status, canais e mensagens com mais de 10 min (G4).</li>
     <li>Normaliza o texto (minúsculas, sem acento). Aceita "minha reserva", "minhas reservas" e "status".</li>
     <li>Resolve o telefone a partir do <code>wa_id</code>, nas formas com e sem o nono dígito (R17).</li>
     <li>Responde na mesma conversa: número, estado, itens resumidos e tempo restante ou substatus. Sem novo código, conforme a regra 22.</li>
   </ol>
 
   <h3>Link na mensagem de reserva criada</h3>
-  <p><code>https://loja/r/&lt;chave&gt;</code>: chave aleatória de 16 caracteres (cerca de 95 bits, gerada por CSPRNG) guardada em <code>reservations.access_key</code>, única. O link mostra só aquela reserva, com o telefone mascarado. Para ver as outras reservas do mesmo telefone, a cliente usa a consulta com código.</p>
+  <p><code>https://tshirtclub.pt/r#&lt;chave&gt;</code>: chave aleatória de 22 caracteres base62 (cerca de 130 bits, gerada por CSPRNG). O banco guarda só <code>sha256(chave)</code> em <code>reservations.access_key_hash</code>. A chave fica depois do <code>#</code>, então não chega ao servidor na abertura da página, não aparece nos logs e não é lida pelo robô de pré-visualização do WhatsApp. A página lê a chave e a envia no corpo de <code>POST /api/v1/r</code> (G6).</p>
+  <ul>
+    <li><b>O que o link permite:</b> abre uma sessão limitada àquela reserva (escopo <code>RESERVA:id</code>). Dá para ver o andamento, pagar, pedir cancelamento e confirmar ou mudar a entrega. Para ver as outras reservas do mesmo telefone, a cliente usa a consulta com código.</li>
+    <li><b>O que o link não mostra:</b> telefone completo (sempre mascarado) e endereço completo (depois de enviado, só bairro e cidade). Passados 30 dias do estado final, mostra só número e estado.</li>
+    <li><b>Respostas:</b> <code>Cache-Control: no-store</code>, <code>Referrer-Policy: no-referrer</code>, <code>X-Robots-Tag: noindex</code> e limite por IP contra tentativa e erro.</li>
+  </ul>
 </section>
 
 <!-- 8 -->
@@ -694,10 +784,12 @@ sequenceDiagram
   A->>P: cria cobrança com chave de idempotência igual ao id da tentativa
   P-->>A: id da transação e QR PIX
   A->>DB: tentativa PENDENTE
-  P->>H: webhook assinado
+  P->>H: webhook com x-signature
+  H->>H: valida HMAC e janela de 5 min
   H->>DB: grava evento, único por provedor e id
-  H->>P: GET pagamento (fonte da verdade)
-  H->>DB: apply_payment_result()
+  H-->>P: 200
+  H->>P: GET pagamento (fonte da verdade), fora da requisição
+  H->>DB: confere referência, valor, moeda e conta, depois apply_payment_result()
   Note over DB: trava reserva, pagamento e produtos<br/>reservado vira vendido uma única vez
 </pre>
 
@@ -711,19 +803,24 @@ sequenceDiagram
   </ol>
 
   <h3>Decisão em <code>apply_payment_result(payment_id, status, approved_at, amount)</code></h3>
-<pre>se status ≠ APROVADO             → atualiza tentativa (RECUSADO/CANCELADO); se houver tempo, cliente tenta de novo
+<pre>se referência, moeda ou conta não conferem → descarta, registra e alerta (nunca aplica)
+se payment.applied e status ∈ {ESTORNADO, CONTESTADO, CANCELADO} → abre payment_disputes (G2)
+se status ≠ APROVADO             → atualiza tentativa (RECUSADO/CANCELADO); se houver tempo, cliente tenta de novo
 se payment.applied              → ALREADY_APPLIED (no-op)
+se valor ≠ total da cobrança    → EM_ANALISE (VALOR_DIVERGENTE), nunca confirma
 se reserva = EXPIRADO           → EM_ANALISE (RESERVA_ENCERRADA)
 se approved_at > prazo efetivo  → expira a reserva agora + EM_ANALISE (APROVADO_APOS_TOLERANCIA)
 senão                            → T2: RESERVADO → PAGAMENTO_CONFIRMADO, reservado → vendido</pre>
 
   <ul>
-    <li><b>Nunca confiar no corpo do webhook:</b> o webhook só avisa que algo mudou. O status real vem de uma consulta à API do provedor com a credencial da loja.</li>
-    <li><b>Webhook que falha no processamento</b> responde <code>500</code> para o provedor reenviar. A reconciliação (seção 12) cobre o caso em que ele desiste.</li>
+    <li><b>Assinatura:</b> o webhook valida <code>x-signature</code> (<code>ts</code> e <code>v1</code>): HMAC-SHA256, com a chave secreta do webhook, do manifesto <code>id:&lt;data.id&gt;;request-id:&lt;x-request-id&gt;;ts:&lt;ts&gt;;</code>, comparado em tempo constante. <code>ts</code> com mais de 5 min é recusado. Só o tópico <code>payment</code> (e <code>chargebacks</code>) é aceito; IPN antigo fica desligado (G3).</li>
+    <li><b>Nunca confiar no corpo do webhook:</b> o webhook só avisa que algo mudou. O status real vem de uma consulta à API do provedor com a credencial da loja. Confere <code>external_reference</code> (id da nossa tentativa), valor, moeda BRL e conta recebedora.</li>
+    <li><b>Resposta:</b> depois de validar e gravar na inbox, responde <code>200</code> e processa fora da requisição. Assinatura inválida responde <code>401</code>, e erro ao gravar responde <code>500</code> para o provedor reenviar. A reconciliação (seção 12) cobre o caso em que ele desiste.</li>
     <li><b>Valor:</b> a cobrança é criada pelo servidor com o total congelado. A cliente não digita valor.</li>
-    <li><b>Se a forma for cartão:</b> tokenizado no navegador pelo SDK do provedor (PCI SAQ-A). O servidor nunca vê o número. Modo binário quando existir.</li>
+    <li><b>Se a forma for cartão:</b> campos seguros do Mercado Pago (Card Payment Brick, em iframe), o que mantém a loja no PCI SAQ-A. O servidor recebe só o token e nunca vê o número. <code>binary_mode: true</code> (aprova ou recusa na hora). O SDK só carrega quando a cliente escolhe cartão.</li>
     <li><b>Frete</b> usa o mesmo fluxo, com <code>purpose = FRETE</code> e vínculo com <code>shipping_quote_id</code>. Não afeta o estado oficial, só o substatus.</li>
     <li><b>Estorno</b> (análise): chamada à API de reembolso do provedor. Fica registrado em <code>payments.status = ESTORNADO</code> e na auditoria.</li>
+    <li><b>Estorno ou contestação depois de confirmado</b> (G2): vira <code>payment_disputes</code> ABERTA, com alerta no painel. O estado oficial não muda, mas o pedido não pode ser marcado como Entregue até a loja resolver.</li>
   </ul>
 </section>
 
@@ -762,6 +859,7 @@ END IF;</pre>
       <tr><td><code>LembreteExpiracao</code></td><td>job</td><td><code>reserva_lembrete_5min</code></td><td>Sempre</td></tr>
       <tr><td><code>TentativaPagamentoRegistrada</code> / <code>ToleranciaIniciada</code></td><td>API / job</td><td>(sem mensagem; só auditoria)</td><td>—</td></tr>
       <tr><td><code>PagamentoConfirmado</code></td><td>T2</td><td><code>pagamento_confirmado</code> (pede a confirmação da modalidade)</td><td>Sempre</td></tr>
+      <tr><td><code>PagamentoContestado</code></td><td>webhook</td><td>(alerta no painel; sem mensagem)</td><td>—</td></tr>
       <tr><td><code>PagamentoEmAnalise</code></td><td>webhook</td><td><code>pagamento_em_analise</code></td><td>Opcional (liga/desliga)</td></tr>
       <tr><td><code>ReservaExpirada</code></td><td>T3</td><td><code>reserva_expirada</code></td><td>Sempre</td></tr>
       <tr><td><code>CancelamentoSolicitado</code></td><td>cliente</td><td><code>cancelamento_recebido</code></td><td>Opcional (liga/desliga)</td></tr>
@@ -780,7 +878,7 @@ END IF;</pre>
 <section id="api">
   <p class="secnum">11</p>
   <h2>Endpoints</h2>
-  <p class="sub">JSON, versão <code>/v1</code>. Os erros seguem o formato <code>{ "error": { "code": "STOCK_UNAVAILABLE", "message": "...", "details": {...} } }</code>, com um código estável que o front traduz para a mensagem da cliente.</p>
+  <p class="sub">JSON, versão <code>/v1</code>, sempre chamada pelo navegador em <code>/api/v1/...</code> do próprio domínio (G1). Os erros seguem o formato <code>{ "error": { "code": "STOCK_UNAVAILABLE", "message": "...", "details": {...} } }</code>, com um código estável que o front traduz para a mensagem da cliente.</p>
 
   <h3>Público (sem sessão)</h3>
   <div class="tbl"><table>
@@ -789,12 +887,12 @@ END IF;</pre>
       <tr><td><code>GET /v1/catalog/collections</code></td><td>Coleções ativas</td><td>—</td></tr>
       <tr><td><code>GET /v1/catalog/products?collection=&amp;availability=</code></td><td>Produtos, preço de tabela, preço promocional vigente e disponibilidade</td><td>—</td></tr>
       <tr><td><code>POST /v1/cart/quote</code></td><td><code>{items, coupon_code?}</code>: valida as regras 9 / 2 por produto e calcula promoções e cupom. Não reserva nada</td><td><code>MAX_ITEMS</code>, <code>MAX_PER_MODEL</code>, <code>INSUFFICIENT_STOCK</code></td></tr>
-      <tr><td><code>POST /v1/reservation-attempts</code></td><td>Nome, telefone, intenção de entrega, itens, total esperado e Turnstile. Cria a tentativa e envia o código</td><td><code>PHONE_BLOCKED</code>, <code>ACTIVE_RESERVATION_EXISTS</code>, <code>OTP_LOCKED</code>, <code>NO_WHATSAPP</code>, <code>RATE_LIMITED</code></td></tr>
-      <tr><td><code>POST /v1/otp-sessions/:id/resend</code></td><td>Reenvia o código</td><td><code>RESEND_LIMIT</code> (dispara o bloqueio), <code>RESEND_TOO_SOON</code></td></tr>
+      <tr><td><code>POST /v1/reservation-attempts</code></td><td>Nome, telefone, intenção de entrega, itens, total esperado e Turnstile. Cria a tentativa, devolve a referência curta e o link <code>wa.me</code> e grava o cookie da tentativa. Não envia mensagem: o código sai quando a cliente escreve (W3)</td><td><code>PHONE_BLOCKED</code>, <code>ACTIVE_RESERVATION_EXISTS</code>, <code>OTP_LOCKED</code>, <code>WHATSAPP_OFFLINE</code>, <code>RATE_LIMITED</code></td></tr>
+      <tr><td><code>GET /v1/reservation-attempts/:id</code></td><td>Situação da tentativa, consultada pela tela: aguardando mensagem, código enviado (com validade e tentativas restantes), bloqueada. Exige o cookie da tentativa (G12)</td><td><code>NOT_FOUND</code></td></tr>
       <tr><td><code>POST /v1/reservation-attempts/:id/confirm</code></td><td>Código (ou sessão já verificada) → <code>create_reservation</code>. Devolve a reserva e o cookie de sessão</td><td><code>OTP_INVALID</code> (restantes), <code>OTP_EXPIRED</code>, <code>OTP_LOCKED</code>, <code>STOCK_UNAVAILABLE</code> (itens), <code>PRICE_CHANGED</code></td></tr>
       <tr><td><code>PUT /v1/reservation-attempts/:id/items</code></td><td>Ajusta os itens depois de um <code>STOCK_UNAVAILABLE</code> sem novo código (R8)</td><td><code>ATTEMPT_NOT_VERIFIED</code></td></tr>
-      <tr><td><code>POST /v1/lookup/otp</code> · <code>POST /v1/lookup/verify</code></td><td>Consulta pelo site com código</td><td>Mesmos erros de OTP</td></tr>
-      <tr><td><code>GET /v1/r/:chave</code></td><td>Reserva aberta pelo link do WhatsApp (só aquela reserva, telefone mascarado)</td><td><code>NOT_FOUND</code></td></tr>
+      <tr><td><code>POST /v1/lookup-attempts</code> · <code>GET .../:id</code> · <code>POST .../:id/verify</code></td><td>Consulta pelo site: cria a referência "Quero consultar minhas reservas", acompanha e valida o código. Mesmo cookie de tentativa</td><td>Mesmos erros de OTP</td></tr>
+      <tr><td><code>POST /v1/r</code></td><td>Corpo <code>{chave}</code>, lida do fragmento do link. Abre a sessão da reserva (escopo <code>RESERVA:id</code>) e devolve só aquela reserva, com telefone e endereço mascarados (G6)</td><td><code>NOT_FOUND</code>, <code>RATE_LIMITED</code></td></tr>
     </tbody>
   </table></div>
 
@@ -816,8 +914,8 @@ END IF;</pre>
   <div class="tbl"><table>
     <thead><tr><th>Método e rota</th><th>Função</th></tr></thead>
     <tbody>
-      <tr><td><code>POST /webhooks/payments/:provider</code></td><td>Verifica a assinatura, grava na inbox, consulta o provedor e aplica. Responde 200 rápido</td></tr>
-            <tr><td><code>POST /webhooks/whatsapp</code></td><td>Mensagens recebidas ("Minha reserva") e status de entrega das mensagens enviadas</td></tr>
+      <tr><td><code>POST /webhooks/payments/mercadopago</code></td><td>Valida <code>x-signature</code> e a janela de 5 min, grava na inbox e responde 200. A consulta ao provedor e a aplicação ficam fora da requisição (G3)</td></tr>
+            <tr><td><code>POST /webhooks/whatsapp/:segredo</code></td><td>Mensagens recebidas (pedido de código e "Minha reserva") e status de entrega. Segmento secreto, filtros de remetente e limite por remetente (G4)</td></tr>
     </tbody>
   </table></div>
 
@@ -833,6 +931,9 @@ END IF;</pre>
       <tr><td><code>PUT /v1/admin/reservations/:id/fulfillment/substatus</code></td><td>Avança o substatus logístico</td></tr>
       <tr><td><code>POST /v1/admin/reservations/:id/deliver</code></td><td>T5: marca como Entregue</td></tr>
       <tr><td><code>GET /v1/admin/payment-reviews</code> · <code>POST .../:id/resolve</code></td><td>Estornar ou converter em novo pedido (D6)</td></tr>
+      <tr><td><code>GET /v1/admin/payment-disputes</code> · <code>POST .../:id/resolve</code></td><td>Estornos e contestações depois de confirmado, com observação (G2)</td></tr>
+      <tr><td><code>POST /v1/admin/auth/login</code> · <code>/logout</code></td><td>Login pelo repasse, com limite por e-mail + IP, Turnstile a partir do 3º erro e auditoria (G7)</td></tr>
+      <tr><td><code>PUT /v1/admin/settings/whatsapp</code></td><td>Ritmo da fila, modo lançamento e notificações opcionais (G5)</td></tr>
       <tr><td><code>GET /v1/admin/phone-blocks</code> · <code>POST .../:id/release</code> · <code>/keep</code></td><td>Liberar ou manter, com motivo</td></tr>
       <tr><td><code>CRUD /v1/admin/products</code>, <code>/collections</code></td><td>Catálogo e imagens</td></tr>
       <tr><td><code>CRUD /v1/admin/promotions</code> · <code>POST .../:id/end</code></td><td>Desconto do produto, compre e economize mais, cupom; encerramento antecipado</td></tr>
@@ -850,12 +951,12 @@ END IF;</pre>
     <thead><tr><th>Job</th><th>Onde</th><th>Frequência</th><th>O que faz</th></tr></thead>
     <tbody>
       <tr><td><code>sweep_reservations()</code></td><td>pg_cron (SQL)</td><td>10 s</td><td>Com <code>FOR UPDATE SKIP LOCKED</code>, em lotes de 100: enfileira lembretes de 5 min · inicia a tolerância quando há tentativa pendente · expira reservas vencidas sem pendência · rede de segurança em <code>grace_until + 2 min</code></td></tr>
-      <tr><td><code>worker: grace-expirations</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Reservas com <code>grace_until</code> vencido e tentativa pendente: consulta o provedor, depois confirma ou cancela a cobrança e expira</td></tr>
-      <tr><td><code>worker: outbox-dispatch</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Envia as mensagens pendentes com backoff. Usa <code>SKIP LOCKED</code> para rodar em paralelo com segurança</td></tr>
+      <tr><td><code>worker: grace-expirations</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Reservas com <code>grace_until</code> vencido e tentativa pendente: consulta o provedor, depois confirma ou cancela a cobrança e expira. Só é chamado quando a varredura acha trabalho (G21)</td></tr>
+      <tr><td><code>worker: outbox-dispatch</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Envia as mensagens pendentes por prioridade, respeitando validade e ritmo, com backoff. Usa <code>SKIP LOCKED</code> para rodar em paralelo com segurança. Só é chamado quando há fila (G5, G21)</td></tr>
       <tr><td><code>worker: payment-reconcile</code></td><td>Edge Function via pg_net</td><td>1 min</td><td>Tentativas PENDENTE há mais de 2 min sem webhook: consulta o provedor e aplica</td></tr>
       <tr><td><code>sweep_shipping_quotes()</code></td><td>pg_cron (SQL)</td><td>1 min</td><td><code>pay_until</code> vencido → cotação VENCIDO, substatus <code>FRETE_VENCIDO</code>, alerta (D8)</td></tr>
       <tr><td><code>check_stock_invariants()</code></td><td>pg_cron (SQL)</td><td>diário, 03:10</td><td>Compara os saldos com os itens. Divergência vira alerta no painel</td></tr>
-      <tr><td><code>purge_expired_otp()</code></td><td>pg_cron (SQL)</td><td>diário, 03:25</td><td>Remove as sessões e os códigos OTP com mais de 30 dias (LGPD). A auditoria fica</td></tr>
+      <tr><td><code>purge_personal_data()</code></td><td>pg_cron (SQL)</td><td>diário, 03:25</td><td>Aplica os prazos de guarda da seção 13: OTP, tentativas e IP em hash (30 dias), texto das mensagens recebidas (90 dias), endereço após a entrega (prazo da loja), limites antigos. A auditoria fica, sem dados pessoais (G9)</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -868,19 +969,38 @@ END IF;</pre>
     <div class="card"><h4>Acesso</h4><ul>
       <li>RLS habilitado em todas as tabelas, sem políticas para <code>anon</code> e <code>authenticated</code>.</li>
       <li>As funções de domínio são <code>SECURITY DEFINER</code>, com <code>search_path</code> fixo e <code>EXECUTE</code> só para <code>service_role</code>.</li>
-      <li>Admin: Supabase Auth com e-mail e senha (decisão: sem segundo fator), bloqueio de 15 min após 5 senhas erradas, e checagem em <code>admin_users</code> em toda rota.</li>
-      <li>Sessão da cliente: cookie <code>httpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>. O token é guardado só como hash.</li>
+      <li>Admin: Supabase Auth com e-mail e senha (decisão: sem segundo fator; ver recomendação em G7). O login passa pelo <code>api-admin</code>: bloqueio de 15 min após 5 senhas erradas vale para o par e-mail + IP, Turnstile a partir do 3º erro, aviso por e-mail a cada bloqueio. Senha de 12+ caracteres com checagem de vazamento. Sessão de até 12 h. Checagem em <code>admin_users</code> em toda rota. Painel em <code>admin.tshirtclub.pt</code>, com <code>noindex</code>.</li>
+      <li>Sessão da cliente: cookie de primeira parte <code>__Host-sessao</code>, <code>httpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>, <code>Path=/</code>, gravado pelo repasse do próprio domínio (G1). O token é guardado só como hash. Toda escrita exige <code>Content-Type: application/json</code>, e o repasse confere <code>Origin</code>.</li>
+      <li>As Edge Functions recusam chamadas sem o segredo de repasse, exceto os webhooks, que têm autenticação própria (G3, G4).</li>
       <li>Uma reserva de outro telefone responde <code>404</code>, nunca <code>403</code>, para não confirmar que ela existe.</li>
-      <li>Chave do link com limite de requisições por IP, para impedir tentativa e erro.</li>
+      <li>Link da reserva: chave no fragmento, só hash no banco, escopo limitado e limite por IP (G6).</li>
+      <li>Cabeçalhos em todas as respostas: HSTS com <code>includeSubDomains</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code>, <code>Permissions-Policy</code> mínima e CSP com nonce, liberando só Mercado Pago e Turnstile. O painel também usa <code>frame-ancestors 'none'</code> (G16).</li>
+      <li>Texto vindo de fora (nome da cliente, mensagens, observações) só é exibido como texto, nunca como HTML. Isso vale também no painel.</li>
     </ul></div>
     <div class="card"><h4>Dados</h4><ul>
       <li>Coleta mínima: nome e telefone. Endereço só para motoboy ou envio.</li>
       <li>Telefone mascarado nas telas, como <code>(77) •••••-8809</code>. O admin vê o número completo só no detalhe.</li>
       <li>IP guardado como hash com sal rotativo, só para limitar abuso.</li>
       <li>Segredos (provedores, pepper do OTP, assinatura dos webhooks) ficam nos Secrets do Supabase e nunca no front.</li>
-      <li>CORS restrito aos domínios da loja e do painel.</li>
+      <li>Sem CORS aberto: o navegador só chama o próprio domínio (G1).</li>
+      <li>Dados no Supabase em São Paulo (<code>sa-east-1</code>); funções da Vercel em <code>gru1</code>.</li>
+      <li>Pedido da titular (acesso, correção, exclusão): atendido pelo painel, que exporta os dados do telefone e anonimiza o que não é obrigação legal (nome e telefone viram hash; o endereço é apagado).</li>
     </ul></div>
   </div>
+
+  <h3>Prazos de guarda (G9)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Dado</th><th>Prazo</th><th>Depois</th></tr></thead>
+    <tbody>
+      <tr><td>Códigos e sessões OTP, tentativas não convertidas</td><td>30 dias</td><td>Apagados</td></tr>
+      <tr><td>IP em hash, contadores de limite</td><td>30 dias</td><td>Apagados</td></tr>
+      <tr><td>Texto das mensagens recebidas no WhatsApp</td><td>90 dias</td><td>Texto apagado; fica o registro de que houve mensagem</td></tr>
+      <tr><td>Endereço de entrega</td><td>[prazo da loja] após a entrega (sugestão: 90 dias)</td><td>Apagado; fica só a cidade</td></tr>
+      <tr><td>Reservas, pedidos, pagamentos, notas</td><td>5 anos (prazo fiscal; confirmar com a contabilidade)</td><td>Anonimizados</td></tr>
+      <tr><td>Auditoria</td><td>Enquanto houver a reserva</td><td>Sem dados pessoais desde a gravação</td></tr>
+    </tbody>
+  </table></div>
+  <p>Incidente de segurança: o runbook traz o passo a passo (conter, avaliar, registrar). Se o incidente puder causar risco ou dano relevante às titulares, a ANPD e as clientes são comunicadas em até 3 dias úteis, conforme o regulamento da ANPD (Resolução CD/ANPD nº 15/2024).</p>
 </section>
 
 <!-- 14 -->
@@ -892,12 +1012,13 @@ END IF;</pre>
 ├─ apps/
 │  ├─ web/                      loja + área da cliente (Next.js, mobile-first, PWA)
 │  │  └─ src/
-│  │     ├─ features/catalog/     listagem, filtros, card de produto, seletor de tamanho
+│  │     ├─ features/catalog/     listagem, filtros, card de produto (tamanho único)
 │  │     ├─ features/cart/        carrinho (localStorage), regras e promoção
 │  │     ├─ features/reservation/ formulário, OTP, reserva ativa, cronômetro (relógio do servidor)
 │  │     ├─ features/payment/     PIX (QR/copia e cola), cartão (SDK do provedor), status
 │  │     ├─ features/lookup/      consulta com código, lista de reservas
 │  │     ├─ features/fulfillment/ modalidade, frete
+│  │     ├─ app/api/[...path]/   repasse para as Edge Functions (G1)
 │  │     └─ shared/               api client, componentes de UI, formatadores
 │  └─ admin/                    painel (Next.js)
 │     └─ src/features/{auth,dashboard,reservations,cancellations,payment-reviews,
@@ -905,16 +1026,17 @@ END IF;</pre>
 ├─ packages/
 │  └─ domain/                   TS puro, sem I/O: regras do carrinho, promoção, telefone E.164,
 │                               máscaras, códigos de erro, schemas Zod compartilhados front/API
+│                               (importado pelo Deno por caminho relativo .ts; sem dependências de runtime, G22)
 ├─ supabase/
 │  ├─ migrations/
 │  │  ├─ 0001_extensions.sql          pgcrypto, pg_cron, pg_net
 │  │  ├─ 0002_enums.sql
-│  │  ├─ 0003_settings.sql
+│  │  ├─ 0003_settings.sql            app_settings, app_now(), rate_limits
 │  │  ├─ 0010_catalog.sql             collections, products, images, movements
 │  │  ├─ 0015_promotions.sql          promotions, promotion_products, tiers, coupons, coupon_uses
 │  │  ├─ 0020_customers_otp.sql       customers, otp_sessions, otp_codes, customer_sessions
 │  │  ├─ 0030_reservations.sql        attempts, reservations, items, transitions, cancellations
-│  │  ├─ 0040_payments.sql            payments, payment_events, payment_reviews
+│  │  ├─ 0040_payments.sql            payments, payment_events, payment_reviews, payment_disputes
 │  │  ├─ 0050_fulfillment.sql         fulfillments, shipping_quotes
 │  │  ├─ 0060_blocks.sql              phone_blocks, phone_block_decisions
 │  │  ├─ 0070_messaging.sql           outbox_messages, whatsapp_inbound
@@ -933,7 +1055,7 @@ END IF;</pre>
 │  ├─ functions/
 │  │  ├─ _shared/            db, erros, http, auth, rate-limit, turnstile
 │  │  │  ├─ payments/        PaymentProvider (interface) · mercadopago.ts · fake.ts
-│  │  │  └─ whatsapp/        WhatsAppProvider (interface) · meta-cloud.ts · fake.ts
+│  │  │  └─ whatsapp/        WhatsAppProvider (interface) · zapi.ts · meta-cloud.ts (plano B) · fake.ts
 │  │  ├─ api-public/         index.ts (router) + routes/{catalog,attempts,otp,reservations,payments,lookup}.ts
 │  │  ├─ api-admin/          index.ts + routes/{dashboard,reservations,cancellations,reviews,blocks,catalog,audit}.ts
 │  │  ├─ webhook-payments/
@@ -941,6 +1063,7 @@ END IF;</pre>
 │  │  └─ worker/             index.ts + jobs/{outbox,grace,reconcile}.ts
 │  └─ tests/                 pgTAP: transições, estoque, idempotência, bloqueio
 ├─ tests/concurrency/        scripts que disparam N confirmações simultâneas
+├─ tests/e2e/                Playwright no celular (Android e iPhone) + axe
 └─ docs/                     arquitetura.md (este documento), adr/, runbook.md</pre>
 </section>
 
@@ -950,7 +1073,7 @@ END IF;</pre>
   <h2>Plano de entrega por fases</h2>
   <p class="sub">Cada fase é um conjunto de commits revisável, com testes e funcionando de ponta a ponta com os provedores falsos. As integrações reais entram atrás das mesmas interfaces.</p>
   <ol class="phases">
-    <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP), migrations de enums, settings, auditoria e gatilho guardião, pacote <code>domain</code> com testes.</span></li>
+    <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP, axe e Lighthouse), migrations de enums, settings, <code>app_now()</code>, limites, auditoria e gatilho guardião, pacote <code>domain</code> com testes, repasse <code>/api</code> no mesmo domínio e cabeçalhos de segurança.</span></li>
     <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos.</span></li>
     <li><b>OTP por WhatsApp</b><span>Sessões, códigos, limites, bloqueio de 30 min, Turnstile, provedor falso e Z-API/Evolution (W1), verificação invertida (W3), fila de envio com ritmo controlado.</span></li>
     <li><b>Criação atômica da reserva</b><span><code>create_reservation</code>, tela de reserva ativa com relógio do servidor, teste de concorrência (N clientes, 1 unidade).</span></li>
@@ -958,9 +1081,9 @@ END IF;</pre>
     <li><b>Pagamento</b><span>PIX ou cartão, fixo por reserva, webhook, inbox, idempotência em 5 camadas, tolerância, reconciliação, fila de análise.</span></li>
     <li><b>Cancelamento</b><span>Solicitação da cliente, decisão do admin, PREJUDICADA automática.</span></li>
     <li><b>Pós-pagamento</b><span>Modalidade, frete (manual), segundo pagamento, prazo de 2 h, substatus logísticos, Entregue.</span></li>
-    <li><b>Consulta</b><span>Consulta pelo site com código, link assinado, "Minha reserva" no WhatsApp com tratamento do nono dígito.</span></li>
+    <li><b>Consulta</b><span>Consulta pelo site com código, link com chave aleatória (no fragmento, só hash no banco), "Minha reserva" no WhatsApp com tratamento do nono dígito.</span></li>
     <li><b>Painel admin completo</b><span>Dashboard, filtros e busca, detalhe com linha do tempo, bloqueados, análises, auditoria.</span></li>
-    <li><b>Endurecimento</b><span>Teste de carga, verificador de invariantes, retenção LGPD, runbook de operação e checklist de produção.</span></li>
+    <li><b>Endurecimento</b><span>Teste de carga, verificador de invariantes, retenção LGPD, ensaio de restauração de backup, runbook de operação e checklist de publicação (seção 17).</span></li>
   </ol>
 </section>
 
@@ -982,12 +1105,75 @@ END IF;</pre>
       <tr><td>2 erros, 2 reenvios, 2 erros no último código</td><td>Bloqueio de 30 min. Novo fluxo no mesmo telefone continua bloqueado</td></tr>
       <tr><td>3 expirações em 30 dias, liberação, nova expiração</td><td>Bloqueio, liberação com contador zerado. A 4ª expiração conta como 1</td></tr>
       <tr><td>Consulta com o número de outra cliente</td><td><code>404</code> e nenhum dado exposto</td></tr>
+      <tr><td>Reserva, pagamento ou tentativa de outra cliente pelo id (IDOR), com e sem cookie</td><td><code>404</code> em todas as rotas</td></tr>
+      <tr><td>Consulta direta às tabelas com a chave <code>anon</code></td><td>Nenhuma linha em nenhuma tabela (RLS)</td></tr>
+      <tr><td>Webhook do Mercado Pago sem assinatura, com assinatura errada ou com <code>ts</code> de 6 min atrás</td><td><code>401</code>, nada gravado</td></tr>
+      <tr><td>Aprovação com valor ou <code>external_reference</code> diferentes</td><td>Não confirma. Valor vai para análise; referência é descartada com alerta</td></tr>
+      <tr><td>Contestação depois de PAGAMENTO_CONFIRMADO, seguida de "Marcar como entregue"</td><td>Disputa aberta, alerta no painel, T5 recusado</td></tr>
+      <tr><td>Webhook da Z-API com <code>fromMe</code>, de grupo, sem telefone (LID), antigo ou repetido</td><td>Ignorado, nenhum código enviado</td></tr>
+      <tr><td>Remetente com e sem o nono dígito</td><td>Mesmo telefone canônico</td></tr>
+      <tr><td>Pico: 50 reservas em 5 min com a fila no modo lançamento</td><td>Toda "reserva criada" sai em até 2 min; nenhum lembrete chega depois da expiração</td></tr>
+      <tr><td>Código colado com espaço ou traço ("482 193")</td><td>Aceito</td></tr>
+      <tr><td>Link da reserva aberto em outro aparelho</td><td>Mostra a reserva e permite pagar; telefone e endereço mascarados</td></tr>
+      <tr><td>5 senhas erradas de outro IP</td><td>O administrador continua entrando do IP dele</td></tr>
+      <tr><td>Restauração do backup num projeto vazio</td><td>Sistema sobe, e o verificador de invariantes passa</td></tr>
     </tbody>
   </table></div>
-  <p>Camadas: testes unitários do pacote <code>domain</code> (Vitest), pgTAP para funções e constraints, testes de integração das Edge Functions com provedores falsos, e um script de concorrência contra um Postgres local.</p>
+  <p>Camadas: testes unitários do pacote <code>domain</code> (Vitest), pgTAP para funções, constraints e RLS, testes de integração das Edge Functions com provedores falsos, script de concorrência contra um Postgres local, ponta a ponta com Playwright em viewport de Android e de iPhone (com axe em cada tela), Lighthouse no CI com as metas da seção 2b, e teste de carga (k6) com 100 clientes simuladas.</p>
+  <p><b>Relógio controlável:</b> toda função SQL e toda Edge Function lê a hora por <code>app_now()</code>. Em produção é <code>now()</code>. Nos testes, uma configuração da sessão adianta o relógio, o que permite testar "14min59s" e "20min01s" sem esperar (G18).</p>
+  <p><b>Com o Mercado Pago real (ambiente de teste):</b> PIX aprovado, PIX expirado e cancelado, cartão aprovado e recusado (cartões de teste), webhook reenviado, estorno. Isso confirma o mínimo de 30 min do PIX (G14).</p>
 </section>
-
-<footer>Desenho técnico derivado da especificação funcional consolidada e do protótipo HTML (telas 00 a 08). O protótipo foi tratado como referência de fluxo e regras, não como código.</footer>
+<!-- 17 -->
+<section id="publicacao">
+  <p class="secnum">17</p>
+  <h2>Checklist de publicação</h2>
+  <p class="sub">Tudo aqui precisa estar marcado antes de abrir a loja ao público. Os itens entram no runbook na F11.</p>
+  <div class="grid2">
+    <div class="card"><h4>Contas e ambiente</h4><ul>
+      <li>Supabase Pro em <code>sa-east-1</code>, com backup diário ligado (PITR se o orçamento permitir) e restauração ensaiada.</li>
+      <li>Vercel Pro, funções em <code>gru1</code>, domínios <code>tshirtclub.pt</code> e <code>admin.tshirtclub.pt</code> com HTTPS.</li>
+      <li>Ambientes separados: teste (credenciais de teste do Mercado Pago, número de teste) e produção.</li>
+      <li>Segredos só nos Secrets do Supabase e da Vercel: token do Mercado Pago, chave do webhook, Client-Token e segmento secreto da Z-API, pepper do OTP, segredo de repasse, Turnstile. Nenhum no Git; varredura de segredos no CI.</li>
+      <li>Senhas das contas (Supabase, Vercel, Mercado Pago, Z-API, domínio) com segundo fator ligado.</li>
+    </ul></div>
+    <div class="card"><h4>Pagamento</h4><ul>
+      <li>Webhook do Mercado Pago cadastrado para produção, com chave secreta e só os tópicos <code>payment</code> e <code>chargebacks</code>.</li>
+      <li>Um PIX real de valor baixo pago e estornado em produção, do começo ao fim.</li>
+      <li>Card Payment Brick em produção, com <code>binary_mode</code>.</li>
+      <li>Reconciliação rodando, e alerta de pagamento em análise aparecendo no painel.</li>
+    </ul></div>
+    <div class="card"><h4>WhatsApp</h4><ul>
+      <li>Z-API conectada ao número da loja, com monitor de conexão e alerta no painel.</li>
+      <li>Webhook com segmento secreto, testado com mensagem da equipe (<code>fromMe</code>, ignorada) e de uma cliente real.</li>
+      <li>Comportamento do remetente LID verificado (G4).</li>
+      <li>Modo lançamento testado com a fila cheia.</li>
+    </ul></div>
+    <div class="card"><h4>Segurança</h4><ul>
+      <li>RLS conferido: a chave <code>anon</code> não lê nenhuma tabela.</li>
+      <li>Cabeçalhos e CSP conferidos em securityheaders.com (nota A), sem erro de CSP no console.</li>
+      <li>Login do painel: bloqueio por e-mail + IP, Turnstile e aviso por e-mail testados. Segundo fator, se a loja aprovar (G7).</li>
+      <li>Dependências sem vulnerabilidade alta (<code>npm audit</code>), e Dependabot ligado.</li>
+    </ul></div>
+    <div class="card"><h4>LGPD e textos legais</h4><ul>
+      <li>Política de privacidade com os dados da empresa preenchidos e revisada por quem cuida do jurídico.</li>
+      <li>Encarregado nomeado e e-mail de contato funcionando.</li>
+      <li>Rotina de prazos de guarda ligada (<code>purge_personal_data</code>).</li>
+      <li>Endereço e horário de retirada preenchidos.</li>
+    </ul></div>
+    <div class="card"><h4>Qualidade no celular</h4><ul>
+      <li>Lighthouse no celular dentro das metas (LCP &lt; 2,5 s, INP &lt; 200 ms, CLS &lt; 0,1) na loja, na reserva e no pagamento.</li>
+      <li>Fluxo completo feito num Android e num iPhone reais, com PWA instalada.</li>
+      <li>axe sem violação séria em nenhuma tela; teste rápido com leitor de tela (TalkBack e VoiceOver) no fluxo de reserva.</li>
+      <li>Teste de carga com 100 clientes simuladas e verificador de invariantes sem divergência.</li>
+    </ul></div>
+    <div class="card"><h4>Operação</h4><ul>
+      <li>Runbook: WhatsApp caiu, Mercado Pago fora, pagamento em análise, contestação, restauração de backup, incidente de dados.</li>
+      <li>Monitoramento de erros (Sentry ou similar, sem dados pessoais nos eventos) e alerta de falha dos jobs.</li>
+      <li>Ensaio de lançamento com a equipe: estoque pequeno, 10 pessoas reservando ao mesmo tempo.</li>
+    </ul></div>
+  </div>
+</section>
+<footer>Desenho técnico derivado da especificação funcional consolidada e do protótipo HTML (telas 00 a 22). O protótipo foi tratado como referência de fluxo e regras, não como código.</footer>
 </main>
 </div>
 

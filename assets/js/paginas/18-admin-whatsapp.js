@@ -67,6 +67,13 @@
     ligadas[+i]=e.target.checked;renderNotificacoes();
     toast(`"${NOTIFICACOES[+i][0]}" ${e.target.checked?'ligada':'desligada'}. Registrado na auditoria.`);
   });
+  // Modo lançamento: com 50 clientes ao mesmo tempo saem ~200 mensagens em 20 min; o ritmo normal não daria conta.
+  document.getElementById('launchMode').addEventListener('change',e=>{
+    const on=e.target.checked;
+    document.getElementById('gapMin').value=on?2:4;document.getElementById('gapMax').value=on?4:9;document.getElementById('perHour').value=on?600:120;
+    document.getElementById('launchHint').textContent=on?'Ligado: 2 a 4 s entre mensagens, até 600 por hora. Desligue depois do lançamento.':'Desligado: 4 a 9 s entre mensagens, até 120 por hora.';
+    toast(on?'Modo lançamento ligado. Registrado na auditoria.':'Modo lançamento desligado.');
+  });
   document.getElementById('saveRate').addEventListener('click',()=>{
     const a=+document.getElementById('gapMin').value, b=+document.getElementById('gapMax').value, h=+document.getElementById('perHour').value;
     if(!(a>=2&&b>a))return toast('O intervalo máximo precisa ser maior que o mínimo, e o mínimo de pelo menos 2 segundos.');

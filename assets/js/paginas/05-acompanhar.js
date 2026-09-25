@@ -19,8 +19,10 @@
     document.getElementById('lookupCodeBox').hidden=false;
     toast('Código enviado no WhatsApp.');
   });
+  const campo=document.getElementById('lookupCode');
+  campo.addEventListener('input',()=>{campo.value=campo.value.replace(/\D/g,'').slice(0,6);});
   document.getElementById('confirmLookup').addEventListener('click',()=>{
-    if(document.getElementById('lookupCode').value.length<6)return toast('Digite o código de 6 dígitos.');
+    if(campo.value.length<6)return toast('Digite o código de 6 dígitos.');
     document.getElementById('results').hidden=false;
     toast('WhatsApp validado.');
   });

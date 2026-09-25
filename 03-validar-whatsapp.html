@@ -23,7 +23,7 @@
         <span class="badge">Passo 1 de 2</span>
         <h2 style="margin-top:10px">Peça seu código</h2>
         <p class="muted">Toque no botão. O seu WhatsApp abre com a mensagem pronta para a loja: é só enviar. O código chega na hora.</p>
-        <div class="card soft" style="margin:12px 0"><div class="muted" style="font-size:12px">Mensagem que será enviada do número <strong id="maskedPhone">(77) 9••••-8809</strong></div><strong id="askText"></strong></div>
+        <div class="card soft" style="margin:12px 0"><div class="muted" style="font-size:12px">Mensagem que será enviada do número <strong id="maskedPhone">(77) •••••-8809</strong></div><strong id="askText"></strong></div>
         <a class="btn citron" id="askBtn" href="#" target="_blank" rel="noopener">Receber código no WhatsApp</a>
         <p class="muted" id="waitLine" style="margin-top:12px" hidden>Aguardando sua mensagem no WhatsApp…</p>
         <button class="btn ghost" type="button" id="simulateBtn" style="margin-top:8px" hidden>Protótipo: simular mensagem recebida</button>
@@ -31,13 +31,12 @@
       </div>
 
       <div id="stepCode" hidden>
-        <div class="row"><span class="badge pink">Passo 2 de 2 · código enviado</span><strong id="codeTimer">05:00</strong></div>
+        <div class="row"><span class="badge pink">Passo 2 de 2 · código enviado</span><span><span class="sr-only">Código vale por mais </span><strong id="codeTimer">05:00</strong></span></div>
         <div class="sep"></div>
-        <label for="c0">Digite o código de 6 dígitos que chegou no WhatsApp</label>
-        <div class="code-grid" style="margin-top:8px">
-          <input id="c0" maxlength="1" inputmode="numeric" aria-label="Dígito 1"><input maxlength="1" inputmode="numeric" aria-label="Dígito 2"><input maxlength="1" inputmode="numeric" aria-label="Dígito 3">
-          <input maxlength="1" inputmode="numeric" aria-label="Dígito 4"><input maxlength="1" inputmode="numeric" aria-label="Dígito 5"><input maxlength="1" inputmode="numeric" aria-label="Dígito 6">
-        </div>
+        <label for="code">Código de 6 dígitos que chegou no WhatsApp</label>
+        <input id="code" class="code-input" style="margin-top:8px" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="000000" aria-describedby="codeHelp codeError">
+        <p class="muted" id="codeHelp" style="font-size:13px;margin:6px 0 0">Pode colar o código copiado no WhatsApp.</p>
+        <p class="field-error" id="codeError" role="alert"></p>
         <div class="row" style="margin-top:14px"><span class="muted" id="attempts">2 tentativas disponíveis</span><span class="muted" id="resends">2 novos códigos disponíveis</span></div>
         <div class="toolbar" style="margin-top:14px"><button class="btn citron" id="validateBtn" type="button">Validar código</button><a class="btn secondary" id="resendBtn" href="#" target="_blank" rel="noopener">Pedir novo código</a></div>
         <div class="notice warn" style="margin-top:14px">Depois de usar os 2 novos códigos, o telefone fica bloqueado para pedir código por <strong>30 minutos</strong>.</div>

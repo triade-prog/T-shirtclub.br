@@ -48,6 +48,10 @@
     if(b.classList.contains('plus')){const erro=Carrinho.adicionar(carrinho,b.dataset.id);if(erro)return toast(erro);}
     if(b.classList.contains('minus'))Carrinho.remover(carrinho,b.dataset.id);
     Carrinho.salvar(carrinho);render();
+    // A grade é redesenhada: devolve o foco ao mesmo botão (ou ao outro do par, se este ficou desativado).
+    const mesmo=document.querySelector(`#products button.${b.classList.contains('plus')?'plus':'minus'}[data-id="${b.dataset.id}"]`);
+    const par=document.querySelector(`#products button[data-id="${b.dataset.id}"]:not([disabled])`);
+    (mesmo&&!mesmo.disabled?mesmo:par)?.focus();
   });
   document.getElementById('filterCollection').innerHTML='<option value="">Todas as coleções</option>'+COLECOES.map(c=>`<option>${escaparHtml(c)}</option>`).join('');
   ['filterCollection','filterStatus'].forEach(id=>document.getElementById(id).addEventListener('change',render));

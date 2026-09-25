@@ -24,9 +24,10 @@
     <select id="filterStatus" aria-label="Filtrar disponibilidade"><option value="">Toda disponibilidade</option><option>Disponível</option><option>Últimas unidades</option><option>Esgotado</option></select>
     <div class="toolbar" id="promoBadges"></div>
   </div>
+  <h2 class="sr-only">Produtos</h2>
   <div class="grid grid-3" id="products"></div>
   <div class="card" style="margin-top:18px">
-    <div class="row"><div><strong>Resumo da seleção</strong><div class="muted" id="summaryLine">Nenhuma peça selecionada.</div><div class="muted" id="promoLine" style="font-size:13px"></div></div><div style="text-align:right"><div class="strike" id="originalTotal"></div><div class="price" id="total">R$ 0,00</div></div></div>
+    <div class="row"><div><strong>Resumo da seleção</strong><div class="muted" id="summaryLine" aria-live="polite">Nenhuma peça selecionada.</div><div class="muted" id="promoLine" style="font-size:13px"></div></div><div style="text-align:right"><div class="strike" id="originalTotal"></div><div class="price" id="total">R$ 0,00</div></div></div>
     <div class="notice" style="margin-top:13px">Itens apenas selecionados <strong>não bloqueiam estoque</strong>. O bloqueio acontece somente após validar o WhatsApp e confirmar a disponibilidade.</div>
   </div>
 </div></main>

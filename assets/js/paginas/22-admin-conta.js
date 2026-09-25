@@ -2,8 +2,7 @@
 (function(){
   const $=id=>document.getElementById(id);
   const REGRAS=[
-    [s=>s.length>=10,'Pelo menos 10 caracteres'],
-    [s=>/[A-Za-z]/.test(s)&&/\d/.test(s),'Letras e números'],
+    [s=>s.length>=12,'Pelo menos 12 caracteres (uma frase curta funciona bem)'],
     [s=>!/^(.)\1+$/.test(s)&&!/123456|senha|tshirt/i.test(s),'Nada óbvio como "123456" ou o nome da loja']
   ];
   let sessoes=[['Este aparelho','iPhone · Safari · Vitória da Conquista, BA','agora',true],['Notebook da loja','Windows · Chrome','ontem às 18:40',false],['Celular antigo','Android · Chrome','há 9 dias',false]];

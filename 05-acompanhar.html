@@ -20,14 +20,14 @@
     <section class="card">
       <h2>Consulta pelo site</h2>
       <form id="lookupForm" class="grid">
-        <div class="field"><label for="lookupPhone">Seu WhatsApp</label><input id="lookupPhone" required placeholder="(00) 00000-0000" inputmode="tel"></div>
+        <div class="field"><label for="lookupPhone">Seu WhatsApp</label><input id="lookupPhone" type="tel" required autocomplete="tel-national" placeholder="(00) 00000-0000"></div>
         <button class="btn citron" type="submit">Receber código no WhatsApp</button>
         <p class="muted" style="margin:0;font-size:13px">O seu WhatsApp abre com a mensagem "Quero consultar minhas reservas" pronta. É só enviar.</p>
       </form>
       <div id="otpLookup" hidden style="margin-top:16px">
         <p class="muted" id="lookupWait">Aguardando sua mensagem… <button class="btn ghost" type="button" id="simulateLookup">Protótipo: simular mensagem recebida</button></p>
         <div id="lookupCodeBox" hidden>
-          <div class="field"><label for="lookupCode">Código que chegou no WhatsApp</label><input id="lookupCode" maxlength="6" inputmode="numeric" placeholder="000000"></div>
+          <div class="field"><label for="lookupCode">Código que chegou no WhatsApp</label><input id="lookupCode" class="code-input" maxlength="9" inputmode="numeric" autocomplete="one-time-code" placeholder="000000"></div>
           <button class="btn" id="confirmLookup" type="button" style="margin-top:10px">Validar e listar reservas</button>
         </div>
       </div>
@@ -36,7 +36,7 @@
     <aside class="card soft">
       <h2>Consulta pelo WhatsApp</h2>
       <div class="card citron"><strong>Você:</strong><p>Minha reserva</p></div>
-      <div class="card" style="margin-top:10px"><strong>Loja:</strong><p>Reserva #1048<br><b>Status: Reservado</b><br>Restam 08:42 para concluir.</p></div>
+      <div class="card" style="margin-top:10px"><strong>T-shirt Club:</strong><p>Reserva #1048<br><b>Status: Reservado</b><br>Restam 08:42 para concluir.</p></div>
       <p class="muted">Não é necessário novo código dentro da conversa porque a identificação vem do próprio número vinculado.</p>
     </aside>
   </div>
@@ -45,7 +45,7 @@
     <div class="grid grid-3">
       <a class="card soft" href="04-reserva-ativa.html"><span class="badge success">RESERVADO</span><h3 style="margin-top:10px">#1048</h3><p class="muted" id="activeSummary">3 T-shirts • R$ 119,76</p><strong>Expira em 08:42 · Pagar →</strong></a>
       <a class="card soft" href="19-pedido.html"><span class="badge">PAGAMENTO CONFIRMADO</span><h3 style="margin-top:10px">#1026</h3><p class="muted">3 T-shirts • R$ 119,76</p><strong>Aguardando retirada · Ver pedido →</strong></a>
-      <a class="card soft" href="19-pedido.html"><span class="badge">ENTREGUE</span><h3 style="margin-top:10px">#0992</h3><p class="muted">6 T-shirts • R$ 224,55</p><strong>Concluído · Ver pedido →</strong></a>
+      <a class="card soft" href="19-pedido.html"><span class="badge">ENTREGUE</span><h3 style="margin-top:10px">#1012</h3><p class="muted">6 T-shirts • R$ 224,55</p><strong>Concluído · Ver pedido →</strong></a>
     </div>
   </section>
 </div></main>
