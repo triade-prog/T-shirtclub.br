@@ -51,7 +51,9 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 **Catálogo (D20):** cada produto tem página própria e de 1 a 10 fotos (tipo e texto alternativo obrigatório), além de looks e blocos da página inicial configuráveis. Está na especificação (regra 30), no desenho técnico (tabelas e API) e no protótipo (tela 10).
 
-Pendências da loja: fotos (o Google Drive está bloqueado na rede do ambiente; liberar `drive.google.com`, `drive.usercontent.google.com` e `lh3.googleusercontent.com` ou colocar os arquivos em `docs/design/fotos/`), dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
+**Fotos (25/09):** as 42 fotos de produto foram lidas pelo conector do Google Drive (a rede do ambiente bloqueia o Drive direto) e convertidas para WebP em `docs/design/fotos/produtos/` (4:5, cerca de 35 KB cada). Os recortes de estampa viraram capas de coleção, e a primeira dobra usa uma campanha provisória montada com as fotos de produto. A seção "Catálogo real" do design lista as peças com nome e coleção sugeridos: Limone, Dolce Vita, Teddy, Dog Club, Just a Girl, Um Dia de Cada Vez e Outras. A pasta do site de referência trouxe só apps de terceiros: pacotes, lista de desejos, aviso de volta ao estoque, avaliações, recomendações, e-mail, chat e contador.
+
+Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; capturas de tela do site de referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
 
 **Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
 

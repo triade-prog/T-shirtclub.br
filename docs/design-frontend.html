@@ -260,6 +260,17 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
 .whats.eu{background:#D9FDD3;border-color:#C5EBBE;border-radius:14px 14px 3px 14px;justify-self:end}
 .whats b{font-weight:600}
 .msg-wa{display:grid;gap:8px}
+/* Catálogo real: as peças das fotos, agrupadas pela coleção sugerida */
+.catalogo-col{display:grid;gap:10px}
+.catalogo-col h3{display:flex;align-items:center;gap:8px;font-size:17px}
+.catalogo-col h3 i{width:10px;height:10px;border-radius:50%;background:var(--c-cor)}
+.catalogo-grade{display:grid;gap:14px 10px;grid-template-columns:repeat(auto-fill,minmax(128px,1fr))}
+.catalogo-item{margin:0;display:grid;gap:4px}
+.catalogo-item .foto{padding:0;border-radius:4px}
+.catalogo-item figcaption{display:grid;font-size:12.5px;line-height:1.35}
+.catalogo-item figcaption b{font-weight:500}
+.catalogo-item figcaption span{color:var(--tinta-suave)}
+.apps{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .pranchas{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 .pranchas img{width:100%;height:auto;border-radius:14px;border:1px solid var(--linha)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
@@ -293,7 +304,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
     <span><b>Acompanhamento:</b> <a href="painel-execucao.html#fase-D">painel, frente D</a></span>
   </div>
   <nav class="sumario" aria-label="Seções">
-    <a href="#mudancas">O que mudou</a><a href="#jornada">Jornada</a><a href="#descoberta">Telas da descoberta</a><a href="#oferta">Monte seu Club</a><a href="#fotos">Fotos</a><a href="#sistema">Cores e tipografia</a><a href="#componentes">Componentes</a><a href="#reserva">Telas da reserva</a><a href="#textos">Textos</a>
+    <a href="#mudancas">O que mudou</a><a href="#jornada">Jornada</a><a href="#descoberta">Telas da descoberta</a><a href="#oferta">Monte seu Club</a><a href="#catalogo">Catálogo real</a><a href="#referencia">Referência</a><a href="#fotos">Fotos</a><a href="#sistema">Cores e tipografia</a><a href="#componentes">Componentes</a><a href="#reserva">Telas da reserva</a><a href="#textos">Textos</a>
   </nav>
 </header>
 
@@ -328,7 +339,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   <p class="rotulo">D3 · Descoberta</p>
   <h2 id="h-desc">Telas da descoberta</h2>
   <div class="aviso-fotos" id="avisoFotos"><svg aria-hidden="true"><use href="#i-camera"/></svg>
-    <span><b>As fotos reais ainda não chegaram aqui.</b> A pasta do Google Drive está bloqueada pela rede deste ambiente. Cada espaço mostra a direção da foto que vai nele, no fundo da cor da coleção. Quando os arquivos forem colocados em <code>docs/design/fotos/</code> com os nomes da <a href="#fotos">lista de fotos</a>, este documento passa a mostrá-los sozinho.</span></div>
+    <span><b>As 42 fotos de produto do Drive já estão nas telas.</b> Ainda faltam fotos com modelo, fotos das costas, looks e fotos de clientes. Esses espaços mostram a direção da foto que vai neles, no fundo da cor da coleção. A campanha da primeira dobra é uma composição provisória feita com as fotos de produto (<a href="#fotos">lista de fotos</a>).</span></div>
   <div class="telas">
 
     <figure class="tela">
@@ -355,9 +366,9 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
           <div class="cab"><h3>Shop the look</h3><a href="#">Mais looks</a></div>
           <div class="look">
             <div class="foto" data-foto="look-jeans"></div>
-            <button class="ponto" type="button" style="left:52%;top:40%" aria-label="Peça 1: T-shirt Pomodoro, R$ 49,99"><span aria-hidden="true">1</span></button>
+            <button class="ponto" type="button" style="left:52%;top:40%" aria-label="Peça 1: Pomodoro Naples, R$ 49,99"><span aria-hidden="true">1</span></button>
           </div>
-          <div class="look-item col-tomate mini-foto"><span class="n" aria-hidden="true">1</span><div class="foto" data-foto="pomodoro-frente"></div><span>T-shirt Pomodoro<br><span class="nota">R$ 49,99</span></span><a class="tc-botao link" href="#">Ver peça</a></div>
+          <div class="look-item col-med mini-foto"><span class="n" aria-hidden="true">1</span><div class="foto" data-foto="pomodoro-frente"></div><span>Pomodoro Naples<br><span class="nota">R$ 49,99</span></span><a class="tc-botao link" href="#">Ver peça</a></div>
         </div>
         <div class="bloco-club">
           <p class="grande"><small>Monte seu Club</small>3 por<br>R$ 119,99</p>
@@ -387,9 +398,9 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
         <div class="secao-tela" style="padding-top:18px;padding-bottom:18px">
           <p class="rotulo" style="color:var(--limao-tinta)">Coleção</p>
           <p style="font-family:var(--display);font-weight:800;font-size:40px;line-height:.95">Limone</p>
-          <p class="sub" style="font-size:15px">Limões da costa amalfitana, sol de fim de tarde e a leveza de quem está de férias, mesmo numa terça-feira.</p>
+          <p class="sub" style="font-size:15px">Limões da costa amalfitana, listras de toldo e a leveza de quem está de férias, mesmo numa terça-feira.</p>
           <div style="display:flex;gap:8px;overflow-x:auto" role="group" aria-label="Filtrar peças">
-            <button class="tc-chip" type="button" aria-pressed="true">Tudo · 6</button><button class="tc-chip" type="button" aria-pressed="false">Disponíveis</button><button class="tc-chip" type="button" aria-pressed="false">Novidades</button>
+            <button class="tc-chip" type="button" aria-pressed="true">Tudo · 8</button><button class="tc-chip" type="button" aria-pressed="false">Disponíveis</button><button class="tc-chip" type="button" aria-pressed="false">Novidades</button>
           </div>
           <div class="dupla" id="gradeLimone"></div>
         </div>
@@ -402,7 +413,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
         <div class="topo"><button class="icone-btn" type="button" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="icone-btn" role="img" aria-label="Sacola com 2 peças"><svg aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">2</span></span></div>
         <div class="tc-galeria">
           <div style="position:relative">
-            <div class="trilho" id="galeria" tabindex="0" role="region" aria-label="Fotos da T-shirt Limone: 6 fotos. Deslize para ver as outras"></div>
+            <div class="trilho" id="galeria" tabindex="0" role="region" aria-label="Fotos da Limone Amalfi Coast: 6 fotos. Deslize para ver as outras"></div>
             <span class="contador" id="galeriaContador" aria-hidden="true">1/6</span>
           </div>
           <div class="miniaturas mini-foto" id="miniaturas" role="group" aria-label="Escolher foto"></div>
@@ -410,7 +421,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
         <div class="info">
           <div style="display:grid;gap:4px">
             <span class="rotulo" style="color:var(--limao-tinta)">Limone</span>
-            <h2>T-shirt Limone</h2>
+            <h2>Limone Amalfi Coast</h2>
           </div>
           <div class="preco-linha"><span class="preco">R$ 49,99</span><span class="tc-sticker aviso">Últimas 2</span></div>
           <p class="oferta"><b>Monte seu Club:</b> 3 peças por R$ 119,99, cerca de R$ 40 cada. Vale para qualquer combinação.</p>
@@ -470,11 +481,32 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   <p class="nota">Com peças de preços diferentes, os grupos são montados com as mais caras primeiro, o que é melhor para a cliente. Vale só a promoção mais vantajosa (regra 28): um cupom só entra se der um total menor.</p>
 </section>
 
+<!-- ===================================================================== catálogo -->
+<section class="bloco" id="catalogo" aria-labelledby="h-cat">
+  <p class="rotulo">Fotos do Drive</p>
+  <h2 id="h-cat">Catálogo real: 42 peças</h2>
+  <p>Todas as fotos que vieram do Drive, agrupadas por uma <b>coleção sugerida</b>. Os nomes são a minha leitura da estampa; a loja confirma os nomes e as coleções. Quase todas já estão no formato certo para a loja (vertical 4:5, fundo creme); as 6 quadradas ganharam fundo em cima e embaixo. Todas foram convertidas para WebP (em média 35 KB cada).</p>
+  <div class="grade">
+    <div class="painel"><h3>O que as estampas ensinam</h3><p class="nota">As estampas já têm uma linguagem própria: <b>listras de toldo</b> (azul, rosa, amarelo, lavanda e verde), <b>poá</b> e fundo claro. A loja pode usar esse mesmo repertório como fundo de coleção e de campanha, como na composição da primeira dobra. Assim a identidade vem do produto, e não de enfeites.</p></div>
+    <div class="painel"><h3>Para confirmar</h3><ul class="lista"><li>As fotos 27 e 34 (Bananas) parecem a mesma estampa: é repetida ou é outra versão?</li><li>Coleções sugeridas: Limone, Dolce Vita, Teddy, Dog Club, Just a Girl, Um Dia de Cada Vez e Outras.</li><li>Nomes das peças e, para as camisetas coloridas, se cada cor é um produto separado.</li></ul></div>
+  </div>
+  <div id="gradeCatalogo" style="display:grid;gap:28px"></div>
+</section>
+
+<!-- ===================================================================== referência -->
+<section class="bloco" id="referencia" aria-labelledby="h-ref">
+  <p class="rotulo">Site de referência · Coucou Suzette</p>
+  <h2 id="h-ref">O que a pasta do site mostrou</h2>
+  <p>A pasta enviada guarda só os arquivos de terceiros que o site carrega (a pasta <code>_external</code>): scripts de aplicativos, folhas de estilo de apps e bandeiras de países. Nela não há as páginas, o tema nem as fotos, então ela não mostra o visual. Mostra outra coisa útil: <b>quais recursos a loja usa</b>.</p>
+  <div class="apps" id="apps"></div>
+  <p class="nota">Para comparar o visual, ainda preciso de capturas de tela das páginas (início, coleção, produto e sacola, de preferência no celular). Pode colá-las na conversa ou colocá-las numa pasta do Drive, que eu leio pelo conector.</p>
+</section>
+
 <!-- ===================================================================== fotos -->
 <section class="bloco" id="fotos" aria-labelledby="h-fot">
   <p class="rotulo">D5 · Direção de fotos</p>
   <h2 id="h-fot">Fotos: várias por produto</h2>
-  <p>Cada produto aceita <b>de 1 a 10 fotos</b>. No painel, a loja envia, escolhe o tipo, escreve uma descrição curta (para quem usa leitor de tela) e muda a ordem. A primeira foto é a capa na vitrine. O protótipo do catálogo (tela 10) já faz isso.</p>
+  <p>As 42 fotos de produto do Drive já estão em <code>docs/design/fotos/produtos/</code>, e os recortes de estampa servem como capas de coleção. Cada produto aceita <b>de 1 a 10 fotos</b>. No painel, a loja envia, escolhe o tipo, escreve uma descrição curta (para quem usa leitor de tela) e muda a ordem. A primeira foto é a capa na vitrine. O protótipo do catálogo (tela 10) já faz isso.</p>
   <div class="grade">
     <div class="painel"><h3>Por produto</h3><ul class="lista"><li><b>Frente</b> e <b>costas</b> em fundo liso, com luz natural</li><li><b>Detalhe da estampa</b>, bem de perto, mostrando o tecido</li><li>Pelo menos uma <b>vestida</b>: com jeans, saia ou alfaiataria</li><li>Formato vertical 4:5, com pelo menos 1600 px de largura</li></ul></div>
     <div class="painel"><h3>Por coleção</h3><ul class="lista"><li>Uma <b>capa</b> horizontal (3:2) no clima da coleção</li><li>Uma <b>campanha</b> vertical para a primeira dobra</li><li>Um ou dois <b>looks</b> com as peças marcadas</li></ul></div>
@@ -526,7 +558,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
       <button class="tc-botao contorno cheio" type="button">Todas as peças</button>
       <p class="nota">Rosa para a ação principal da tela, escuro para a ação dentro de um bloco rosa e contorno para a secundária. Texto em Poppins 600.</p></div>
     <div class="painel"><p class="rotulo">ChipColecao · Sticker</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px" role="group" aria-label="Exemplo de filtro de coleção"><button class="tc-chip" type="button" aria-pressed="true">Tudo</button><button class="tc-chip col-limao" type="button" aria-pressed="false"><i aria-hidden="true"></i>Limone</button><button class="tc-chip col-tomate" type="button" aria-pressed="false"><i aria-hidden="true"></i>Pomodoro</button><button class="tc-chip col-med" type="button" aria-pressed="false"><i aria-hidden="true"></i>Dolce Vita</button></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" role="group" aria-label="Exemplo de filtro de coleção"><button class="tc-chip" type="button" aria-pressed="true">Tudo</button><button class="tc-chip col-limao" type="button" aria-pressed="false"><i aria-hidden="true"></i>Limone</button><button class="tc-chip col-med" type="button" aria-pressed="false"><i aria-hidden="true"></i>Dolce Vita</button><button class="tc-chip col-tomate" type="button" aria-pressed="false"><i aria-hidden="true"></i>Teddy</button></div>
       <div style="display:flex;gap:14px;padding:6px 4px"><span class="tc-sticker">Novo</span><span class="tc-sticker aviso">Últimas 2</span><span class="tc-sticker neutro">Esgotado</span></div>
       <p class="nota">Os filtros de coleção viram chips com o ponto de cor, no lugar dos círculos de Instagram. Os stickers ficam só para os avisos que ajudam a decidir.</p></div>
     <div class="painel"><p class="rotulo">Galeria</p><p class="nota">Rolagem por encaixe (CSS <code>scroll-snap</code>), contador "1/6", miniaturas que trocam a foto e zoom ao tocar (abre a foto em tela cheia, com pinça). Só a primeira foto carrega com prioridade; as outras carregam quando a cliente chega perto. Tudo sem biblioteca.</p></div>
@@ -631,9 +663,9 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   <h2 id="h-val">Marca e pendências</h2>
   <div class="pranchas"><img src="design/marca/prancha-marca-2.webp" alt="Prancha de marca oficial: logo T-shirt Club.br, paleta com rosa E8478A, verde 6B8B1F, rosa claro FCDDE0 e fundo FFF8F5, tipografia Baloo 2 e Poppins e aplicações em sacola, etiqueta, adesivo e camiseta" loading="lazy" width="1122" height="1402"></div>
   <div style="display:grid;gap:10px">
-    <div class="achado"><span class="id">M1</span><h3>Fotos reais <span class="grav conf">Aguardando</span></h3><p>A pasta do Google Drive foi enviada, mas <code>drive.google.com</code> está bloqueado pela rede deste ambiente. Para liberar: menu do ambiente → Editar → domínios permitidos, com <code>drive.google.com</code>, <code>drive.usercontent.google.com</code> e <code>lh3.googleusercontent.com</code>. Outra opção é enviar as fotos direto para <code>docs/design/fotos/</code> no GitHub.</p></div>
-    <div class="achado"><span class="id">M2</span><h3>Nomes e textos das peças <span class="grav conf">Confirmar</span></h3><p>Usei "T-shirt Limone", "T-shirt Pomodoro" e assim por diante, e os textos das coleções são sugestões. Composição, gramatura, medidas e a altura da modelo estão marcadas como "a confirmar".</p></div>
-    <div class="achado"><span class="id">M3</span><h3>Site de referência <span class="grav conf">Pendente</span></h3><p>coucousuzette.com ainda não foi conferido. A estrutura desta proposta (campanha, coleções com foto, looks e produto completo) segue a sua descrição e será comparada com o site quando ele for liberado.</p></div>
+    <div class="achado"><span class="id">M1</span><h3>Fotos reais <span class="grav feito">42 recebidas</span></h3><p>Lidas pelo conector do Google Drive. As 42 fotos de produto já estão nas telas e no catálogo. Faltam fotos com modelo (jeans, saia, alfaiataria), das costas, de looks e de clientes, que são o que mais aproxima a loja de uma marca de moda.</p></div>
+    <div class="achado"><span class="id">M2</span><h3>Nomes, coleções e dados das peças <span class="grav conf">Confirmar</span></h3><p>Os nomes são a minha leitura da estampa ("Limone Amalfi Coast", "Pomodoro Naples"…), e as coleções são sugestões (seção Catálogo real). Composição, gramatura, medidas e a altura da modelo estão marcadas como "a confirmar".</p></div>
+    <div class="achado"><span class="id">M3</span><h3>Site de referência <span class="grav conf">Em parte</span></h3><p>A pasta do site trouxe só os arquivos de terceiros. Deu para ver os recursos que a loja usa (seção Referência), mas não o visual. Para comparar o visual, faltam capturas de tela das páginas.</p></div>
     <div class="achado"><span class="id">M4</span><h3>Logo em SVG e endereço do site <span class="grav conf">Pedir à loja</span></h3><p>Continuam pendentes: o logo em SVG (completo, horizontal, ícone e uma cor) e a escolha entre <code>.pt</code> e <code>.com.br</code>.</p></div>
     <div class="achado"><span class="id">M5</span><h3>Contraste e daltonismo <span class="grav feito">Validado</span></h3><p>Texto a partir de 4,5:1 e contornos a partir de 3:1, medidos. Cores de coleção passadas no validador (detalhes na seção de cores). Nenhuma violação no axe em 390 px e 1280 px.</p></div>
   </div>
@@ -648,28 +680,28 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   const reais=c=>'R$ '+(c/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
 
   // Fotos: arquivo esperado em design/fotos/<chave>.(webp|jpg|png). Sem arquivo, mostra a direção de arte.
-  // [cor da coleção, nome grande no espaço vazio, descrição (vira o texto alternativo), onde aparece]
+  // [cor da coleção, nome grande no espaço vazio, descrição (vira o texto alternativo), onde aparece, origem]
   const FOTOS={
-    'campanha-limone':['limao','Limone','Campanha Limone: modelo com a T-shirt Limone e jeans, ao ar livre, luz de fim de tarde','Início, primeira dobra'],
-    'colecao-limone':['limao','Limone','Capa da coleção Limone: limões, tecido e a camiseta dobrada, horizontal 3:2','Coleção Limone'],
-    'colecao-pomodoro':['tomate','Pomodoro','Capa da coleção Pomodoro: a camiseta com tomates frescos e toalha xadrez','Início, coleções'],
-    'colecao-dolce-vita':['med','Dolce Vita','Capa da coleção La Dolce Vita: clima de verão italiano e azul do mar','Início, coleções'],
-    'colecao-la-vie':['lavanda','La Vie','Capa da coleção La Vie Est Belle: flores, papel e a camiseta em luz suave','Início, coleções'],
-    'look-jeans':['tomate','Look','Look: T-shirt Pomodoro com jeans reto e tênis, corpo inteiro','Início, Shop the look'],
-    'limone-frente':['limao','Limone','T-shirt Limone de frente, em fundo liso','Produto (capa) e vitrine'],
-    'limone-costas':['limao','Limone','T-shirt Limone de costas, em fundo liso','Produto, 2ª foto'],
-    'limone-detalhe':['limao','Limone','Detalhe da estampa Limone, de perto, mostrando a malha','Produto, 3ª foto'],
-    'limone-vestida-jeans':['limao','Limone','Modelo com a T-shirt Limone e jeans','Produto, 4ª foto e "como veste"'],
-    'limone-vestida-saia':['limao','Limone','Modelo com a T-shirt Limone e saia midi','Produto, 5ª foto'],
-    'limone-vestida-alfaiataria':['limao','Limone','Modelo com a T-shirt Limone e calça de alfaiataria','Produto, 6ª foto'],
-    'pomodoro-frente':['tomate','Pomodoro','T-shirt Pomodoro de frente, em fundo liso','Vitrine e look'],
-    'dolce-vita-frente':['med','Dolce Vita','T-shirt La Dolce Vita de frente, em fundo liso','Vitrine'],
-    'la-vie-frente':['lavanda','La Vie','T-shirt La Vie Est Belle de frente, em fundo liso','Vitrine'],
-    'teddy-frente':['tomate','Teddy','T-shirt Teddy de frente, em fundo liso','Vitrine'],
-    'dog-club-frente':['menta','Dog Club','T-shirt Dog Club de frente, em fundo liso','Vitrine'],
-    'comunidade-1':['limao','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade'],
-    'comunidade-2':['tomate','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade'],
-    'comunidade-3':['med','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade']
+    'campanha-limone':['limao','Limone','Três camisetas da coleção Limone sobre listras de toldo azuis','Início, primeira dobra','Composição provisória com as fotos de produto; trocar por foto de campanha com modelo'],
+    'colecao-limone':['limao','Limone','Estampa La Dolce Vita Il Limone, de perto: limões sobre listras azuis','Coleção Limone','Recorte da foto de produto'],
+    'colecao-pomodoro':['tomate','Dolce Vita','Estampa Pomodoro Naples, de perto: tomates sobre listras azuis','Início, coleções (Dolce Vita)','Recorte da foto de produto'],
+    'colecao-teddy':['tomate','Teddy','Estampa Teddy Listras Rosa, de perto: ursinha de boné e bolsa rosa','Início, coleções (Teddy)','Recorte da foto de produto'],
+    'colecao-dog-club':['menta','Dog Club','Estampa Dachshund Macaron, de perto: cachorro de boina com macarons','Início, coleções (Dog Club)','Recorte da foto de produto'],
+    'look-jeans':['tomate','Look','Look: T-shirt Pomodoro Naples com jeans reto e tênis, corpo inteiro','Início, Shop the look','Falta: foto com modelo'],
+    'limone-frente':['limao','Limone','Camiseta branca Limone Amalfi Coast, de frente','Produto (capa) e vitrine','Foto de produto (Drive)'],
+    'limone-detalhe':['limao','Limone','Detalhe da estampa Limone Amalfi Coast: limões e listras azuis','Produto, 2ª foto','Recorte da foto de produto'],
+    'limone-costas':['limao','Limone','Camiseta Limone Amalfi Coast de costas','Produto, 3ª foto','Falta: foto das costas'],
+    'limone-vestida-jeans':['limao','Limone','Modelo com a Limone Amalfi Coast e jeans','Produto, 4ª foto e "como veste"','Falta: foto com modelo'],
+    'limone-vestida-saia':['limao','Limone','Modelo com a Limone Amalfi Coast e saia midi','Produto, 5ª foto','Falta: foto com modelo'],
+    'limone-vestida-alfaiataria':['limao','Limone','Modelo com a Limone Amalfi Coast e calça de alfaiataria','Produto, 6ª foto','Falta: foto com modelo'],
+    'pomodoro-frente':['med','Dolce Vita','Camiseta branca Pomodoro Naples, de frente','Vitrine e look','Foto de produto (Drive)'],
+    'dolce-vita-frente':['limao','Limone','Camiseta branca La Dolce Vita Il Limone Rosa, de frente','Vitrine','Foto de produto (Drive)'],
+    'la-vie-frente':['med','Dolce Vita','Camiseta branca La Vie Est Belle, de frente','Vitrine','Foto de produto (Drive)'],
+    'teddy-frente':['tomate','Teddy','Camiseta branca Trendy Teddy Rosa, de frente','Vitrine','Foto de produto (Drive)'],
+    'dog-club-frente':['menta','Dog Club','Camiseta branca Classic Poodle, de frente','Vitrine','Foto de produto (Drive)'],
+    'comunidade-1':['limao','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade','Falta: fotos de clientes'],
+    'comunidade-2':['tomate','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade','Falta: fotos de clientes'],
+    'comunidade-3':['med','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade','Falta: fotos de clientes']
   };
   const achadas=new Set();
   function preencherFoto(box){
@@ -685,36 +717,82 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
     tentar(['webp','jpg','png']);
   }
 
+  // As 42 peças das fotos do Drive: [nº, arquivo, nome lido na estampa, coleção sugerida, cor da camiseta]
+  const CATALOGO=[
+    [1,"red-aesthetic","Red Aesthetic","Just a Girl","branca"],
+    [2,"la-vie-est-belle","La Vie Est Belle","Dolce Vita","branca"],
+    [3,"dachshund-macaron","Dachshund Macaron","Dog Club","branca"],
+    [4,"literally-just-a-girl","I'm Literally Just a Girl","Just a Girl","branca"],
+    [5,"um-dia-de-cada-vez-vinho","Um Dia de Cada Vez","Um Dia de Cada Vez","vinho"],
+    [6,"trendy-teddy-azul","Trendy Teddy Azul","Teddy","branca"],
+    [7,"um-dia-de-cada-vez-branca","Um Dia de Cada Vez","Um Dia de Cada Vez","branca"],
+    [8,"dalmata-leitora","Dálmata Leitora","Dog Club","branca"],
+    [9,"classic-poodle-branca","Classic Poodle","Dog Club","branca"],
+    [10,"limone-amalfi-coast","Limone Amalfi Coast","Limone","branca"],
+    [11,"classic-poodle-preta","Classic Poodle","Dog Club","preta"],
+    [12,"teddy-poa-rosa","Teddy Poá Rosa","Teddy","branca"],
+    [13,"good-vibes-only","Good Vibes Only","Dog Club","branca"],
+    [14,"citrus-branca","Citrus","Limone","branca"],
+    [15,"teddy-poa-amarelo","Teddy Poá Amarelo","Teddy","branca"],
+    [16,"dog-club-turma","Dog Club Turma","Dog Club","branca"],
+    [17,"teddy-listras-amarelas","Teddy Listras Amarelas","Teddy","listrada amarela"],
+    [18,"citrus-preta","Citrus","Limone","preta"],
+    [19,"il-limone-azul","La Dolce Vita Il Limone Azul","Limone","branca"],
+    [20,"um-dia-de-cada-vez-preta","Um Dia de Cada Vez","Um Dia de Cada Vez","preta"],
+    [21,"il-limone-rosa","La Dolce Vita Il Limone Rosa","Limone","branca"],
+    [22,"limoncello","Limoncello","Limone","branca"],
+    [23,"cavalier-de-boina","Cavalier de Boina","Dog Club","branca"],
+    [24,"teddy-listras-areia","Teddy Listras Areia","Teddy","listrada areia"],
+    [25,"teddy-listras-rosa","Teddy Listras Rosa","Teddy","listrada rosa"],
+    [26,"just-a-girl-cafe","I'm Just a Girl","Just a Girl","branca"],
+    [27,"bananas","Bananas","Outras","branca"],
+    [28,"um-dia-de-cada-vez-marrom","Um Dia de Cada Vez","Um Dia de Cada Vez","marrom"],
+    [29,"dachshund-riviera","Dachshund Riviera","Dog Club","branca"],
+    [30,"la-dolce-vita-collage","La Dolce Vita","Dolce Vita","branca"],
+    [31,"save-a-turtle","Skip a Straw, Save a Turtle","Outras","branca"],
+    [32,"pomodoro-naples","Pomodoro Naples","Dolce Vita","branca"],
+    [33,"lemons","Lemons","Limone","branca"],
+    [34,"bananas-2","Bananas (repetida?)","Outras","branca"],
+    [35,"more-amore-por-favor","More Amore Por Favor","Dolce Vita","branca"],
+    [36,"teddy-poa-azul","Teddy Poá Azul","Teddy","branca"],
+    [37,"teddy-listras-azuis","Teddy Listras Azuis","Teddy","listrada azul"],
+    [38,"trendy-teddy-rosa","Trendy Teddy Rosa","Teddy","branca"],
+    [39,"trendy-teddy-verde","Trendy Teddy Verde","Teddy","branca"],
+    [40,"ciao","Ciao!","Dolce Vita","branca"],
+    [41,"beagle-do-cafe","Beagle do Café","Dog Club","branca"],
+    [42,"cherry-coded","Cherry Coded","Just a Girl","branca"]
+  ];
+  const COR_COLECAO={'Limone':'limao','Dolce Vita':'med','Teddy':'tomate','Dog Club':'menta','Just a Girl':'tomate','Um Dia de Cada Vez':'lavanda','Outras':'limao'};
+  const arquivo=n=>{const c=CATALOGO[n-1];return `design/fotos/produtos/${String(n).padStart(2,'0')}-${c[1]}.webp`;};
+  // Card de uma peça do catálogo: a foto real já existe, então vai direto como <img>
+  function peca(n,extra={}){const c=CATALOGO[n-1];return {n,nome:c[2],colNome:c[3],col:COR_COLECAO[c[3]],alt:`Camiseta ${c[4]} ${c[2]}, foto de produto`,...extra};}
+  function fotoPeca(p,decorativa){const d=el('div',{class:'foto'});const img=el('img',{src:arquivo(p.n),alt:decorativa?'':p.alt,loading:'lazy',decoding:'async',width:'720',height:'900'});d.append(img);return d;}
+
   const PRODUTOS=[
-    {k:'limone-frente',nome:'T-shirt Limone',col:'limao',colNome:'Limone',sticker:['aviso','Últimas 2']},
-    {k:'pomodoro-frente',nome:'T-shirt Pomodoro',col:'tomate',colNome:'Pomodoro',sticker:['','Novo']},
-    {k:'dolce-vita-frente',nome:'T-shirt La Dolce Vita',col:'med',colNome:'Dolce Vita'},
-    {k:'la-vie-frente',nome:'T-shirt La Vie Est Belle',col:'lavanda',colNome:'La Vie Est Belle'},
-    {k:'teddy-frente',nome:'T-shirt Teddy',col:'tomate',colNome:'Teddy'},
-    {k:'dog-club-frente',nome:'T-shirt Dog Club',col:'menta',colNome:'Dog Club'}
+    peca(10,{sticker:['aviso','Últimas 2']}),peca(32,{sticker:['','Novo']}),peca(21),peca(38),peca(9),peca(3),peca(22),peca(40)
   ];
   function card(p){
-    const foto=el('div',{class:'foto','data-foto':p.k});
-    if(p.sticker)foto._sticker=p.sticker;
+    const foto=fotoPeca(p);
+    if(p.sticker){foto.append(el('span',{class:'tc-sticker '+p.sticker[0],text:p.sticker[1]}));}
     return el('a',{class:'tc-produto col-'+p.col,href:'#'},foto,el('span',{class:'col',text:p.colNome}),el('span',{class:'nome',text:p.nome}),el('span',{class:'preco',text:'R$ 49,99'}));
   }
   const encher=(id,lista)=>{const alvo=document.getElementById(id);lista.forEach(p=>alvo.append(card(p)));};
   encher('trilhoNovidades',PRODUTOS.slice(0,4));
-  encher('gradeTodas',PRODUTOS.slice(2,6));
-  encher('gradeLimone',[PRODUTOS[0],{...PRODUTOS[0],k:'limone-vestida-saia',nome:'T-shirt Limone Riviera',sticker:null}]);
-  encher('trilhoCompleta',PRODUTOS.slice(1,4));
+  encher('gradeTodas',PRODUTOS.slice(4,8));
+  encher('gradeLimone',[peca(10,{sticker:['aviso','Últimas 2']}),peca(19),peca(22),peca(14)]);
+  encher('trilhoCompleta',[peca(21),peca(22),peca(33)]);
   encher('compCards',PRODUTOS.slice(0,2));
   const cols=document.getElementById('gradeColecoes');
-  [['colecao-pomodoro','tomate','Pomodoro'],['colecao-dolce-vita','med','Dolce Vita'],['colecao-limone','limao','Limone'],['colecao-la-vie','lavanda','La Vie Est Belle']].forEach(([k,c,n])=>{
+  [['colecao-limone','limao','Limone'],['colecao-pomodoro','med','Dolce Vita'],['colecao-teddy','tomate','Teddy'],['colecao-dog-club','menta','Dog Club']].forEach(([k,c,n])=>{
     cols.append(el('a',{class:'colecao-tile col-'+c,href:'#'},el('div',{class:'foto','data-foto':k}),el('span',{class:'rot'},el('span',{},el('i',{'aria-hidden':'true'}),n),el('span',{'aria-hidden':'true',text:'→'}))));
   });
   const sac=document.getElementById('listaSacola');
-  [PRODUTOS[1],PRODUTOS[2],PRODUTOS[0]].forEach(p=>{
-    sac.append(el('div',{class:'item-sacola mini-foto col-'+p.col},el('div',{class:'foto','data-foto':p.k}),el('div',{},el('div',{class:'nome',text:p.nome}),el('div',{class:'nota',text:p.colNome+' · tamanho único · 1 un.'}),el('button',{class:'tc-botao link',type:'button',style:'font-size:13px;padding:0'},'Remover')),el('b',{class:'num',text:'R$ 49,99'})));
+  [peca(32),peca(9),peca(10)].forEach(p=>{
+    sac.append(el('div',{class:'item-sacola mini-foto col-'+p.col},fotoPeca(p,true),el('div',{},el('div',{class:'nome',text:p.nome}),el('div',{class:'nota',text:p.colNome+' · tamanho único · 1 un.'}),el('button',{class:'tc-botao link',type:'button',style:'font-size:13px;padding:0'},'Remover')),el('b',{class:'num',text:'R$ 49,99'})));
   });
 
-  // Galeria do produto: 6 fotos, com miniaturas e contador
-  const GAL=['limone-frente','limone-costas','limone-detalhe','limone-vestida-jeans','limone-vestida-saia','limone-vestida-alfaiataria'];
+  // Galeria do produto: 6 fotos (2 reais e 4 que faltam), com miniaturas e contador
+  const GAL=['limone-frente','limone-detalhe','limone-costas','limone-vestida-jeans','limone-vestida-saia','limone-vestida-alfaiataria'];
   const trilho=document.getElementById('galeria'), minis=document.getElementById('miniaturas'), cont=document.getElementById('galeriaContador');
   GAL.forEach((k,i)=>{
     trilho.append(el('div',{class:'foto','data-foto':k}));
@@ -724,13 +802,22 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   });
   trilho.addEventListener('scroll',()=>{const i=Math.round(trilho.scrollLeft/trilho.clientWidth);cont.textContent=`${i+1}/${GAL.length}`;[...minis.children].forEach((b,j)=>b.setAttribute('aria-current',String(i===j)));},{passive:true});
 
+  // Catálogo real agrupado pela coleção sugerida
+  const gc=document.getElementById('gradeCatalogo');
+  Object.keys(COR_COLECAO).forEach(nomeCol=>{
+    const itens=CATALOGO.filter(c=>c[3]===nomeCol); if(!itens.length)return;
+    const grade=el('div',{class:'catalogo-grade'});
+    itens.forEach(c=>{const p=peca(c[0]);grade.append(el('figure',{class:'catalogo-item col-'+p.col},fotoPeca(p),el('figcaption',{},el('b',{text:`${c[0]}. ${c[2]}`}),el('span',{text:'camiseta '+c[4]}))));});
+    gc.append(el('section',{class:'catalogo-col col-'+COR_COLECAO[nomeCol],'aria-label':nomeCol},el('h3',{},el('i',{'aria-hidden':'true'}),`${nomeCol} · ${itens.length}`),grade));
+  });
+
   function atualizarTabFotos(){
     const tb=document.getElementById('tabFotos');tb.replaceChildren();
-    Object.entries(FOTOS).forEach(([k,f])=>tb.append(el('tr',{},el('td',{},el('code',{text:k+'.jpg'})),el('td',{text:f[2]}),el('td',{text:f[3]}),el('td',{text:achadas.has(k)?'✓ recebida':'aguardando'}))));
+    Object.entries(FOTOS).forEach(([k,f])=>tb.append(el('tr',{},el('td',{},el('code',{text:k+'.webp'})),el('td',{text:f[2]}),el('td',{text:f[3]}),el('td',{text:achadas.has(k)?'✓ '+f[4]:f[4]}))));
     document.getElementById('avisoFotos').hidden=achadas.size===Object.keys(FOTOS).length;
   }
   atualizarTabFotos();
-  document.querySelectorAll('[data-foto]').forEach(box=>{preencherFoto(box);if(box._sticker){const [cl,t]=box._sticker;box.classList.add('com-sticker');box.append(el('span',{class:'tc-sticker '+cl,text:t}));}});
+  document.querySelectorAll('[data-foto]').forEach(preencherFoto);
 
   // Oferta: a mesma regra do motor de preço (grupos de 3 por R$ 119,99; o resto pelo preço normal)
   const PECA=4999, GRUPO=3, PRECO_GRUPO=11999;
@@ -741,18 +828,32 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
     tbo.append(el('tr',{},el('td',{class:'num',text:n}),el('td',{class:'num',text:g}),el('td',{class:'num',text:reais(sem)}),el('td',{class:'num'},el('b',{text:reais(tot)})),el('td',{class:'num',text:tot<sem?reais(sem-tot):'—'}),el('td',{text:diz})));
   }
 
+  const APPS=[
+    ['Pacotes e oferta por quantidade','aov-bundle-upsell','É o "leve mais, pague menos". Confirma que o nosso "Monte seu Club" está no caminho certo.','Já no plano (D19)'],
+    ['Lista de desejos','wishlist-power','Coração no produto para salvar e voltar depois.','Sugestão para depois do lançamento'],
+    ['Aviso de volta ao estoque','restock-sdk','"Me avise quando voltar" quando uma peça esgota.','Sugestão: avisar pelo WhatsApp, que já temos'],
+    ['Avaliações de clientes','Yotpo','Estrelas e fotos de clientes no produto.','Sugestão para depois; combina com "Você faz o Club"'],
+    ['Recomendações','Nosto','"Você também vai gostar", personalizado.','No plano, como "Complete o look", sem ferramenta paga'],
+    ['E-mail e SMS','Klaviyo','Campanhas, carrinho abandonado e pop-up de cadastro.','Fora do escopo; o nosso canal é o WhatsApp'],
+    ['Atendimento','Gorgias','Chat e central de ajuda.','Fora do escopo; o atendimento é pelo WhatsApp'],
+    ['Contador regressivo','countdown-timer','Cronômetro de promoção para gerar urgência.','Não recomendo: a loja já tem o prazo real da reserva'],
+    ['País e moeda','Orbe','Detecta o país e mostra bandeira e moeda.','Não se aplica (só Brasil)']
+  ];
+  const ap=document.getElementById('apps');
+  APPS.forEach(([t,a,d,n])=>ap.append(el('div',{class:'painel'},el('p',{class:'rotulo',text:a}),el('h3',{text:t}),el('p',{class:'nota',text:d}),el('p',{style:'font-size:14px'},el('b',{text:'Para nós: '}),n))));
+
   const MUDANCAS=[
     ['1','A home parecia app de reserva','Primeira dobra editorial: campanha em tela cheia, frase forte e a coleção em destaque. A eficiência vem depois.'],
-    ['2','Camisetas reais no centro','Os desenhos SVG saíram. Todos os espaços são de foto real, que entra sozinha quando o arquivo existe.'],
+    ['2','Camisetas reais no centro','Os desenhos saíram. As 42 fotos de produto do Drive estão nas telas; os recortes das estampas viraram capas de coleção.'],
     ['3','Mais fashion, menos fofo','Baloo 2 só nos momentos de marca. Stickers só em "Novo" e "Últimas", um por card. Sem etiqueta pendurada, sem estrelas e sem círculos de Instagram.'],
     ['4','Slogan genérico','"Welcome to the Club." na campanha, com outras opções para a loja escolher (seção de textos).'],
-    ['5','Coleções reais e configuráveis','Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy e Dog Club. A cor de cada uma é escolhida no painel entre 5 cores aprovadas (D20).'],
+    ['5','Coleções reais e configuráveis','Sugeridas a partir das fotos: Limone, Dolce Vita (com Pomodoro e La Vie Est Belle), Teddy, Dog Club, Just a Girl e Um Dia de Cada Vez. A cor de cada uma é escolhida no painel entre 5 cores aprovadas (D20).'],
     ['6','Faltava página de produto','Nova rota /produto/[slug]: galeria de 1 a 10 fotos, zoom, como veste, detalhes, medidas, cuidados, entrega e "Adicionar ao Club".'],
     ['7','Faltava lifestyle','Fotos vestidas (jeans, saia, alfaiataria), bloco "Shop the look" com pontos na foto e fotos de clientes.'],
     ['8','Promoção diferente da definida','"Monte seu Club": 3 por R$ 119,99, a cada 3 (D19). Motor de preço, especificação, desenho técnico e protótipo atualizados.'],
     ['9 a 11','Fluxo de reserva, pagamento confirmado e expirada','Mantidos. Só os preços e o tema mudaram.'],
     ['12','Tirar o tema escuro da loja','A loja fica só no claro (D21). O painel da loja mantém claro e escuro.'],
-    ['—','Coucou Suzette não conferida','Continua pendente (M3). Confiro quando o site for liberado.']
+    ['—','Coucou Suzette','A pasta trouxe os recursos da loja, mas não o visual (seção Referência). Faltam capturas de tela (M3).']
   ];
   const tm=document.getElementById('tabMudancas');
   MUDANCAS.forEach(([n,a,b])=>tm.append(el('tr',{},el('td',{class:'num',text:n}),el('td',{text:a}),el('td',{text:b}))));
@@ -771,10 +872,10 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   const tt=document.getElementById('tabTokens');
   TOKENS.forEach(([n,c,u,ct])=>tt.append(el('tr',{},el('td',{},el('code',{text:n})),el('td',{},cor(c)),el('td',{text:u}),el('td',{class:'num',text:ct}))));
   const CORES=[
-    ['Tomate (TOMATE)','#EE4A2A','#FFE7DE','#A63A1C','tinta','5,5','Pomodoro, Teddy'],
-    ['Limão (LIMAO)','#F2DD3D','#FFF9C9','#6B5600','tinta','6,7','Limone'],
-    ['Mediterrâneo (MEDITERRANEO)','#2F6FD0','#E4EEFC','#1D4E9A','branco','6,9','La Dolce Vita'],
-    ['Lavanda (LAVANDA)','#A77BE0','#F1EAFB','#5E3B99','tinta','7,0','La Vie Est Belle'],
+    ['Tomate (TOMATE)','#EE4A2A','#FFE7DE','#A63A1C','tinta','5,5','Teddy, Just a Girl'],
+    ['Limão (LIMAO)','#F2DD3D','#FFF9C9','#6B5600','tinta','6,7','Limone, Outras'],
+    ['Mediterrâneo (MEDITERRANEO)','#2F6FD0','#E4EEFC','#1D4E9A','branco','6,9','Dolce Vita'],
+    ['Lavanda (LAVANDA)','#A77BE0','#F1EAFB','#5E3B99','tinta','7,0','Um Dia de Cada Vez'],
     ['Menta (MENTA)','#2FA58A','#E0F4EE','#1C6B58','tinta','5,6','Dog Club']
   ];
   const tc=document.getElementById('tabColecoes');

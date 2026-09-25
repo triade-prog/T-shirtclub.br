@@ -36,7 +36,7 @@
       {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"11 tokens base, 5 cores de coleção aprovadas (contraste e daltonismo) e componentes novos: CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao (proposta 4); aguarda aprovação"},
       {"id":"D3","texto":"Telas finais no celular: descoberta (início, coleção, produto, sacola) e reserva (dados, código, PIX, pago, expirada)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"Proposta 4: 4 telas novas de descoberta e 5 da reserva mantidas; faltam as fotos reais; aguarda aprovação"},
       {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
-      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"bloqueado","nota":"Fotos enviadas no Google Drive, mas drive.google.com está bloqueado na rede do ambiente (E13). Lista de arquivos esperados em design-frontend.html#fotos"},
+      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"andamento","nota":"42 fotos de produto recebidas pelo conector do Google Drive e já nas telas (docs/design/fotos/produtos). Faltam fotos com modelo, costas, looks e clientes"},
       {"id":"D6","texto":"Teste de uso com 3 a 5 clientes no celular, com ajustes do que travar","sec":"frontend","refs":["G19"],"status":"pendente"}
      ]},
     {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
@@ -222,9 +222,10 @@
     {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
     {"id":"E10","texto":"Endereço do site: a marca usa \".br\" e o domínio registrado é tshirtclub.pt","quem":"Loja","precisa_em":"F1","refs":[],"status":"pendente"},
     {"id":"E11","texto":"Confirmar a prancha oficial da marca (as duas têm cores diferentes)","quem":"Loja","precisa_em":"F2","refs":["G19"],"status":"feito","nota":"Prancha 2 é a oficial (reenviada pela loja em 25/09)"},
-    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
-    {"id":"E13","texto":"Fotos das peças: liberar drive.google.com na rede do ambiente ou colocar os arquivos em docs/design/fotos/","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
-    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
+    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente","nota":"A pasta enviada trouxe só arquivos de terceiros (apps da loja), sem o visual; faltam capturas de tela das páginas"},
+    {"id":"E13","texto":"Fotos das peças","quem":"Loja","precisa_em":"F2","refs":[],"status":"feito","nota":"42 fotos de produto lidas pelo conector do Google Drive em 25/09; faltam fotos com modelo, costas e looks (E15)"},
+    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E15","texto":"Fotos com modelo (jeans, saia, alfaiataria), costas e looks; confirmar nomes e coleções das 42 peças","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
   ],
   "achados": [
     {"id":"G1","titulo":"Cookie da cliente não funcionaria no iPhone","grav":"Crítico"},
@@ -276,6 +277,7 @@
     ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"]
   ],
   "historico": [
+    {"data":"25/09/2026","texto":"42 fotos de produto lidas pelo conector do Google Drive e aplicadas no design (catálogo real com coleções sugeridas, capas por recorte de estampa, campanha provisória). Pasta do site de referência analisada: só apps de terceiros."},
     {"data":"25/09/2026","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21)."},
     {"data":"25/09/2026","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18)."},
     {"data":"25/09/2026","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11."},
