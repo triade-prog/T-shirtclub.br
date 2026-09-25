@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { package_json_file: sistema/package.json }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm, cache-dependency-path: sistema/pnpm-lock.yaml }
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
@@ -57,10 +57,10 @@ jobs:
       CI: "true"
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { package_json_file: sistema/package.json }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm, cache-dependency-path: sistema/pnpm-lock.yaml }
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
         env: { MOSTRAR_COMPONENTES: "1" }
@@ -79,10 +79,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { package_json_file: sistema/package.json }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm, cache-dependency-path: sistema/pnpm-lock.yaml }
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tshirtclub/web build
       - run: bash scripts/subir-apps.sh
