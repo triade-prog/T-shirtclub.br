@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pagamentos em análise</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="active" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero">
+    <div><div class="kicker">Área administrativa • pagamentos</div><h1>Pagamentos em análise</h1><p class="muted">Pagamentos aprovados pelo provedor depois do prazo válido da reserva. Eles <strong>nunca</strong> confirmam sozinhos e a reserva expirada <strong>não</strong> é reativada: o administrador estorna ou converte em um novo pedido.</p></div>
+  </div>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <div class="row"><h2>Casos</h2><select id="filterCase" style="max-width:180px" aria-label="Situação do caso"><option value="ABERTA">Abertos</option><option value="RESOLVIDA">Resolvidos</option><option value="">Todos</option></select></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Reserva</th><th>Cliente</th><th>Motivo</th><th class="num">Valor</th><th>Situação</th></tr></thead>
+          <tbody id="caseRows"></tbody>
+        </table>
+      </div>
+      <div class="notice pink" style="margin-top:14px">Como a reserva aceita uma única forma de pagamento, não existem casos de pagamento duplicado. O valor da cobrança é gerado pelo sistema com o total exato da reserva.</div>
+    </section>
+
+    <section class="card soft" id="detail" aria-live="polite"></section>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/12-admin-pagamentos-analise.js"></script>
+</body>
+</html>
