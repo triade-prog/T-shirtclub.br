@@ -1,0 +1,19 @@
+# Projeto Supabase de desenvolvimento (F1.4): criar em sa-east-1 (São Paulo) e ligar com
+# `supabase link --project-ref <ref>`. Migrations em supabase/migrations, aplicadas em ordem.
+project_id = "tshirtclub"
+
+[db]
+major_version = 17
+
+[api]
+# A loja e o painel nunca usam a API REST das tabelas (RLS nega tudo); só as Edge Functions.
+schemas = ["public"]
+
+# As funções não usam o JWT do Supabase na entrada: só aceitam o segredo de repasse (G1).
+[functions.api-public]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+[functions.api-admin]
+verify_jwt = false
+import_map = "./functions/deno.json"

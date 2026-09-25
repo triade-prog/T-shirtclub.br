@@ -7,7 +7,7 @@ Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atuali
 | O quê | Onde |
 |---|---|
 | Especificação funcional (atualizada com as decisões) | `especificacao_funcional_sistema_reserva.html` |
-| Desenho técnico, versão 13 | `docs/arquitetura-reservas.html` |
+| Desenho técnico, versão 14 | `docs/arquitetura-reservas.html` |
 | Relatório da revisão geral (achados G1 a G24) | `docs/REVISAO-GERAL.md` |
 | Painel de execução (fases, entregas, testes, publicação, dependências) | `docs/painel-execucao.html` |
 | Design do frontend (identidade, design system, telas finais, textos) | `docs/design-frontend.html` |
@@ -62,7 +62,20 @@ Já entrou na proposta 4: barra de oferta, abas de favoritos, emoji nas coleçõ
 
 Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; decidir os pontos da referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
 
-**Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
+**F1 (Fundação): liberada pela loja em 25/09, junto com o logo oficial, e implementada em `sistema/`** (ver `sistema/README.md` e `sistema/docs/adr/0001-decisoes-da-fundacao.md`):
+- **Estrutura:** monorepo pnpm com `apps/web` (loja), `apps/admin` (painel), `packages/domain`, `packages/ui`, `packages/servidor` e `supabase/`.
+- **Stack:** Next.js 16 (middleware agora é `proxy.ts`), Tailwind 4 (tokens como `@theme`), TypeScript 6 e ESLint 9 (por compatibilidade das ferramentas).
+- **Banco:** migrations 0001–0003, 0080, 0100 e 0200 (configurações, `app_now()`, limites, auditoria somente de inserção, gatilho guardião, RLS fechado), com 46 testes pgTAP.
+- **Domínio e segurança:** `domain` com 39 testes, que roda no Node e no Deno; repasse `/api` com cookies `__Host-` e CSP com nonce, com 16 testes.
+- **Telas e medições:** 18 testes ponta a ponta no celular (axe e comparação visual); Lighthouse no celular com desempenho 98 e acessibilidade 100.
+- **Logo:** aplicado sem fundo, com favicon e ícones do app.
+
+Pendências da F1:
+- **F1.4 (conta da loja):** criar o projeto Supabase em sa-east-1 e o projeto Vercel na região gru1.
+- **Primeira execução do CI no GitHub.**
+- **Referências visuais:** gerar no container do CI (workflow "Atualizar telas de referência").
+
+A F2 começa depois disso e da aprovação do design (D1 e D2).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

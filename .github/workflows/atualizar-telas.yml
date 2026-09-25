@@ -1,0 +1,40 @@
+# Regenera as imagens de referência da comparação visual no mesmo ambiente do CI
+# (container do Playwright) e grava no próprio branch. Rodar à mão quando um componente
+# muda de propósito ou quando o Playwright é atualizado.
+name: Atualizar telas de referência
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: sistema
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { package_json_file: sistema/package.json }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: sistema/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env: { MOSTRAR_COMPONENTES: "1" }
+      - run: pnpm e2e --update-snapshots=all
+      - name: Gravar as imagens no branch
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/__telas__
+          git diff --cached --quiet || git commit -m "Atualiza as telas de referência da comparação visual (CI)"
+          git push
