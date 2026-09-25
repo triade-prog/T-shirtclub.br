@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Criar cupom</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+<link rel="stylesheet" href="assets/css/promocoes.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="active" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Promoções • nova</div><h1>Criar cupom</h1><p class="muted">Desconto em valor ou porcentagem que a cliente aplica na reserva digitando o código.</p></div><a class="btn secondary" href="14-admin-promocoes.html">← Promoções</a></div>
+  <form class="promo-form" id="form" novalidate>
+    <section class="psec">
+      <div class="prow"><label class="lbl" for="nome">Nome do cupom <span class="counter" id="nomeCount"></span></label><input type="text" id="nome"></div>
+      <div class="prow"><label class="lbl" for="codigo">Código do cupom</label><input type="text" id="codigo" placeholder="Ex.: BEMVINDA10" style="text-transform:uppercase" maxlength="20">
+        <p class="hint" style="margin:0">É o que a cliente digita ao criar a reserva. Letras e números, 4 a 20 caracteres.</p></div>
+      <div class="prow"><label class="lbl" for="inicio">Hora de início do período de resgate</label><div class="dt"><input type="datetime-local" id="inicio"></div></div>
+      <div class="prow"><label class="lbl" for="fim">Hora de término do período de reivindicação</label><div class="dt"><input type="datetime-local" id="fim"></div></div>
+      <div class="prow"><span class="lbl">Validade</span>
+        <div class="toolbar"><div class="stepper" id="validade"><button type="button" data-step="-" aria-label="Menos um dia">−</button><input type="number" value="3" min="1" max="90" aria-label="Validade em dias"><button type="button" data-step="+" aria-label="Mais um dia">+</button></div><span class="muted">dia(s)</span></div>
+        <p class="hint" style="margin:0">O número de dias que o cupom durará a partir da data de resgate.</p></div>
+    </section>
+    <section class="psec">
+      <div class="prow"><span class="lbl">Tipo de desconto</span>
+        <div class="radios" role="radiogroup" aria-label="Tipo de desconto">
+          <label><input type="radio" name="modo" value="VALOR" checked> Valor de desconto</label>
+          <label><input type="radio" name="modo" value="PERCENTUAL"> Porcentagem de desconto</label>
+        </div></div>
+      <div class="prow"><label class="lbl" for="valor"><span id="valorLabel">Valor do desconto (R$)</span></label><div class="money"><input type="text" id="valor" inputmode="decimal" placeholder="Insira um número"><span>OFF</span></div></div>
+      <div class="prow" data-grupo="modo" data-mostra-para="PERCENTUAL"><label class="lbl" for="teto">Desconto máximo por uso (R$)</label><div class="money"><span>R$</span><input type="text" id="teto" inputmode="decimal" placeholder="Opcional, ex.: 30,00"></div></div>
+      <div class="prow"><span class="lbl">Gasto mínimo (R$)</span>
+        <div class="radios" role="radiogroup" aria-label="Gasto mínimo">
+          <label><input type="radio" name="minimo" value="DEFINIR"> Definir um valor</label>
+          <label><input type="radio" name="minimo" value="SEM" checked> Sem gasto mínimo</label>
+        </div>
+        <div class="money" data-grupo="minimo" data-mostra-para="DEFINIR"><span>R$</span><input type="text" id="gastoMinimo" inputmode="decimal" placeholder="Ex.: 99,90"></div></div>
+      <div class="prow"><label class="lbl" for="quantidade">Quantidade de uso</label><input type="number" id="quantidade" value="1000" min="1" max="9999999"></div>
+      <div class="prow"><span class="lbl">Quantidade que pode ser reivindicada: <span id="claimable">--</span></span><p class="hint" style="margin:0">É possível resgatar no máximo 9.999.999 cupons.</p>
+        <span class="lbl" style="margin-top:6px">Gasto estimado: <span id="estimate">--</span></span><p class="hint" style="margin:0">O custo da despesa quando o cupom é totalmente resgatado.</p></div>
+      <div class="prow"><span class="lbl">Número de reivindicações por cliente</span>
+        <div class="stepper" id="porCliente"><button type="button" data-step="-" aria-label="Menos um">−</button><input type="number" value="1" min="1" max="10" aria-label="Reivindicações por cliente"><button type="button" data-step="+" aria-label="Mais um">+</button></div>
+        <p class="hint" style="margin:0">Contado por telefone validado.</p></div>
+    </section>
+    <section class="psec">
+      <div class="prow"><span class="lbl">É válido para</span>
+        <div class="radios" role="radiogroup" aria-label="É válido para">
+          <label><input type="radio" name="escopo" value="TODOS" checked> Todos os produtos</label>
+          <label><input type="radio" name="escopo" value="ESPECIFICOS"> Produtos específicos</label>
+        </div>
+        <button type="button" class="picked" id="pickBtn" data-grupo="escopo" data-mostra-para="ESPECIFICOS" style="background:none;border:0;padding:0;text-align:left;width:100%"><span>Produtos</span><small id="pickSummary">Clique para selecionar ›</small></button>
+      </div>
+    </section>
+  </form>
+  <div class="publish-bar"><button class="btn" type="submit" form="form">Publicar</button></div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/componentes/formulario-promocao.js"></script>
+<script src="assets/js/componentes/seletor-produtos.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/17-admin-cupom.js"></script>
+</body>
+</html>
