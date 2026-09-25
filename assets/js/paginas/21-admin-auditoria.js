@@ -4,10 +4,10 @@
   const h=(dias,hh,mm)=>{const d=new Date(agora);d.setDate(d.getDate()-dias);d.setHours(hh,mm,0,0);return d;};
   const EVENTOS=[
     [h(0,9,58),'Admin','Acesso','Carol entrou no painel.','—'],
-    [h(0,9,12),'Sistema','Reserva','Reserva criada: 3 peças, total R$ 119,76, expira às 09:27.','#1048 · (77) •••••-8809'],
+    [h(0,9,12),'Sistema','Reserva','Reserva criada: 3 peças, total R$ 119,99, expira às 09:27.','#1048 · (77) •••••-8809'],
     [h(0,9,12),'Sistema','WhatsApp','Mensagem "reserva criada" enviada.','#1048'],
     [h(0,9,11),'Cliente','WhatsApp','Pediu código de verificação (ref. K7Q2).','(77) •••••-8809'],
-    [h(0,8,57),'Provedor','Pagamento','Mercado Pago aprovou o PIX TX-88420511 (R$ 119,76).','#1047'],
+    [h(0,8,57),'Provedor','Pagamento','Mercado Pago aprovou o PIX TX-88420511 (R$ 119,99).','#1047'],
     [h(0,8,57),'Sistema','Reserva','Reservado → Pagamento confirmado. 6 peças passaram de reservadas para vendidas.','#1047'],
     [h(0,8,40),'Sistema','Reserva','Reservado → Expirado (prazo esgotado). 3 peças voltaram ao estoque.','#1046 · (77) •••••-4432'],
     [h(0,8,40),'Sistema','Bloqueio','Telefone bloqueado: 3 expirações em 12 dias.','(77) •••••-4501'],

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de Execução T-shirt Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<!--
+  DADOS DO PAINEL: única fonte da verdade do acompanhamento.
+  Como atualizar (a cada entrega, no mesmo commit do código):
+    1. Mude o "status" do item: "pendente" | "andamento" | "feito" | "bloqueado".
+       Em "feito", preencha "evidencia" (commit, PR ou teste que comprova).
+       Em "bloqueado", preencha "nota" com o motivo ("nota" também serve para qualquer status).
+    2. Atualize "meta.atualizado_em" e "meta.situacao". Quando a loja liberar uma fase,
+       ponha o id dela em "meta.fase_atual" (ex.: "F1"); enquanto for null, o painel mostra a próxima fase.
+    3. Acrescente uma linha no topo de "historico".
+  Os achados G1–G24 não têm status próprio: o status de cada um é calculado
+  a partir de todos os itens (entregas, testes, publicação, dependências) que o citam em "refs".
+-->
+<script type="application/json" id="dados">
+{
+  "meta": {
+    "atualizado_em": "25/09/2026",
+    "arquitetura_versao": 13,
+    "situacao": "Design do frontend em andamento; F1 aguardando liberação",
+    "fase_atual": "D",
+    "proximo_passo": "A loja envia o logo em SVG, confirma o endereço do site, envia as fotos das peças, aprova a proposta 4 do design e libera a F1. Nenhum código de produção é escrito antes disso."
+  },
+  "fases": [
+    {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
+     "itens":[
+      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"andamento","nota":"Proposta 4: descoberta editorial (D21), 80% foto e produto; Baloo só em títulos de marca; stickers com moderação. Faltam o logo em SVG e o endereço do site"},
+      {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"11 tokens base, 5 cores de coleção aprovadas (contraste e daltonismo) e componentes novos: CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao (proposta 4); aguarda aprovação"},
+      {"id":"D3","texto":"Telas finais no celular: descoberta (início, coleção, produto, sacola) e reserva (dados, código, PIX, pago, expirada)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"Proposta 4: 4 telas novas de descoberta e 5 da reserva mantidas; faltam as fotos reais; aguarda aprovação"},
+      {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
+      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"bloqueado","nota":"Fotos enviadas no Google Drive, mas drive.google.com está bloqueado na rede do ambiente (E13). Lista de arquivos esperados em design-frontend.html#fotos"},
+      {"id":"D6","texto":"Teste de uso com 3 a 5 clientes no celular, com ajustes do que travar","sec":"frontend","refs":["G19"],"status":"pendente"}
+     ]},
+    {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
+     "itens":[
+      {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"pendente"},
+      {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"pendente"},
+      {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"pendente"},
+      {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"pendente"},
+      {"id":"F1.5","texto":"Migrations 0001 a 0003: extensões, enums, app_settings, app_now() e rate_limits","sec":"dados","refs":["G18","G20"],"status":"pendente"},
+      {"id":"F1.6","texto":"Migration 0080: auditoria somente de inserção, sem dados pessoais","sec":"dados","refs":["G9"],"status":"pendente"},
+      {"id":"F1.7","texto":"Migration 0100: gatilho guardião das transições de estado","sec":"estados","refs":[],"status":"pendente"},
+      {"id":"F1.8","texto":"Migration 0200: RLS negando tudo para anon e authenticated","sec":"seguranca","refs":[],"status":"pendente"},
+      {"id":"F1.9","texto":"Pacote domain: regras do carrinho, telefone E.164 com nono dígito, códigos de erro, schemas Zod; importável pelo Deno","sec":"codigo","refs":["G22"],"status":"pendente"},
+      {"id":"F1.10","texto":"Repasse /api no mesmo domínio, com segredo de repasse e IP real; cookies __Host-","sec":"stack","refs":["G1"],"status":"pendente"},
+      {"id":"F1.11","texto":"Cabeçalhos de segurança e CSP com nonce nos dois apps","sec":"seguranca","refs":["G16"],"status":"pendente"},
+      {"id":"F1.12","texto":"packages/ui: tokens do design como variáveis CSS, preset do Tailwind, fontes por next/font e layouts base da loja e do painel","sec":"frontend","refs":["G17"],"status":"pendente"},
+      {"id":"F1.13","texto":"Página interna /_componentes e comparação visual no CI, nos temas claro e escuro","sec":"frontend","refs":["G19"],"status":"pendente"}
+     ]},
+    {"id":"F2","nome":"Catálogo, estoque e promoções","sec":"promocoes","objetivo":"A loja mostra produtos com preço certo e o painel cadastra catálogo, estoque e promoções, com login seguro.",
+     "itens":[
+      {"id":"F2.1","texto":"Migrations 0010 e 0015: catálogo, movimentos de estoque, promoções, cupons e view de disponibilidade","sec":"dados","refs":[],"status":"pendente"},
+      {"id":"F2.2","texto":"Motor de preço (vale só a mais vantajosa), com compre e economize mais em níveis ou preço por grupo (\"3 por R$ 119,99\", D19), com testes unitários","sec":"promocoes","refs":[],"status":"pendente"},
+      {"id":"F2.3","texto":"Migration 0180: ajuste de estoque sob o mesmo lock, sempre com motivo","sec":"estoque","refs":[],"status":"pendente"},
+      {"id":"F2.4","texto":"Login do painel: senha de 12+ caracteres, autenticador obrigatório (AAL2), bloqueio por e-mail + IP, Turnstile","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
+      {"id":"F2.5","texto":"Painel: catálogo com 1 a 10 fotos por produto, coleções com cor aprovada, looks, blocos da página inicial, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"pendente"},
+      {"id":"F2.6","texto":"Loja: início editorial, coleção, página de produto e sacola gerados no servidor, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"pendente"},
+      {"id":"F2.7","texto":"Telas da loja com contraste, foco, alvos de 44 px e erros junto do campo","sec":"mobile","refs":["G19"],"status":"pendente"},
+      {"id":"F2.8","texto":"Componentes da loja: Botao, Campo, CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao, SeloEstoque, Aviso, Toast","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.9","texto":"Telas da descoberta (telas 1 a 4 do design): início, coleção, produto com galeria e sacola \"Monte seu Club\"","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.10","texto":"Painel: layout, login com autenticador e telas de catálogo, estoque e promoções no design system","sec":"frontend","refs":["G7"],"status":"pendente"}
+     ]},
+    {"id":"F3","nome":"OTP por WhatsApp","sec":"whatsapp","objetivo":"A cliente valida o telefone pela verificação invertida, com a Z-API atrás de uma interface e limites que não barram quem é legítima.",
+     "itens":[
+      {"id":"F3.1","texto":"Migrations 0020 e 0110: clientes, sessões e códigos (HMAC, 5 min, 2 tentativas, 2 reenvios, bloqueio de 30 min)","sec":"whatsapp","refs":[],"status":"pendente"},
+      {"id":"F3.2","texto":"WhatsAppProvider com zapi.ts e fake.ts","sec":"codigo","refs":[],"status":"pendente"},
+      {"id":"F3.3","texto":"Webhook da Z-API: segmento secreto, filtros (fromMe, grupos, status, LID, mensagens antigas) e limite por remetente","sec":"whatsapp","refs":["G4"],"status":"pendente"},
+      {"id":"F3.4","texto":"Tentativa com referência curta, cookie __Host-tentativa e rota de acompanhamento","sec":"api","refs":["G12","G13"],"status":"pendente"},
+      {"id":"F3.5","texto":"Turnstile ao criar a tentativa; limites por telefone e tentativa; IP só com teto alto","sec":"whatsapp","refs":["G11"],"status":"pendente"},
+      {"id":"F3.6","texto":"Tela do código: campo único, one-time-code, aceita colar","sec":"mobile","refs":["G8"],"status":"pendente"},
+      {"id":"F3.7","texto":"Outbox com prioridade, validade por mensagem e modo lançamento (D14)","sec":"whatsapp","refs":["G5"],"status":"pendente"},
+      {"id":"F3.8","texto":"Telas Seus dados (sacola, cupom, aviso de privacidade) e Código (telas 2 e 3), com o campo aparecendo sozinho","sec":"frontend","refs":["G8","G12"],"status":"pendente"}
+     ]},
+    {"id":"F4","nome":"Criação atômica da reserva","sec":"estoque","objetivo":"Com 1 peça e muitas clientes, exatamente uma reserva vence. O prazo corre pelo relógio do banco.",
+     "itens":[
+      {"id":"F4.1","texto":"Migrations 0030 e 0120: reservas, itens, transições e create_reservation com locks em ordem fixa","sec":"estoque","refs":[],"status":"pendente"},
+      {"id":"F4.2","texto":"Chave aleatória do link gerada na criação, guardada só como hash","sec":"whatsapp","refs":["G6"],"status":"pendente"},
+      {"id":"F4.3","texto":"Tela da reserva ativa com relógio do servidor e aviso falado aos 5 min e no fim","sec":"expiracao","refs":["G19"],"status":"pendente"},
+      {"id":"F4.4","texto":"Script de concorrência: N clientes disputando a última unidade","sec":"testes","refs":[],"status":"pendente"},
+      {"id":"F4.5","texto":"Componentes Cronometro e SeloStatus; hook do relógio do servidor","sec":"frontend","refs":[],"status":"pendente"}
+     ]},
+    {"id":"F5","nome":"Expiração e mensagens","sec":"expiracao","objetivo":"Reservas vencem sozinhas, o lembrete chega a tempo e o bloqueio por abuso funciona.",
+     "itens":[
+      {"id":"F5.1","texto":"Migration 0140: varredura a cada 10 s, lembrete de 5 min e rede de segurança","sec":"jobs","refs":[],"status":"pendente"},
+      {"id":"F5.2","texto":"Migration 0070 e worker da outbox, chamado só quando há fila","sec":"jobs","refs":["G5","G21"],"status":"pendente"},
+      {"id":"F5.3","texto":"Migration 0160: bloqueio por 3 expirações em 30 dias; liberar e manter com motivo","sec":"bloqueio","refs":[],"status":"pendente"},
+      {"id":"F5.4","texto":"Telas de reserva expirada (tela 6), aviso de 5 min e telefone bloqueado","sec":"frontend","refs":[],"status":"pendente"}
+     ]},
+    {"id":"F6","nome":"Pagamento","sec":"pagamento","objetivo":"PIX ou cartão pelo Mercado Pago, com tolerância, idempotência em 5 camadas e nenhum pagamento aplicado duas vezes.",
+     "itens":[
+      {"id":"F6.1","texto":"Migration 0040: pagamentos, eventos, análises e disputas","sec":"dados","refs":["G2"],"status":"pendente"},
+      {"id":"F6.2","texto":"PaymentProvider com mercadopago.ts e fake.ts","sec":"codigo","refs":[],"status":"pendente"},
+      {"id":"F6.3","texto":"PIX criado com 30 min e cancelado em grace_until; Copiar código PIX como ação principal","sec":"expiracao","refs":["G14"],"status":"pendente"},
+      {"id":"F6.4","texto":"Cartão pelo Card Payment Brick, binary_mode, SDK só quando a cliente escolhe cartão","sec":"pagamento","refs":["G16","G17"],"status":"pendente"},
+      {"id":"F6.5","texto":"Webhook: x-signature, janela de 5 min, inbox, resposta 200 e processamento fora da requisição","sec":"pagamento","refs":["G3"],"status":"pendente"},
+      {"id":"F6.6","texto":"apply_payment_result: confere referência, valor, moeda e conta; VALOR_DIVERGENTE vai para análise","sec":"pagamento","refs":["G3"],"status":"pendente"},
+      {"id":"F6.7","texto":"Tolerância de 15 + 5 min, grace-expirations e reconciliação","sec":"expiracao","refs":[],"status":"pendente"},
+      {"id":"F6.8","texto":"Estorno ou contestação depois de pago abre disputa e trava o Entregue","sec":"pagamento","refs":["G2"],"status":"pendente"},
+      {"id":"F6.9","texto":"Fila de pagamentos em análise: estornar ou converter em novo pedido (tela 12)","sec":"pagamento","refs":[],"status":"pendente"},
+      {"id":"F6.10","texto":"Tela de pagamento: escolha da forma, BlocoPix, cartão, em processamento e recusado (tela 4)","sec":"frontend","refs":["G17"],"status":"pendente"}
+     ]},
+    {"id":"F7","nome":"Cancelamento","sec":"estados","objetivo":"A cliente pede, o painel decide, e o relógio não para.",
+     "itens":[
+      {"id":"F7.1","texto":"Migration 0150: solicitação, aprovar ou recusar com motivo, PREJUDICADA automática","sec":"estados","refs":[],"status":"pendente"},
+      {"id":"F7.2","texto":"Pedido de cancelamento com confirmação na tela e decisão no detalhe do painel","sec":"frontend","refs":[],"status":"pendente"}
+     ]},
+    {"id":"F8","nome":"Pós-pagamento","sec":"estados","objetivo":"Entrega, frete manual com 2 h para pagar, substatus e Entregue.",
+     "itens":[
+      {"id":"F8.1","texto":"Migrations 0050 e 0170: entrega, cotações de frete e substatus","sec":"dados","refs":[],"status":"pendente"},
+      {"id":"F8.2","texto":"Código de retirada aleatório, nunca o número da reserva","sec":"dados","refs":["G15"],"status":"pendente"},
+      {"id":"F8.3","texto":"Frete: informado pelo painel, segundo pagamento, prazo de 2 h e alerta de vencido","sec":"jobs","refs":[],"status":"pendente"},
+      {"id":"F8.4","texto":"T5 Entregue só com substatus pronto, frete pago e sem disputa aberta","sec":"estados","refs":["G2"],"status":"pendente"},
+      {"id":"F8.5","texto":"Tela Meu pedido: entrega, endereço, frete, Andamento e código de retirada (tela 5); frete no painel","sec":"frontend","refs":["G15"],"status":"pendente"}
+     ]},
+    {"id":"F9","nome":"Consulta","sec":"whatsapp","objetivo":"A cliente acha as reservas dela pelo site, pelo link ou pelo WhatsApp, sem expor dados de ninguém.",
+     "itens":[
+      {"id":"F9.1","texto":"Consulta pelo site com código (lookup-attempts)","sec":"api","refs":["G13"],"status":"pendente"},
+      {"id":"F9.2","texto":"Link /r#chave: POST /v1/r, escopo da reserva, telefone e endereço mascarados, 30 dias após o fim","sec":"whatsapp","refs":["G6"],"status":"pendente"},
+      {"id":"F9.3","texto":"Pelo link, confirmar ou mudar a entrega pede o código do WhatsApp (D13)","sec":"whatsapp","refs":["G6"],"status":"pendente"},
+      {"id":"F9.4","texto":"\"Minha reserva\" no WhatsApp, aceitando o número com e sem o nono dígito","sec":"whatsapp","refs":[],"status":"pendente"},
+      {"id":"F9.5","texto":"Telas de consulta e de entrada pelo link, com o código antes de mexer na entrega","sec":"frontend","refs":["G6"],"status":"pendente"}
+     ]},
+    {"id":"F10","nome":"Painel admin completo","sec":"api","objetivo":"Tudo o que a loja precisa operar num lançamento, com rastro na auditoria.",
+     "itens":[
+      {"id":"F10.1","texto":"Dashboard, busca e detalhe da reserva com linha do tempo","sec":"api","refs":[],"status":"pendente"},
+      {"id":"F10.2","texto":"Telas de bloqueados, pagamentos em análise, disputas e auditoria","sec":"api","refs":["G2"],"status":"pendente"},
+      {"id":"F10.3","texto":"Tela do WhatsApp: conexão com QR, fila, modo lançamento e notificações","sec":"whatsapp","refs":["G5"],"status":"pendente"},
+      {"id":"F10.4","texto":"Minha conta: troca de senha, autenticadores e aparelhos conectados","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
+      {"id":"F10.5","texto":"Dashboard do painel (tela 7) com o que pede ação primeiro, BlocoNumero e tabela","sec":"frontend","refs":[],"status":"pendente"}
+     ]},
+    {"id":"F11","nome":"Endurecimento","sec":"fases","objetivo":"Provar que aguenta um lançamento e que dá para operar e recuperar.",
+     "itens":[
+      {"id":"F11.1","texto":"Teste de carga (k6) com 100 clientes simuladas","sec":"testes","refs":[],"status":"pendente"},
+      {"id":"F11.2","texto":"Verificador de invariantes do estoque rodando todo dia","sec":"estoque","refs":[],"status":"pendente"},
+      {"id":"F11.3","texto":"purge_personal_data com os prazos de guarda (endereço em 90 dias, D15)","sec":"seguranca","refs":["G9"],"status":"pendente"},
+      {"id":"F11.4","texto":"Runbook: WhatsApp caiu, Mercado Pago fora, contestação, perda do autenticador, backup, incidente de dados","sec":"publicacao","refs":["G9"],"status":"pendente"},
+      {"id":"F11.5","texto":"Monitoramento de erros sem dados pessoais e alerta de falha dos jobs","sec":"publicacao","refs":[],"status":"pendente"},
+      {"id":"F11.6","texto":"PWA completo: manifesto, ícones (D5), aviso de instalação no iPhone e página sem conexão","sec":"mobile","refs":[],"status":"pendente"}
+     ]}
+  ],
+  "testes": [
+    {"id":"T1","texto":"50 confirmações simultâneas para a última unidade: exatamente 1 reserva","fase":"F4","refs":[],"status":"pendente"},
+    {"id":"T2","texto":"Carrinho com 1 item sem estoque: nenhuma reserva, nenhum estoque alterado","fase":"F4","refs":[],"status":"pendente"},
+    {"id":"T3","texto":"Duas abas do mesmo telefone confirmando juntas: 1 reserva","fase":"F4","refs":[],"status":"pendente"},
+    {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12","G18"],"status":"pendente"},
+    {"id":"T5","texto":"Transições proibidas direto no SQL: o gatilho rejeita","fase":"F1","refs":[],"status":"pendente"},
+    {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":["G18"],"status":"pendente"},
+    {"id":"T7","texto":"Senha certa sem código do autenticador: 403 em todo o painel","fase":"F2","refs":["G7"],"status":"pendente"},
+    {"id":"T8","texto":"5 senhas erradas de outro IP: o administrador continua entrando","fase":"F2","refs":["G7","G18"],"status":"pendente"},
+    {"id":"T9","texto":"2 erros, 2 reenvios, 2 erros no último código: bloqueio de 30 min","fase":"F3","refs":[],"status":"pendente"},
+    {"id":"T10","texto":"Webhook da Z-API com fromMe, grupo, LID, antigo ou repetido: ignorado","fase":"F3","refs":["G4","G18"],"status":"pendente"},
+    {"id":"T11","texto":"Remetente com e sem o nono dígito: mesmo telefone","fase":"F3","refs":["G18"],"status":"pendente"},
+    {"id":"T12","texto":"Código colado com espaço ou traço: aceito","fase":"F3","refs":["G8","G18"],"status":"pendente"},
+    {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5","G18"],"status":"pendente"},
+    {"id":"T14","texto":"3 expirações, liberação, nova expiração: contador recomeça","fase":"F5","refs":[],"status":"pendente"},
+    {"id":"T15","texto":"Mesmo webhook de aprovação 10 vezes: vende 1 vez","fase":"F6","refs":[],"status":"pendente"},
+    {"id":"T16","texto":"Aprovação e expiração no mesmo instante: resultado consistente","fase":"F6","refs":[],"status":"pendente"},
+    {"id":"T17","texto":"PIX criado aos 14min59s e aprovado aos 19min30s: confirma","fase":"F6","refs":[],"status":"pendente"},
+    {"id":"T18","texto":"Mesmo PIX aprovado aos 20min01s: expirado e em análise","fase":"F6","refs":[],"status":"pendente"},
+    {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"pendente"},
+    {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"pendente"},
+    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"pendente"},
+    {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
+    {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
+    {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
+    {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"},
+    {"id":"T26","texto":"Jornada completa no celular (Android e iPhone), da loja ao meu pedido, sem violação do axe","fase":"F9","refs":["G19"],"status":"pendente"},
+    {"id":"T27","texto":"Comparação visual da página de componentes nos temas claro e escuro","fase":"F1","refs":["G19"],"status":"pendente"}
+  ],
+  "publicacao": [
+    {"grupo":"Contas e ambiente","itens":[
+      {"id":"P1","texto":"Supabase Pro em sa-east-1, backup diário ligado e restauração ensaiada","refs":["G10"],"status":"pendente"},
+      {"id":"P2","texto":"Vercel Pro, funções em gru1, tshirtclub.pt e admin.tshirtclub.pt com HTTPS","refs":["G10"],"status":"pendente"},
+      {"id":"P3","texto":"Ambientes de teste e de produção separados","refs":[],"status":"pendente"},
+      {"id":"P4","texto":"Segredos só nos Secrets do Supabase e da Vercel","refs":[],"status":"pendente"},
+      {"id":"P5","texto":"Segundo fator nas contas de Supabase, Vercel, Mercado Pago, Z-API e domínio","refs":[],"status":"pendente"}
+    ]},
+    {"grupo":"Pagamento","itens":[
+      {"id":"P6","texto":"Webhook de produção com chave secreta, tópicos payment e chargebacks","refs":["G3"],"status":"pendente"},
+      {"id":"P7","texto":"PIX real de valor baixo pago e estornado em produção","refs":[],"status":"pendente"},
+      {"id":"P8","texto":"Reconciliação rodando e alerta de análise no painel","refs":[],"status":"pendente"}
+    ]},
+    {"grupo":"WhatsApp","itens":[
+      {"id":"P9","texto":"Z-API conectada ao número da loja, com monitor de conexão","refs":[],"status":"pendente"},
+      {"id":"P10","texto":"Webhook testado com mensagem da equipe (ignorada) e de uma cliente real","refs":["G4"],"status":"pendente"},
+      {"id":"P11","texto":"Modo lançamento testado com a fila cheia","refs":["G5"],"status":"pendente"}
+    ]},
+    {"grupo":"Segurança","itens":[
+      {"id":"P12","texto":"Cabeçalhos e CSP com nota A, sem erro de CSP no console","refs":["G16"],"status":"pendente"},
+      {"id":"P13","texto":"Autenticador com 2 aparelhos e procedimento de perda testado","refs":["G7"],"status":"pendente"},
+      {"id":"P14","texto":"Dependências sem vulnerabilidade alta","refs":[],"status":"pendente"}
+    ]},
+    {"grupo":"LGPD e textos legais","itens":[
+      {"id":"P15","texto":"Política com os dados da empresa e revisada pelo jurídico","refs":["G9"],"status":"pendente"},
+      {"id":"P16","texto":"Encarregado nomeado e e-mail de contato funcionando","refs":["G9"],"status":"pendente"},
+      {"id":"P17","texto":"Endereço e horário de retirada preenchidos","refs":[],"status":"pendente"}
+    ]},
+    {"grupo":"Qualidade no celular","itens":[
+      {"id":"P18","texto":"Lighthouse dentro das metas na loja, na reserva e no pagamento","refs":["G17"],"status":"pendente"},
+      {"id":"P19","texto":"Fluxo completo num Android e num iPhone reais, com PWA instalada","refs":["G1"],"status":"pendente"},
+      {"id":"P20","texto":"axe sem violação séria e teste com TalkBack e VoiceOver","refs":["G19"],"status":"pendente"},
+      {"id":"P21","texto":"Ensaio de lançamento com a equipe: 10 pessoas reservando ao mesmo tempo","refs":["G5"],"status":"pendente"}
+    ]}
+  ],
+  "externos": [
+    {"id":"E1","texto":"Credenciais de teste do Mercado Pago","quem":"Loja","precisa_em":"F6","refs":[],"status":"pendente"},
+    {"id":"E2","texto":"Conta na Z-API com o número conectado","quem":"Loja","precisa_em":"F3","refs":[],"status":"pendente"},
+    {"id":"E3","texto":"Confirmar como a Z-API entrega o remetente com identificador LID","quem":"Claude, com a conta da loja","precisa_em":"F3","refs":["G4"],"status":"pendente"},
+    {"id":"E4","texto":"Confirmar o mínimo de 30 min do PIX no ambiente de teste","quem":"Claude, com as credenciais","precisa_em":"F6","refs":["G14"],"status":"pendente"},
+    {"id":"E5","texto":"Conferir preços do Supabase Pro e do Vercel Pro e contratar","quem":"Loja","precisa_em":"Publicação","refs":["G10"],"status":"pendente"},
+    {"id":"E6","texto":"Dados da empresa: razão social, CNPJ, endereço, nome e e-mail do encarregado","quem":"Loja","precisa_em":"Publicação","refs":["G9"],"status":"pendente"},
+    {"id":"E7","texto":"Endereço e horário de retirada na loja","quem":"Loja","precisa_em":"F8","refs":[],"status":"pendente"},
+    {"id":"E8","texto":"Prazo fiscal de guarda das vendas confirmado pela contabilidade","quem":"Loja","precisa_em":"F11","refs":["G9"],"status":"pendente"},
+    {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E10","texto":"Endereço do site: a marca usa \".br\" e o domínio registrado é tshirtclub.pt","quem":"Loja","precisa_em":"F1","refs":[],"status":"pendente"},
+    {"id":"E11","texto":"Confirmar a prancha oficial da marca (as duas têm cores diferentes)","quem":"Loja","precisa_em":"F2","refs":["G19"],"status":"feito","nota":"Prancha 2 é a oficial (reenviada pela loja em 25/09)"},
+    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E13","texto":"Fotos das peças: liberar drive.google.com na rede do ambiente ou colocar os arquivos em docs/design/fotos/","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
+  ],
+  "achados": [
+    {"id":"G1","titulo":"Cookie da cliente não funcionaria no iPhone","grav":"Crítico"},
+    {"id":"G2","titulo":"Estorno ou contestação depois de pago","grav":"Alto"},
+    {"id":"G3","titulo":"Webhook do Mercado Pago","grav":"Alto"},
+    {"id":"G4","titulo":"Webhook da Z-API","grav":"Alto"},
+    {"id":"G5","titulo":"Fila do WhatsApp no lançamento","grav":"Alto"},
+    {"id":"G6","titulo":"Link da reserva","grav":"Alto"},
+    {"id":"G7","titulo":"Login do painel","grav":"Alto"},
+    {"id":"G8","titulo":"Colar o código","grav":"Alto"},
+    {"id":"G9","titulo":"LGPD e prazos de guarda","grav":"Alto"},
+    {"id":"G10","titulo":"Planos pagos na publicação","grav":"Alto"},
+    {"id":"G11","titulo":"Limites por IP e CGNAT","grav":"Médio"},
+    {"id":"G12","titulo":"Tentativa presa ao navegador","grav":"Médio"},
+    {"id":"G13","titulo":"Rotas da verificação invertida","grav":"Médio"},
+    {"id":"G14","titulo":"PIX com mínimo de 30 min","grav":"Médio"},
+    {"id":"G15","titulo":"Código de retirada aleatório","grav":"Médio"},
+    {"id":"G16","titulo":"Cabeçalhos de segurança e CSP","grav":"Médio"},
+    {"id":"G17","titulo":"Desempenho no celular","grav":"Médio"},
+    {"id":"G18","titulo":"Relógio controlável nos testes","grav":"Médio"},
+    {"id":"G19","titulo":"Acessibilidade","grav":"Médio"},
+    {"id":"G20","titulo":"Contadores de limite no Postgres","grav":"Baixo"},
+    {"id":"G21","titulo":"Worker só com trabalho","grav":"Baixo"},
+    {"id":"G22","titulo":"Pacote domain no Deno e no Node","grav":"Baixo"},
+    {"id":"G23","titulo":"Textos divergentes","grav":"Baixo","status_fixo":"feito","nota":"Só documentos; corrigido em 25/09"},
+    {"id":"G24","titulo":"Senha por comprimento","grav":"Baixo"}
+  ],
+  "decisoes": [
+    ["D1","Supabase + Next.js + Vercel, mobile-first e PWA"],
+    ["D2","Repositório triade-prog/T-shirtclub.br, sistema em pasta separada"],
+    ["D3","PIX ou cartão pelo Mercado Pago; forma fixa na primeira cobrança"],
+    ["D4","WhatsApp pela Z-API, risco de banimento aceito"],
+    ["D5","Tolerância de 15 + 5 min"],
+    ["D6","Pagamento tardio: estornar ou converter em novo pedido"],
+    ["D7","Cancelamento aprovado termina em EXPIRADO e não conta para bloqueio"],
+    ["D8","Frete manual; vencido gera só alerta"],
+    ["D9","Preço fixo e 3 formatos de promoção"],
+    ["D10","Bloqueio do código como proposto"],
+    ["D11","Conversa pelo celular, sem caixa de entrada no painel"],
+    ["D12","Autenticador obrigatório no painel"],
+    ["D13","Entrega pelo link pede o código do WhatsApp"],
+    ["D14","Modo lançamento aprovado"],
+    ["D15","Endereço guardado por 90 dias após a entrega"],
+    ["D16","Frontend e design no plano; o Claude cria o design e a loja aprova"],
+    ["D17","Marca oficial T-shirt Club.br; Baloo 2 e Poppins; tons derivados para contraste"],
+    ["D18","Rosa e verde como tempero; cada coleção com cor própria"],
+    ["D19","Monte seu Club: 3 por R$ 119,99 a cada 3; peça a R$ 49,99"],
+    ["D20","Produto com página própria e 1 a 10 fotos; coleções com cor aprovada; looks"],
+    ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"]
+  ],
+  "historico": [
+    {"data":"25/09/2026","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21)."},
+    {"data":"25/09/2026","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18)."},
+    {"data":"25/09/2026","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11."},
+    {"data":"25/09/2026","texto":"Frontend e design entram no plano (arquitetura v10, seção 18). Proposta de design criada: identidade, design system, 7 telas e textos."},
+    {"data":"25/09/2026","texto":"Painel validado com as habilidades code-review, dataviz e simplify; correções aplicadas."},
+    {"data":"25/09/2026","texto":"Painel de execução criado. F1 aguardando liberação da loja.","ref":"a566824"},
+    {"data":"25/09/2026","texto":"Decisões D12 a D15 registradas; desenho técnico na versão 9.","ref":"b857477"},
+    {"data":"25/09/2026","texto":"Revisão geral: 24 achados (G1 a G24); desenho técnico na versão 8; protótipo corrigido.","ref":"9c204bb"},
+    {"data":"25/09/2026","texto":"Desenho técnico v7 e resumo de contexto.","ref":"96dc2da"}
+  ]
+}
+</script>
+
+<style>
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eef1f4; --ink:#141a22; --muted:#566070; --line:#d9dee5;
+  --accent:#0d5f6f; --accent-soft:#dcedf0;
+  --s-pend:#566070; --s-pend-bg:#eef1f4;
+  --s-and:#8a5208; --s-and-bg:#fbefdc;
+  --s-feito:#1d6b42; --s-feito-bg:#e1f2e8;
+  --s-bloq:#a52a27; --s-bloq-bg:#fbe4e3;
+  --g-crit:var(--s-bloq); --g-alto:var(--s-and); --g-med:#2c5d9e; --g-baixo:var(--muted);
+  --track:#e3e7ec;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1317; --surface:#161b21; --surface-2:#1c232b; --ink:#e4e8ee; --muted:#9aa4b2; --line:#2a323c;
+    --accent:#5bb4c5; --accent-soft:#16323a;
+    --s-pend:#9aa4b2; --s-pend-bg:#1f2730;
+    --s-and:#e0a04a; --s-and-bg:#33260f;
+    --s-feito:#5cc58c; --s-feito-bg:#12291d;
+    --s-bloq:#ef7773; --s-bloq-bg:#3a1a19;
+    --g-med:#79a7e6;
+    --track:#262e38;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1317; --surface:#161b21; --surface-2:#1c232b; --ink:#e4e8ee; --muted:#9aa4b2; --line:#2a323c;
+  --accent:#5bb4c5; --accent-soft:#16323a;
+  --s-pend:#9aa4b2; --s-pend-bg:#1f2730;
+  --s-and:#e0a04a; --s-and-bg:#33260f;
+  --s-feito:#5cc58c; --s-feito-bg:#12291d;
+  --s-bloq:#ef7773; --s-bloq-bg:#3a1a19;
+  --g-med:#79a7e6;
+  --track:#262e38;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:0 64px}
+.shell{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:40px}
+@media (min-width:1000px){.shell{grid-template-columns:210px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){nav.toc{display:block;position:sticky;top:24px;align-self:start;padding-top:40px;font-size:13.5px}}
+nav.toc p{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:6px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--ink);background:var(--surface-2)}
+main{min-width:0}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header.top{padding-block:40px 24px;border-bottom:1px solid var(--line);display:grid;gap:14px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0}
+h1{font-size:clamp(28px,4.2vw,40px);line-height:1.15;margin:0;font-weight:700;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:22px;line-height:1.25;margin:0 0 4px;font-weight:600;text-wrap:balance}
+h3{font-size:16px;margin:0;font-weight:600}
+p{margin:0;max-width:72ch}
+.lede{font-size:16px;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{padding-block:36px 8px;border-bottom:1px solid var(--line);display:grid;gap:14px}
+section:last-of-type{border-bottom:0}
+.sub{color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+
+/* situação */
+.now{display:grid;gap:14px;grid-template-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+@media (min-width:760px){.now{grid-template-columns:1.2fr 1fr}}
+.now .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.now .big{font-size:20px;font-weight:600;margin-top:2px}
+.nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
+.num{background:var(--surface-2);border-radius:8px;padding:10px}
+.num b{display:block;font-size:24px;font-weight:600;line-height:1.2}
+.num span{font-size:12px;color:var(--muted)}
+.num b small{font-size:14px;font-weight:500;color:var(--muted)}
+
+/* barra de progresso: segmentos separados por 2px da superfície; bloqueado leva textura,
+   para o status não depender só da cor (âmbar e vermelho se confundem em daltonismo). */
+.bar{height:10px;border-radius:4px;overflow:hidden;display:flex;gap:2px;background:var(--surface)}
+.bar i{display:block;height:100%;min-width:3px;flex-grow:1}
+.bar .feito{background:var(--s-feito)} .bar .andamento{background:var(--s-and)}
+.bar .bloqueado{background:repeating-linear-gradient(135deg,var(--s-bloq) 0 3px,var(--s-bloq-bg) 3px 5px)}
+.bar .pendente{background:var(--track)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:0;padding:0;list-style:none}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.legend .bar{width:16px}
+.sit-barra{display:grid;gap:6px}
+
+/* status */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;background:var(--s-pend-bg);color:var(--s-pend)}
+.st .ic{font-size:11px;line-height:1;width:1em;text-align:center}
+.st.andamento{background:var(--s-and-bg);color:var(--s-and)}
+.st.feito{background:var(--s-feito-bg);color:var(--s-feito)}
+.st.bloqueado{background:var(--s-bloq-bg);color:var(--s-bloq)}
+
+/* filtros */
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;min-height:44px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* fases */
+.phases{display:grid;gap:10px}
+details.phase{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.phase[data-atual="1"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+details.phase{--pid-col:52px}
+details.phase summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:var(--pid-col) 1fr auto;gap:4px 12px;align-items:center}
+details.phase summary::-webkit-details-marker{display:none}
+.pid{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:15px}
+.pname{font-weight:600}
+.pcount{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+details.phase summary .bar{grid-column:2 / 4}
+.obj{font-size:13.5px;color:var(--muted);padding:0 16px 10px calc(16px + var(--pid-col) + 12px)}
+@media (max-width:480px){.obj{padding-left:16px}}
+.filtro-info{font-size:13.5px;color:var(--muted)}
+.aviso{border:1px solid var(--s-bloq);background:var(--s-bloq-bg);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:14px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.badge-atual{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-left:8px}
+.items{list-style:none;margin:0;padding:0 16px 14px;display:grid}
+.item{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.iid{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.item .iid{padding-top:2px;min-width:44px}
+.item .body{display:grid;gap:4px}
+.item .foot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.ref{font-family:var(--mono);font-size:12px;background:var(--surface-2);border-radius:4px;padding:0 5px;color:var(--ink);text-decoration:none}
+a.ref:hover{text-decoration:underline}
+.note{font-size:13px;color:var(--s-bloq)}
+.evid{font-size:12.5px;color:var(--s-feito)}
+.nota-item{font-size:13px;color:var(--muted)}
+.note,.evid,.nota-item{display:block;flex-basis:100%}
+
+/* tabelas */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.grav{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.grav.Crítico{color:var(--g-crit)} .grav.Alto{color:var(--g-alto)} .grav.Médio{color:var(--g-med)} .grav.Baixo{color:var(--g-baixo)}
+
+/* grupos da publicação */
+.groups{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:760px){.groups{grid-template-columns:1fr 1fr}}
+.group{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px;align-content:start}
+.group header{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.group ul{list-style:none;margin:0;padding:0}
+.group li{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+
+/* decisões */
+.decs{display:grid;gap:6px 18px;grid-template-columns:1fr;font-size:14px}
+@media (min-width:760px){.decs{grid-template-columns:1fr 1fr}}
+.decs div{display:grid;grid-template-columns:42px 1fr;gap:8px}
+.decs b{font-family:var(--mono);color:var(--accent);font-weight:600}
+
+/* histórico */
+ol.log{list-style:none;margin:0 0 0 6px;padding:0;display:grid;border-left:2px solid var(--line)}
+ol.log li{position:relative;padding:4px 0 12px 18px;font-size:14px}
+ol.log li::before{content:"";position:absolute;left:-7px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+ol.log time{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-right:8px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+footer{color:var(--muted);font-size:13px;padding-top:24px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="Sumário">
+  <p>Painel</p>
+  <ol>
+    <li><a href="#situacao">Situação</a></li>
+    <li><a href="#fases">Fases e entregas</a></li>
+    <li><a href="#achados">Achados da revisão</a></li>
+    <li><a href="#testes">Testes</a></li>
+    <li><a href="#publicacao">Publicação</a></li>
+    <li><a href="#externos">Dependências externas</a></li>
+    <li><a href="#decisoes">Decisões</a></li>
+    <li><a href="#historico">Histórico</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="aviso" id="avisos" role="alert" hidden></div>
+<header class="top">
+  <p class="eyebrow">Acompanhamento da execução</p>
+  <h1>Painel de Execução T-shirt Club</h1>
+  <p class="lede">Tudo o que o <a href="arquitetura-reservas.html">desenho técnico</a> planejou, com o status de cada entrega, teste e item de publicação. Cada linha aponta para a seção da arquitetura que a define.</p>
+  <div class="meta">
+    <span><b>Atualizado em:</b> <span id="mAtual"></span></span>
+    <span><b>Arquitetura:</b> versão <span id="mVersao"></span></span>
+    <span><b>Relatório da revisão:</b> <a href="REVISAO-GERAL.md">REVISAO-GERAL.md</a></span>
+    <span><b>Design:</b> <a href="design-frontend.html">design-frontend.html</a></span>
+  </div>
+</header>
+
+<section id="situacao" aria-labelledby="h-sit">
+  <h2 id="h-sit">Situação</h2>
+  <div class="now">
+    <div style="display:grid;gap:10px;align-content:start">
+      <div><div class="label">Agora</div><div class="big" id="sAgora"></div></div>
+      <p class="sub" id="sProximo"></p>
+      <div class="sit-barra"><div class="label" id="sBarLabel"></div><div id="sBar"></div><p class="sub" style="font-size:13px" id="sBarTxt"></p><ul class="legend" id="legenda1"></ul></div>
+    </div>
+    <div class="nums" id="sNums"></div>
+  </div>
+</section>
+
+<section id="fases" aria-labelledby="h-fases">
+  <h2 id="h-fases">Fases e entregas</h2>
+  <p class="sub">Cada fase só termina com testes passando e funcionando de ponta a ponta com os provedores falsos. A fase em execução fica aberta.</p>
+  <div class="filters" role="group" aria-label="Filtrar entregas por status" id="filtros"></div>
+  <p class="filtro-info" id="filtroInfo" aria-live="polite"></p>
+  <ul class="legend" id="legenda2"></ul>
+  <div class="phases" id="listaFases"></div>
+</section>
+
+<section id="achados" aria-labelledby="h-ach">
+  <h2 id="h-ach">Achados da revisão</h2>
+  <p class="sub">Os <span id="nAchados"></span> achados já estão corrigidos nos documentos. Aqui aparece a implementação no sistema: o status sai das entregas, dos testes e dos itens de publicação que citam cada achado.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Achado</th><th>Gravidade</th><th>Onde entra</th><th>Itens</th><th>Status</th></tr></thead>
+    <tbody id="tAchados"></tbody>
+  </table></div>
+</section>
+
+<section id="testes" aria-labelledby="h-test">
+  <h2 id="h-test">Testes que provam a arquitetura</h2>
+  <p class="sub">Cenários da <a href="arquitetura-reservas.html#testes">seção 16</a>. Um teste passa a "feito" quando roda no CI.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Cenário</th><th>Fase</th><th>Status</th></tr></thead>
+    <tbody id="tTestes"></tbody>
+  </table></div>
+</section>
+
+<section id="publicacao" aria-labelledby="h-pub">
+  <h2 id="h-pub">Checklist de publicação</h2>
+  <p class="sub">Da <a href="arquitetura-reservas.html#publicacao">seção 17</a>. A loja só abre ao público com todos marcados.</p>
+  <div class="groups" id="gPub"></div>
+</section>
+
+<section id="externos" aria-labelledby="h-ext">
+  <h2 id="h-ext">Dependências externas</h2>
+  <p class="sub">O que depende de contas, dados ou confirmações de fora do código, e em que fase trava o trabalho se faltar.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>O que falta</th><th>Quem</th><th>Precisa em</th><th>Status</th></tr></thead>
+    <tbody id="tExt"></tbody>
+  </table></div>
+</section>
+
+<section id="decisoes" aria-labelledby="h-dec">
+  <h2 id="h-dec">Decisões fechadas</h2>
+  <p class="sub">Mudar qualquer uma delas atualiza primeiro a <a href="arquitetura-reservas.html#aprovar">arquitetura</a> e depois este painel.</p>
+  <div class="decs" id="dDec"></div>
+</section>
+
+<section id="historico" aria-labelledby="h-hist">
+  <h2 id="h-hist">Histórico</h2>
+  <ol class="log" id="hLog"></ol>
+</section>
+
+<footer>Os dados deste painel ficam num bloco JSON no início do arquivo e são atualizados no mesmo commit de cada entrega.</footer>
+</main>
+</div>
+
+<script>
+(function(){
+  const D=JSON.parse(document.getElementById('dados').textContent);
+  const ARQ='arquitetura-reservas.html';
+  // Uma tabela só para os status: ordem na barra, nome, rótulo do filtro e ícone (o status nunca depende só da cor).
+  const STATUS={
+    feito:{nome:'Feito',plural:'Feitas',icone:'✓'},
+    andamento:{nome:'Em andamento',plural:'Em andamento',icone:'◐'},
+    bloqueado:{nome:'Bloqueado',plural:'Bloqueadas',icone:'✕'},
+    pendente:{nome:'Pendente',plural:'Pendentes',icone:'○'}
+  };
+  const CHAVES=Object.keys(STATUS);
+  const FILTROS={todos:'Todas',...Object.fromEntries(['pendente','andamento','bloqueado','feito'].map(k=>[k,STATUS[k].plural]))};
+  // Rótulo de cada âncora da arquitetura, com o número da seção.
+  const SECOES={aprovar:'§0 Decisões','revisao-geral':'§1b Revisão',stack:'§2 Stack',mobile:'§2b Celular',estados:'§3 Estados',dados:'§4 Dados',estoque:'§5 Estoque',promocoes:'§5b Promoções',expiracao:'§6 Expiração',whatsapp:'§7 WhatsApp',pagamento:'§8 Pagamento',bloqueio:'§9 Bloqueio',eventos:'§10 Eventos',api:'§11 Endpoints',jobs:'§12 Jobs',seguranca:'§13 Segurança',codigo:'§14 Código',fases:'§15 Fases',testes:'§16 Testes',publicacao:'§17 Publicação',frontend:'§18 Frontend'};
+  const $=id=>document.getElementById(id);
+  const el=(tag,attrs={},...filhos)=>{const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else e.setAttribute(k,v);}filhos.forEach(f=>f!=null&&e.append(f));return e;};
+  const pct=(n,t)=>t?Math.round(n/t*100):0;
+  const conta=lista=>lista.reduce((c,i)=>(c[i.status]++,c),Object.fromEntries(CHAVES.map(k=>[k,0])));
+  const linkFase=f=>/^(F\d+|D)$/.test(f)?el('a',{href:'#fase-'+f,text:f}):f;
+  const st=k=>el('span',{class:'st '+k},el('span',{class:'ic','aria-hidden':'true',text:STATUS[k].icone}),STATUS[k].nome);
+  const refLink=r=>el('a',{class:'ref',href:'#achado-'+r,text:r});
+
+  // Uma passada sobre os dados editados à mão: marca a fase de cada item e confere status e ids.
+  // Status fora da lista vira aviso visível e conta como pendente.
+  const entregas=D.fases.flatMap(f=>f.itens.map(i=>Object.assign(i,{fase:f.id})));
+  const pub=D.publicacao.flatMap(g=>g.itens.map(i=>Object.assign(i,{fase:'Publicação'})));
+  D.externos.forEach(i=>i.fase=i.precisa_em);
+  const todos=[...entregas,...D.testes,...pub,...D.externos];
+  const avisos=[], vistos=new Set(), repetidos=new Set();
+  const confere=(i,campo)=>{if(i[campo]!==undefined&&!STATUS[i[campo]]){avisos.push(`${i.id}: status "${i[campo]}" não existe (use ${CHAVES.join(', ')})`);i[campo]='pendente';}};
+  todos.forEach(i=>{if(i.status===undefined)i.status='pendente';confere(i,'status');vistos.has(i.id)?repetidos.add(i.id):vistos.add(i.id);});
+  D.achados.forEach(a=>confere(a,'status_fixo'));
+  repetidos.forEach(x=>avisos.push(`${x}: id repetido`));
+  if(D.meta.fase_atual&&!D.fases.some(f=>f.id===D.meta.fase_atual))avisos.push(`meta.fase_atual "${D.meta.fase_atual}" não é uma fase`);
+  if(avisos.length){$('avisos').hidden=false;$('avisos').append(el('strong',{text:'Dados do painel com erro. '}),avisos.join(' · '));console.warn('Painel:',avisos);}
+
+  // Barra decorativa: o texto ao lado (ou o resumo da fase) é que diz os números.
+  function barra(c,total){
+    return el('div',{class:'bar','aria-hidden':'true'},...CHAVES.filter(k=>c[k]).map(k=>el('i',{class:k,title:`${STATUS[k].nome}: ${c[k]} de ${total}`,style:`flex-grow:${c[k]}`})));
+  }
+  const legenda=ul=>CHAVES.forEach(k=>ul.append(el('li',{},el('span',{class:'bar','aria-hidden':'true'},el('i',{class:k})),`${STATUS[k].icone} ${STATUS[k].nome}`)));
+  // Rodapé comum a todo item: referências, motivo do bloqueio e evidência.
+  const detalhes=i=>[
+    ...(i.refs||[]).flatMap(r=>[' ',refLink(r)]),
+    i.nota?el('span',{class:i.status==='bloqueado'?'note':'nota-item',text:(i.status==='bloqueado'?'Bloqueio: ':'Nota: ')+i.nota}):null,
+    i.status==='feito'&&i.evidencia?el('span',{class:'evid',text:'Evidência: '+i.evidencia}):null
+  ];
+
+  // Status de cada achado, calculado uma vez a partir dos itens que o citam.
+  const achados=D.achados.map(a=>{
+    const itens=todos.filter(i=>(i.refs||[]).includes(a.id)), c=conta(itens);
+    const status=a.status_fixo||(!itens.length?'pendente':c.bloqueado?'bloqueado':c.feito===itens.length?'feito':c.pendente<itens.length?'andamento':'pendente');
+    return {...a,itens,c,status};
+  });
+
+  // Situação
+  $('mAtual').textContent=D.meta.atualizado_em;
+  $('mVersao').textContent=D.meta.arquitetura_versao;
+  $('sAgora').textContent=D.meta.situacao;
+  $('sProximo').textContent=D.meta.proximo_passo;
+  $('nAchados').textContent=D.achados.length;
+  const ce=conta(entregas);
+  $('sBarLabel').textContent=`Entregas das ${D.fases.length} fases`;
+  $('sBar').replaceWith(barra(ce,entregas.length));
+  $('sBarTxt').textContent=`${ce.feito} de ${entregas.length} entregas feitas (${pct(ce.feito,entregas.length)}%) · ${ce.andamento} em andamento · ${ce.bloqueado} bloqueadas`;
+  legenda($('legenda1'));legenda($('legenda2'));
+  [[entregas,'Entregas feitas'],[D.testes,'Testes passando'],[achados,'Achados resolvidos'],[pub,'Itens de publicação prontos']]
+    .forEach(([lista,rotulo])=>$('sNums').append(el('div',{class:'num'},el('b',{},String(conta(lista).feito),el('small',{text:` de ${lista.length}`})),el('span',{text:rotulo}))));
+
+  // Fases: a atual vem de meta.fase_atual; sem ela, destaca a próxima (primeira não concluída).
+  const proxima=D.fases.find(f=>f.itens.some(i=>i.status!=='feito'));
+  const atual=D.meta.fase_atual?{id:D.meta.fase_atual,rotulo:'fase atual'}:proxima&&{id:proxima.id,rotulo:'próxima fase'};
+  let filtro='todos';
+  Object.entries(FILTROS).forEach(([v,t])=>{
+    const b=el('button',{type:'button',class:'chip','aria-pressed':String(v===filtro),text:t});
+    b.addEventListener('click',()=>{filtro=v;$('filtros').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));renderFases();});
+    $('filtros').append(b);
+  });
+
+  const lista=$('listaFases');
+  function renderFases(){
+    const rotulo=FILTROS[filtro].toLowerCase();
+    let achou=0,fasesCom=0;
+    lista.replaceChildren(...D.fases.map(f=>{
+      const c=conta(f.itens), total=f.itens.length;
+      const vis=f.itens.filter(i=>filtro==='todos'||i.status===filtro);
+      if(filtro!=='todos'&&vis.length){achou+=vis.length;fasesCom++;}
+      const ehAtual=atual&&f.id===atual.id;
+      const d=el('details',{class:'phase','data-atual':ehAtual?'1':'0',id:'fase-'+f.id});
+      // Sem filtro, abre a fase atual; com filtro, abre só as fases que têm itens no status escolhido.
+      d.open=filtro==='todos'?!!ehAtual:vis.length>0;
+      const nome=el('span',{class:'pname',text:f.nome});
+      if(ehAtual)nome.append(el('span',{class:'badge-atual',text:atual.rotulo}));
+      const contagem=filtro==='todos'
+        ?el('span',{class:'pcount'},el('span',{'aria-hidden':'true',text:`${c.feito}/${total}`}),el('span',{class:'sr-only',text:`, ${c.feito} de ${total} feitas`}))
+        :el('span',{class:'pcount',text:`${vis.length} ${rotulo}`});
+      d.append(el('summary',{},el('span',{class:'pid',text:f.id}),nome,contagem,barra(c,total)));
+      d.append(el('p',{class:'obj',text:f.objetivo}));
+      const ul=el('ul',{class:'items'},...vis.map(i=>el('li',{class:'item'},el('span',{class:'iid',text:i.id}),
+        el('div',{class:'body'},el('span',{text:i.texto}),el('div',{class:'foot'},st(i.status),el('a',{class:'ref',href:`${ARQ}#${i.sec}`,text:SECOES[i.sec]||i.sec}),...detalhes(i))))));
+      if(!vis.length)ul.append(el('li',{class:'empty',text:'Nenhuma entrega com este status nesta fase.'}));
+      d.append(ul);
+      return d;
+    }));
+    $('filtroInfo').textContent=filtro==='todos'?'':`${achou} entrega(s) em ${fasesCom} fase(s) com o filtro "${FILTROS[filtro]}".`;
+  }
+  renderFases();
+
+  // Links para uma fase abrem a fase. O clique cobre o link para o endereço atual, que não dispara hashchange.
+  const abrir=h=>{const d=h&&h.startsWith('#fase-')&&$(h.slice(1));if(d)d.open=true;};
+  document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#fase-"]');if(a)abrir(a.getAttribute('href'));});
+  window.addEventListener('hashchange',()=>abrir(location.hash));abrir(location.hash);
+
+  // Achados
+  achados.forEach(a=>{
+    const fases=[...new Set(a.itens.map(i=>i.fase).filter(Boolean))];
+    const onde=a.nota?el('span',{class:'sub',text:a.nota}):el('span',{},...fases.flatMap((f,k)=>[k?', ':'',linkFase(f)]));
+    $('tAchados').append(el('tr',{id:'achado-'+a.id},
+      el('td',{},el('a',{class:'mono',href:`${ARQ}#revisao-geral`,text:a.id}),' ',a.titulo),
+      el('td',{},el('span',{class:'grav '+a.grav,text:a.grav})),
+      el('td',{},onde),
+      el('td',{class:'mono',text:a.itens.length?`${a.c.feito}/${a.itens.length}`:'—'}),
+      el('td',{},st(a.status))));
+  });
+
+  // Testes, publicação e dependências externas usam o mesmo rodapé de detalhes.
+  D.testes.forEach(t=>$('tTestes').append(el('tr',{},el('td',{class:'id',text:t.id}),el('td',{},t.texto,...detalhes(t)),el('td',{},linkFase(t.fase)),el('td',{},st(t.status)))));
+  D.publicacao.forEach(g=>$('gPub').append(el('div',{class:'group'},
+    el('header',{},el('h3',{text:g.grupo}),el('span',{class:'pcount',text:`${conta(g.itens).feito}/${g.itens.length}`})),
+    el('ul',{},...g.itens.map(i=>el('li',{},st(i.status),el('span',{},el('span',{class:'iid',text:i.id+' '}),i.texto,...detalhes(i))))))));
+  D.externos.forEach(e=>$('tExt').append(el('tr',{},el('td',{class:'id',text:e.id}),el('td',{},e.texto,...detalhes(e)),el('td',{text:e.quem}),el('td',{},linkFase(e.precisa_em)),el('td',{},st(e.status)))));
+
+  // Decisões e histórico
+  D.decisoes.forEach(([id,t])=>$('dDec').append(el('div',{},el('b',{text:id}),el('span',{text:t}))));
+  D.historico.forEach(h=>{const li=el('li',{},el('time',{text:h.data}),h.texto);if(h.ref)li.append(' ',el('code',{text:h.ref}));$('hLog').append(li);});
+})();
+</script>
+</body>
+</html>

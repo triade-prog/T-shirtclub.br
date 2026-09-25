@@ -42,6 +42,7 @@
     <div class="toolbar" id="collectionList"></div>
     <form class="toolbar" id="collectionForm" style="margin-top:12px" novalidate>
       <input id="newCollectionName" style="max-width:260px" placeholder="Nome da nova coleção" aria-label="Nome da nova coleção">
+      <select id="newCollectionColor" style="max-width:220px" aria-label="Cor da coleção"></select>
       <button class="btn secondary" type="submit">+ Adicionar coleção</button>
     </form>
   </section>
@@ -53,13 +54,18 @@
         <div class="field"><label for="pNome">Nome</label><input id="pNome" required placeholder="Ex.: Teddy Rose"></div>
         <div class="field"><label for="pCodigo">Código</label><input id="pCodigo" required placeholder="Ex.: TED-ROSE" style="text-transform:uppercase"></div>
         <div class="field"><label for="pColecao">Coleção</label><select id="pColecao"></select></div>
-        <div class="field"><label for="pPreco">Preço fixo (R$)</label><input id="pPreco" inputmode="decimal" placeholder="49,90"></div>
+        <div class="field"><label for="pPreco">Preço fixo (R$)</label><input id="pPreco" inputmode="decimal" placeholder="49,99"></div>
       </div>
       <div class="toolbar" style="margin-top:14px">
         <label class="switch"><input type="checkbox" id="pAtivo" checked> Visível na loja</label>
       </div>
       <p class="hint">Produto novo começa com 0 unidades. A entrada é lançada na tela Estoque.</p>
-      <div class="field" style="margin-top:10px"><label for="pFotos">Fotos</label><input id="pFotos" type="file" accept="image/*" multiple style="padding-top:10px"></div>
+      <fieldset class="fotos-box">
+        <legend>Fotos <span class="counter" id="fotosCount">0 de 10</span></legend>
+        <p class="hint" style="margin:0 0 8px">A primeira é a capa na vitrine. Sugestão: frente, costas, detalhe da estampa e pelo menos uma foto vestida. Descreva cada foto para quem usa leitor de tela.</p>
+        <ol class="fotos-lista" id="fotosLista"></ol>
+        <label class="btn secondary" id="fotosAdd" style="justify-self:start">+ Adicionar fotos<input id="pFotos" type="file" accept="image/*" multiple class="sr-only"></label>
+      </fieldset>
       <div class="notice warn" id="deactivateWarn" hidden style="margin-top:12px">Ao tirar da loja, o produto some do catálogo. Reservas já criadas com ele continuam válidas até pagar ou expirar.</div>
       <div class="notice" id="priceNote" hidden style="margin-top:12px">Mudar o preço não altera reservas já criadas: o valor fica congelado na reserva.</div>
       <div class="toolbar" style="margin-top:16px"><button class="btn" type="submit">Salvar produto</button><button class="btn ghost" type="button" id="closeProduct">Cancelar</button></div>

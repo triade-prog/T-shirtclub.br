@@ -7,8 +7,10 @@ Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atuali
 | O quê | Onde |
 |---|---|
 | Especificação funcional (atualizada com as decisões) | `especificacao_funcional_sistema_reserva.html` |
-| Desenho técnico, versão 9 | `docs/arquitetura-reservas.html` |
+| Desenho técnico, versão 13 | `docs/arquitetura-reservas.html` |
 | Relatório da revisão geral (achados G1 a G24) | `docs/REVISAO-GERAL.md` |
+| Painel de execução (fases, entregas, testes, publicação, dependências) | `docs/painel-execucao.html` |
+| Design do frontend (identidade, design system, telas finais, textos) | `docs/design-frontend.html` |
 | Protótipo navegável (23 páginas: 00 a 22) | raiz do repositório, começar por `00-mapa.html` |
 | Estilos e scripts do protótipo | `assets/css/`, `assets/js/` (um script por tela em `assets/js/paginas/`) |
 
@@ -32,6 +34,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 - **Endereço de entrega:** guardado por 90 dias após a entrega (D15).
 - **Sessão:** o navegador só chama o próprio domínio (`/api`, repasse no Next.js), para o cookie funcionar no iPhone (G1).
 - **Publicação:** Supabase Pro (`sa-east-1`) e Vercel Pro (`gru1`); checklist na seção 17 do desenho técnico.
+- **Frontend e design (D16):** frente de design D1 a D6 antes e junto da F1; o Claude cria e a loja aprova. Marca oficial T-shirt Club.br (D17): paleta da prancha 2, Baloo 2 + Poppins; rosa e verde como tempero e cores de coleção (D18); descoberta editorial antes da reserva e loja pública só no tema claro (D21); referências em `docs/design/marca/`. `packages/ui` com os tokens, critério de pronto de cada tela na seção 18 do desenho técnico.
 - **LGPD:** aviso no formulário e política em texto-modelo (`20-privacidade.html`), dados da empresa entre colchetes.
 
 ## Situação
@@ -39,6 +42,16 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 A revisão geral pedida pela loja (segurança, web e celular, testes e publicação, acessibilidade e textos) foi feita em 25/09/2026. O relatório está em `docs/REVISAO-GERAL.md`, e as correções foram aplicadas no desenho técnico (v8), na especificação e no protótipo. Os plugins Security Guidance, Modern Web Guidance, Engineering e Design não estavam ativos na sessão; a revisão cobriu as mesmas frentes manualmente.
 
 As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho técnico (v9), na especificação e no protótipo. A situação de cada achado está no fim de `docs/REVISAO-GERAL.md`.
+
+**Painel de execução:** `docs/painel-execucao.html` acompanha tudo o que a arquitetura planejou. Os dados ficam num bloco JSON no início do arquivo. A cada entrega, no mesmo commit: mudar o status do item (com evidência quando "feito"), atualizar `meta` e acrescentar uma linha no histórico.
+
+**Design:** proposta 4 (`docs/design-frontend.html`), aguardando aprovação. Ela separa "vender desejo" de "processar a venda". A descoberta é nova e editorial, com cerca de 80% de foto e produto: início com campanha, coleção, página de produto com galeria e sacola "Monte seu Club". O fluxo de reserva da proposta 3 foi mantido. Baloo 2 aparece só em títulos de marca e há poucos stickers. A loja pública tem só o tema claro. Coleções reais: Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy e Dog Club. A cor de cada coleção é escolhida no painel entre 5 aprovadas: Tomate, Limão, Mediterrâneo, Lavanda e Menta. As fotos entram sozinhas no documento quando forem colocadas em `docs/design/fotos/` (lista de nomes na seção "Fotos").
+
+**Oferta (D19):** "Monte seu Club". Cada peça custa R$ 49,99 e cada grupo de 3 sai por R$ 119,99; as que sobram pagam o preço normal (4 peças = R$ 169,98; 6 = R$ 239,98). No motor de preço, é compre e economize mais no modo preço por grupo. Já estão atualizados a especificação (regras 3 e 28), o desenho técnico (seção 5b) e o protótipo (motor, loja e telas 14 e 16).
+
+**Catálogo (D20):** cada produto tem página própria e de 1 a 10 fotos (tipo e texto alternativo obrigatório), além de looks e blocos da página inicial configuráveis. Está na especificação (regra 30), no desenho técnico (tabelas e API) e no protótipo (tela 10).
+
+Pendências da loja: fotos (o Google Drive está bloqueado na rede do ambiente; liberar `drive.google.com`, `drive.usercontent.google.com` e `lh3.googleusercontent.com` ou colocar os arquivos em `docs/design/fotos/`), dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
 
 **Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
 

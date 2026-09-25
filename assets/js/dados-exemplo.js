@@ -5,14 +5,29 @@ const LIMITE_ULTIMAS_UNIDADES=2;
 
 const COLECOES=['Teddy','Dog Club','Trendy'];
 
+// Cores de coleção aprovadas (contraste e daltonismo validados). A loja escolhe da lista; não digita cor.
+// A cor nunca identifica a coleção sozinha: o nome aparece junto.
+const CORES_COLECAO=[
+  {id:'TOMATE',nome:'Vermelho tomate',cor:'#EE4A2A'},
+  {id:'LIMAO',nome:'Amarelo limão',cor:'#F2DD3D'},
+  {id:'MEDITERRANEO',nome:'Azul mediterrâneo',cor:'#2F6FD0'},
+  {id:'LAVANDA',nome:'Lavanda',cor:'#A77BE0'},
+  {id:'MENTA',nome:'Menta',cor:'#2FA58A'}
+];
+const COR_DA_COLECAO={'Teddy':'TOMATE','Dog Club':'MEDITERRANEO','Trendy':'LIMAO'};
+
+// Tipos de foto do produto (1 a 10 fotos; a primeira é a capa na vitrine).
+const TIPOS_FOTO={FRENTE:'Frente',COSTAS:'Costas',DETALHE:'Detalhe da estampa',VESTIDA:'Vestida',CAMPANHA:'Campanha'};
+const MAX_FOTOS=10;
+
 // total = unidades físicas; reservado e vendido mudam só pelo fluxo de reservas.
 const PRODUTOS=[
-  {id:'p1',nome:'Teddy Rose',codigo:'TED-ROSE',colecao:'Teddy',precoCentavos:4990,ativo:true,total:20,reservado:2,vendido:6},
-  {id:'p2',nome:'Teddy Bleu',codigo:'TED-BLEU',colecao:'Teddy',precoCentavos:4990,ativo:true,total:10,reservado:1,vendido:7},
-  {id:'p3',nome:'Dog Club 01',codigo:'DOG-01',colecao:'Dog Club',precoCentavos:4990,ativo:true,total:22,reservado:1,vendido:7},
-  {id:'p4',nome:'Dog Club 02',codigo:'DOG-02',colecao:'Dog Club',precoCentavos:4990,ativo:true,total:14,reservado:2,vendido:4},
-  {id:'p5',nome:'Trendy Teddy',codigo:'TRD-TEDDY',colecao:'Trendy',precoCentavos:4990,ativo:true,total:8,reservado:1,vendido:5},
-  {id:'p6',nome:'Urso Listras',codigo:'TRD-URSO',colecao:'Trendy',precoCentavos:4990,ativo:true,total:9,reservado:1,vendido:8}
+  {id:'p1',nome:'Teddy Rose',codigo:'TED-ROSE',colecao:'Teddy',precoCentavos:4999,fotos:[],ativo:true,total:20,reservado:2,vendido:6},
+  {id:'p2',nome:'Teddy Bleu',codigo:'TED-BLEU',colecao:'Teddy',precoCentavos:4999,fotos:[],ativo:true,total:10,reservado:1,vendido:7},
+  {id:'p3',nome:'Dog Club 01',codigo:'DOG-01',colecao:'Dog Club',precoCentavos:4999,fotos:[],ativo:true,total:22,reservado:1,vendido:7},
+  {id:'p4',nome:'Dog Club 02',codigo:'DOG-02',colecao:'Dog Club',precoCentavos:4999,fotos:[],ativo:true,total:14,reservado:2,vendido:4},
+  {id:'p5',nome:'Trendy Teddy',codigo:'TRD-TEDDY',colecao:'Trendy',precoCentavos:4999,fotos:[],ativo:true,total:8,reservado:1,vendido:5},
+  {id:'p6',nome:'Urso Listras',codigo:'TRD-URSO',colecao:'Trendy',precoCentavos:4999,fotos:[],ativo:true,total:9,reservado:1,vendido:8}
 ];
 
 const MOVIMENTOS=[
@@ -25,7 +40,10 @@ const MOVIMENTOS=[
 
 // Promoções nos três formatos: desconto do produto, compre e economize mais, cupom.
 const PROMOCOES=[
-  {id:'pr1',tipo:'COMPRE_MAIS',nome:'Leve 3, ganhe 20%',inicio:'2026-09-20T09:00',fim:'2026-11-24T23:59',desativada:false,
+  // Oferta principal (D19): cada grupo de 3 peças sai por R$ 119,99; as que sobram pagam o preço normal.
+  {id:'pr1',tipo:'COMPRE_MAIS',modo:'PRECO_POR_GRUPO',nome:'Monte seu Club',inicio:'2026-09-20T09:00',fim:'2026-11-24T23:59',desativada:false,
+    escopo:'TODOS',produtos:[],grupo:{qtd:3,precoCentavos:11999},umaPorCliente:false,orcamentoCentavos:null,usadoCentavos:17988},
+  {id:'pr6',tipo:'COMPRE_MAIS',modo:'NIVEIS',nome:'Leve 3, ganhe 20%',inicio:'2026-08-01T09:00',fim:'2026-09-19T23:59',desativada:false,
     escopo:'TODOS',produtos:[],niveis:[{qtd:3,pct:20},{qtd:6,pct:25}],umaPorCliente:false,orcamentoCentavos:null,usadoCentavos:18450},
   {id:'pr2',tipo:'DESCONTO_PRODUTO',nome:'Semana Dog Club',inicio:'2026-09-22T00:00',fim:'2026-10-07T23:59',desativada:false,
     escopo:'ESPECIFICOS',produtos:['p3','p4'],modo:'PERCENTUAL',valores:{p3:15,p4:15}},

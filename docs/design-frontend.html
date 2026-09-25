@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Design da Loja T-shirt Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Poppins:wght@400;500;600&display=swap">
+<style>
+/* ==========================================================================
+   TOKENS (D2) · proposta 4
+   A loja pública tem só o tema claro (D21). Foto e produto na frente;
+   rosa e verde do Club só como tempero (D18); cada coleção com a cor dela,
+   escolhida no painel numa lista aprovada (D20).
+   ========================================================================== */
+:root{
+  color-scheme:light;
+  --papel:#FFFCFA; --branco:#FFFFFF; --algodao:#F6EFEC;
+  --tinta:#26191E; --tinta-suave:#6B5D62; --linha:#ECE2DE; --borda-campo:#928181;
+  --rosa:#E8478A; --rosa-press:#C73576; --rosa-bruma:#FDE7EF; --no-rosa:#26191E;
+  --verde:#6B8B1F; --verde-broto:#EEF3DC; --verde-escuro:#3F5A10;
+  /* cores de coleção aprovadas: cor · fundo · texto · texto sobre a cor */
+  --tomate:#EE4A2A; --tomate-fundo:#FFE7DE; --tomate-tinta:#A63A1C;
+  --limao:#F2DD3D; --limao-fundo:#FFF9C9; --limao-tinta:#6B5600;
+  --med:#2F6FD0; --med-fundo:#E4EEFC; --med-tinta:#1D4E9A;
+  --lavanda:#A77BE0; --lavanda-fundo:#F1EAFB; --lavanda-tinta:#5E3B99;
+  --menta:#2FA58A; --menta-fundo:#E0F4EE; --menta-tinta:#1C6B58;
+  --ok:#3F5A10; --ok-fundo:#EEF3DC; --aviso:#7A4A00; --aviso-fundo:#FFF1D6;
+  --erro:#B3261E; --erro-fundo:#FDE8E6; --info:#3B4A63; --info-fundo:#EDF1F7;
+  --foco:#26191E;
+  --display:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --texto:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+.col-tomate{--c-cor:var(--tomate);--c-fundo:var(--tomate-fundo);--c-tinta:var(--tomate-tinta);--c-sobre:#26191E}
+.col-limao{--c-cor:var(--limao);--c-fundo:var(--limao-fundo);--c-tinta:var(--limao-tinta);--c-sobre:#26191E}
+.col-med{--c-cor:var(--med);--c-fundo:var(--med-fundo);--c-tinta:var(--med-tinta);--c-sobre:#FFFFFF}
+.col-lavanda{--c-cor:var(--lavanda);--c-fundo:var(--lavanda-fundo);--c-tinta:var(--lavanda-tinta);--c-sobre:#26191E}
+.col-menta{--c-cor:var(--menta);--c-fundo:var(--menta-fundo);--c-tinta:var(--menta-tinta);--c-sobre:#26191E}
+
+/* ---------- documento ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.6;padding:0 16px 72px}
+b,strong{font-weight:600}
+.doc{max-width:1160px;margin:0 auto;display:grid}
+a{color:var(--tinta);text-decoration-color:var(--rosa);text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--foco);outline-offset:3px}
+h1,h2,h3,h4{margin:0;text-wrap:balance;line-height:1.1}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,7vw,72px);line-height:1;letter-spacing:-.015em}
+h2{font-weight:600;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.02em}
+h3{font-weight:600;font-size:19px;letter-spacing:-.01em}
+p{margin:0;max-width:66ch}
+.sub{color:var(--tinta-suave)}
+.nota{font-size:14px;color:var(--tinta-suave)}
+.rotulo{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-suave);margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:var(--algodao);border-radius:4px;padding:1px 5px}
+.tbl{overflow-x:auto;border:1px solid var(--linha);border-radius:12px;background:var(--branco)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-suave);font-weight:600;background:var(--algodao);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums}
+ul.lista{margin:0;padding-left:18px;display:grid;gap:4px}
+.amostra{width:36px;height:26px;border-radius:6px;border:1px solid var(--linha);flex:none;display:inline-block}
+
+.capa-doc{padding:40px 0 32px;display:grid;gap:18px;border-bottom:1px solid var(--linha)}
+.capa-doc .logo{width:min(200px,56vw);height:auto}
+.capa-doc .lede{font-size:18px;color:var(--tinta-suave);max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--tinta-suave)}
+.meta b{color:var(--tinta)}
+nav.sumario{display:flex;flex-wrap:wrap;gap:8px}
+nav.sumario a{font-size:14px;font-weight:500;text-decoration:none;border:1px solid var(--linha);background:var(--branco);border-radius:999px;padding:8px 16px;min-height:44px;display:inline-flex;align-items:center}
+section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:grid;gap:22px}
+.grade{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.painel{background:var(--branco);border:1px solid var(--linha);border-radius:16px;padding:18px;display:grid;gap:12px;align-content:start}
+.achado{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.achado .id{font-weight:600;color:var(--tinta-suave);font-size:14px;padding-top:2px}
+.achado h3{font-size:17px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.achado p{grid-column:2;font-size:15px}
+.grav{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--algodao);color:var(--tinta-suave)}
+.grav.feito{background:var(--ok-fundo);color:var(--ok)} .grav.conf{background:var(--aviso-fundo);color:var(--aviso)}
+.aviso-fotos{display:grid;grid-template-columns:auto 1fr;gap:12px;background:var(--aviso-fundo);border-radius:14px;padding:14px 16px;font-size:15px}
+.aviso-fotos svg{width:22px;height:22px;color:var(--aviso);margin-top:2px}
+
+/* Jornada: duas faixas, vender desejo e processar a venda */
+.jornada{display:grid;gap:14px}
+.faixa-j{display:grid;gap:8px}
+.faixa-j ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.faixa-j li{font-size:14px;font-weight:600;border-radius:999px;padding:7px 14px;background:var(--branco);border:1px solid var(--linha)}
+.faixa-j li+li::before{content:"→";margin-right:10px;color:var(--tinta-suave);font-weight:400}
+.faixa-j.desejo li{background:var(--rosa-bruma);border-color:transparent}
+.proporcao{display:flex;height:44px;border-radius:10px;overflow:hidden;font-size:13px;font-weight:600}
+.proporcao span{display:flex;align-items:center;padding:0 12px;white-space:nowrap}
+
+/* ==========================================================================
+   FOTO: preenche sozinha quando o arquivo existe em design/fotos/;
+   até lá, mostra a direção de arte da foto no fundo da coleção.
+   ========================================================================== */
+.foto{position:relative;background:var(--c-fundo,var(--algodao));overflow:hidden;display:grid;align-content:space-between;padding:12px;aspect-ratio:4/5;min-width:0;container-type:inline-size}
+.foto > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.foto .slot-marca{font-family:var(--display);font-weight:800;font-size:clamp(20px,16cqw,56px);line-height:.9;color:var(--c-tinta,var(--tinta-suave));letter-spacing:-.02em;word-break:break-word}
+.foto .slot-dir{font-size:11.5px;line-height:1.35;color:var(--c-tinta,var(--tinta-suave));display:flex;gap:6px;align-items:flex-start}
+.foto .slot-dir svg{width:14px;height:14px;flex:none;margin-top:1px}
+.foto.paisagem{aspect-ratio:3/2}
+.foto.com-sticker{padding-top:44px}
+
+/* ==========================================================================
+   COMPONENTES da loja (packages/ui)
+   ========================================================================== */
+.tc-botao{font-family:var(--texto);font-size:16px;font-weight:600;line-height:1.15;min-height:52px;padding:8px 24px;border-radius:999px;border:0;background:var(--rosa);color:var(--no-rosa);box-shadow:0 3px 0 var(--rosa-press);display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;text-align:center;text-decoration:none;margin-bottom:3px}
+.tc-botao:active{transform:translateY(2px);box-shadow:0 1px 0 var(--rosa-press)}
+.tc-botao.escuro{background:var(--tinta);color:var(--papel);box-shadow:none}
+.tc-botao.contorno{background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 1.5px var(--tinta)}
+.tc-botao.link{background:none;box-shadow:none;min-height:44px;padding:0 4px;text-decoration:underline;text-decoration-color:var(--rosa);text-decoration-thickness:2px;text-underline-offset:4px;margin:0;color:var(--tinta)}
+.tc-botao.cheio{width:100%}
+.tc-botao svg{width:20px;height:20px;flex:none}
+
+/* Sticker: só dois usos na loja, "Novo" e "Últimas unidades". Um por card, no máximo. */
+.tc-sticker{display:inline-flex;align-items:center;gap:4px;font-family:var(--display);font-weight:800;font-size:14px;line-height:1;padding:6px 11px 5px;border-radius:999px;background:var(--rosa);color:var(--no-rosa);box-shadow:0 0 0 2.5px var(--branco);transform:rotate(-4deg);white-space:nowrap}
+.tc-sticker.aviso{background:var(--aviso-fundo);color:var(--aviso)}
+.tc-sticker.neutro{background:var(--algodao);color:var(--tinta-suave);transform:none}
+
+/* Card de produto: a foto manda; uma linha de nome e uma de preço */
+.tc-produto{display:grid;gap:3px;align-content:start;min-width:0;text-decoration:none;color:inherit}
+.tc-produto .foto{border-radius:4px;margin-bottom:5px}
+.tc-produto .foto .tc-sticker{position:absolute;right:8px;top:10px;z-index:1;transform:rotate(4deg)}
+.tc-produto .nome{font-size:14.5px;font-weight:500;line-height:1.3}
+.tc-produto .preco{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
+.tc-produto .col{font-size:12px;color:var(--c-tinta);font-weight:600;display:flex;align-items:center;gap:5px;min-width:0}
+.tc-produto .col::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c-cor);flex:none}
+
+/* Progresso do Club: três lugares; cada peça escolhida ocupa um. A assinatura da oferta. */
+.tc-club{display:grid;gap:8px}
+.tc-club .lugares{display:flex;gap:8px}
+.tc-club .lugar{width:46px;height:56px;border-radius:8px;border:1.5px dashed var(--borda-campo);display:grid;place-items:center;color:var(--tinta-suave);font-size:18px;overflow:hidden;background:var(--branco)}
+.tc-club .lugar.cheio{border:0;background:var(--c-fundo)}
+.tc-club .lugar.cheio .mini{width:80%;height:72%;background:var(--c-cor);clip-path:polygon(18% 12%,38% 4%,62% 4%,82% 12%,100% 30%,86% 44%,76% 38%,76% 100%,24% 100%,24% 38%,14% 44%,0 30%)}
+.tc-club .texto{font-size:14px}
+
+.tc-chip{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--linha);background:var(--branco);font:inherit;font-size:14px;font-weight:500;color:var(--tinta);white-space:nowrap;cursor:pointer}
+.tc-chip[aria-pressed="true"]{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+.tc-chip i{width:9px;height:9px;border-radius:50%;background:var(--c-cor)}
+
+.tc-acordeao{border-top:1px solid var(--linha)}
+.tc-acordeao details{border-bottom:1px solid var(--linha)}
+.tc-acordeao summary{list-style:none;cursor:pointer;min-height:52px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px}
+.tc-acordeao summary::-webkit-details-marker{display:none}
+.tc-acordeao summary::after{content:"+";font-size:22px;font-weight:400}
+.tc-acordeao details[open] summary::after{content:"−"}
+.tc-acordeao .corpo{padding:0 0 14px;font-size:14.5px;color:var(--tinta-suave);display:grid;gap:8px}
+.tc-acordeao th,.tc-acordeao td{padding:6px 8px}
+
+.tc-galeria{display:grid;gap:8px}
+.tc-galeria .trilho{display:grid;grid-auto-flow:column;grid-auto-columns:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.tc-galeria .trilho::-webkit-scrollbar{display:none}
+.tc-galeria .trilho > .foto{scroll-snap-align:start}
+.tc-galeria .contador{position:absolute;right:10px;bottom:10px;background:var(--branco);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600}
+.tc-galeria .miniaturas{display:flex;gap:6px;padding:0 16px;overflow-x:auto}
+.tc-galeria .miniaturas button{width:48px;min-height:44px;flex:none;padding:0;border:2px solid transparent;border-radius:4px;background:none;cursor:pointer}
+.tc-galeria .miniaturas button[aria-current="true"]{border-color:var(--tinta)}
+.mini-foto .foto{padding:0;border-radius:3px}
+.mini-foto .foto .slot-marca,.mini-foto .foto .slot-dir{display:none}
+
+/* reserva (mantidos da proposta 3, só no claro) */
+.tc-campo{display:grid;gap:6px}
+.tc-campo label{font-weight:600;font-size:15px}
+.tc-campo input{font:inherit;font-size:16px;min-height:52px;border:1.5px solid var(--borda-campo);border-radius:12px;background:var(--branco);color:var(--tinta);padding:0 16px;width:100%}
+.tc-campo .ajuda{font-size:14px;color:var(--tinta-suave);margin:0}
+.tc-codigo input{font-family:var(--display);font-weight:800;font-size:32px;letter-spacing:.3em;text-align:center;min-height:68px;border-style:dashed}
+.tc-cronometro{display:grid;gap:8px;background:var(--branco);border:1px solid var(--linha);border-radius:16px;padding:14px 16px}
+.tc-cronometro .linha{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tc-cronometro .tempo{font-family:var(--display);font-weight:800;font-size:42px;line-height:.9;font-variant-numeric:tabular-nums}
+.tc-cronometro .ate{font-size:14px;color:var(--tinta-suave);text-align:right}
+.tc-costura{height:6px;background:repeating-linear-gradient(90deg,var(--linha) 0 10px,transparent 10px 16px);border-radius:3px;position:relative;overflow:hidden}
+.tc-costura i{position:absolute;inset:0 auto 0 0;background:repeating-linear-gradient(90deg,var(--rosa) 0 10px,transparent 10px 16px)}
+.tc-pix{display:grid;gap:12px;background:var(--branco);border:1px solid var(--linha);border-radius:16px;padding:16px}
+.tc-pix .valor{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
+.tc-pix .valor b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.tc-pix ol{margin:0;padding-left:20px;font-size:15px;color:var(--tinta-suave)}
+.tc-aviso{display:grid;grid-template-columns:auto 1fr;gap:10px;border-radius:14px;padding:12px 14px;font-size:15px;background:var(--info-fundo)}
+.tc-aviso svg{width:20px;height:20px;margin-top:2px}
+.tc-aviso.bruma{background:var(--rosa-bruma)}
+.tc-aviso b{display:block}
+.tc-selo{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap;background:var(--algodao);color:var(--tinta-suave)}
+.tc-selo svg{width:14px;height:14px}
+.tc-selo.info{background:var(--info-fundo);color:var(--info)}
+.tc-passos{list-style:none;margin:0;padding:0;display:grid}
+.tc-passos li{display:grid;grid-template-columns:30px 1fr;gap:10px;padding-bottom:14px;position:relative;font-size:15px}
+.tc-passos li::after{content:"";position:absolute;left:14px;top:30px;bottom:2px;border-left:2px dashed var(--linha)}
+.tc-passos li:last-child::after{display:none}
+.tc-passos .marca{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--linha);background:var(--branco);font-size:13px;font-weight:600}
+.tc-passos li.feito .marca{background:var(--verde-broto);border-color:var(--verde);color:var(--verde-escuro)}
+.tc-passos li.agora .marca{background:var(--rosa);border-color:var(--rosa);color:var(--no-rosa)}
+.tc-passos li.depois{color:var(--tinta-suave)}
+.tc-rodape-acao{position:sticky;bottom:0;background:var(--branco);border-top:1px solid var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px}
+.tc-rodape-acao .resumo{display:flex;justify-content:space-between;font-size:14.5px}
+
+/* ---------- telas ---------- */
+.telas{display:grid;gap:32px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));align-items:start}
+.tela{display:grid;gap:10px;margin:0}
+.tela figcaption{display:grid;gap:3px}
+.tela figcaption b{font-weight:600;font-size:17px}
+.tela figcaption span{font-size:13.5px;color:var(--tinta-suave)}
+.celular{width:100%;max-width:360px;border:7px solid #1C1417;border-radius:34px;overflow:hidden;background:var(--papel)}
+.celular .pad{padding:0 16px}
+.topo{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--papel)}
+.topo img{height:34px;width:auto}
+.topo .acoes{display:flex;align-items:center}
+.icone-btn{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--tinta);background:none;border:0;cursor:pointer}
+.icone-btn svg{width:22px;height:22px}
+.icone-btn .n{position:absolute;right:2px;top:4px;min-width:18px;height:18px;border-radius:9px;background:var(--rosa);color:var(--no-rosa);font-size:11px;font-weight:600;display:grid;place-items:center;padding:0 4px;line-height:1}
+.secao-tela{display:grid;gap:12px;padding:28px 16px 0}
+.secao-tela .cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.secao-tela h3{font-size:20px}
+.secao-tela .cab a{font-size:13.5px;font-weight:500}
+.trilho-h{display:grid;grid-auto-flow:column;grid-auto-columns:44%;gap:10px;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}
+.dupla{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 10px}
+
+/* Início: campanha em tela cheia, frase grande abaixo da foto */
+.campanha .chamada{padding:18px 16px 4px;display:grid;gap:10px}
+.campanha .chamada h2{font-family:var(--display);font-weight:800;font-size:46px;line-height:.92;letter-spacing:-.02em}
+.campanha .chamada p{font-size:15px;color:var(--tinta-suave)}
+.campanha .botoes{display:flex;gap:8px;flex-wrap:wrap}
+.colecao-tile{position:relative;display:grid;text-decoration:none;color:var(--tinta)}
+.colecao-tile .foto{aspect-ratio:3/4;border-radius:4px}
+.colecao-tile .rot{display:flex;align-items:center;justify-content:space-between;padding:8px 0 0;font-weight:600;font-size:15px}
+.colecao-tile .rot i{width:10px;height:10px;border-radius:50%;background:var(--c-cor);display:inline-block;margin-right:7px}
+.look{position:relative}
+.look .foto{border-radius:4px}
+.look .ponto{position:absolute;width:44px;height:44px;border-radius:50%;background:transparent;border:0;display:grid;place-items:center;transform:translate(-50%,-50%);cursor:pointer;z-index:1;padding:0}
+.look .ponto span{width:30px;height:30px;border-radius:50%;background:var(--branco);box-shadow:0 1px 6px rgba(38,25,30,.25);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--tinta)}
+.look-item{display:grid;grid-template-columns:28px 52px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.look-item .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--linha);display:grid;place-items:center;font-size:12px;font-weight:600}
+.look-item .foto{width:52px}
+.bloco-club{margin:28px 16px 0;background:var(--rosa-bruma);border-radius:18px;padding:20px 18px;display:grid;gap:14px}
+.bloco-club .grande{font-family:var(--display);font-weight:800;font-size:44px;line-height:.9;letter-spacing:-.02em}
+.bloco-club .grande small{display:block;font-family:var(--texto);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-suave);margin-bottom:6px;line-height:1.2}
+.comunidade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.comunidade .foto{aspect-ratio:1;padding:6px}
+.comunidade .foto .slot-dir{display:none}
+.rodape-loja{margin-top:28px;padding:22px 16px;background:var(--algodao);font-size:13px;color:var(--tinta-suave);display:grid;gap:6px}
+
+/* Página de produto */
+.pdp .info{padding:16px;display:grid;gap:14px}
+.pdp h2{font-weight:600;font-size:24px;letter-spacing:-.02em}
+.pdp .preco-linha{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pdp .preco{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.pdp .oferta{font-size:14px;background:var(--rosa-bruma);border-radius:10px;padding:10px 12px}
+.pdp .veste{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;font-size:14px;background:var(--algodao);border-radius:10px;padding:10px 12px}
+
+/* Sacola */
+.item-sacola{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start}
+.item-sacola .nome{font-weight:500;font-size:14.5px}
+.soma{display:grid;gap:4px;font-size:14.5px;border-top:1px solid var(--linha);padding-top:12px}
+.soma div{display:flex;justify-content:space-between;gap:10px}
+.soma .total{font-size:20px;font-weight:600}
+.whats{background:#FFFFFF;color:#1F2A24;border-radius:14px 14px 14px 3px;padding:10px 12px;font-size:14.5px;border:1px solid #E3E8E4}
+.whats.eu{background:#D9FDD3;border-color:#C5EBBE;border-radius:14px 14px 3px 14px;justify-self:end}
+.whats b{font-weight:600}
+.msg-wa{display:grid;gap:8px}
+.pranchas{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.pranchas img{width:100%;height:auto;border-radius:14px;border:1px solid var(--linha)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m9 9 6 6M15 9l-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sacola" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-busca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-voltar" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-whats" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9.5c.3 2 2 3.8 4.5 4.5l1-1.2 2 .8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  </defs>
+</svg>
+
+<div class="doc">
+<header class="capa-doc">
+  <img class="logo" src="design/marca/logo-referencia.webp" alt="Logotipo T-shirt Club.br: letras arredondadas creme com contorno verde, Club em rosa e uma estrela rosa">
+  <p class="rotulo">Design do frontend · proposta 4</p>
+  <h1>Primeiro o desejo, depois a reserva.</h1>
+  <p class="lede">A loja agora tem duas partes. Uma nova camada editorial faz a cliente querer entrar no Club: campanha, coleções, looks e página de produto. Depois vem o fluxo de reserva, que já funcionava bem e segue quase igual. Na descoberta, cerca de 80% da tela é foto, produto e coleção, e 20% é identidade. A loja tem só o tema claro.</p>
+  <div class="meta">
+    <span><b>Data:</b> 25/09/2026</span>
+    <span><b>Arquitetura:</b> <a href="arquitetura-reservas.html#frontend">seção 18</a> · D19 a D21</span>
+    <span><b>Acompanhamento:</b> <a href="painel-execucao.html#fase-D">painel, frente D</a></span>
+  </div>
+  <nav class="sumario" aria-label="Seções">
+    <a href="#mudancas">O que mudou</a><a href="#jornada">Jornada</a><a href="#descoberta">Telas da descoberta</a><a href="#oferta">Monte seu Club</a><a href="#fotos">Fotos</a><a href="#sistema">Cores e tipografia</a><a href="#componentes">Componentes</a><a href="#reserva">Telas da reserva</a><a href="#textos">Textos</a>
+  </nav>
+</header>
+
+<!-- ===================================================================== mudanças -->
+<section class="bloco" id="mudancas" aria-labelledby="h-mud">
+  <p class="rotulo">Revisão da loja sobre a proposta 3</p>
+  <h2 id="h-mud">O que mudou</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Ponto da revisão</th><th>O que a proposta 4 faz</th></tr></thead>
+    <tbody id="tabMudancas"></tbody>
+  </table></div>
+</section>
+
+<!-- ===================================================================== jornada -->
+<section class="bloco" id="jornada" aria-labelledby="h-jor">
+  <p class="rotulo">Arquitetura visual</p>
+  <h2 id="h-jor">Vender desejo, depois processar a venda</h2>
+  <div class="jornada">
+    <div class="faixa-j desejo"><p class="rotulo">Descoberta · nova</p>
+      <ol><li>Início</li><li>Campanha</li><li>Coleções</li><li>Produto</li><li>Looks</li><li>Monte seu Club</li><li>Sacola</li></ol></div>
+    <div class="faixa-j"><p class="rotulo">Reserva · mantida</p>
+      <ol><li>Seus dados</li><li>Código no WhatsApp</li><li>Reserva de 15 min</li><li>PIX ou cartão</li><li>Pedido</li></ol></div>
+  </div>
+  <div class="proporcao" role="img" aria-label="Proporção na descoberta: cerca de 80% foto, produto e coleção, 20% identidade">
+    <span style="flex:8;background:var(--algodao)">80% foto, produto e coleção</span><span style="flex:2;background:var(--rosa);color:var(--no-rosa)">20% Club</span>
+  </div>
+  <p class="nota">A página inicial é montada em blocos, e a loja muda a ordem deles no painel (<code>home_blocks</code>). A ordem padrão é campanha, novidades, coleções, look, "Monte seu Club", todas as peças e comunidade.</p>
+</section>
+
+<!-- ===================================================================== descoberta -->
+<section class="bloco" id="descoberta" aria-labelledby="h-desc">
+  <p class="rotulo">D3 · Descoberta</p>
+  <h2 id="h-desc">Telas da descoberta</h2>
+  <div class="aviso-fotos" id="avisoFotos"><svg aria-hidden="true"><use href="#i-camera"/></svg>
+    <span><b>As fotos reais ainda não chegaram aqui.</b> A pasta do Google Drive está bloqueada pela rede deste ambiente. Cada espaço mostra a direção da foto que vai nele, no fundo da cor da coleção. Quando os arquivos forem colocados em <code>docs/design/fotos/</code> com os nomes da <a href="#fotos">lista de fotos</a>, este documento passa a mostrá-los sozinho.</span></div>
+  <div class="telas">
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="topo"><button class="icone-btn" type="button" aria-label="Menu"><svg aria-hidden="true"><use href="#i-menu"/></svg></button><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="acoes"><button class="icone-btn" type="button" aria-label="Buscar"><svg aria-hidden="true"><use href="#i-busca"/></svg></button><span class="icone-btn" role="img" aria-label="Sacola com 2 peças"><svg aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">2</span></span></span></div>
+        <div class="campanha">
+          <div class="foto" data-foto="campanha-limone"></div>
+          <div class="chamada">
+            <p class="rotulo">Nova coleção · Limone</p>
+            <h2>Welcome to the Club.</h2>
+            <p>Estampas próprias, algodão macio e um jeito leve de se vestir.</p>
+            <div class="botoes"><a class="tc-botao" href="#">Ver Limone</a><a class="tc-botao contorno" href="#">Todas as peças</a></div>
+          </div>
+        </div>
+        <div class="secao-tela">
+          <div class="cab"><h3>New in the Club</h3><a href="#">Ver tudo</a></div>
+          <div class="trilho-h" id="trilhoNovidades"></div>
+        </div>
+        <div class="secao-tela">
+          <div class="cab"><h3>Coleções</h3></div>
+          <div class="dupla" id="gradeColecoes"></div>
+        </div>
+        <div class="secao-tela">
+          <div class="cab"><h3>Shop the look</h3><a href="#">Mais looks</a></div>
+          <div class="look">
+            <div class="foto" data-foto="look-jeans"></div>
+            <button class="ponto" type="button" style="left:52%;top:40%" aria-label="Peça 1: T-shirt Pomodoro, R$ 49,99"><span aria-hidden="true">1</span></button>
+          </div>
+          <div class="look-item col-tomate mini-foto"><span class="n" aria-hidden="true">1</span><div class="foto" data-foto="pomodoro-frente"></div><span>T-shirt Pomodoro<br><span class="nota">R$ 49,99</span></span><a class="tc-botao link" href="#">Ver peça</a></div>
+        </div>
+        <div class="bloco-club">
+          <p class="grande"><small>Monte seu Club</small>3 por<br>R$ 119,99</p>
+          <div class="tc-club">
+            <div class="lugares" aria-hidden="true"><span class="lugar cheio col-tomate"><span class="mini"></span></span><span class="lugar cheio col-limao"><span class="mini"></span></span><span class="lugar">+</span></div>
+            <p class="texto"><b>Falta 1 peça</b> na sua sacola. Cada 3 saem por R$ 119,99, cerca de R$ 40 cada.</p>
+          </div>
+          <a class="tc-botao escuro" href="#" style="justify-self:start">Escolher a terceira</a>
+        </div>
+        <div class="secao-tela">
+          <div class="cab"><h3>Todas as peças</h3><a href="#">Filtrar</a></div>
+          <div class="dupla" id="gradeTodas"></div>
+        </div>
+        <div class="secao-tela">
+          <div class="cab"><h3>Você faz o Club</h3><a href="#">@tshirtclub.br</a></div>
+          <div class="comunidade"><div class="foto" data-foto="comunidade-1"></div><div class="foto" data-foto="comunidade-2"></div><div class="foto" data-foto="comunidade-3"></div></div>
+        </div>
+        <div class="rodape-loja"><b style="color:var(--tinta)">T-shirt Club.br</b><span>Retirada na loja, motoboy ou envio · Troca e cuidados · Privacidade</span></div>
+      </div>
+      <figcaption><b>1. Início</b><span>Rota <code>/</code>. A campanha ocupa a primeira dobra; o rosa aparece só nos botões, na sacola e no bloco "Monte seu Club".</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="topo"><button class="icone-btn" type="button" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="icone-btn" role="img" aria-label="Sacola com 2 peças"><svg aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">2</span></span></div>
+        <div class="foto paisagem" data-foto="colecao-limone"></div>
+        <div class="secao-tela" style="padding-top:18px;padding-bottom:18px">
+          <p class="rotulo" style="color:var(--limao-tinta)">Coleção</p>
+          <p style="font-family:var(--display);font-weight:800;font-size:40px;line-height:.95">Limone</p>
+          <p class="sub" style="font-size:15px">Limões da costa amalfitana, sol de fim de tarde e a leveza de quem está de férias, mesmo numa terça-feira.</p>
+          <div style="display:flex;gap:8px;overflow-x:auto" role="group" aria-label="Filtrar peças">
+            <button class="tc-chip" type="button" aria-pressed="true">Tudo · 6</button><button class="tc-chip" type="button" aria-pressed="false">Disponíveis</button><button class="tc-chip" type="button" aria-pressed="false">Novidades</button>
+          </div>
+          <div class="dupla" id="gradeLimone"></div>
+        </div>
+      </div>
+      <figcaption><b>2. Coleção</b><span>Rota <code>/colecao/[slug]</code>. Capa, texto curto e grade; a cor da coleção fica no fundo das fotos e no rótulo.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular pdp">
+        <div class="topo"><button class="icone-btn" type="button" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="icone-btn" role="img" aria-label="Sacola com 2 peças"><svg aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">2</span></span></div>
+        <div class="tc-galeria">
+          <div style="position:relative">
+            <div class="trilho" id="galeria" tabindex="0" role="region" aria-label="Fotos da T-shirt Limone: 6 fotos. Deslize para ver as outras"></div>
+            <span class="contador" id="galeriaContador" aria-hidden="true">1/6</span>
+          </div>
+          <div class="miniaturas mini-foto" id="miniaturas" role="group" aria-label="Escolher foto"></div>
+        </div>
+        <div class="info">
+          <div style="display:grid;gap:4px">
+            <span class="rotulo" style="color:var(--limao-tinta)">Limone</span>
+            <h2>T-shirt Limone</h2>
+          </div>
+          <div class="preco-linha"><span class="preco">R$ 49,99</span><span class="tc-sticker aviso">Últimas 2</span></div>
+          <p class="oferta"><b>Monte seu Club:</b> 3 peças por R$ 119,99, cerca de R$ 40 cada. Vale para qualquer combinação.</p>
+          <div class="veste mini-foto"><div class="foto" data-foto="limone-vestida-jeans"></div><span><b>Como veste:</b> modelagem reta e levemente ampla. A modelo tem 1,68 m e usa o tamanho único.</span></div>
+          <button class="tc-botao cheio" type="button">Adicionar ao Club</button>
+          <div class="tc-club">
+            <div class="lugares" aria-hidden="true"><span class="lugar cheio col-tomate"><span class="mini"></span></span><span class="lugar cheio col-med"><span class="mini"></span></span><span class="lugar">+</span></div>
+            <p class="texto">Você tem 2 peças. Com esta, as 3 saem por <b>R$ 119,99</b>.</p>
+          </div>
+          <div class="tc-acordeao">
+            <details open><summary>Detalhes</summary><div class="corpo"><p>Estampa própria da T-shirt Club, gola careca canelada, tamanho único.</p><p class="nota">Composição, gramatura e fabricação: a confirmar com a loja.</p></div></details>
+            <details><summary>Medidas</summary><div class="corpo"><div class="tbl"><table><thead><tr><th>Medida</th><th>cm</th></tr></thead><tbody><tr><td>Largura do peito</td><td>a confirmar</td></tr><tr><td>Comprimento</td><td>a confirmar</td></tr><tr><td>Manga</td><td>a confirmar</td></tr></tbody></table></div></div></details>
+            <details><summary>Cuidados</summary><div class="corpo"><p>Lavar do avesso em água fria, sem alvejante, secar à sombra e passar do avesso, sem ferro sobre a estampa.</p></div></details>
+            <details><summary>Entrega e retirada</summary><div class="corpo"><p>Você reserva, paga em até 15 minutos e depois escolhe: retirada na loja, motoboy ou envio.</p></div></details>
+          </div>
+        </div>
+        <div class="secao-tela" style="padding-top:6px;padding-bottom:18px">
+          <div class="cab"><h3>Complete o look</h3></div>
+          <div class="trilho-h" id="trilhoCompleta"></div>
+        </div>
+      </div>
+      <figcaption><b>3. Produto</b><span>Rota <code>/produto/[slug]</code>. Galeria com todas as fotos da peça (1 a 10), zoom ao tocar, "como veste", detalhes, e o progresso do Club junto do botão.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="topo"><button class="icone-btn" type="button" aria-label="Voltar"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button><b style="font-size:16px">Sua sacola</b><span style="width:44px"></span></div>
+        <div class="pad" style="display:grid;gap:16px;padding-top:6px;padding-bottom:16px">
+          <div class="tc-club">
+            <div class="lugares" aria-hidden="true"><span class="lugar cheio col-tomate"><span class="mini"></span></span><span class="lugar cheio col-med"><span class="mini"></span></span><span class="lugar cheio col-limao"><span class="mini"></span></span></div>
+            <p class="texto"><b>Club fechado!</b> Suas 3 peças saem por R$ 119,99.</p>
+          </div>
+          <div style="display:grid;gap:14px" id="listaSacola"></div>
+          <div class="soma">
+            <div><span>3 peças</span><span class="num">R$ 149,97</span></div>
+            <div style="color:var(--ok)"><span>Monte seu Club (3 por R$ 119,99)</span><span class="num">− R$ 29,98</span></div>
+            <div class="total"><span>Total</span><span class="num">R$ 119,99</span></div>
+          </div>
+          <div class="tc-aviso bruma"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Ainda não está reservado.</b>No próximo passo você confirma seu WhatsApp; aí as peças ficam guardadas por 15 minutos para você pagar.</span></div>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button">Reservar minhas peças</button></div>
+      </div>
+      <figcaption><b>4. Sacola</b><span>Rota <code>/sacola</code>. Fecha a descoberta: mostra o Club completo e o que vem a seguir. O botão leva ao fluxo de reserva, que continua igual.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================================================================== oferta -->
+<section class="bloco" id="oferta" aria-labelledby="h-of">
+  <p class="rotulo">D19</p>
+  <h2 id="h-of">Monte seu Club: 3 por R$ 119,99, a cada 3</h2>
+  <p>Cada peça custa R$ 49,99. Cada grupo completo de 3 sai por R$ 119,99, e as peças que sobram pagam o preço normal. A oferta aparece sempre como "3 por R$ 119,99", nunca como porcentagem. No painel ela é um "compre e economize mais" no modo <b>preço por grupo</b>, e o motor de preço do protótipo já calcula assim.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Peças</th><th>Grupos de 3</th><th>Sem a oferta</th><th>Total</th><th>Economia</th><th>A sacola diz</th></tr></thead>
+    <tbody id="tabOferta"></tbody>
+  </table></div>
+  <p class="nota">Com peças de preços diferentes, os grupos são montados com as mais caras primeiro, o que é melhor para a cliente. Vale só a promoção mais vantajosa (regra 28): um cupom só entra se der um total menor.</p>
+</section>
+
+<!-- ===================================================================== fotos -->
+<section class="bloco" id="fotos" aria-labelledby="h-fot">
+  <p class="rotulo">D5 · Direção de fotos</p>
+  <h2 id="h-fot">Fotos: várias por produto</h2>
+  <p>Cada produto aceita <b>de 1 a 10 fotos</b>. No painel, a loja envia, escolhe o tipo, escreve uma descrição curta (para quem usa leitor de tela) e muda a ordem. A primeira foto é a capa na vitrine. O protótipo do catálogo (tela 10) já faz isso.</p>
+  <div class="grade">
+    <div class="painel"><h3>Por produto</h3><ul class="lista"><li><b>Frente</b> e <b>costas</b> em fundo liso, com luz natural</li><li><b>Detalhe da estampa</b>, bem de perto, mostrando o tecido</li><li>Pelo menos uma <b>vestida</b>: com jeans, saia ou alfaiataria</li><li>Formato vertical 4:5, com pelo menos 1600 px de largura</li></ul></div>
+    <div class="painel"><h3>Por coleção</h3><ul class="lista"><li>Uma <b>capa</b> horizontal (3:2) no clima da coleção</li><li>Uma <b>campanha</b> vertical para a primeira dobra</li><li>Um ou dois <b>looks</b> com as peças marcadas</li></ul></div>
+    <div class="painel"><h3>Como colocar neste documento</h3><p class="nota">Salve as fotos em <code>docs/design/fotos/</code> com os nomes abaixo (JPG, PNG ou WebP). Não precisa mexer no HTML: ao abrir, ele encontra os arquivos.</p></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Arquivo</th><th>O que mostra</th><th>Onde aparece</th><th>Situação</th></tr></thead>
+    <tbody id="tabFotos"></tbody>
+  </table></div>
+</section>
+
+<!-- ===================================================================== sistema -->
+<section class="bloco" id="sistema" aria-labelledby="h-sis">
+  <p class="rotulo">D2</p>
+  <h2 id="h-sis">Cores e tipografia</h2>
+  <div class="grade">
+    <div class="painel"><h3>Tipografia menos "fofa"</h3><p class="nota"><b>Baloo 2</b> só nos momentos de marca: a frase da campanha, o nome da coleção, "3 por R$ 119,99" e o cronômetro. <b>Poppins</b> em todo o resto: títulos de seção, nomes, preços e botões. Fica mais revista de moda e menos papelaria.</p></div>
+    <div class="painel"><h3>Tempero</h3><p class="nota">O rosa aparece no botão principal, no número da sacola, no bloco "Monte seu Club" e no passo atual. O verde aparece só em estados bons (pago, disponível). Stickers: só "Novo" e "Últimas unidades", no máximo um por card.</p></div>
+    <div class="painel"><h3>Só tema claro</h3><p class="nota">A loja não tem tema escuro: rosa, creme e verde fazem parte da identidade, e metade do trabalho de revisão visual sai do caminho. O painel da loja continua com claro e escuro.</p></div>
+  </div>
+  <h3>Base e tempero</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Token</th><th>Cor</th><th>Onde entra</th><th>Contraste</th></tr></thead>
+    <tbody id="tabTokens"></tbody>
+  </table></div>
+  <h3>Cores de coleção aprovadas</h3>
+  <p class="sub">A loja escolhe a cor de cada coleção no painel, nesta lista. Duas coleções podem ter a mesma cor, porque o nome sempre aparece junto. Uma cor nova só entra na lista depois de passar pelo validador.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Cor</th><th>Destaque</th><th>Fundo da foto</th><th>Texto</th><th>Texto sobre o destaque</th><th>Contraste do texto</th><th>Sugestão</th></tr></thead>
+    <tbody id="tabColecoes"></tbody>
+  </table></div>
+  <p class="nota">Validador da habilidade dataviz: entre as cinco, o par mais próximo para daltonismo é Lavanda e Mediterrâneo (diferença 7,5, na faixa que exige outra pista além da cor). Essa pista existe sempre, porque o nome da coleção aparece junto. Com visão normal, todas se separam bem (mínimo 16,4). Limão e Menta são claras demais para virar texto, então o texto de cada coleção usa o tom escuro dela.</p>
+</section>
+
+<!-- ===================================================================== componentes -->
+<section class="bloco" id="componentes" aria-labelledby="h-comp">
+  <p class="rotulo">D2 · Componentes</p>
+  <h2 id="h-comp">Componentes novos e ajustados</h2>
+  <p>Os componentes da reserva (campo, código, cronômetro, PIX, avisos, selos e andamento) continuam os da proposta 3, só no tema claro. Estes são os da descoberta.</p>
+  <div class="grade">
+    <div class="painel"><p class="rotulo">CardProduto</p><div class="dupla" id="compCards"></div><p class="nota">Foto primeiro; embaixo, a coleção com o ponto de cor, o nome e o preço, em Poppins. No máximo um sticker, no canto de cima.</p></div>
+    <div class="painel"><p class="rotulo">ProgressoClub</p>
+      <div class="tc-club"><div class="lugares" aria-hidden="true"><span class="lugar cheio col-tomate"><span class="mini"></span></span><span class="lugar">+</span><span class="lugar">+</span></div><p class="texto"><b>Faltam 2 peças</b> para 3 por R$ 119,99.</p></div>
+      <div class="tc-club"><div class="lugares" aria-hidden="true"><span class="lugar cheio col-tomate"><span class="mini"></span></span><span class="lugar cheio col-med"><span class="mini"></span></span><span class="lugar cheio col-limao"><span class="mini"></span></span></div><p class="texto"><b>Club fechado!</b> 3 por R$ 119,99.</p></div>
+      <p class="nota">A assinatura da oferta. Cada peça escolhida ocupa um lugar, com a silhueta da camiseta na cor da coleção. Aparece no produto, na sacola e no bloco da página inicial. O texto diz tudo; a cor e a silhueta só reforçam.</p></div>
+    <div class="painel"><p class="rotulo">Botao</p>
+      <button class="tc-botao cheio" type="button">Adicionar ao Club</button>
+      <button class="tc-botao escuro cheio" type="button">Escolher a terceira</button>
+      <button class="tc-botao contorno cheio" type="button">Todas as peças</button>
+      <p class="nota">Rosa para a ação principal da tela, escuro para a ação dentro de um bloco rosa e contorno para a secundária. Texto em Poppins 600.</p></div>
+    <div class="painel"><p class="rotulo">ChipColecao · Sticker</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" role="group" aria-label="Exemplo de filtro de coleção"><button class="tc-chip" type="button" aria-pressed="true">Tudo</button><button class="tc-chip col-limao" type="button" aria-pressed="false"><i aria-hidden="true"></i>Limone</button><button class="tc-chip col-tomate" type="button" aria-pressed="false"><i aria-hidden="true"></i>Pomodoro</button><button class="tc-chip col-med" type="button" aria-pressed="false"><i aria-hidden="true"></i>Dolce Vita</button></div>
+      <div style="display:flex;gap:14px;padding:6px 4px"><span class="tc-sticker">Novo</span><span class="tc-sticker aviso">Últimas 2</span><span class="tc-sticker neutro">Esgotado</span></div>
+      <p class="nota">Os filtros de coleção viram chips com o ponto de cor, no lugar dos círculos de Instagram. Os stickers ficam só para os avisos que ajudam a decidir.</p></div>
+    <div class="painel"><p class="rotulo">Galeria</p><p class="nota">Rolagem por encaixe (CSS <code>scroll-snap</code>), contador "1/6", miniaturas que trocam a foto e zoom ao tocar (abre a foto em tela cheia, com pinça). Só a primeira foto carrega com prioridade; as outras carregam quando a cliente chega perto. Tudo sem biblioteca.</p></div>
+    <div class="painel"><p class="rotulo">Acordeao</p><p class="nota">Detalhes, medidas, cuidados e entrega em <code>&lt;details&gt;</code> nativo: funciona com teclado e leitor de tela, sem JavaScript.</p></div>
+  </div>
+</section>
+
+<!-- ===================================================================== reserva -->
+<section class="bloco" id="reserva" aria-labelledby="h-res">
+  <p class="rotulo">D3 · Reserva, mantida</p>
+  <h2 id="h-res">Telas da reserva</h2>
+  <p>Estas telas continuam como na proposta 3, que você aprovou nos pontos 9, 10 e 11 da revisão. Mudaram só três coisas: os preços, a foto real da peça no lugar do desenho e o tema, que agora é só claro.</p>
+  <div class="telas">
+    <figure class="tela">
+      <div class="celular">
+        <div class="pad" style="display:grid;gap:14px;padding-top:16px;padding-bottom:16px">
+          <p class="rotulo">Passo 1 de 3</p>
+          <h2 style="font-size:26px">Seus dados</h2>
+          <div class="tc-campo"><label for="t2-nome">Nome</label><input id="t2-nome" autocomplete="name" value="Marina Souza"></div>
+          <div class="tc-campo"><label for="t2-tel">WhatsApp</label><input id="t2-tel" type="tel" value="(77) 99812-8809" aria-describedby="t2-tel-a"><p class="ajuda" id="t2-tel-a">O código chega neste número.</p></div>
+          <div class="tc-campo"><label for="t2-cup">Cupom (opcional)</label><input id="t2-cup"></div>
+          <p class="nota" style="font-size:13px">Usamos seu nome e WhatsApp só para esta reserva. <a href="#">Política de privacidade</a>.</p>
+        </div>
+        <div class="tc-rodape-acao"><div class="resumo"><span>3 peças · Monte seu Club</span><b class="num">R$ 119,99</b></div><button class="tc-botao cheio" type="button"><svg aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
+      </div>
+      <figcaption><b>5. Seus dados</b><span>Rota <code>/reserva</code> · F3.</span></figcaption>
+    </figure>
+    <figure class="tela">
+      <div class="celular">
+        <div class="pad" style="display:grid;gap:14px;padding-top:16px;padding-bottom:16px">
+          <p class="rotulo">Passo 2 de 3</p>
+          <h2 style="font-size:26px">Confirme seu WhatsApp</h2>
+          <div class="msg-wa" role="group" aria-label="Conversa no WhatsApp"><span class="whats eu">Quero meu código da reserva (ref. K7Q2)</span><span class="whats">Seu código da T-shirt Club.br é <b>482193</b>. Vale por 5 minutos. Não passe para ninguém.</span></div>
+          <div class="tc-campo tc-codigo"><label for="t3-cod">Código de 6 dígitos</label><input id="t3-cod" inputmode="numeric" autocomplete="one-time-code" value="482193" aria-describedby="t3-a"><p class="ajuda" id="t3-a">Vale até 14:22 · 2 tentativas</p></div>
+          <div class="tc-aviso bruma"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Nada fica guardado ainda.</b>Depois do código conferimos o estoque e começa o prazo de 15 minutos.</span></div>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button">Confirmar e reservar</button></div>
+      </div>
+      <figcaption><b>6. Código</b><span>Rota <code>/reserva/codigo</code> · F3.</span></figcaption>
+    </figure>
+    <figure class="tela">
+      <div class="celular">
+        <div class="pad" style="display:grid;gap:14px;padding-top:16px;padding-bottom:16px">
+          <div class="tc-cronometro" role="timer" aria-label="Tempo da reserva"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="tc-costura"><i style="width:76%"></i></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="font-size:24px">Reserva #1048</h2><span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span></div>
+          <div class="tc-pix">
+            <div class="valor"><span>Total</span><b>R$ 119,99</b></div>
+            <button class="tc-botao cheio" type="button"><svg aria-hidden="true"><use href="#i-copiar"/></svg>Copiar código PIX</button>
+            <ol><li>Abra o app do seu banco.</li><li>Pix › Copia e cola.</li><li>Cole e confirme. Esta tela atualiza sozinha.</li></ol>
+          </div>
+          <button class="tc-botao link" type="button" style="justify-self:start">Pedir cancelamento</button>
+        </div>
+      </div>
+      <figcaption><b>7. Reserva e PIX</b><span>Rota <code>/reserva/[numero]</code> · F4 e F6.</span></figcaption>
+    </figure>
+    <figure class="tela">
+      <div class="celular">
+        <div class="pad" style="display:grid;gap:14px;padding-top:18px;padding-bottom:16px">
+          <span class="tc-sticker" style="justify-self:start;background:var(--verde-broto);color:var(--verde-escuro)">Pago!</span>
+          <h2 style="font-family:var(--display);font-weight:800;font-size:34px;line-height:.95">Suas peças são suas.</h2>
+          <p class="sub">Pedido #1048 · R$ 119,99 no PIX. Agora falta só escolher como receber.</p>
+          <ol class="tc-passos"><li class="feito"><span class="marca">✓</span><span>Pago</span></li><li class="agora"><span class="marca">2</span><span><b>Escolher a entrega</b></span></li><li class="depois"><span class="marca">3</span><span>Em preparação</span></li><li class="depois"><span class="marca">4</span><span>Entregue</span></li></ol>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button"><svg aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
+      </div>
+      <figcaption><b>8. Pagamento confirmado</b><span>Rotas <code>/r</code> e <code>/pedido/[numero]</code> · F8 e F9.</span></figcaption>
+    </figure>
+    <figure class="tela">
+      <div class="celular">
+        <div class="pad" style="display:grid;gap:14px;padding-top:18px;padding-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="font-size:24px">Reserva #1048</h2><span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span></div>
+          <div class="tc-cronometro"><div class="linha"><span class="tempo" style="color:var(--tinta-suave)">00:00</span><span class="ate">terminou às 14:32</span></div><div class="tc-costura"><i style="width:0"></i></div></div>
+          <p>O pagamento não chegou a tempo e as peças voltaram para a loja. <b>Nada foi cobrado.</b></p>
+          <p class="sub">Se ainda quiser, é só reservar de novo. O estoque pode ter mudado.</p>
+          <button class="tc-botao contorno cheio" type="button">Voltar para a loja</button>
+        </div>
+      </div>
+      <figcaption><b>9. Reserva expirada</b><span>Mesmo endereço da reserva · F5.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================================================================== textos -->
+<section class="bloco" id="textos" aria-labelledby="h-txt">
+  <p class="rotulo">D4</p>
+  <h2 id="h-txt">Textos</h2>
+  <p>Tom da marca: carinhosa e direta, como a amiga que trabalha na loja. A frase da campanha pode ficar em inglês, que soa bem em moda, com o texto de apoio em português. Estas são as opções para a primeira dobra; a loja escolhe.</p>
+  <div class="grade" id="slogans"></div>
+  <h3>Erros e avisos na tela</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Código</th><th>O que a cliente lê</th><th>Ação oferecida</th></tr></thead>
+    <tbody id="tabErros"></tbody>
+  </table></div>
+  <h3>Mensagens do WhatsApp</h3>
+  <p class="sub">As 5 essenciais têm 2 versões, sorteadas pela fila (G5). Só o primeiro nome; o link é sempre do domínio da loja.</p>
+  <div class="grade" id="gradeWhats"></div>
+</section>
+
+<!-- ===================================================================== validação -->
+<section class="bloco" id="validacao" aria-labelledby="h-val">
+  <p class="rotulo">Validação</p>
+  <h2 id="h-val">Marca e pendências</h2>
+  <div class="pranchas"><img src="design/marca/prancha-marca-2.webp" alt="Prancha de marca oficial: logo T-shirt Club.br, paleta com rosa E8478A, verde 6B8B1F, rosa claro FCDDE0 e fundo FFF8F5, tipografia Baloo 2 e Poppins e aplicações em sacola, etiqueta, adesivo e camiseta" loading="lazy" width="1122" height="1402"></div>
+  <div style="display:grid;gap:10px">
+    <div class="achado"><span class="id">M1</span><h3>Fotos reais <span class="grav conf">Aguardando</span></h3><p>A pasta do Google Drive foi enviada, mas <code>drive.google.com</code> está bloqueado pela rede deste ambiente. Para liberar: menu do ambiente → Editar → domínios permitidos, com <code>drive.google.com</code>, <code>drive.usercontent.google.com</code> e <code>lh3.googleusercontent.com</code>. Outra opção é enviar as fotos direto para <code>docs/design/fotos/</code> no GitHub.</p></div>
+    <div class="achado"><span class="id">M2</span><h3>Nomes e textos das peças <span class="grav conf">Confirmar</span></h3><p>Usei "T-shirt Limone", "T-shirt Pomodoro" e assim por diante, e os textos das coleções são sugestões. Composição, gramatura, medidas e a altura da modelo estão marcadas como "a confirmar".</p></div>
+    <div class="achado"><span class="id">M3</span><h3>Site de referência <span class="grav conf">Pendente</span></h3><p>coucousuzette.com ainda não foi conferido. A estrutura desta proposta (campanha, coleções com foto, looks e produto completo) segue a sua descrição e será comparada com o site quando ele for liberado.</p></div>
+    <div class="achado"><span class="id">M4</span><h3>Logo em SVG e endereço do site <span class="grav conf">Pedir à loja</span></h3><p>Continuam pendentes: o logo em SVG (completo, horizontal, ícone e uma cor) e a escolha entre <code>.pt</code> e <code>.com.br</code>.</p></div>
+    <div class="achado"><span class="id">M5</span><h3>Contraste e daltonismo <span class="grav feito">Validado</span></h3><p>Texto a partir de 4,5:1 e contornos a partir de 3:1, medidos. Cores de coleção passadas no validador (detalhes na seção de cores). Nenhuma violação no axe em 390 px e 1280 px.</p></div>
+  </div>
+</section>
+
+<footer class="sub" style="padding-top:24px;font-size:14px">Proposta 4 do design da T-shirt Club.br. Ao aprovar, os tokens viram o preset do Tailwind em <code>packages/ui</code> e as telas da descoberta entram na F2.</footer>
+</div>
+
+<script>
+(function(){
+  const el=(t,a={},...f)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='text')e.textContent=v;else e.setAttribute(k,v);}f.forEach(x=>x!=null&&e.append(x));return e;};
+  const reais=c=>'R$ '+(c/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+
+  // Fotos: arquivo esperado em design/fotos/<chave>.(webp|jpg|png). Sem arquivo, mostra a direção de arte.
+  // [cor da coleção, nome grande no espaço vazio, descrição (vira o texto alternativo), onde aparece]
+  const FOTOS={
+    'campanha-limone':['limao','Limone','Campanha Limone: modelo com a T-shirt Limone e jeans, ao ar livre, luz de fim de tarde','Início, primeira dobra'],
+    'colecao-limone':['limao','Limone','Capa da coleção Limone: limões, tecido e a camiseta dobrada, horizontal 3:2','Coleção Limone'],
+    'colecao-pomodoro':['tomate','Pomodoro','Capa da coleção Pomodoro: a camiseta com tomates frescos e toalha xadrez','Início, coleções'],
+    'colecao-dolce-vita':['med','Dolce Vita','Capa da coleção La Dolce Vita: clima de verão italiano e azul do mar','Início, coleções'],
+    'colecao-la-vie':['lavanda','La Vie','Capa da coleção La Vie Est Belle: flores, papel e a camiseta em luz suave','Início, coleções'],
+    'look-jeans':['tomate','Look','Look: T-shirt Pomodoro com jeans reto e tênis, corpo inteiro','Início, Shop the look'],
+    'limone-frente':['limao','Limone','T-shirt Limone de frente, em fundo liso','Produto (capa) e vitrine'],
+    'limone-costas':['limao','Limone','T-shirt Limone de costas, em fundo liso','Produto, 2ª foto'],
+    'limone-detalhe':['limao','Limone','Detalhe da estampa Limone, de perto, mostrando a malha','Produto, 3ª foto'],
+    'limone-vestida-jeans':['limao','Limone','Modelo com a T-shirt Limone e jeans','Produto, 4ª foto e "como veste"'],
+    'limone-vestida-saia':['limao','Limone','Modelo com a T-shirt Limone e saia midi','Produto, 5ª foto'],
+    'limone-vestida-alfaiataria':['limao','Limone','Modelo com a T-shirt Limone e calça de alfaiataria','Produto, 6ª foto'],
+    'pomodoro-frente':['tomate','Pomodoro','T-shirt Pomodoro de frente, em fundo liso','Vitrine e look'],
+    'dolce-vita-frente':['med','Dolce Vita','T-shirt La Dolce Vita de frente, em fundo liso','Vitrine'],
+    'la-vie-frente':['lavanda','La Vie','T-shirt La Vie Est Belle de frente, em fundo liso','Vitrine'],
+    'teddy-frente':['tomate','Teddy','T-shirt Teddy de frente, em fundo liso','Vitrine'],
+    'dog-club-frente':['menta','Dog Club','T-shirt Dog Club de frente, em fundo liso','Vitrine'],
+    'comunidade-1':['limao','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade'],
+    'comunidade-2':['tomate','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade'],
+    'comunidade-3':['med','#Club','Cliente usando a T-shirt, foto do Instagram (com autorização)','Início, comunidade']
+  };
+  const achadas=new Set();
+  function preencherFoto(box){
+    const k=box.dataset.foto, f=FOTOS[k]; if(!f)return;
+    box.classList.add('col-'+f[0]);
+    const decorativa=!!box.closest('[aria-hidden="true"],button');
+    if(!decorativa){box.setAttribute('role','img');box.setAttribute('aria-label',f[2]);}
+    const dir=el('span',{class:'slot-dir','aria-hidden':'true'});dir.innerHTML='<svg><use href="#i-camera"/></svg>';dir.append(f[2]);
+    box.replaceChildren(el('span',{class:'slot-marca','aria-hidden':'true',text:f[1]}),dir);
+    const tentar=exts=>{if(!exts.length)return;const img=new Image();img.alt=decorativa?'':f[2];img.decoding='async';
+      img.onload=()=>{box.removeAttribute('role');box.removeAttribute('aria-label');box.querySelectorAll('.slot-marca,.slot-dir').forEach(n=>n.remove());box.classList.remove('com-sticker');box.prepend(img);achadas.add(k);atualizarTabFotos();};
+      img.onerror=()=>tentar(exts.slice(1));img.src=`design/fotos/${k}.${exts[0]}`;};
+    tentar(['webp','jpg','png']);
+  }
+
+  const PRODUTOS=[
+    {k:'limone-frente',nome:'T-shirt Limone',col:'limao',colNome:'Limone',sticker:['aviso','Últimas 2']},
+    {k:'pomodoro-frente',nome:'T-shirt Pomodoro',col:'tomate',colNome:'Pomodoro',sticker:['','Novo']},
+    {k:'dolce-vita-frente',nome:'T-shirt La Dolce Vita',col:'med',colNome:'Dolce Vita'},
+    {k:'la-vie-frente',nome:'T-shirt La Vie Est Belle',col:'lavanda',colNome:'La Vie Est Belle'},
+    {k:'teddy-frente',nome:'T-shirt Teddy',col:'tomate',colNome:'Teddy'},
+    {k:'dog-club-frente',nome:'T-shirt Dog Club',col:'menta',colNome:'Dog Club'}
+  ];
+  function card(p){
+    const foto=el('div',{class:'foto','data-foto':p.k});
+    if(p.sticker)foto._sticker=p.sticker;
+    return el('a',{class:'tc-produto col-'+p.col,href:'#'},foto,el('span',{class:'col',text:p.colNome}),el('span',{class:'nome',text:p.nome}),el('span',{class:'preco',text:'R$ 49,99'}));
+  }
+  const encher=(id,lista)=>{const alvo=document.getElementById(id);lista.forEach(p=>alvo.append(card(p)));};
+  encher('trilhoNovidades',PRODUTOS.slice(0,4));
+  encher('gradeTodas',PRODUTOS.slice(2,6));
+  encher('gradeLimone',[PRODUTOS[0],{...PRODUTOS[0],k:'limone-vestida-saia',nome:'T-shirt Limone Riviera',sticker:null}]);
+  encher('trilhoCompleta',PRODUTOS.slice(1,4));
+  encher('compCards',PRODUTOS.slice(0,2));
+  const cols=document.getElementById('gradeColecoes');
+  [['colecao-pomodoro','tomate','Pomodoro'],['colecao-dolce-vita','med','Dolce Vita'],['colecao-limone','limao','Limone'],['colecao-la-vie','lavanda','La Vie Est Belle']].forEach(([k,c,n])=>{
+    cols.append(el('a',{class:'colecao-tile col-'+c,href:'#'},el('div',{class:'foto','data-foto':k}),el('span',{class:'rot'},el('span',{},el('i',{'aria-hidden':'true'}),n),el('span',{'aria-hidden':'true',text:'→'}))));
+  });
+  const sac=document.getElementById('listaSacola');
+  [PRODUTOS[1],PRODUTOS[2],PRODUTOS[0]].forEach(p=>{
+    sac.append(el('div',{class:'item-sacola mini-foto col-'+p.col},el('div',{class:'foto','data-foto':p.k}),el('div',{},el('div',{class:'nome',text:p.nome}),el('div',{class:'nota',text:p.colNome+' · tamanho único · 1 un.'}),el('button',{class:'tc-botao link',type:'button',style:'font-size:13px;padding:0'},'Remover')),el('b',{class:'num',text:'R$ 49,99'})));
+  });
+
+  // Galeria do produto: 6 fotos, com miniaturas e contador
+  const GAL=['limone-frente','limone-costas','limone-detalhe','limone-vestida-jeans','limone-vestida-saia','limone-vestida-alfaiataria'];
+  const trilho=document.getElementById('galeria'), minis=document.getElementById('miniaturas'), cont=document.getElementById('galeriaContador');
+  GAL.forEach((k,i)=>{
+    trilho.append(el('div',{class:'foto','data-foto':k}));
+    const b=el('button',{type:'button','aria-label':`Foto ${i+1} de ${GAL.length}`,'aria-current':String(i===0)},el('div',{class:'foto','data-foto':k}));
+    b.addEventListener('click',()=>trilho.scrollTo({left:i*trilho.clientWidth,behavior:'smooth'}));
+    minis.append(b);
+  });
+  trilho.addEventListener('scroll',()=>{const i=Math.round(trilho.scrollLeft/trilho.clientWidth);cont.textContent=`${i+1}/${GAL.length}`;[...minis.children].forEach((b,j)=>b.setAttribute('aria-current',String(i===j)));},{passive:true});
+
+  function atualizarTabFotos(){
+    const tb=document.getElementById('tabFotos');tb.replaceChildren();
+    Object.entries(FOTOS).forEach(([k,f])=>tb.append(el('tr',{},el('td',{},el('code',{text:k+'.jpg'})),el('td',{text:f[2]}),el('td',{text:f[3]}),el('td',{text:achadas.has(k)?'✓ recebida':'aguardando'}))));
+    document.getElementById('avisoFotos').hidden=achadas.size===Object.keys(FOTOS).length;
+  }
+  atualizarTabFotos();
+  document.querySelectorAll('[data-foto]').forEach(box=>{preencherFoto(box);if(box._sticker){const [cl,t]=box._sticker;box.classList.add('com-sticker');box.append(el('span',{class:'tc-sticker '+cl,text:t}));}});
+
+  // Oferta: a mesma regra do motor de preço (grupos de 3 por R$ 119,99; o resto pelo preço normal)
+  const PECA=4999, GRUPO=3, PRECO_GRUPO=11999;
+  const tbo=document.getElementById('tabOferta');
+  for(let n=1;n<=9;n++){
+    const g=Math.floor(n/GRUPO), sem=n*PECA, tot=g*PRECO_GRUPO+(n%GRUPO)*PECA, resto=n%GRUPO;
+    const diz=resto?`Falta${GRUPO-resto>1?'m':''} ${GRUPO-resto} para fechar o Club`:'Club fechado!';
+    tbo.append(el('tr',{},el('td',{class:'num',text:n}),el('td',{class:'num',text:g}),el('td',{class:'num',text:reais(sem)}),el('td',{class:'num'},el('b',{text:reais(tot)})),el('td',{class:'num',text:tot<sem?reais(sem-tot):'—'}),el('td',{text:diz})));
+  }
+
+  const MUDANCAS=[
+    ['1','A home parecia app de reserva','Primeira dobra editorial: campanha em tela cheia, frase forte e a coleção em destaque. A eficiência vem depois.'],
+    ['2','Camisetas reais no centro','Os desenhos SVG saíram. Todos os espaços são de foto real, que entra sozinha quando o arquivo existe.'],
+    ['3','Mais fashion, menos fofo','Baloo 2 só nos momentos de marca. Stickers só em "Novo" e "Últimas", um por card. Sem etiqueta pendurada, sem estrelas e sem círculos de Instagram.'],
+    ['4','Slogan genérico','"Welcome to the Club." na campanha, com outras opções para a loja escolher (seção de textos).'],
+    ['5','Coleções reais e configuráveis','Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy e Dog Club. A cor de cada uma é escolhida no painel entre 5 cores aprovadas (D20).'],
+    ['6','Faltava página de produto','Nova rota /produto/[slug]: galeria de 1 a 10 fotos, zoom, como veste, detalhes, medidas, cuidados, entrega e "Adicionar ao Club".'],
+    ['7','Faltava lifestyle','Fotos vestidas (jeans, saia, alfaiataria), bloco "Shop the look" com pontos na foto e fotos de clientes.'],
+    ['8','Promoção diferente da definida','"Monte seu Club": 3 por R$ 119,99, a cada 3 (D19). Motor de preço, especificação, desenho técnico e protótipo atualizados.'],
+    ['9 a 11','Fluxo de reserva, pagamento confirmado e expirada','Mantidos. Só os preços e o tema mudaram.'],
+    ['12','Tirar o tema escuro da loja','A loja fica só no claro (D21). O painel da loja mantém claro e escuro.'],
+    ['—','Coucou Suzette não conferida','Continua pendente (M3). Confiro quando o site for liberado.']
+  ];
+  const tm=document.getElementById('tabMudancas');
+  MUDANCAS.forEach(([n,a,b])=>tm.append(el('tr',{},el('td',{class:'num',text:n}),el('td',{text:a}),el('td',{text:b}))));
+
+  const amostra=c=>{const s=el('span',{class:'amostra'});s.style.background=c;return s;};
+  const cor=c=>el('span',{style:'display:flex;gap:8px;align-items:center'},amostra(c),el('code',{text:c}));
+  const TOKENS=[
+    ['--papel','#FFFCFA','Fundo de tudo','—'],['--algodao','#F6EFEC','Áreas recuadas e rodapé','—'],
+    ['--tinta','#26191E','Texto; texto do botão rosa','16,6'],['--tinta-suave','#6B5D62','Texto secundário','6,1'],
+    ['--borda-campo','#928181','Contorno de campo e lugar vazio do Club','3,7'],
+    ['--rosa','#E8478A','Botão principal, sacola, bloco Monte seu Club, passo atual','4,6 com tinta'],
+    ['--rosa-bruma','#FDE7EF','Fundo do bloco Monte seu Club e da oferta no produto','14,4 com tinta'],
+    ['--verde','#6B8B1F','Contorno de "feito"','3,9 (não é texto)'],['--verde-broto','#EEF3DC','Pago, disponível (texto verde-escuro)','6,9'],
+    ['--aviso','#7A4A00','Últimas unidades','6,7'],['--erro','#B3261E','Erro (sempre com ícone)','5,6']
+  ];
+  const tt=document.getElementById('tabTokens');
+  TOKENS.forEach(([n,c,u,ct])=>tt.append(el('tr',{},el('td',{},el('code',{text:n})),el('td',{},cor(c)),el('td',{text:u}),el('td',{class:'num',text:ct}))));
+  const CORES=[
+    ['Tomate (TOMATE)','#EE4A2A','#FFE7DE','#A63A1C','tinta','5,5','Pomodoro, Teddy'],
+    ['Limão (LIMAO)','#F2DD3D','#FFF9C9','#6B5600','tinta','6,7','Limone'],
+    ['Mediterrâneo (MEDITERRANEO)','#2F6FD0','#E4EEFC','#1D4E9A','branco','6,9','La Dolce Vita'],
+    ['Lavanda (LAVANDA)','#A77BE0','#F1EAFB','#5E3B99','tinta','7,0','La Vie Est Belle'],
+    ['Menta (MENTA)','#2FA58A','#E0F4EE','#1C6B58','tinta','5,6','Dog Club']
+  ];
+  const tc=document.getElementById('tabColecoes');
+  CORES.forEach(([n,c,f,t,s,ct,sug])=>tc.append(el('tr',{},el('td',{text:n}),el('td',{},cor(c)),el('td',{},cor(f)),el('td',{},cor(t)),el('td',{text:s}),el('td',{class:'num',text:ct}),el('td',{text:sug}))));
+
+  const SLOGANS=[['Welcome to the Club.','Recomendada: curta, convida e usa o nome da marca.'],['Você faz o Club.','Em português, com foco na comunidade. Boa também para a seção de clientes.'],['Good tees. Better days.','Leve e fácil de lembrar, mas fala menos do Club.'],['Wear your good mood.','Divertida; combina com coleções solares como Limone.']];
+  const sl=document.getElementById('slogans');
+  SLOGANS.forEach(([t,d],i)=>sl.append(el('div',{class:'painel'},el('p',{style:'font-family:var(--display);font-weight:800;font-size:28px;line-height:1',text:t}),el('p',{class:'nota',text:(i===0?'✓ ':'')+d}))));
+
+  const ERROS=[
+    ['STOCK_UNAVAILABLE','Teddy Bleu acabou agora. Tire da sacola para continuar; o resto segue separado para você.','Ajustar a sacola (sem novo código)'],
+    ['PRICE_CHANGED','O preço mudou desde que você escolheu: agora o total é R$ 124,99.','Ver o novo total e confirmar'],
+    ['COUPON_NOT_BEST','Você já tem um desconto maior. O cupom fica guardado para outra compra.','—'],
+    ['OTP_INVALID','Código errado. Resta 1 tentativa com este código.','Digitar de novo'],
+    ['OTP_EXPIRED','Este código venceu. Peça outro pelo WhatsApp.','Pedir outro código'],
+    ['OTP_LOCKED','Muitas tentativas. Você pode pedir um código de novo às 14:52.','Voltar para a loja'],
+    ['PHONE_BLOCKED','Este número está com as reservas pausadas. Fale com a gente pelo WhatsApp (77) 99815-5772.','Abrir conversa'],
+    ['ACTIVE_RESERVATION_EXISTS','Você já tem a reserva #1048 aberta até 14:32. Conclua ou espere ela terminar para fazer outra.','Ir para a reserva #1048'],
+    ['WHATSAPP_OFFLINE','A confirmação pelo WhatsApp está fora do ar agora. Tente de novo em alguns minutos.','Tentar de novo'],
+    ['RATE_LIMITED','Muitas tentativas seguidas. Espere um minutinho e tente de novo.','—'],
+    ['MAX_ITEMS','Cabem até 9 peças por reserva.','—'],
+    ['MAX_PER_MODEL','Até 2 peças do mesmo modelo por reserva.','—'],
+    ['DEADLINE_PASSED','O prazo desta reserva acabou; não dá para começar um pagamento novo.','Ver a reserva'],
+    ['METHOD_LOCKED','Esta reserva já começou pelo PIX; continue pelo PIX.','Mostrar o PIX'],
+    ['PAYMENT_IN_PROGRESS','Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro.','—'],
+    ['PHONE_VERIFICATION_REQUIRED','Para mexer na entrega, confirme que é você com um código pelo WhatsApp.','Receber código'],
+    ['QUOTE_EXPIRED','O prazo para pagar o frete venceu. A gente fala com você pelo WhatsApp.','Prefiro retirar na loja'],
+    ['NOT_FOUND','Não achamos esta reserva. Confira o link ou consulte pelo seu WhatsApp.','Consultar reservas'],
+    ['(sem internet)','Sem conexão. Sua reserva continua valendo; a tela atualiza quando a internet voltar.','Tentar de novo']
+  ];
+  const te=document.getElementById('tabErros');
+  ERROS.forEach(([c,t,a])=>te.append(el('tr',{},el('td',{},el('code',{text:c})),el('td',{text:t}),el('td',{text:a}))));
+  const WHATS=[
+    ['codigo_verificacao','Essencial',['Seu código da T-shirt Club.br é *482193*. Vale por 5 minutos. Não passe para ninguém.','Código de confirmação: *482193*. Digite no site para garantir suas peças. Ele vence em 5 minutos.']],
+    ['reserva_criada','Essencial',['Oi, Marina! Suas 3 peças estão guardadas até *14:32* (reserva #1048, R$ 119,99). Pague por aqui: tshirtclub.pt/r#k7Qm2xPz… 💖','Reserva #1048 feita, Marina! Guardamos suas peças até *14:32*. Total R$ 119,99. Para pagar: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['reserva_lembrete_5min','Essencial',['Faltam 5 minutos: a reserva #1048 fica guardada até *14:32*. Se já pagou, pode ignorar.','Lembrete: suas peças da reserva #1048 ficam separadas só até *14:32*.']],
+    ['pagamento_confirmado','Essencial',['Pagamento confirmado! Pedido #1048, R$ 119,99 no PIX. Agora escolha como quer receber: tshirtclub.pt/r#k7Qm2xPz… ✨','Recebemos seu pagamento, Marina! Pedido #1048 garantido. Falta só escolher a entrega: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['reserva_expirada','Essencial',['A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.pt','O prazo da reserva #1048 acabou e nada foi cobrado. As peças voltaram para a loja: tshirtclub.pt']],
+    ['numero_diferente','Resposta',['Este número não é o da reserva. Envie a mensagem pelo WhatsApp que você informou no site.']],
+    ['minha_reserva','Resposta',['Reserva #1048: guardada até 14:32 (faltam 11 min). 3 peças, R$ 119,99. Para pagar: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['cancelamento_recebido','Opcional',['Recebemos seu pedido de cancelamento da reserva #1048. A loja responde em breve; o prazo continua correndo até 14:32.']],
+    ['cancelamento_aprovado','Opcional',['Cancelamento aprovado: a reserva #1048 foi encerrada e nada foi cobrado.']],
+    ['cancelamento_recusado','Opcional',['A loja manteve a reserva #1048. Ela segue valendo até 14:32.']],
+    ['pagamento_em_analise','Opcional',['Seu pagamento chegou depois do prazo da reserva #1048. A loja vai conferir e falar com você por aqui.']],
+    ['entrega_confirmada','Opcional',['Entrega confirmada: retirada na loja. Avisamos quando o pedido #1048 estiver pronto.']],
+    ['frete_calculado','Opcional',['O frete do pedido #1048 ficou em R$ 12,00. Pague até *16:40* por aqui: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['pronto_retirada','Opcional',['Pedido #1048 pronto! Retire na loja com seu nome, este WhatsApp e o código *Q4K7MX*.']],
+    ['saiu_entrega','Opcional',['O pedido #1048 saiu para entrega. Tenha alguém para receber.']],
+    ['pedido_enviado','Opcional',['O pedido #1048 foi enviado. Rastreio: AB123456789BR.']],
+    ['pedido_entregue','Opcional',['Pedido #1048 entregue. Obrigada por fazer parte dessa história! 💖']],
+    ['telefone_bloqueado','Opcional',['Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.']],
+    ['telefone_liberado','Opcional',['Tudo certo: você já pode fazer reservas de novo na T-shirt Club.br.']],
+    ['bloqueio_mantido','Opcional',['Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a gente por aqui se precisar.']]
+  ];
+  const gw=document.getElementById('gradeWhats');
+  WHATS.forEach(([id,tipo,versoes])=>{
+    const p=el('div',{class:'painel'},el('p',{class:'rotulo',text:tipo}),el('code',{text:id}));
+    versoes.forEach((v,i)=>{const s=el('span',{class:'whats'});s.append(...v.split(/\*([^*]+)\*/).map((t,k)=>k%2?el('b',{text:t}):t));p.append(el('div',{class:'msg-wa'},versoes.length>1?el('span',{class:'nota',text:`Versão ${i+1}`}):null,s));});
+    gw.append(p);
+  });
+  document.querySelectorAll('.tbl').forEach(x=>{x.tabIndex=0;x.setAttribute('role','region');x.setAttribute('aria-label',(x.closest('section,figure,details')?.querySelector('h2,h3,summary,b')?.textContent||'Tabela').trim());});
+})();
+</script>
+</body>
+</html>

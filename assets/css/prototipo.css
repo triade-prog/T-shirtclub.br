@@ -138,3 +138,16 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 }
 [hidden]{display:none!important}
 .grid>*{min-width:0}
+
+/* Fotos do produto no catálogo (1 a 10, com tipo e descrição) */
+.fotos-box{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:12px 0 0;display:grid;gap:6px}
+.fotos-box legend{font-weight:800;padding:0 4px}
+.fotos-lista{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.fotos-lista li{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:start}
+.fotos-lista img{width:64px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.fotos-lista .campos{display:grid;gap:6px;min-width:0}
+.fotos-lista .acoes{display:flex;flex-direction:column;gap:4px}
+.fotos-lista .acoes button{min-width:44px;min-height:36px}
+.fotos-lista .capa{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.cor-colecao{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.fotos-box label.btn:focus-within{outline:3px solid var(--ink,#111);outline-offset:3px}
