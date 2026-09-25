@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login administrativo</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="active" href="09-admin-login.html">Login admin</a></nav>
+  </div>
+</header>
+
+<main><div class="shell login-wrap">
+  <div class="login-box">
+    <div class="kicker">Área administrativa</div>
+    <h1>Entrar no painel</h1>
+    <p class="muted">Acesso exclusivo da equipe da loja. Não existe cadastro público: novos administradores são convidados por outro administrador.</p>
+
+    <form class="card" id="stepPassword" novalidate>
+      <div class="list">
+        <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" placeholder="voce@loja.com.br" required></div>
+        <div class="field"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required minlength="8"></div>
+        <button class="btn" type="submit">Entrar</button>
+        <button class="btn ghost" type="button" id="forgotBtn">Esqueci minha senha</button>
+      </div>
+      <p class="hint" id="attemptsHint">Após 5 senhas erradas, o acesso fica bloqueado por 15 minutos.</p>
+    </form>
+
+    <form class="card" id="stepMfa" hidden novalidate>
+      <h3>Verificação em duas etapas</h3>
+      <p class="muted">Digite o código de 6 dígitos do seu aplicativo autenticador.</p>
+      <div class="field"><label for="mfaCode">Código</label><input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+      <div class="toolbar" style="margin-top:12px"><button class="btn" type="submit">Confirmar</button><button class="btn ghost" type="button" id="backBtn">Voltar</button></div>
+    </form>
+
+    <div class="notice" style="margin-top:16px">No MVP todos os administradores têm as mesmas permissões. Cada login e cada ação relevante ficam registrados na auditoria.</div>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/09-admin-login.js"></script>
+</body>
+</html>
