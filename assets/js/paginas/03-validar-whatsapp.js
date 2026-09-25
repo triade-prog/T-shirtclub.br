@@ -7,6 +7,8 @@
   const LINK=`https://wa.me/${NUMERO_LOJA}?text=${encodeURIComponent(TEXTO)}`;
   let seconds=300, attempts=2, resends=2, timerId=null;
 
+  const tel=((Carrinho.ler().dados||{}).telefone||'').replace(/\D/g,'');
+  if(tel.length>=10)document.getElementById('maskedPhone').textContent=`(${tel.slice(0,2)}) ${tel.slice(2,3)}••••-${tel.slice(-4)}`;
   document.getElementById('askText').textContent=TEXTO;
   document.getElementById('chatAsk').textContent=TEXTO;
   ['askBtn','resendBtn'].forEach(id=>{document.getElementById(id).href=LINK;});

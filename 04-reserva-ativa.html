@@ -16,7 +16,7 @@
 
 <main><div class="shell">
   <div class="hero">
-    <div><div class="kicker">Página 4 de 5 • cliente</div><h1>Reserva #1048</h1><div class="toolbar"><span class="badge success">RESERVADO</span><span class="badge">3 peças</span><span class="badge">WhatsApp confirmado</span></div></div>
+    <div><div class="kicker">Página 4 de 5 • cliente</div><h1>Reserva #1048</h1><div class="toolbar"><span class="badge success">RESERVADO</span><span class="badge" id="piecesBadge">3 peças</span><span class="badge">WhatsApp confirmado</span></div></div>
     <div style="text-align:right"><div class="muted">Tempo restante</div><div class="timer" id="reserveTimer">15:00</div></div>
   </div>
   <div class="progress"><div id="reserveProgress"></div></div>
@@ -24,14 +24,13 @@
   <div class="grid grid-2">
     <section class="card">
       <h2>Produtos reservados</h2>
-      <div class="list">
-        <div class="row"><div><strong>Teddy Rose</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-        <div class="row"><div><strong>Dog Club 01</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-        <div class="row"><div><strong>Teddy Bleu</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-      </div>
+      <div class="list" id="reservedItems"></div>
       <div class="sep"></div>
-      <div class="row"><strong>Total</strong><span class="price">R$ 119,76</span></div>
-      <div class="row" style="margin-top:10px"><span class="muted">Intenção de entrega</span><strong>Retirada</strong></div>
+      <div class="row"><span class="muted">Subtotal</span><span id="resSubtotal"></span></div>
+      <div class="row" id="resDiscountRow"><span id="resDiscountLabel"></span><span id="resDiscount"></span></div>
+      <div class="row"><strong>Total</strong><span class="price" id="resTotal"></span></div>
+      <p class="muted" style="font-size:12px;margin:6px 0 0">Preço e desconto ficaram congelados quando a reserva foi criada.</p>
+      <div class="row" style="margin-top:10px"><span class="muted">Intenção de entrega</span><strong id="resDelivery">Retirada</strong></div>
     </section>
     <aside class="card soft">
       <h2>Finalizar pagamento</h2>
@@ -44,7 +43,7 @@
   </div>
 
   <section class="card" id="paidSection" style="margin-top:16px;display:none">
-    <div class="row"><div><span class="badge success">PAGAMENTO CONFIRMADO</span><h2 style="margin-top:10px">Pedido confirmado</h2><p class="muted">O cronômetro foi encerrado. Agora confirme a forma de entrega.</p></div><div class="price">R$ 119,76</div></div>
+    <div class="row"><div><span class="badge success">PAGAMENTO CONFIRMADO</span><h2 style="margin-top:10px">Pedido confirmado</h2><p class="muted">O cronômetro foi encerrado. Agora confirme a forma de entrega.</p></div><div class="price" id="paidTotal"></div></div>
     <div class="grid grid-3" style="margin-top:12px">
       <button class="btn secondary deliveryChoice">Retirada</button>
       <button class="btn secondary deliveryChoice">Entrega local / motoboy</button>
@@ -58,6 +57,10 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/motor-preco.js"></script>
+<script src="assets/js/carrinho.js"></script>
+<script src="assets/js/paginas/04-resumo-reserva.js"></script>
 <script>
 
 let remaining=900, paymentStarted=false, paid=false, reminderSent=false;

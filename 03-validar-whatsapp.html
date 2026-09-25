@@ -23,7 +23,7 @@
         <span class="badge">Passo 1 de 2</span>
         <h2 style="margin-top:10px">Peça seu código</h2>
         <p class="muted">Toque no botão. O seu WhatsApp abre com a mensagem pronta para a loja: é só enviar. O código chega na hora.</p>
-        <div class="card soft" style="margin:12px 0"><div class="muted" style="font-size:12px">Mensagem que será enviada do número <strong>(77) 9••••-8809</strong></div><strong id="askText"></strong></div>
+        <div class="card soft" style="margin:12px 0"><div class="muted" style="font-size:12px">Mensagem que será enviada do número <strong id="maskedPhone">(77) 9••••-8809</strong></div><strong id="askText"></strong></div>
         <a class="btn citron" id="askBtn" href="#" target="_blank" rel="noopener">Receber código no WhatsApp</a>
         <p class="muted" id="waitLine" style="margin-top:12px" hidden>Aguardando sua mensagem no WhatsApp…</p>
         <button class="btn ghost" type="button" id="simulateBtn" style="margin-top:8px" hidden>Protótipo: simular mensagem recebida</button>
@@ -61,6 +61,8 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/carrinho.js"></script>
 <script src="assets/js/paginas/03-validar-whatsapp.js"></script>
 </body>
 </html>

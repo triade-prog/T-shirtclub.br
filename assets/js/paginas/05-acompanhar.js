@@ -3,6 +3,8 @@
   const NUMERO_LOJA='5577998155772';
   const REF='P3M8';
   const TEXTO=`Quero consultar minhas reservas (ref. ${REF})`;
+  const r=MotorPreco.calcular(Carrinho.itens(Carrinho.ler()),Carrinho.ler().cupom);
+  document.getElementById('activeSummary').textContent=`${r.pecas} T-shirt(s) • ${reais(r.total)}`;
 
   document.getElementById('lookupForm').addEventListener('submit',e=>{
     e.preventDefault();
