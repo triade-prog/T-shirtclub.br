@@ -16,22 +16,39 @@
 
 <main><div class="shell">
   <div class="steps"><span class="step done">1 Seleção</span><span class="arrow">→</span><span class="step done">2 Reserva</span><span class="arrow">→</span><span class="step current">3 WhatsApp</span><span class="arrow">→</span><span class="step">4 Reserva ativa</span></div>
-  <div class="hero" style="margin-top:20px"><div><div class="kicker">Página 3 de 5 • cliente</div><h1>Confirme seu<br>WhatsApp</h1><p class="muted">Enviamos um código para o número informado. O código vale por 5 minutos.</p></div></div>
+  <div class="hero" style="margin-top:20px"><div><div class="kicker">Página 3 de 5 • cliente</div><h1>Confirme seu<br>WhatsApp</h1><p class="muted">Você pede o código pelo seu WhatsApp e digita aqui. Nenhuma peça fica bloqueada antes disso.</p></div></div>
   <div class="grid grid-2">
     <section class="card">
-      <div class="row"><span class="badge pink">Código enviado</span><strong id="codeTimer">05:00</strong></div>
-      <div class="sep"></div>
-      <label>Digite o código de 6 dígitos</label>
-      <div class="code-grid" style="margin-top:8px">
-        <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
-        <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+      <div id="stepAsk">
+        <span class="badge">Passo 1 de 2</span>
+        <h2 style="margin-top:10px">Peça seu código</h2>
+        <p class="muted">Toque no botão. O seu WhatsApp abre com a mensagem pronta para a loja: é só enviar. O código chega na hora.</p>
+        <div class="card soft" style="margin:12px 0"><div class="muted" style="font-size:12px">Mensagem que será enviada do número <strong>(77) 9••••-8809</strong></div><strong id="askText"></strong></div>
+        <a class="btn citron" id="askBtn" href="#" target="_blank" rel="noopener">Receber código no WhatsApp</a>
+        <p class="muted" id="waitLine" style="margin-top:12px" hidden>Aguardando sua mensagem no WhatsApp…</p>
+        <button class="btn ghost" type="button" id="simulateBtn" style="margin-top:8px" hidden>Protótipo: simular mensagem recebida</button>
+        <div class="notice" style="margin-top:14px">Envie do mesmo número informado na reserva. Mensagens de outro número recebem a resposta "Este número não é o da reserva" e não geram código.</div>
       </div>
-      <div class="row" style="margin-top:14px"><span class="muted" id="attempts">2 tentativas disponíveis</span><span class="muted" id="resends">2 reenvios disponíveis</span></div>
-      <div class="toolbar" style="margin-top:14px"><button class="btn citron" id="validateBtn">Validar código</button><button class="btn secondary" id="resendBtn">Reenviar código</button></div>
-      <div class="notice warn" style="margin-top:14px">Após esgotar os reenvios, o telefone entra em bloqueio temporário por <strong>30 minutos</strong>.</div>
+
+      <div id="stepCode" hidden>
+        <div class="row"><span class="badge pink">Passo 2 de 2 · código enviado</span><strong id="codeTimer">05:00</strong></div>
+        <div class="sep"></div>
+        <label for="c0">Digite o código de 6 dígitos que chegou no WhatsApp</label>
+        <div class="code-grid" style="margin-top:8px">
+          <input id="c0" maxlength="1" inputmode="numeric" aria-label="Dígito 1"><input maxlength="1" inputmode="numeric" aria-label="Dígito 2"><input maxlength="1" inputmode="numeric" aria-label="Dígito 3">
+          <input maxlength="1" inputmode="numeric" aria-label="Dígito 4"><input maxlength="1" inputmode="numeric" aria-label="Dígito 5"><input maxlength="1" inputmode="numeric" aria-label="Dígito 6">
+        </div>
+        <div class="row" style="margin-top:14px"><span class="muted" id="attempts">2 tentativas disponíveis</span><span class="muted" id="resends">2 novos códigos disponíveis</span></div>
+        <div class="toolbar" style="margin-top:14px"><button class="btn citron" id="validateBtn" type="button">Validar código</button><a class="btn secondary" id="resendBtn" href="#" target="_blank" rel="noopener">Pedir novo código</a></div>
+        <div class="notice warn" style="margin-top:14px">Depois de usar os 2 novos códigos, o telefone fica bloqueado para pedir código por <strong>30 minutos</strong>.</div>
+      </div>
     </section>
     <aside class="card soft">
-      <h2>O que acontece agora?</h2>
+      <h2>No seu WhatsApp</h2>
+      <div class="card citron"><strong>Você:</strong><p style="margin:4px 0 0" id="chatAsk"></p></div>
+      <div class="card" style="margin-top:10px"><strong>T-shirt Club:</strong><p style="margin:4px 0 8px">Seu código de verificação é <b>482193</b>. Ele vale por 5 minutos. Para sua segurança, não o compartilhe.</p><span class="badge">Copiar código</span></div>
+      <p class="muted" style="font-size:13px">O botão "Copiar código" aparece quando o WhatsApp da cliente permite. Sem ele, basta segurar o dedo no código para copiar.</p>
+      <div class="sep"></div>
       <div class="timeline">
         <div class="timeline-item"><div><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-copy"><strong>1. Validar telefone</strong><div class="muted">Nenhum estoque é bloqueado antes disso.</div></div></div>
         <div class="timeline-item"><div><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-copy"><strong>2. Nova checagem de estoque</strong><div class="muted">O sistema confirma se todas as peças ainda existem.</div></div></div>
@@ -44,25 +61,6 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
-<script>
-
-let seconds=300, attempts=2, resends=2;
-const timer=document.getElementById('codeTimer');
-const int=setInterval(()=>{seconds=Math.max(0,seconds-1);const m=String(Math.floor(seconds/60)).padStart(2,'0'),s=String(seconds%60).padStart(2,'0');timer.textContent=`${m}:${s}`;if(seconds===0){clearInterval(int);toast('Código expirado. Solicite um novo.');}},1000);
-const inputs=[...document.querySelectorAll('.code-grid input')];
-inputs.forEach((inp,i)=>inp.addEventListener('input',()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,1);if(inp.value&&inputs[i+1])inputs[i+1].focus();}));
-document.getElementById('validateBtn').addEventListener('click',()=>{
-  const code=inputs.map(x=>x.value).join('');
-  if(code.length<6)return toast('Digite os 6 dígitos.');
-  // Protótipo: qualquer código de 6 dígitos é aceito.
-  toast('WhatsApp validado. Estoque conferido.');
-  setTimeout(()=>location.href='04-reserva-ativa.html',700);
-});
-document.getElementById('resendBtn').addEventListener('click',()=>{
-  if(resends<=0)return toast('Limite de reenvios atingido. Bloqueio por 30 minutos.');
-  resends--;document.getElementById('resends').textContent=`${resends} reenvio(s) disponível(is)`;toast('Novo código enviado.');
-});
-
-</script>
+<script src="assets/js/paginas/03-validar-whatsapp.js"></script>
 </body>
 </html>

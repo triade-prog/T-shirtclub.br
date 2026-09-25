@@ -15,17 +15,21 @@
 </header>
 
 <main><div class="shell">
-  <div class="hero"><div><div class="kicker">Página 5 de 5 • cliente</div><h1>Consultar suas<br>reservas</h1><p class="muted">No site, informe o WhatsApp e valide um novo código. No próprio WhatsApp, basta enviar “Minha reserva”.</p></div></div>
+  <div class="hero"><div><div class="kicker">Página 5 de 5 • cliente</div><h1>Consultar suas<br>reservas</h1><p class="muted">No site, peça um código pelo seu WhatsApp e digite aqui. No próprio WhatsApp, basta enviar “Minha reserva”.</p></div></div>
   <div class="grid grid-2">
     <section class="card">
       <h2>Consulta pelo site</h2>
       <form id="lookupForm" class="grid">
-        <div class="field"><label>WhatsApp</label><input required placeholder="(00) 00000-0000"></div>
-        <button class="btn citron">Enviar código de validação</button>
+        <div class="field"><label for="lookupPhone">Seu WhatsApp</label><input id="lookupPhone" required placeholder="(00) 00000-0000" inputmode="tel"></div>
+        <button class="btn citron" type="submit">Receber código no WhatsApp</button>
+        <p class="muted" style="margin:0;font-size:13px">O seu WhatsApp abre com a mensagem "Quero consultar minhas reservas" pronta. É só enviar.</p>
       </form>
-      <div id="otpLookup" style="display:none;margin-top:16px">
-        <div class="field"><label>Código recebido</label><input id="lookupCode" maxlength="6" inputmode="numeric" placeholder="000000"></div>
-        <button class="btn" id="confirmLookup" style="margin-top:10px">Validar e listar reservas</button>
+      <div id="otpLookup" hidden style="margin-top:16px">
+        <p class="muted" id="lookupWait">Aguardando sua mensagem… <button class="btn ghost" type="button" id="simulateLookup">Protótipo: simular mensagem recebida</button></p>
+        <div id="lookupCodeBox" hidden>
+          <div class="field"><label for="lookupCode">Código que chegou no WhatsApp</label><input id="lookupCode" maxlength="6" inputmode="numeric" placeholder="000000"></div>
+          <button class="btn" id="confirmLookup" type="button" style="margin-top:10px">Validar e listar reservas</button>
+        </div>
       </div>
       <div class="notice pink" style="margin-top:14px">Por segurança, o site nunca lista reservas apenas com o número informado sem nova validação.</div>
     </section>
@@ -36,7 +40,7 @@
       <p class="muted">Não é necessário novo código dentro da conversa porque a identificação vem do próprio número vinculado.</p>
     </aside>
   </div>
-  <section class="card" id="results" style="display:none;margin-top:16px">
+  <section class="card" id="results" hidden style="margin-top:16px">
     <div class="row"><div><h2>Reservas vinculadas</h2><p class="muted">WhatsApp validado.</p></div><span class="badge success">Identidade confirmada</span></div>
     <div class="grid grid-3">
       <div class="card soft"><span class="badge success">RESERVADO</span><h3 style="margin-top:10px">#1048</h3><p class="muted">3 T-shirts • R$ 119,76</p><strong>Expira em 08:42</strong></div>
@@ -49,11 +53,6 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
-<script>
-
-document.getElementById('lookupForm').addEventListener('submit',e=>{e.preventDefault();if(!e.target.reportValidity())return;document.getElementById('otpLookup').style.display='block';toast('Código enviado para o WhatsApp.');});
-document.getElementById('confirmLookup').addEventListener('click',()=>{if(document.getElementById('lookupCode').value.length<6)return toast('Digite o código de 6 dígitos.');document.getElementById('results').style.display='block';toast('WhatsApp validado.');});
-
-</script>
+<script src="assets/js/paginas/05-acompanhar.js"></script>
 </body>
 </html>

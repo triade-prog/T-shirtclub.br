@@ -133,3 +133,4 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
   .row{align-items:flex-start}
   .code-grid{gap:5px}
 }
+[hidden]{display:none!important}
