@@ -27,10 +27,12 @@ const MOVIMENTOS=[
 const PROMOCOES=[
   {id:'pr1',tipo:'COMPRE_MAIS',nome:'Leve 3, ganhe 20%',inicio:'2026-09-20T09:00',fim:'2026-11-24T23:59',desativada:false,
     escopo:'TODOS',produtos:[],niveis:[{qtd:3,pct:20},{qtd:6,pct:25}],umaPorCliente:false,orcamentoCentavos:null,usadoCentavos:18450},
-  {id:'pr2',tipo:'DESCONTO_PRODUTO',nome:'Semana Dog Club',inicio:'2026-10-01T00:00',fim:'2026-10-07T23:59',desativada:false,
+  {id:'pr2',tipo:'DESCONTO_PRODUTO',nome:'Semana Dog Club',inicio:'2026-09-22T00:00',fim:'2026-10-07T23:59',desativada:false,
     escopo:'ESPECIFICOS',produtos:['p3','p4'],modo:'PERCENTUAL',valores:{p3:15,p4:15}},
   {id:'pr3',tipo:'CUPOM',nome:'Boas-vindas',codigo:'BEMVINDA10',inicio:'2026-09-15T00:00',fim:'2026-12-31T23:59',desativada:false,
-    escopo:'TODOS',produtos:[],modo:'VALOR',valor:1000,descontoMaximoCentavos:null,gastoMinimoCentavos:9990,quantidade:1000,usados:37,porCliente:1,validadeDias:3},
+    escopo:'TODOS',produtos:[],modo:'VALOR',valor:1000,descontoMaximoCentavos:null,gastoMinimoCentavos:8990,quantidade:1000,usados:37,porCliente:1,validadeDias:3},
+  {id:'pr5',tipo:'CUPOM',nome:'Primavera 15%',codigo:'PRIMAVERA15',inicio:'2026-10-10T00:00',fim:'2026-10-31T23:59',desativada:false,
+    escopo:'TODOS',produtos:[],modo:'PERCENTUAL',valor:15,descontoMaximoCentavos:3000,gastoMinimoCentavos:null,quantidade:300,usados:0,porCliente:1,validadeDias:7},
   {id:'pr4',tipo:'DESCONTO_PRODUTO',nome:'Queima Teddy',inicio:'2026-09-01T00:00',fim:'2026-09-10T23:59',desativada:false,
     escopo:'ESPECIFICOS',produtos:['p1','p2'],modo:'PRECO_FIXO',valores:{p1:3990,p2:3990}}
 ];
