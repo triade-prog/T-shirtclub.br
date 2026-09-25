@@ -20,85 +20,13 @@
     <a class="btn citron" id="goReserve" href="02-reserva.html">Reservar <span id="cartCount">0</span> peça(s)</a>
   </div>
   <div class="toolbar card soft" style="margin-bottom:16px">
-    <select id="filterCollection" aria-label="Filtrar coleção"><option value="">Todas as coleções</option><option>Teddy</option><option>Dog Club</option><option>Trendy</option></select>
+    <select id="filterCollection" aria-label="Filtrar coleção"><option value="">Todas as coleções</option></select>
     <select id="filterStatus" aria-label="Filtrar disponibilidade"><option value="">Toda disponibilidade</option><option>Disponível</option><option>Últimas unidades</option><option>Esgotado</option></select>
-    <div class="badge citron">Leve 3, ganhe 20% · leve 6, ganhe 25%</div>
+    <div class="toolbar" id="promoBadges"></div>
   </div>
-  <div class="grid grid-3" id="products">
-    <article class="card product" data-name="teddy rose" data-col="teddy" data-status="disponível">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Teddy Rose</h3><div class="muted" style="font-size:12px">Teddy</div></div><span class="badge success">Disponível</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="0" >−</button><span id="qty-0">0</span><button type="button" class="plus" data-id="0" >+</button></div></div>
-    </article>
-    <article class="card product" data-name="teddy bleu" data-col="teddy" data-status="últimas unidades">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Teddy Bleu</h3><div class="muted" style="font-size:12px">Teddy</div></div><span class="badge warning">Últimas unidades</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="1" >−</button><span id="qty-1">0</span><button type="button" class="plus" data-id="1" >+</button></div></div>
-    </article>
-    <article class="card product" data-name="dog club 01" data-col="dog club" data-status="disponível">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Dog Club 01</h3><div class="muted" style="font-size:12px">Dog Club</div></div><span class="badge success">Disponível</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="2" >−</button><span id="qty-2">0</span><button type="button" class="plus" data-id="2" >+</button></div></div>
-    </article>
-    <article class="card product" data-name="dog club 02" data-col="dog club" data-status="disponível">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Dog Club 02</h3><div class="muted" style="font-size:12px">Dog Club</div></div><span class="badge success">Disponível</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="3" >−</button><span id="qty-3">0</span><button type="button" class="plus" data-id="3" >+</button></div></div>
-    </article>
-    <article class="card product" data-name="trendy teddy" data-col="trendy" data-status="últimas unidades">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Trendy Teddy</h3><div class="muted" style="font-size:12px">Trendy</div></div><span class="badge warning">Últimas unidades</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="4" >−</button><span id="qty-4">0</span><button type="button" class="plus" data-id="4" >+</button></div></div>
-    </article>
-    <article class="card product" data-name="urso listras" data-col="trendy" data-status="esgotado">
-      <div class="product-media"><div class="dot"></div><svg viewBox="0 0 220 220" aria-hidden="true">
-      <path d="M67 42 93 28h34l26 14 31 20-20 33-22-14v105H78V81L56 95 36 62Z"
-        fill="#ffffff" stroke="#111111" stroke-width="6" stroke-linejoin="round"/>
-      <path d="M92 30c3 13 11 19 18 19s15-6 18-19" fill="none" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
-      <circle cx="110" cy="108" r="24" fill="#D7FF3F" stroke="#111111" stroke-width="4"/>
-      <path d="M99 108h22M110 97v22" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
-    </svg></div>
-      <div class="row" style="margin-top:13px"><div><h3>Urso Listras</h3><div class="muted" style="font-size:12px">Trendy</div></div><span class="badge danger">Esgotado</span></div>
-      <div class="row" style="margin-top:14px"><div><div class="price">R$ 49.90</div><div class="muted" style="font-size:11px">20% OFF levando 3</div></div>
-      <div class="qty"><button type="button" class="minus" data-id="5" disabled>−</button><span id="qty-5">0</span><button type="button" class="plus" data-id="5" disabled>+</button></div></div>
-    </article></div>
+  <div class="grid grid-3" id="products"></div>
   <div class="card" style="margin-top:18px">
-    <div class="row"><div><strong>Resumo da seleção</strong><div class="muted" id="summaryLine">Nenhuma peça selecionada.</div></div><div style="text-align:right"><div class="strike" id="originalTotal"></div><div class="price" id="total">R$ 0,00</div></div></div>
+    <div class="row"><div><strong>Resumo da seleção</strong><div class="muted" id="summaryLine">Nenhuma peça selecionada.</div><div class="muted" id="promoLine" style="font-size:13px"></div></div><div style="text-align:right"><div class="strike" id="originalTotal"></div><div class="price" id="total">R$ 0,00</div></div></div>
     <div class="notice" style="margin-top:13px">Itens apenas selecionados <strong>não bloqueiam estoque</strong>. O bloqueio acontece somente após validar o WhatsApp e confirmar a disponibilidade.</div>
   </div>
 </div></main>
@@ -106,41 +34,9 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
-<script>
-
-const qs=Array(6).fill(0), prices=Array(6).fill(49.9);
-function calc(){
-  // Exemplo de "Compre e economize mais" ativa: 3 peças → 20%, 6 peças → 25%.
-  const n=qs.reduce((a,b)=>a+b,0), pct=n>=6?25:(n>=3?20:0);
-  const original=n*49.9, promo=Math.round(original*(100-pct))/100;
-  document.getElementById('cartCount').textContent=n;
-  document.getElementById('summaryLine').textContent=n?`${n} peça(s) selecionada(s). ${pct?pct+'% de desconto por quantidade.':''}`:'Nenhuma peça selecionada.';
-  document.getElementById('total').textContent=`R$ ${promo.toFixed(2).replace('.',',')}`;
-  document.getElementById('originalTotal').textContent=(n>=3)?`R$ ${original.toFixed(2).replace('.',',')}`:'';
-}
-document.querySelectorAll('.plus').forEach(b=>b.addEventListener('click',()=>{
-  const i=+b.dataset.id, total=qs.reduce((a,b)=>a+b,0);
-  if(qs[i]>=2) return toast('Máximo de 2 unidades do mesmo modelo.');
-  if(total>=9) return toast('Máximo de 9 peças por reserva.');
-  qs[i]++;document.getElementById(`qty-${i}`).textContent=qs[i];calc();
-}));
-document.querySelectorAll('.minus').forEach(b=>b.addEventListener('click',()=>{
-  const i=+b.dataset.id;if(qs[i]>0)qs[i]--;document.getElementById(`qty-${i}`).textContent=qs[i];calc();
-}));
-function applyFilters(){
-  const c=document.getElementById('filterCollection').value.toLowerCase();
-  const s=document.getElementById('filterStatus').value.toLowerCase();
-  document.querySelectorAll('.product').forEach(p=>{
-    p.style.display=(!c||p.dataset.col===c)&&(!s||p.dataset.status===s)?'block':'none';
-  });
-}
-document.getElementById('filterCollection').addEventListener('change',applyFilters);
-document.getElementById('filterStatus').addEventListener('change',applyFilters);
-document.getElementById('goReserve').addEventListener('click',e=>{
-  if(qs.reduce((a,b)=>a+b,0)===0){e.preventDefault();toast('Selecione pelo menos uma T-shirt.');}
-});
-calc();
-
-</script>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/motor-preco.js"></script>
+<script src="assets/js/carrinho.js"></script>
+<script src="assets/js/paginas/01-loja.js"></script>
 </body>
 </html>
