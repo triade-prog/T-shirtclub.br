@@ -12,7 +12,7 @@ Páginas:
 - 06-admin-painel.html — painel administrativo
 - 07-admin-reserva.html — detalhe / auditoria / cancelamento
 - 08-admin-bloqueados.html — bloqueios e liberação
-- 09-admin-login.html — login administrativo (e-mail e senha; bloqueio por rede após 5 erros)
+- 09-admin-login.html — login administrativo (e-mail, senha e autenticador; bloqueio por rede após 5 erros)
 - 10-admin-catalogo.html — produtos, coleções e preço fixo (tamanho único)
 - 11-admin-estoque.html — saldo por produto, ajustes com motivo e movimentações
 - 12-admin-pagamentos-analise.html — pagamentos aprovados fora do prazo
@@ -25,7 +25,7 @@ Páginas:
 - 19-pedido.html — meu pedido: entrega, endereço, frete (2 h), andamento, entregue, expirada, cancelada
 - 20-privacidade.html — política de privacidade (texto-modelo para revisão jurídica)
 - 21-admin-auditoria.html — consulta do registro permanente de eventos
-- 22-admin-conta.html — troca de senha e aparelhos conectados
+- 22-admin-conta.html — troca de senha, autenticadores e aparelhos conectados
 
 Organização:
 - assets/css/prototipo.css — estilos compartilhados de todas as páginas

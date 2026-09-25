@@ -8,7 +8,7 @@ Data: 25/09/2026 · Escopo: desenho técnico (`docs/arquitetura-reservas.html`),
 - **Verificação automática das telas:** as 23 telas foram abertas num celular simulado (390 px), com checagem de acessibilidade (axe, WCAG 2.2 AA), rolagem lateral, tamanho dos alvos de toque e erros de JavaScript, antes e depois das correções.
 - **Resultado depois das correções:** nenhuma violação do axe em nenhuma tela. Nenhuma tela rola para o lado. Não houve erro de JavaScript. Os 5 diagramas do desenho técnico foram conferidos e compilam.
 
-Os achados usam os códigos G1 a G24, os mesmos da seção 1b do desenho técnico, que agora está na **versão 8**.
+Os achados usam os códigos G1 a G24, os mesmos da seção 1b do desenho técnico, que agora está na **versão 9** (com as decisões D12 a D15).
 
 ---
 
@@ -37,11 +37,11 @@ A Z-API não assina os avisos. Pelo mesmo número chegam também mensagens da pr
 
 ### G6. Link da reserva (chave aleatória)
 A chave ficaria em texto no banco, nos logs de acesso e na pré-visualização do WhatsApp, e o link abria a tela de endereço sem limite.
-**Correção:** a chave vai depois do `#` no link (`tshirtclub.pt/r#chave`), e o banco guarda só uma impressão digital dela (hash). Assim a chave não chega a logs nem ao robô de pré-visualização. O link permite acompanhar, pagar, pedir cancelamento e confirmar a entrega. Telefone e endereço aparecem mascarados, e depois de 30 dias do fim a tela mostra só número e estado. Corrigido no desenho (seções 4, 7 e 11) e na especificação (regra 22).
+**Correção:** a chave vai depois do `#` no link (`tshirtclub.pt/r#chave`), e o banco guarda só uma impressão digital dela (hash). Assim a chave não chega a logs nem ao robô de pré-visualização. O link permite acompanhar, pagar e pedir cancelamento; confirmar ou mudar a entrega pede o código do WhatsApp (decisão D13). Telefone e endereço aparecem mascarados, e depois de 30 dias do fim a tela mostra só número e estado. Corrigido no desenho (seções 4, 7 e 11), na especificação (regra 22) e na tela 19.
 
 ### G7. Login do painel
 Com um único administrador, qualquer pessoa na internet poderia errar a senha 5 vezes e travar a loja por 15 min no meio de um lançamento. Sem segundo fator, uma senha vazada dá acesso a estornos e a todos os dados das clientes.
-**Correção:** o bloqueio vale para "e-mail + rede", com captcha a partir do 3º erro e aviso por e-mail. A tela 09 foi alinhada à decisão (sem segundo fator), e a especificação foi atualizada (regra 24). **Recomendação:** ligar o autenticador no celular (TOTP), que é gratuito. Ver as perguntas no fim.
+**Correção:** o bloqueio vale para "e-mail + rede", com captcha a partir do 3º erro e aviso por e-mail. A especificação foi atualizada (regra 24). **Decidido (D12):** autenticador obrigatório, nas telas 09 e 22.
 
 ### G8. Colar o código não funcionava
 A tela 03 pedia o código em 6 caixinhas de 1 dígito cada. Quem tocava em "Copiar código" no WhatsApp e colava ficava só com o primeiro número.
@@ -87,12 +87,47 @@ O plano gratuito do Supabase pausa o projeto depois de 7 dias sem uso e não tem
 - **Especificação:** regras 16, 17, 22, 24 e 26 atualizadas.
 - **Protótipo:** estilos compartilhados (contraste, foco, alvos de toque), aviso de 5 s, tabelas acessíveis pelo teclado, e as telas 00, 01, 02, 03, 04, 05, 06, 07, 09, 10, 11, 13, 14, 16 (estilo), 18, 19, 20 e 22. README atualizado.
 
-## Precisa de decisão da loja
+## Decisões da loja (25/09, formulário de decisões)
 
-1. **Segundo fator no login do painel (G7):** recomendo ligar o autenticador (TOTP). Hoje a decisão é "sem segundo fator", e o protótipo segue a decisão.
-2. **O que o link da reserva permite (G6):** proposta aplicada: acompanhar, pagar, pedir cancelamento e confirmar a entrega, com telefone e endereço mascarados. Se preferir, a confirmação de entrega também pode exigir o código do WhatsApp.
-3. **Modo lançamento do WhatsApp (G5):** envia mais rápido, o que aumenta o risco de bloqueio do número, risco que a loja já aceitou (W2). Confirmar que pode existir.
-4. **Prazo de guarda do endereço:** sugestão de 90 dias após a entrega.
+| # | Decisão | Onde entrou |
+|---|---|---|
+| D12 (G7) | Autenticador (TOTP) **obrigatório** no login do painel. Revoga "sem segundo fator" | Desenho v9 (decisões, seções 11, 13, 15, 16 e 17), especificação (regra 24), telas 09 e 22 |
+| D13 (G6) | O link permite acompanhar, pagar e pedir cancelamento. **Confirmar ou mudar a entrega pede o código do WhatsApp** | Desenho v9 (seções 4, 7, 11 e 16), especificação (regra 22), tela 19 |
+| D14 (G5) | **Modo lançamento aprovado**; a loja liga no painel nos lançamentos | Desenho v9 (decisões e G5); a tela 18 já tinha o controle |
+| D15 (G9) | Endereço guardado por **90 dias** após a entrega | Desenho v9 (seção 13 e checklist), especificação (regra 26), política (tela 20) |
+
+A F1 **não foi liberada**. Ela só começa com uma nova liberação da loja.
+
+## Situação de cada achado
+
+"Corrigido" quer dizer que o desenho técnico, a especificação e o protótipo já estão certos. Como ainda não existe código de produção, a maior parte das correções vira requisito da fase indicada, com teste na seção 16 do desenho técnico.
+
+| # | Documentos e protótipo | Entra no código na fase | Falta confirmar com conta real |
+|---|---|---|---|
+| G1 | Corrigido | F1 (repasse `/api` e cookie) | — |
+| G2 | Corrigido | F6 (pagamento) | — |
+| G3 | Corrigido | F6 | — |
+| G4 | Corrigido | F3 (WhatsApp) | Sim: remetente LID na Z-API |
+| G5 | Corrigido e decidido (D14) | F3 e F5 (fila) | — |
+| G6 | Corrigido e decidido (D13) | F9 (consulta e link) | — |
+| G7 | Corrigido e decidido (D12) | F2 (login do painel) | — |
+| G8 | Corrigido no protótipo | F3 (tela do código) | — |
+| G9 | Corrigido e decidido (D15) | F11 (limpeza) | Dados da empresa na política ainda em branco |
+| G10 | Registrado no checklist | Publicação | Sim: preços do Supabase Pro e do Vercel Pro |
+| G11 | Corrigido | F3 | — |
+| G12 | Corrigido | F3 e F4 | — |
+| G13 | Corrigido | F3 | — |
+| G14 | Corrigido | F6 | Sim: mínimo de 30 min do PIX |
+| G15 | Corrigido | F8 (pós-pagamento) | — |
+| G16 | Corrigido | F1 (cabeçalhos) | — |
+| G17 | Corrigido | F2 em diante | — |
+| G18 | Corrigido | F1 (`app_now`) e cada fase | — |
+| G19 | Corrigido no protótipo | Todas as fases das telas | — |
+| G20 | Corrigido | F1 | — |
+| G21 | Corrigido | F5 | — |
+| G22 | Corrigido | F1 | — |
+| G23 | Corrigido | — | — |
+| G24 | Corrigido no protótipo | F2 | — |
 
 ## Verificar com as contas reais (não bloqueia a F1)
 

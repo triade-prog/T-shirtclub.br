@@ -68,7 +68,7 @@
   function acao(){
     const c=pedido.cenario, el=$('actionCard');
     const blocos={
-      MODALIDADE:formEntrega,
+      MODALIDADE:()=>validado?formEntrega():validarEntrega(),
       AGUARDANDO_FRETE:()=>`<h2>A loja está calculando o frete</h2><p class="muted">Recebemos o endereço. Você vai receber o valor aqui e no WhatsApp. Depois disso, tem <strong>2 horas</strong> para pagar o frete.</p>
         <div class="status-box wait"><span class="spinner" aria-hidden="true"></span>Aguardando o valor do frete.</div>
         <div class="proto-tools"><button class="btn secondary" type="button" data-go="FRETE_A_PAGAR">Protótipo: loja informou o frete</button></div>`,
@@ -94,11 +94,39 @@
       CANCELADO:()=>`<h2>Reserva cancelada</h2><p class="muted">A loja aprovou o seu pedido de cancelamento. As peças voltaram ao estoque e nenhum valor foi cobrado.</p><a class="btn citron full" href="01-loja.html">Voltar à loja</a>`
     };
     el.innerHTML=blocos[c]();
-    if(c==='MODALIDADE')ligarForm();
+    if(c==='MODALIDADE')validado?ligarForm():ligarValidacao();
     if(c==='FRETE_A_PAGAR'){
       $('copyFrete').addEventListener('click',()=>{const ok=()=>toast('Código PIX do frete copiado.');navigator.clipboard?navigator.clipboard.writeText(codigoPix(pedido.frete)).then(ok,ok):ok();});
       contagem();
     }
+  }
+
+  // D13: aberto pelo link da reserva, confirmar ou mudar a entrega pede o código do WhatsApp.
+  let validado=false;
+  const REF_ENTREGA='E5R2';
+  function validarEntrega(){
+    const texto=`Quero confirmar a entrega do pedido (ref. ${REF_ENTREGA})`;
+    return `<h2>Confirme que é você</h2>
+      <p class="muted" style="margin-top:0">Pagamento confirmado. Para escolher a entrega e informar o endereço, peça um código pelo WhatsApp do número da reserva e digite aqui.</p>
+      <a class="btn citron full" href="https://wa.me/5577998155772?text=${encodeURIComponent(texto)}" target="_blank" rel="noopener">Receber código no WhatsApp</a>
+      <p class="muted" style="font-size:13px">Mensagem pronta: "${texto}"</p>
+      <button class="btn ghost" type="button" id="simEntrega">Protótipo: simular mensagem recebida</button>
+      <div id="entregaCodigo" hidden style="margin-top:12px">
+        <label for="entregaCode">Código de 6 dígitos que chegou no WhatsApp</label>
+        <input id="entregaCode" class="code-input" style="margin-top:8px" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="000000" aria-describedby="entregaErro">
+        <p class="field-error" id="entregaErro" role="alert"></p>
+        <button class="btn citron full" type="button" id="entregaValidar" style="margin-top:8px">Validar e escolher a entrega</button>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:12px">Pelo link você pode acompanhar o pedido sem código. O código protege o seu endereço, caso a conversa seja encaminhada para outra pessoa.</p>`;
+  }
+  function ligarValidacao(){
+    const campo=$('entregaCode');
+    $('simEntrega').addEventListener('click',()=>{$('entregaCodigo').hidden=false;campo.focus();toast('Código enviado no WhatsApp.');});
+    campo.addEventListener('input',()=>{campo.value=campo.value.replace(/\D/g,'').slice(0,6);$('entregaErro').textContent='';});
+    $('entregaValidar').addEventListener('click',()=>{
+      if(campo.value.length<6){$('entregaErro').textContent='Digite os 6 dígitos do código.';campo.focus();return;}
+      validado=true;toast('WhatsApp validado.');ir('MODALIDADE');
+    });
   }
 
   let cdTimer=null;

@@ -28,5 +28,19 @@
     toast('Senha alterada. Outros aparelhos desconectados e registro na auditoria.');
   });
   $('logoutAll').addEventListener('click',()=>{sessoes=sessoes.filter(s=>s[3]);renderSessoes();toast('Os outros aparelhos saíram da conta.');});
-  regras();renderSessoes();
+  // Autenticadores (D12): ao menos um sempre cadastrado.
+  let fatores=[['Celular da loja','cadastrado em 25/09/2026'],['Celular reserva','cadastrado em 25/09/2026']];
+  function renderFatores(){
+    $('factors').innerHTML=fatores.map(([n,d],i)=>`<div class="row"><div><strong>${n}</strong><div class="muted" style="font-size:13px">${d}</div></div><button class="btn ghost" type="button" data-rm="${i}" ${fatores.length<=1?'disabled':''}>Remover</button></div>`).join('');
+  }
+  $('factors').addEventListener('click',e=>{
+    const i=e.target.dataset.rm; if(i===undefined)return;
+    const nome=fatores[+i][0];fatores.splice(+i,1);renderFatores();
+    toast(`"${nome}" removido. Registro na auditoria.${fatores.length===1?' Cadastre outro para ter um reserva.':''}`);
+  });
+  $('addFactor').addEventListener('click',()=>{
+    fatores.push([`Novo autenticador ${fatores.length+1}`,'cadastrado agora']);renderFatores();
+    toast('No sistema real aparece um QR code para ler no aplicativo autenticador, e um código confirma o cadastro.');
+  });
+  regras();renderSessoes();renderFatores();
 })();

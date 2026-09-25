@@ -154,7 +154,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
 
 <main>
 <header class="top">
-  <p class="eyebrow">Desenho técnico · versão 8</p>
+  <p class="eyebrow">Desenho técnico · versão 9</p>
   <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
   <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
   <div class="meta">
@@ -162,7 +162,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <span><b>Data:</b> 25/09/2026</span>
     <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
   </div>
-  <div class="callout"><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
+  <div class="callout"><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
   <div class="flow" aria-label="Fluxo principal">
     <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
     <span class="st res">RESERVADO</span><span class="arrow">→</span>
@@ -179,7 +179,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
 <section id="aprovar">
   <p class="secnum">00</p>
   <h2>Decisões aprovadas</h2>
-  <p class="sub">Respostas do questionário de 25/09/2026. Este documento já está ajustado a elas.</p>
+  <p class="sub">Respostas do questionário de 25/09/2026 (D1 a D11) e do formulário de decisões da revisão geral, também de 25/09 (D12 a D15). Este documento já está ajustado a elas.</p>
   <div class="tbl"><table>
     <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
@@ -194,7 +194,11 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
       <tr><td>D9</td><td>Preço e promoções</td><td>Preço fixo por produto + módulo de promoções nos 3 formatos das telas enviadas (seção 06).</td></tr>
       <tr><td>D10</td><td>Bloqueio do código</td><td>Aprovado como proposto.</td></tr>
       <tr><td>D11</td><td>Conversa</td><td>A equipe responde no app do celular; sem caixa de entrada no painel.</td></tr>
-      <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login só com e-mail e senha (sem segundo fator); todas as peças são de <b>tamanho único</b>.</td></tr>
+      <tr><td>D12</td><td>Login do painel</td><td>E-mail, senha e <b>autenticador (TOTP)</b> obrigatório. Revoga a decisão anterior "sem segundo fator" (G7).</td></tr>
+      <tr><td>D13</td><td>Link da reserva</td><td>Acompanhar, pagar e pedir cancelamento. <b>Confirmar ou mudar a entrega pede o código do WhatsApp</b> (G6).</td></tr>
+      <tr><td>D14</td><td>Modo lançamento</td><td>Aprovado. A loja liga no painel nos lançamentos; o risco maior de bloqueio do número fica aceito (G5, W2).</td></tr>
+      <tr><td>D15</td><td>Endereço de entrega</td><td>Guardado por <b>90 dias</b> após a entrega; depois fica só a cidade (G9).</td></tr>
+      <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login com e-mail, senha e autenticador (D12); todas as peças são de <b>tamanho único</b>.</td></tr>
     </tbody>
   </table></div>
 
@@ -304,15 +308,15 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <div class="finding"><span class="id">G4</span><h5>Webhook da Z-API: sem assinatura e com remetentes que não são a cliente <span class="sev alto">Alto</span></h5>
       <p>A Z-API não assina os webhooks. Além disso, o número da loja é usado pela equipe no celular, então chegam também mensagens enviadas pela própria loja (<code>fromMe</code>), de grupos, de status e de canais. Com a mudança do WhatsApp para identificadores LID, o remetente pode chegar sem o número de telefone. <b>Resolução:</b> URL do webhook com um segmento secreto de 32+ caracteres aleatórios, trocável (<code>/webhooks/whatsapp/&lt;segredo&gt;</code>), comparado em tempo constante. Descartar <code>fromMe</code>, grupos, status, canais e mensagens com mais de 10 min (reenvio antigo). Limite por remetente: 20 mensagens por 10 min; acima disso, só registra. <b>Verificar na F3 com a conta real</b> como a Z-API entrega o remetente LID. Se não houver telefone no evento, a resposta é "Não conseguimos confirmar o seu número; responda com o número do WhatsApp", e nenhum código é enviado. Aplicado na seção 7.</p></div>
     <div class="finding"><span class="id">G5</span><h5>A fila do WhatsApp não dá conta do pico de lançamento <span class="sev alto">Alto</span></h5>
-      <p>Com 50 clientes ao mesmo tempo saem perto de 200 mensagens em 20 min (reserva criada, lembrete, pagamento ou expiração). O ritmo da tela 18 (4 a 9 s entre mensagens, máximo de 120 por hora) levaria mais de uma hora para esvaziar a fila: o lembrete de 5 min chegaria depois de a reserva expirar, e o link da reserva chegaria atrasado. <b>Resolução:</b> prioridade na outbox (1: reserva criada, lembrete, pagamento confirmado, expiração; 2: demais). Validade por mensagem: o lembrete é descartado se a reserva já saiu de RESERVADO ou se falta menos de 1 min. O código continua fora da fila, como resposta imediata. Um "modo lançamento" no painel usa 2 a 4 s entre mensagens e teto de 600 por hora; o risco de banimento continua aceito pela loja (W2). Teste de vazão no F5. Aplicado nas seções 7 e 12 e na tela 18.</p></div>
+      <p>Com 50 clientes ao mesmo tempo saem perto de 200 mensagens em 20 min (reserva criada, lembrete, pagamento ou expiração). O ritmo da tela 18 (4 a 9 s entre mensagens, máximo de 120 por hora) levaria mais de uma hora para esvaziar a fila: o lembrete de 5 min chegaria depois de a reserva expirar, e o link da reserva chegaria atrasado. <b>Resolução:</b> prioridade na outbox (1: reserva criada, lembrete, pagamento confirmado, expiração; 2: demais). Validade por mensagem: o lembrete é descartado se a reserva já saiu de RESERVADO ou se falta menos de 1 min. O código continua fora da fila, como resposta imediata. Um "modo lançamento" no painel usa 2 a 4 s entre mensagens e teto de 600 por hora; o risco de banimento continua aceito pela loja (W2). Teste de vazão no F5. Aplicado nas seções 7 e 12 e na tela 18. <b>Decidido (D14):</b> o modo lançamento pode existir.</p></div>
     <div class="finding"><span class="id">G6</span><h5>Link da reserva: chave guardada em texto, exposta em logs e sem limite do que permite <span class="sev alto">Alto</span></h5>
-      <p>O link não expira e é repassado com facilidade (conversa encaminhada). A chave ficaria em texto no banco, nos logs de acesso da Vercel e na pré-visualização de link do WhatsApp. O link também abre a tela de entrega com endereço. <b>Resolução:</b> o formato passa a <code>https://tshirtclub.pt/r#&lt;chave&gt;</code>. O fragmento depois do <code>#</code> não vai ao servidor, a logs nem ao robô de pré-visualização: a página lê a chave e a envia no corpo de <code>POST /api/v1/r</code>. O banco guarda só <code>sha256(chave)</code>. O link abre uma sessão limitada àquela reserva. Ela permite ver o andamento, pagar, pedir cancelamento e confirmar a entrega. Depois de informado, o endereço aparece só com bairro e cidade. Passados 30 dias do estado final, o link mostra só número e estado. Respostas com <code>Cache-Control: no-store</code>, <code>Referrer-Policy: no-referrer</code> e <code>noindex</code>. Aplicado nas seções 4, 7 e 11.</p></div>
+      <p>O link não expira e é repassado com facilidade (conversa encaminhada). A chave ficaria em texto no banco, nos logs de acesso da Vercel e na pré-visualização de link do WhatsApp. O link também abre a tela de entrega com endereço. <b>Resolução:</b> o formato passa a <code>https://tshirtclub.pt/r#&lt;chave&gt;</code>. O fragmento depois do <code>#</code> não vai ao servidor, a logs nem ao robô de pré-visualização: a página lê a chave e a envia no corpo de <code>POST /api/v1/r</code>. O banco guarda só <code>sha256(chave)</code>. O link abre uma sessão limitada àquela reserva. Ela permite ver o andamento, pagar e pedir cancelamento; confirmar ou mudar a entrega pede o código do WhatsApp (D13). Depois de informado, o endereço aparece só com bairro e cidade. Passados 30 dias do estado final, o link mostra só número e estado. Respostas com <code>Cache-Control: no-store</code>, <code>Referrer-Policy: no-referrer</code> e <code>noindex</code>. Aplicado nas seções 4, 7 e 11. <b>Decidido (D13).</b></p></div>
     <div class="finding"><span class="id">G7</span><h5>Login do painel: o bloqueio por conta vira ataque, e não há segundo fator <span class="sev alto">Alto</span></h5>
-      <p>Com um único administrador, 5 senhas erradas de qualquer pessoa na internet bloqueiam a loja por 15 min, inclusive durante um lançamento. O Supabase Auth também não tem bloqueio por conta nativo. Além disso, sem segundo fator, uma senha vazada dá acesso a estornos e a todos os dados das clientes. <b>Resolução:</b> o login passa pelo <code>api-admin</code>. O bloqueio de 15 min vale para o par e-mail + IP, e não para a conta inteira. Turnstile a partir do 3º erro, espera crescente e aviso por e-mail a cada bloqueio. "Esqueci minha senha" sempre funciona. Sessão do painel de até 12 h. <b>Recomendação:</b> reabrir a decisão e ligar o autenticador (TOTP), que é gratuito no Supabase Auth. A decisão atual (sem segundo fator) foi mantida, e o protótipo foi alinhado a ela. Aplicado nas seções 13 e 17 e na tela 09.</p></div>
+      <p>Com um único administrador, 5 senhas erradas de qualquer pessoa na internet bloqueiam a loja por 15 min, inclusive durante um lançamento. O Supabase Auth também não tem bloqueio por conta nativo. Além disso, sem segundo fator, uma senha vazada dá acesso a estornos e a todos os dados das clientes. <b>Resolução:</b> o login passa pelo <code>api-admin</code>. O bloqueio de 15 min vale para o par e-mail + IP, e não para a conta inteira. Turnstile a partir do 3º erro, espera crescente e aviso por e-mail a cada bloqueio. "Esqueci minha senha" sempre funciona. Sessão do painel de até 12 h. <b>Decidido (D12):</b> autenticador (TOTP) obrigatório, gratuito no Supabase Auth. Aplicado nas seções 11, 13 e 17 e nas telas 09 e 22.</p></div>
     <div class="finding"><span class="id">G8</span><h5>Colar o código não funcionava: 6 caixas de 1 dígito <span class="sev alto">Alto</span></h5>
       <p>O fluxo W3 manda a cliente tocar em "Copiar código" no WhatsApp e colar no site. Na tela 03, o campo tinha 6 caixas com 1 dígito cada, e colar deixava só o primeiro número. <b>Resolução:</b> um campo só, com <code>inputmode="numeric"</code>, <code>autocomplete="one-time-code"</code> e 6 dígitos, que aceita colar o código com espaço ou traço. Também vale para a tela 05. Corrigido no protótipo.</p></div>
     <div class="finding"><span class="id">G9</span><h5>LGPD: faltavam prazos de guarda, atendimento à titular e cuidado com a auditoria <span class="sev alto">Alto</span></h5>
-      <p>Só o OTP tinha prazo de guarda. A auditoria, somente de inserção, guardaria nome e telefone para sempre, e não havia procedimento para pedido de exclusão nem região dos dados. <b>Resolução:</b> tabela de guarda na seção 13 (OTP e tentativas: 30 dias; IP em hash: 30 dias; mensagens recebidas: 90 dias; endereço: prazo da loja após a entrega; reservas e pagamentos: 5 anos, prazo fiscal a confirmar com a contabilidade). A auditoria referencia <code>customer_id</code>, e não o telefone ou o nome. Pedido de exclusão vira anonimização (nome e telefone trocados por hash) do que não é obrigação legal. Dados no Supabase em São Paulo (<code>sa-east-1</code>) e funções da Vercel em <code>gru1</code>. A política lista todos os operadores, e há plano de incidente com comunicação à ANPD em 3 dias úteis. Aplicado na seção 13, na política (tela 20) e no checklist.</p></div>
+      <p>Só o OTP tinha prazo de guarda. A auditoria, somente de inserção, guardaria nome e telefone para sempre, e não havia procedimento para pedido de exclusão nem região dos dados. <b>Resolução:</b> tabela de guarda na seção 13 (OTP e tentativas: 30 dias; IP em hash: 30 dias; mensagens recebidas: 90 dias; endereço: prazo da loja após a entrega; reservas e pagamentos: 5 anos, prazo fiscal a confirmar com a contabilidade). A auditoria referencia <code>customer_id</code>, e não o telefone ou o nome. Pedido de exclusão vira anonimização (nome e telefone trocados por hash) do que não é obrigação legal. Dados no Supabase em São Paulo (<code>sa-east-1</code>) e funções da Vercel em <code>gru1</code>. A política lista todos os operadores, e há plano de incidente com comunicação à ANPD em 3 dias úteis. Aplicado na seção 13, na política (tela 20) e no checklist. <b>Decidido (D15):</b> endereço guardado por 90 dias após a entrega.</p></div>
     <div class="finding"><span class="id">G10</span><h5>Os planos gratuitos não servem para a loja em produção <span class="sev alto">Alto</span></h5>
       <p>No plano gratuito do Supabase, o projeto pausa depois de 7 dias sem uso (a loja vive de lançamentos espaçados) e não tem backup diário. O plano Hobby da Vercel é só para uso não comercial. Os jobs a cada 10 s também somam cerca de 560 mil chamadas de função por mês, acima da cota gratuita. <b>Resolução:</b> Supabase Pro e Vercel Pro na publicação. O worker só é chamado quando há trabalho (G21). Os valores devem ser conferidos antes de contratar. Aplicado na seção 17.</p></div>
   </div>
@@ -543,7 +547,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
       <tr><td><code>otp_codes</code></td><td>id, session_id, <b>code_hash</b> (HMAC-SHA256 com pepper), expires_at (+5 min), attempts_used (máx. 2), status, wa_message_id</td><td>O código nunca é gravado em texto puro. Emitir um código novo invalida o anterior.</td></tr>
       <tr><td><code>phone_blocks</code></td><td>id, customer_id, status (ATIVO, LIBERADO), trigger_reservations uuid[], created_at, released_at, released_by, release_reason</td><td>Índice único parcial: um bloqueio ATIVO por cliente.</td></tr>
       <tr><td><code>phone_block_decisions</code></td><td>id, block_id, decision (LIBERAR, MANTER), reason, admin_id, created_at</td><td>"Manter bloqueado" também fica registrado.</td></tr>
-      <tr><td><code>customer_sessions</code></td><td>id, phone_e164, token_hash, scope (TELEFONE ou RESERVA:id), expires_at, revoked_at</td><td>Criada depois de um OTP (escopo TELEFONE) ou ao abrir o link da reserva (escopo RESERVA:id, G6). Cookie <code>__Host-sessao</code>, de primeira parte (G1).</td></tr>
+      <tr><td><code>customer_sessions</code></td><td>id, phone_e164, token_hash, scope (TELEFONE ou RESERVA:id), expires_at, revoked_at</td><td>Criada depois de um OTP (escopo TELEFONE) ou ao abrir o link da reserva (escopo RESERVA:id, G6). O escopo RESERVA:id não confirma nem muda a entrega: para isso a cliente valida o WhatsApp, e a sessão passa a TELEFONE (D13). Cookie <code>__Host-sessao</code>, de primeira parte (G1).</td></tr>
     </tbody>
   </table></div>
 
@@ -760,7 +764,8 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
   <h3>Link na mensagem de reserva criada</h3>
   <p><code>https://tshirtclub.pt/r#&lt;chave&gt;</code>: chave aleatória de 22 caracteres base62 (cerca de 130 bits, gerada por CSPRNG). O banco guarda só <code>sha256(chave)</code> em <code>reservations.access_key_hash</code>. A chave fica depois do <code>#</code>, então não chega ao servidor na abertura da página, não aparece nos logs e não é lida pelo robô de pré-visualização do WhatsApp. A página lê a chave e a envia no corpo de <code>POST /api/v1/r</code> (G6).</p>
   <ul>
-    <li><b>O que o link permite:</b> abre uma sessão limitada àquela reserva (escopo <code>RESERVA:id</code>). Dá para ver o andamento, pagar, pedir cancelamento e confirmar ou mudar a entrega. Para ver as outras reservas do mesmo telefone, a cliente usa a consulta com código.</li>
+    <li><b>O que o link permite:</b> abre uma sessão limitada àquela reserva (escopo <code>RESERVA:id</code>). Dá para ver o andamento, pagar e pedir cancelamento. Para ver as outras reservas do mesmo telefone, a cliente usa a consulta com código.</li>
+    <li><b>Entrega exige o código (D13):</b> para confirmar ou mudar a modalidade e informar o endereço, a tela pede a validação pelo WhatsApp, no mesmo fluxo invertido da consulta (referência "Quero confirmar a entrega do pedido"). Validado, a sessão passa ao escopo TELEFONE daquele número, e a cliente não precisa validar de novo enquanto ela durar.</li>
     <li><b>O que o link não mostra:</b> telefone completo (sempre mascarado) e endereço completo (depois de enviado, só bairro e cidade). Passados 30 dias do estado final, mostra só número e estado.</li>
     <li><b>Respostas:</b> <code>Cache-Control: no-store</code>, <code>Referrer-Policy: no-referrer</code>, <code>X-Robots-Tag: noindex</code> e limite por IP contra tentativa e erro.</li>
   </ul>
@@ -905,7 +910,7 @@ END IF;</pre>
       <tr><td><code>POST /v1/reservations/:id/payments</code></td><td><code>{method, card_token?}</code> + <code>Idempotency-Key</code> → QR PIX ou resultado do cartão. A forma da primeira cobrança fica fixa</td><td><code>METHOD_LOCKED</code>, <code>RESERVATION_NOT_ACTIVE</code>, <code>DEADLINE_PASSED</code>, <code>PAYMENT_IN_PROGRESS</code></td></tr>
       <tr><td><code>GET /v1/reservations/:id/payments/:pid</code></td><td>Status (consultado a cada 3 s pela tela enquanto pendente)</td><td>—</td></tr>
       <tr><td><code>POST /v1/reservations/:id/cancellation-request</code></td><td>Solicita o cancelamento</td><td><code>ALREADY_REQUESTED</code>, <code>RESERVATION_NOT_ACTIVE</code></td></tr>
-      <tr><td><code>PUT /v1/reservations/:id/fulfillment</code></td><td>Confirma ou altera a modalidade (e o endereço)</td><td><code>NOT_PAID</code>, <code>SHIPPING_ALREADY_PAID</code></td></tr>
+      <tr><td><code>PUT /v1/reservations/:id/fulfillment</code></td><td>Confirma ou altera a modalidade (e o endereço). Exige sessão de escopo TELEFONE; a sessão do link recebe <code>PHONE_VERIFICATION_REQUIRED</code> (D13)</td><td><code>NOT_PAID</code>, <code>SHIPPING_ALREADY_PAID</code>, <code>PHONE_VERIFICATION_REQUIRED</code></td></tr>
       <tr><td><code>POST /v1/reservations/:id/shipping-payments</code></td><td>Paga o frete + <code>Idempotency-Key</code></td><td><code>QUOTE_EXPIRED</code></td></tr>
     </tbody>
   </table></div>
@@ -932,7 +937,8 @@ END IF;</pre>
       <tr><td><code>POST /v1/admin/reservations/:id/deliver</code></td><td>T5: marca como Entregue</td></tr>
       <tr><td><code>GET /v1/admin/payment-reviews</code> · <code>POST .../:id/resolve</code></td><td>Estornar ou converter em novo pedido (D6)</td></tr>
       <tr><td><code>GET /v1/admin/payment-disputes</code> · <code>POST .../:id/resolve</code></td><td>Estornos e contestações depois de confirmado, com observação (G2)</td></tr>
-      <tr><td><code>POST /v1/admin/auth/login</code> · <code>/logout</code></td><td>Login pelo repasse, com limite por e-mail + IP, Turnstile a partir do 3º erro e auditoria (G7)</td></tr>
+      <tr><td><code>POST /v1/admin/auth/login</code> · <code>/mfa/verify</code> · <code>/logout</code></td><td>Login pelo repasse, com limite por e-mail + IP, Turnstile a partir do 3º erro e auditoria. Depois da senha, o código do autenticador; só a sessão com os dois fatores (AAL2) acessa o painel (G7, D12)</td></tr>
+      <tr><td><code>GET /v1/admin/mfa/factors</code> · <code>POST .../enroll</code> · <code>DELETE .../:id</code></td><td>Autenticadores cadastrados na tela Minha conta. Remover exige um código válido de outro autenticador (D12)</td></tr>
       <tr><td><code>PUT /v1/admin/settings/whatsapp</code></td><td>Ritmo da fila, modo lançamento e notificações opcionais (G5)</td></tr>
       <tr><td><code>GET /v1/admin/phone-blocks</code> · <code>POST .../:id/release</code> · <code>/keep</code></td><td>Liberar ou manter, com motivo</td></tr>
       <tr><td><code>CRUD /v1/admin/products</code>, <code>/collections</code></td><td>Catálogo e imagens</td></tr>
@@ -969,7 +975,7 @@ END IF;</pre>
     <div class="card"><h4>Acesso</h4><ul>
       <li>RLS habilitado em todas as tabelas, sem políticas para <code>anon</code> e <code>authenticated</code>.</li>
       <li>As funções de domínio são <code>SECURITY DEFINER</code>, com <code>search_path</code> fixo e <code>EXECUTE</code> só para <code>service_role</code>.</li>
-      <li>Admin: Supabase Auth com e-mail e senha (decisão: sem segundo fator; ver recomendação em G7). O login passa pelo <code>api-admin</code>: bloqueio de 15 min após 5 senhas erradas vale para o par e-mail + IP, Turnstile a partir do 3º erro, aviso por e-mail a cada bloqueio. Senha de 12+ caracteres com checagem de vazamento. Sessão de até 12 h. Checagem em <code>admin_users</code> em toda rota. Painel em <code>admin.tshirtclub.pt</code>, com <code>noindex</code>.</li>
+      <li>Admin: Supabase Auth com e-mail, senha e <b>autenticador (TOTP) obrigatório</b> (D12). Toda rota do <code>api-admin</code> exige sessão AAL2. Cadastrar 2 autenticadores (celular da loja e um aparelho reserva); perder os dois é tratado pelo runbook, com a redefinição feita pela dona do projeto no Supabase. O login passa pelo <code>api-admin</code>: bloqueio de 15 min após 5 senhas erradas vale para o par e-mail + IP, Turnstile a partir do 3º erro, aviso por e-mail a cada bloqueio. Senha de 12+ caracteres com checagem de vazamento. Sessão de até 12 h. Checagem em <code>admin_users</code> em toda rota. Painel em <code>admin.tshirtclub.pt</code>, com <code>noindex</code>.</li>
       <li>Sessão da cliente: cookie de primeira parte <code>__Host-sessao</code>, <code>httpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>, <code>Path=/</code>, gravado pelo repasse do próprio domínio (G1). O token é guardado só como hash. Toda escrita exige <code>Content-Type: application/json</code>, e o repasse confere <code>Origin</code>.</li>
       <li>As Edge Functions recusam chamadas sem o segredo de repasse, exceto os webhooks, que têm autenticação própria (G3, G4).</li>
       <li>Uma reserva de outro telefone responde <code>404</code>, nunca <code>403</code>, para não confirmar que ela existe.</li>
@@ -995,7 +1001,7 @@ END IF;</pre>
       <tr><td>Códigos e sessões OTP, tentativas não convertidas</td><td>30 dias</td><td>Apagados</td></tr>
       <tr><td>IP em hash, contadores de limite</td><td>30 dias</td><td>Apagados</td></tr>
       <tr><td>Texto das mensagens recebidas no WhatsApp</td><td>90 dias</td><td>Texto apagado; fica o registro de que houve mensagem</td></tr>
-      <tr><td>Endereço de entrega</td><td>[prazo da loja] após a entrega (sugestão: 90 dias)</td><td>Apagado; fica só a cidade</td></tr>
+      <tr><td>Endereço de entrega</td><td>90 dias após a entrega (D15)</td><td>Apagado; fica só a cidade</td></tr>
       <tr><td>Reservas, pedidos, pagamentos, notas</td><td>5 anos (prazo fiscal; confirmar com a contabilidade)</td><td>Anonimizados</td></tr>
       <tr><td>Auditoria</td><td>Enquanto houver a reserva</td><td>Sem dados pessoais desde a gravação</td></tr>
     </tbody>
@@ -1074,7 +1080,7 @@ END IF;</pre>
   <p class="sub">Cada fase é um conjunto de commits revisável, com testes e funcionando de ponta a ponta com os provedores falsos. As integrações reais entram atrás das mesmas interfaces.</p>
   <ol class="phases">
     <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP, axe e Lighthouse), migrations de enums, settings, <code>app_now()</code>, limites, auditoria e gatilho guardião, pacote <code>domain</code> com testes, repasse <code>/api</code> no mesmo domínio e cabeçalhos de segurança.</span></li>
-    <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos.</span></li>
+    <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos. Login do painel com senha e autenticador (D12).</span></li>
     <li><b>OTP por WhatsApp</b><span>Sessões, códigos, limites, bloqueio de 30 min, Turnstile, provedor falso e Z-API/Evolution (W1), verificação invertida (W3), fila de envio com ritmo controlado.</span></li>
     <li><b>Criação atômica da reserva</b><span><code>create_reservation</code>, tela de reserva ativa com relógio do servidor, teste de concorrência (N clientes, 1 unidade).</span></li>
     <li><b>Expiração e mensagens</b><span>Varredura, lembrete de 5 min, outbox e worker de envio, bloqueio por 3 expirações.</span></li>
@@ -1116,6 +1122,8 @@ END IF;</pre>
       <tr><td>Código colado com espaço ou traço ("482 193")</td><td>Aceito</td></tr>
       <tr><td>Link da reserva aberto em outro aparelho</td><td>Mostra a reserva e permite pagar; telefone e endereço mascarados</td></tr>
       <tr><td>5 senhas erradas de outro IP</td><td>O administrador continua entrando do IP dele</td></tr>
+      <tr><td>Senha certa sem o código do autenticador (sessão AAL1) em qualquer rota do painel</td><td><code>403</code>, nada exposto (D12)</td></tr>
+      <tr><td>Link da reserva tentando confirmar a entrega sem validar o WhatsApp</td><td><code>PHONE_VERIFICATION_REQUIRED</code>; depois do código, aceito (D13)</td></tr>
       <tr><td>Restauração do backup num projeto vazio</td><td>Sistema sobe, e o verificador de invariantes passa</td></tr>
     </tbody>
   </table></div>
@@ -1151,13 +1159,13 @@ END IF;</pre>
     <div class="card"><h4>Segurança</h4><ul>
       <li>RLS conferido: a chave <code>anon</code> não lê nenhuma tabela.</li>
       <li>Cabeçalhos e CSP conferidos em securityheaders.com (nota A), sem erro de CSP no console.</li>
-      <li>Login do painel: bloqueio por e-mail + IP, Turnstile e aviso por e-mail testados. Segundo fator, se a loja aprovar (G7).</li>
+      <li>Login do painel: bloqueio por e-mail + IP, Turnstile e aviso por e-mail testados. Autenticador obrigatório, com 2 aparelhos cadastrados e o procedimento de perda testado (D12).</li>
       <li>Dependências sem vulnerabilidade alta (<code>npm audit</code>), e Dependabot ligado.</li>
     </ul></div>
     <div class="card"><h4>LGPD e textos legais</h4><ul>
       <li>Política de privacidade com os dados da empresa preenchidos e revisada por quem cuida do jurídico.</li>
       <li>Encarregado nomeado e e-mail de contato funcionando.</li>
-      <li>Rotina de prazos de guarda ligada (<code>purge_personal_data</code>).</li>
+      <li>Rotina de prazos de guarda ligada (<code>purge_personal_data</code>), com endereço em 90 dias (D15).</li>
       <li>Endereço e horário de retirada preenchidos.</li>
     </ul></div>
     <div class="card"><h4>Qualidade no celular</h4><ul>
