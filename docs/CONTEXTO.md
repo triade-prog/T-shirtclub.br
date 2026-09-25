@@ -53,7 +53,14 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 **Fotos (25/09):** as 42 fotos de produto foram lidas pelo conector do Google Drive (a rede do ambiente bloqueia o Drive direto) e convertidas para WebP em `docs/design/fotos/produtos/` (4:5, cerca de 35 KB cada). Os recortes de estampa viraram capas de coleção, e a primeira dobra usa uma campanha provisória montada com as fotos de produto. A seção "Catálogo real" do design lista as peças com nome e coleção sugeridos: Limone, Dolce Vita, Teddy, Dog Club, Just a Girl, Um Dia de Cada Vez e Outras. A pasta do site de referência trouxe só apps de terceiros: pacotes, lista de desejos, aviso de volta ao estoque, avaliações, recomendações, e-mail, chat e contador.
 
-Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; capturas de tela do site de referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
+**Referência (25/09):** o HTML da página inicial da Coucou Suzette foi lido; os estilos e as fotos não vieram. O que ele mostra:
+- **Cores:** fundo creme #FFFBF0, texto bordô #420002, títulos e botões em #FF3D00, e faixas de cor inteiras (rosa, verde, amarelo, laranja) coladas umas nas outras.
+- **Fontes e formas:** títulos em Hammer 900 e texto em Lora serifada; botões de 4 px, card de 8 px e fotos sem canto arredondado.
+- **Menu:** Produtos, A marca e The Club (fidelidade); coleções com emoji no nome.
+
+Já entrou na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, bloco "Quem faz o Club" e garantias. Ficam para a loja decidir: botões menos arredondados, texto em serifada, grupo VIP no WhatsApp e programa de fidelidade.
+
+Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; decidir os pontos da referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
 
 **Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
 

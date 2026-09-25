@@ -126,7 +126,10 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
 .tc-produto{display:grid;gap:3px;align-content:start;min-width:0;text-decoration:none;color:inherit}
 .tc-produto .foto{border-radius:4px;margin-bottom:5px}
 .tc-produto .foto .tc-sticker{position:absolute;right:8px;top:10px;z-index:1;transform:rotate(4deg)}
-.tc-produto .nome{font-size:14.5px;font-weight:500;line-height:1.3}
+.tc-produto .nome{font-size:14.5px;font-weight:500;line-height:1.3;text-decoration:none;color:var(--tinta)}
+.tc-produto .nome::after{content:"";position:absolute;inset:0}
+.tc-produto{position:relative}
+.tc-produto .foto .add,.tc-produto .foto .tc-sticker{z-index:2}
 .tc-produto .preco{font-weight:600;font-size:14px;font-variant-numeric:tabular-nums}
 .tc-produto .col{font-size:12px;color:var(--c-tinta);font-weight:600;display:flex;align-items:center;gap:5px;min-width:0}
 .tc-produto .col::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c-cor);flex:none}
@@ -234,7 +237,24 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
 .look-item{display:grid;grid-template-columns:28px 52px 1fr auto;gap:10px;align-items:center;font-size:14px}
 .look-item .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--linha);display:grid;place-items:center;font-size:12px;font-weight:600}
 .look-item .foto{width:52px}
-.bloco-club{margin:28px 16px 0;background:var(--rosa-bruma);border-radius:18px;padding:20px 18px;display:grid;gap:14px}
+.bloco-club{margin:28px 0 0;background:var(--rosa-bruma);padding:24px 16px;display:grid;gap:14px}
+/* Aprendidos da referência: barra de aviso, abas, faixas de cor de ponta a ponta, garantias */
+.aviso-topo{background:var(--tinta);color:var(--papel);font-size:12.5px;font-weight:500;text-align:center;padding:7px 12px;line-height:1.3}
+.abas{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.abas .tc-chip{min-height:40px;font-size:13.5px}
+.faixa-cor{margin-top:28px;padding:24px 16px;display:grid;gap:10px;background:var(--c-fundo,var(--algodao))}
+.faixa-cor h3{font-family:var(--display);font-weight:800;font-size:30px;line-height:.95}
+.faixa-cor p{font-size:14.5px}
+.garantias{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:20px 12px 4px;text-align:center;font-size:12px;line-height:1.3}
+.garantias span{display:grid;gap:6px;justify-items:center}
+.garantias svg{width:22px;height:22px}
+.emoji{font-style:normal;margin-right:4px}
+.tc-produto .foto .add{position:absolute;right:6px;bottom:6px;width:44px;height:44px;border-radius:50%;border:0;background:var(--branco);color:var(--tinta);font-size:22px;line-height:1;box-shadow:0 1px 4px rgba(38,25,30,.18);cursor:pointer;z-index:1}
+.paleta-ref{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.paleta-ref div{border:1px solid var(--linha);border-radius:10px;overflow:hidden;background:var(--branco);font-size:13px}
+.paleta-ref i{display:block;height:54px}
+.paleta-ref span{display:grid;padding:6px 10px}
+.bloco-club .tc-club .lugar{background:var(--branco)}
 .bloco-club .grande{font-family:var(--display);font-weight:800;font-size:44px;line-height:.9;letter-spacing:-.02em}
 .bloco-club .grande small{display:block;font-family:var(--texto);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-suave);margin-bottom:6px;line-height:1.2}
 .comunidade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
@@ -288,6 +308,8 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
     <symbol id="i-voltar" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
     <symbol id="i-whats" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9.5c.3 2 2 3.8 4.5 4.5l1-1.2 2 .8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-loja" viewBox="0 0 24 24"><path d="M4 10h16v10H4zM3 10l2-5h14l2 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 20v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
   </defs>
 </svg>
@@ -344,6 +366,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
 
     <figure class="tela">
       <div class="celular">
+        <p class="aviso-topo">Monte seu Club: 3 camisetas por R$ 119,99</p>
         <div class="topo"><button class="icone-btn" type="button" aria-label="Menu"><svg aria-hidden="true"><use href="#i-menu"/></svg></button><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="acoes"><button class="icone-btn" type="button" aria-label="Buscar"><svg aria-hidden="true"><use href="#i-busca"/></svg></button><span class="icone-btn" role="img" aria-label="Sacola com 2 peças"><svg aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">2</span></span></span></div>
         <div class="campanha">
           <div class="foto" data-foto="campanha-limone"></div>
@@ -355,7 +378,8 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
           </div>
         </div>
         <div class="secao-tela">
-          <div class="cab"><h3>New in the Club</h3><a href="#">Ver tudo</a></div>
+          <div class="cab"><h3>Os favoritos do Club</h3><a href="#">Ver tudo</a></div>
+          <div class="abas" role="group" aria-label="Mostrar"><button class="tc-chip" type="button" aria-pressed="true">Novidades</button><button class="tc-chip" type="button" aria-pressed="false">Mais vendidas</button><button class="tc-chip" type="button" aria-pressed="false">Mais amadas</button></div>
           <div class="trilho-h" id="trilhoNovidades"></div>
         </div>
         <div class="secao-tela">
@@ -382,13 +406,24 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
           <div class="cab"><h3>Todas as peças</h3><a href="#">Filtrar</a></div>
           <div class="dupla" id="gradeTodas"></div>
         </div>
+        <div class="faixa-cor col-limao">
+          <p class="rotulo" style="color:var(--limao-tinta)">Quem faz o Club</p>
+          <h3>Estampas que nascem aqui.</h3>
+          <p>Espaço para a história da loja: quem cria as estampas, de onde vem cada coleção e por que o Club existe. Texto e foto da loja.</p>
+          <a class="tc-botao contorno" href="#" style="justify-self:start">Conheça o Club</a>
+        </div>
         <div class="secao-tela">
           <div class="cab"><h3>Você faz o Club</h3><a href="#">@tshirtclub.br</a></div>
           <div class="comunidade"><div class="foto" data-foto="comunidade-1"></div><div class="foto" data-foto="comunidade-2"></div><div class="foto" data-foto="comunidade-3"></div></div>
         </div>
+        <div class="garantias">
+          <span><svg aria-hidden="true"><use href="#i-loja"/></svg>Retire na loja ou receba em casa</span>
+          <span><svg aria-hidden="true"><use href="#i-escudo"/></svg>PIX ou cartão, com segurança</span>
+          <span><svg aria-hidden="true"><use href="#i-whats"/></svg>Atendimento no WhatsApp</span>
+        </div>
         <div class="rodape-loja"><b style="color:var(--tinta)">T-shirt Club.br</b><span>Retirada na loja, motoboy ou envio · Troca e cuidados · Privacidade</span></div>
       </div>
-      <figcaption><b>1. Início</b><span>Rota <code>/</code>. A campanha ocupa a primeira dobra; o rosa aparece só nos botões, na sacola e no bloco "Monte seu Club".</span></figcaption>
+      <figcaption><b>1. Início</b><span>Rota <code>/</code>. Barra da oferta, campanha na primeira dobra, favoritos em abas, coleções com emoji, faixas de cor de ponta a ponta e garantias antes do rodapé.</span></figcaption>
     </figure>
 
     <figure class="tela">
@@ -496,10 +531,33 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
 <!-- ===================================================================== referência -->
 <section class="bloco" id="referencia" aria-labelledby="h-ref">
   <p class="rotulo">Site de referência · Coucou Suzette</p>
-  <h2 id="h-ref">O que a pasta do site mostrou</h2>
-  <p>A pasta enviada guarda só os arquivos de terceiros que o site carrega (a pasta <code>_external</code>): scripts de aplicativos, folhas de estilo de apps e bandeiras de países. Nela não há as páginas, o tema nem as fotos, então ela não mostra o visual. Mostra outra coisa útil: <b>quais recursos a loja usa</b>.</p>
+  <h2 id="h-ref">O que a página inicial da Coucou Suzette mostrou</h2>
+  <p>Lido do HTML da página inicial que você enviou. As folhas de estilo e as fotos não vieram junto (ficam na pasta <code>_files</code> do site salvo, e o site segue bloqueado na rede), então não vi a página desenhada. Mas o HTML traz as configurações do tema: cores, fontes, formas, a ordem das seções e os textos.</p>
+
+  <h3>Cores do tema</h3>
+  <div class="paleta-ref" id="paletaRef"></div>
+  <p class="nota">Fundo creme, texto bordô quase preto (nunca preto puro) e títulos no vermelho-alaranjado da marca. Rosa, verde, amarelo e laranja aparecem como <b>faixas inteiras de fundo, uma colada na outra</b> (espaço entre seções: 0), e não como enfeites espalhados.</p>
+
+  <div class="grade">
+    <div class="painel"><h3>Tipografia</h3><p class="nota">Títulos em <b>Hammer</b>, peso 900: grossa, divertida, sem ser arredondada. Texto em <b>Lora</b>, uma serifada editorial. Esse contraste (título brincalhão, texto de revista) é o que dá o ar "fashion".</p></div>
+    <div class="painel"><h3>Formas</h3><p class="nota">Botão com canto de 4 px (quase reto), card de produto com 8 px, fotos sem arredondamento e sem sombra. Nada de pílula nem de sombra: quem faz a festa são a foto e a cor.</p></div>
+    <div class="painel"><h3>Menu</h3><p class="nota">Três portas: <b>Produtos</b> (por tipo), <b>A marca</b> (quem somos, bastidores, fabricação) e <b>The Club</b> (programa de fidelidade e indicação). As coleções têm <b>emoji no nome</b>: 🐿️ Once upon a time, 🍓 Fruits &amp; Vegetables, 🐶 Woof, 🥐 Douce France.</p></div>
+  </div>
+
+  <h3>Ordem da página inicial</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Coucou Suzette</th><th>Na proposta 4</th></tr></thead>
+    <tbody id="tabOrdemRef"></tbody>
+  </table></div>
+
+  <h3>Recursos que a loja usa</h3>
   <div class="apps" id="apps"></div>
-  <p class="nota">Para comparar o visual, ainda preciso de capturas de tela das páginas (início, coleção, produto e sacola, de preferência no celular). Pode colá-las na conversa ou colocá-las numa pasta do Drive, que eu leio pelo conector.</p>
+
+  <h3>O que entrou e o que fica para a loja decidir</h3>
+  <div class="grade">
+    <div class="painel"><h3>Entrou nas telas</h3><ul class="lista"><li>Barra de aviso no topo com a oferta ("Monte seu Club: 3 camisetas por R$ 119,99")</li><li>Favoritos em abas: Novidades, Mais vendidas, Mais amadas</li><li>Emoji no nome das coleções: 🍋 Limone, 🍅 Dolce Vita, 🧸 Teddy, 🐶 Dog Club</li><li>Botão de adicionar direto no card</li><li>Faixas de cor de ponta a ponta no bloco "Monte seu Club" e na história da loja</li><li>Bloco "Quem faz o Club" (história da marca) e fileira de garantias antes do rodapé</li></ul></div>
+    <div class="painel"><h3>Para a loja decidir</h3><ul class="lista"><li><b>Botões menos arredondados</b> (6 px em vez de pílula), como na referência: mais moda, menos fofo.</li><li><b>Texto em serifada</b> (como a Lora deles) no lugar da Poppins. Muda a prancha da marca, por isso fica como teste.</li><li><b>Títulos na cor da marca</b>, como eles fazem: aqui seria o rosa, o que vai contra a regra do tempero.</li><li><b>Grupo VIP no WhatsApp</b> no lugar da newsletter com 10% de desconto.</li><li><b>Programa de fidelidade</b> ("The Club" deles) para depois do lançamento. O nome da nossa marca já pede isso.</li></ul></div>
+  </div>
 </section>
 
 <!-- ===================================================================== fotos -->
@@ -665,7 +723,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   <div style="display:grid;gap:10px">
     <div class="achado"><span class="id">M1</span><h3>Fotos reais <span class="grav feito">42 recebidas</span></h3><p>Lidas pelo conector do Google Drive. As 42 fotos de produto já estão nas telas e no catálogo. Faltam fotos com modelo (jeans, saia, alfaiataria), das costas, de looks e de clientes, que são o que mais aproxima a loja de uma marca de moda.</p></div>
     <div class="achado"><span class="id">M2</span><h3>Nomes, coleções e dados das peças <span class="grav conf">Confirmar</span></h3><p>Os nomes são a minha leitura da estampa ("Limone Amalfi Coast", "Pomodoro Naples"…), e as coleções são sugestões (seção Catálogo real). Composição, gramatura, medidas e a altura da modelo estão marcadas como "a confirmar".</p></div>
-    <div class="achado"><span class="id">M3</span><h3>Site de referência <span class="grav conf">Em parte</span></h3><p>A pasta do site trouxe só os arquivos de terceiros. Deu para ver os recursos que a loja usa (seção Referência), mas não o visual. Para comparar o visual, faltam capturas de tela das páginas.</p></div>
+    <div class="achado"><span class="id">M3</span><h3>Site de referência <span class="grav feito">Conferido</span></h3><p>O HTML da página inicial trouxe as cores, as fontes, as formas, a ordem das seções e o menu (seção Referência), e o que se aplica entrou nas telas. Ainda não vi a página desenhada (estilos e fotos não vieram). Para isso, bastam capturas de tela.</p></div>
     <div class="achado"><span class="id">M4</span><h3>Logo em SVG e endereço do site <span class="grav conf">Pedir à loja</span></h3><p>Continuam pendentes: o logo em SVG (completo, horizontal, ícone e uma cor) e a escolha entre <code>.pt</code> e <code>.com.br</code>.</p></div>
     <div class="achado"><span class="id">M5</span><h3>Contraste e daltonismo <span class="grav feito">Validado</span></h3><p>Texto a partir de 4,5:1 e contornos a partir de 3:1, medidos. Cores de coleção passadas no validador (detalhes na seção de cores). Nenhuma violação no axe em 390 px e 1280 px.</p></div>
   </div>
@@ -774,7 +832,8 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   function card(p){
     const foto=fotoPeca(p);
     if(p.sticker){foto.append(el('span',{class:'tc-sticker '+p.sticker[0],text:p.sticker[1]}));}
-    return el('a',{class:'tc-produto col-'+p.col,href:'#'},foto,el('span',{class:'col',text:p.colNome}),el('span',{class:'nome',text:p.nome}),el('span',{class:'preco',text:'R$ 49,99'}));
+    foto.append(el('button',{class:'add',type:'button','aria-label':`Adicionar ${p.nome} ao Club`},'+'));
+    return el('div',{class:'tc-produto col-'+p.col},foto,el('span',{class:'col',text:p.colNome}),el('a',{class:'nome',href:'#'},p.nome),el('span',{class:'preco',text:'R$ 49,99'}));
   }
   const encher=(id,lista)=>{const alvo=document.getElementById(id);lista.forEach(p=>alvo.append(card(p)));};
   encher('trilhoNovidades',PRODUTOS.slice(0,4));
@@ -783,8 +842,8 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   encher('trilhoCompleta',[peca(21),peca(22),peca(33)]);
   encher('compCards',PRODUTOS.slice(0,2));
   const cols=document.getElementById('gradeColecoes');
-  [['colecao-limone','limao','Limone'],['colecao-pomodoro','med','Dolce Vita'],['colecao-teddy','tomate','Teddy'],['colecao-dog-club','menta','Dog Club']].forEach(([k,c,n])=>{
-    cols.append(el('a',{class:'colecao-tile col-'+c,href:'#'},el('div',{class:'foto','data-foto':k}),el('span',{class:'rot'},el('span',{},el('i',{'aria-hidden':'true'}),n),el('span',{'aria-hidden':'true',text:'→'}))));
+  [['colecao-limone','limao','Limone','🍋'],['colecao-pomodoro','med','Dolce Vita','🍅'],['colecao-teddy','tomate','Teddy','🧸'],['colecao-dog-club','menta','Dog Club','🐶']].forEach(([k,c,n,e])=>{
+    cols.append(el('a',{class:'colecao-tile col-'+c,href:'#'},el('div',{class:'foto','data-foto':k}),el('span',{class:'rot'},el('span',{},el('span',{class:'emoji','aria-hidden':'true'},e),n),el('span',{'aria-hidden':'true',text:'→'}))));
   });
   const sac=document.getElementById('listaSacola');
   [peca(32),peca(9),peca(10)].forEach(p=>{
@@ -829,16 +888,23 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
   }
 
   const APPS=[
-    ['Pacotes e oferta por quantidade','aov-bundle-upsell','É o "leve mais, pague menos". Confirma que o nosso "Monte seu Club" está no caminho certo.','Já no plano (D19)'],
+    ['Pacotes e oferta por quantidade','aov-bundle-upsell','É o "leve mais, pague menos"; na página aparece como selo "10% off bundle" no card. Confirma o caminho do "Monte seu Club".','Já no plano (D19); o card pode ganhar o selo "3 por R$ 119,99"'],
     ['Lista de desejos','wishlist-power','Coração no produto para salvar e voltar depois.','Sugestão para depois do lançamento'],
     ['Aviso de volta ao estoque','restock-sdk','"Me avise quando voltar" quando uma peça esgota.','Sugestão: avisar pelo WhatsApp, que já temos'],
     ['Avaliações de clientes','Yotpo','Estrelas e fotos de clientes no produto.','Sugestão para depois; combina com "Você faz o Club"'],
     ['Recomendações','Nosto','"Você também vai gostar", personalizado.','No plano, como "Complete o look", sem ferramenta paga'],
+    ['Vídeos com produtos','Pimster','"See our products in action": vídeos curtos em que dá para comprar a peça que aparece.','Segunda etapa; começamos com o Shop the look em foto'],
     ['E-mail e SMS','Klaviyo','Campanhas, carrinho abandonado e pop-up de cadastro.','Fora do escopo; o nosso canal é o WhatsApp'],
     ['Atendimento','Gorgias','Chat e central de ajuda.','Fora do escopo; o atendimento é pelo WhatsApp'],
     ['Contador regressivo','countdown-timer','Cronômetro de promoção para gerar urgência.','Não recomendo: a loja já tem o prazo real da reserva'],
     ['País e moeda','Orbe','Detecta o país e mostra bandeira e moeda.','Não se aplica (só Brasil)']
   ];
+  const PALETA_REF=[['#FFFBF0','Creme','fundo de tudo'],['#420002','Bordô','texto'],['#FF3D00','Vermelho-laranja','títulos e botões'],['#FFD0E1','Rosa','faixas'],['#4DA763','Verde','faixas e títulos'],['#FFE576','Amarelo','faixas'],['#FE6A12','Laranja','faixas']];
+  const pr=document.getElementById('paletaRef');
+  PALETA_REF.forEach(([c,n,u])=>{const d=el('div');const i=el('i');i.style.background=c;d.append(i,el('span',{},el('b',{text:n}),el('code',{text:c}),u));pr.append(d);});
+  const ORDEM_REF=[['Barra de aviso: frete grátis acima de €100','Barra: Monte seu Club, 3 por R$ 119,99'],['Carrossel de imagens (texto na própria imagem)','Campanha com foto e frase "Welcome to the Club."'],['"Your favorites" com abas: New, Bestsellers, Top rated; card com selo "New" ou "10% off bundle" e botão de adicionar','Os favoritos do Club, com abas e adicionar no card'],['"Check this out!": 3 cartões editoriais (quadrinho novo, Halloween, bastidores do ensaio)','Coleções com foto e emoji; depois, destaques editoriais quando houver conteúdo'],['"Who is Coucou Suzette?": história da fundadora','Quem faz o Club (faixa de cor)'],['"Behind the making": como é feito (faixa rosa)','Pode entrar no mesmo bloco, quando a loja tiver fotos'],['"See our products in action": vídeos curtos com produtos marcados','Shop the look (foto com pontos); vídeos numa segunda etapa'],['Instagram','Você faz o Club'],['Garantias: frete, pagamento seguro, atendimento; newsletter com 10%','Garantias: retirada ou envio, PIX ou cartão, WhatsApp']];
+  const to=document.getElementById('tabOrdemRef');
+  ORDEM_REF.forEach(([a,b],i)=>to.append(el('tr',{},el('td',{class:'num',text:i+1}),el('td',{text:a}),el('td',{text:b}))));
   const ap=document.getElementById('apps');
   APPS.forEach(([t,a,d,n])=>ap.append(el('div',{class:'painel'},el('p',{class:'rotulo',text:a}),el('h3',{text:t}),el('p',{class:'nota',text:d}),el('p',{style:'font-size:14px'},el('b',{text:'Para nós: '}),n))));
 
@@ -853,7 +919,7 @@ section.bloco{padding:56px 0 20px;border-bottom:1px solid var(--linha);display:g
     ['8','Promoção diferente da definida','"Monte seu Club": 3 por R$ 119,99, a cada 3 (D19). Motor de preço, especificação, desenho técnico e protótipo atualizados.'],
     ['9 a 11','Fluxo de reserva, pagamento confirmado e expirada','Mantidos. Só os preços e o tema mudaram.'],
     ['12','Tirar o tema escuro da loja','A loja fica só no claro (D21). O painel da loja mantém claro e escuro.'],
-    ['—','Coucou Suzette','A pasta trouxe os recursos da loja, mas não o visual (seção Referência). Faltam capturas de tela (M3).']
+    ['—','Coucou Suzette','Página inicial lida (cores, fontes, formas, ordem, menu). Entraram na loja: barra de oferta, abas, emoji nas coleções, adicionar no card, faixas de cor, história e garantias.']
   ];
   const tm=document.getElementById('tabMudancas');
   MUDANCAS.forEach(([n,a,b])=>tm.append(el('tr',{},el('td',{class:'num',text:n}),el('td',{text:a}),el('td',{text:b}))));
