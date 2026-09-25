@@ -6,23 +6,23 @@
   };
   const casos=[
     {id:'c1',reserva:'#1044',cliente:'Carla D.',telefone:'(77) •••••-3310',motivo:'APROVADO_APOS_TOLERANCIA',valor:11990,transacao:'TX-88412077',situacao:'ABERTA',
-      itens:[{variacao:'v02',qtd:1},{variacao:'v10',qtd:1},{variacao:'v12',qtd:1}],
+      itens:[{produto:'p1',qtd:1},{produto:'p4',qtd:1},{produto:'p5',qtd:1}],
       linha:[['22:00:00','Reserva criada','Expira às 22:15:00.'],['22:14:40','Tentativa de pagamento registrada','Antes do prazo: tolerância até 22:20:00.'],
              ['22:20:00','Reserva expirada','Provedor consultado: ainda pendente. Estoque liberado.'],['22:21:12','Provedor aprovou o pagamento','Fora da tolerância: enviado para análise.']]},
     {id:'c2',reserva:'#1039',cliente:'Júlia F.',telefone:'(77) •••••-7021',motivo:'RESERVA_ENCERRADA',valor:9980,transacao:'TX-88409312',situacao:'ABERTA',
-      itens:[{variacao:'v04',qtd:2}],
+      itens:[{produto:'p6',qtd:2}],
       linha:[['17:50:00','Reserva criada','Expira às 18:05:00.'],['17:58:30','Cancelamento solicitado','Pela cliente.'],['17:59:10','Tentativa de pagamento registrada','Cobrança gerada.'],
              ['18:02:00','Cancelamento aprovado','Reserva encerrada; cobrança cancelada no provedor.'],['18:02:40','Provedor aprovou o pagamento','Chegou depois do encerramento: análise.']]},
     {id:'c3',reserva:'#1031',cliente:'Rita L.',telefone:'(77) •••••-5520',motivo:'APROVADO_APOS_TOLERANCIA',valor:4990,transacao:'TX-88390011',situacao:'RESOLVIDA',
-      itens:[{variacao:'v07',qtd:1}],resolucao:'Estornado em 24/09 às 10:12 por Paula (admin): "Cliente preferiu o reembolso."',
+      itens:[{produto:'p3',qtd:1}],resolucao:'Estornado em 24/09 às 10:12 por Carol (admin): "Cliente preferiu o reembolso."',
       linha:[['09:40:00','Reserva criada',''],['09:55:00','Reserva expirada','Sem tentativa pendente.'],['09:58:20','Provedor aprovou o pagamento','Análise aberta.']]}
   ];
   let selected=casos[0];
 
   function checagemEstoque(c){
     return c.itens.map(i=>{
-      const v=VARIACOES.find(x=>x.id===i.variacao);
-      return {nome:`${produtoDe(v).nome} · ${v.tamanho}`,qtd:i.qtd,ok:disponivel(v)>=i.qtd,disp:disponivel(v)};
+      const p=produtoPorId(i.produto);
+      return {nome:p.nome,qtd:i.qtd,ok:disponivel(p)>=i.qtd,disp:disponivel(p)};
     });
   }
 
@@ -71,7 +71,7 @@
     const c=selected;
     c.situacao='RESOLVIDA';
     if(tipo==='CONVERTER'){
-      c.itens.forEach(i=>{const v=VARIACOES.find(x=>x.id===i.variacao);v.vendido+=i.qtd;});
+      c.itens.forEach(i=>{produtoPorId(i.produto).vendido+=i.qtd;});
       c.resolucao=`Convertido no pedido #1049 (Pagamento confirmado) por você: "${motivo}"`;
       toast('Pedido #1049 criado em Pagamento confirmado. Cliente notificada no WhatsApp.');
     }else{
