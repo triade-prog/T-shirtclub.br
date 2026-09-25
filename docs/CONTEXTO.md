@@ -7,7 +7,7 @@ Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atuali
 | O quê | Onde |
 |---|---|
 | Especificação funcional (atualizada com as decisões) | `especificacao_funcional_sistema_reserva.html` |
-| Desenho técnico, versão 10 | `docs/arquitetura-reservas.html` |
+| Desenho técnico, versão 11 | `docs/arquitetura-reservas.html` |
 | Relatório da revisão geral (achados G1 a G24) | `docs/REVISAO-GERAL.md` |
 | Painel de execução (fases, entregas, testes, publicação, dependências) | `docs/painel-execucao.html` |
 | Design do frontend (identidade, design system, telas finais, textos) | `docs/design-frontend.html` |
@@ -34,7 +34,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 - **Endereço de entrega:** guardado por 90 dias após a entrega (D15).
 - **Sessão:** o navegador só chama o próprio domínio (`/api`, repasse no Next.js), para o cookie funcionar no iPhone (G1).
 - **Publicação:** Supabase Pro (`sa-east-1`) e Vercel Pro (`gru1`); checklist na seção 17 do desenho técnico.
-- **Frontend e design (D16):** frente de design D1 a D6 antes e junto da F1; o Claude cria e a loja aprova. Identidade proposta "etiqueta" (kraft, índigo, Archivo + Instrument Sans), `packages/ui` com os tokens, critério de pronto de cada tela na seção 18 do desenho técnico.
+- **Frontend e design (D16):** frente de design D1 a D6 antes e junto da F1; o Claude cria e a loja aprova. Marca oficial T-shirt Club.br (D17): paleta da prancha 2 com tons derivados para contraste, Baloo 2 + Poppins; referências em `docs/design/marca/`. `packages/ui` com os tokens, critério de pronto de cada tela na seção 18 do desenho técnico.
 - **LGPD:** aviso no formulário e política em texto-modelo (`20-privacidade.html`), dados da empresa entre colchetes.
 
 ## Situação
@@ -45,7 +45,7 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 **Painel de execução:** `docs/painel-execucao.html` acompanha tudo o que a arquitetura planejou. Os dados ficam num bloco JSON no início do arquivo. A cada entrega, no mesmo commit: mudar o status do item (com evidência quando "feito"), atualizar `meta` e acrescentar uma linha no histórico.
 
-**Design:** proposta 1 criada em 25/09 (`docs/design-frontend.html`), aguardando aprovação da loja (D1 a D4). A F2 só começa com D1 e D2 aprovados.
+**Design:** proposta 2 com a marca T-shirt Club.br (`docs/design-frontend.html`), validada e aguardando aprovação. Pendências da loja: logo em SVG, prancha oficial, endereço do site (a marca usa ".br"; o domínio registrado é tshirtclub.pt) e liberar coucousuzette.com na rede para conferir a referência. A F2 só começa com D1 e D2 aprovados.
 
 **Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
 

@@ -155,7 +155,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
 
 <main>
 <header class="top">
-  <p class="eyebrow">Desenho técnico · versão 10</p>
+  <p class="eyebrow">Desenho técnico · versão 11</p>
   <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
   <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
   <div class="meta">
@@ -164,7 +164,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
     <span><b>Execução:</b> <a href="painel-execucao.html">painel de execução</a></span>
   </div>
-  <div class="callout"><p><b>Versão 10.</b> Inclui o frontend e o design no plano (seção <a href="#frontend">18</a>): frente de design D1 a D6, arquitetura do frontend, critério de pronto de cada tela e as entregas de tela em todas as fases. O design proposto está em <a href="design-frontend.html">design-frontend.html</a>.</p><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
+  <div class="callout"><p><b>Versão 11.</b> Aplica a marca oficial T-shirt Club.br (D17): paleta da prancha 2 com tons derivados para contraste, Baloo 2 e Poppins, e a validação da marca no documento de design (M1 a M10). Ficam para a loja confirmar: logo em SVG, prancha oficial e o endereço do site (M5).</p><p><b>Versão 10.</b> Inclui o frontend e o design no plano (seção <a href="#frontend">18</a>): frente de design D1 a D6, arquitetura do frontend, critério de pronto de cada tela e as entregas de tela em todas as fases. O design proposto está em <a href="design-frontend.html">design-frontend.html</a>.</p><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
   <div class="flow" aria-label="Fluxo principal">
     <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
     <span class="st res">RESERVADO</span><span class="arrow">→</span>
@@ -201,6 +201,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
       <tr><td>D14</td><td>Modo lançamento</td><td>Aprovado. A loja liga no painel nos lançamentos; o risco maior de bloqueio do número fica aceito (G5, W2).</td></tr>
       <tr><td>D15</td><td>Endereço de entrega</td><td>Guardado por <b>90 dias</b> após a entrega; depois fica só a cidade (G9).</td></tr>
       <tr><td>D16</td><td>Design</td><td>Frontend e design entram no plano como frente própria (D1 a D6). O Claude cria o design; a loja aprova identidade, telas e textos antes da F2 (seção 18).</td></tr>
+      <tr><td>D17</td><td>Marca</td><td>Marca oficial <b>T-shirt Club.br</b> enviada pela loja: rosa, verde, rosa claro e creme (prancha 2), Baloo 2 nos títulos e Poppins no texto. Texto e botões usam tons derivados do mesmo matiz para passar no contraste (M1).</td></tr>
       <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login com e-mail, senha e autenticador (D12); todas as peças são de <b>tamanho único</b>.</td></tr>
     </tbody>
   </table></div>
@@ -1200,7 +1201,7 @@ END IF;</pre>
   <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>Entrega</th><th>Quem</th><th>Quando</th></tr></thead>
     <tbody>
-      <tr><td>D1</td><td>Identidade: logotipo, paleta, tipografia, padrão de fotos, tom de voz. Proposta "etiqueta" (kraft, índigo, Archivo e Instrument Sans), porque a loja não tinha marca definida</td><td>Claude propõe, loja aprova</td><td>Antes da F2</td></tr>
+      <tr><td>D1</td><td>Identidade: marca T-shirt Club.br enviada pela loja (D17), validada e adaptada para a tela: paleta com tons derivados para contraste, Baloo 2 e Poppins, etiqueta rosa como preço, destaques redondos como filtros, padrão de fotos e tom de voz. Falta o logo em SVG (M4)</td><td>Loja envia, Claude valida e adapta</td><td>Antes da F2</td></tr>
       <tr><td>D2</td><td>Design system: tokens (cores claro e escuro, fontes, raios, espaço, movimento) e componentes com estados. Contrastes medidos: texto a partir de 4,5:1, contornos e foco a partir de 3:1</td><td>Claude</td><td>Antes da F2; código na F1 e na F2</td></tr>
       <tr><td>D3</td><td>Telas finais das jornadas principais no celular (7 telas no documento de design). As demais telas usam os mesmos componentes e o fluxo do protótipo, e são fechadas na fase de cada uma</td><td>Claude propõe, loja aprova</td><td>Antes da F2; restantes por fase</td></tr>
       <tr><td>D4</td><td>Textos: erros por código da API, estados vazios, mensagens do WhatsApp (as 5 essenciais com 2 versões)</td><td>Claude propõe, loja revisa</td><td>Antes da F3</td></tr>
@@ -1220,7 +1221,7 @@ END IF;</pre>
       <tr><td>Dados na tela</td><td>Um cliente de API em <code>shared/api</code> que devolve o erro pelo código estável (seção 11). Hooks próprios: consulta periódica (pausa com a aba oculta, espaça depois de 1 min) e relógio do servidor (corrige o desvio por <code>server_now</code>). Sem biblioteca de estado global; o carrinho fica no <code>localStorage</code>.</td></tr>
       <tr><td>Formulários</td><td>Campos HTML nativos com os schemas Zod do <code>packages/domain</code>, as mesmas regras da API. Erro escrito junto do campo, com o texto do D4.</td></tr>
       <tr><td>Textos</td><td>Só português do Brasil, todos num arquivo (<code>packages/domain/textos.ts</code>). A tela nunca mostra a mensagem crua da API.</td></tr>
-      <tr><td>Fontes e imagens</td><td>Archivo e Instrument Sans por <code>next/font</code>, auto-hospedadas e só com o alfabeto latino. Fotos pelo <code>next/image</code> a partir do Supabase Storage, em AVIF/WebP.</td></tr>
+      <tr><td>Fontes e imagens</td><td>Baloo 2 (600 a 800) e Poppins (400 a 600) por <code>next/font</code>, auto-hospedadas e só com o alfabeto latino. A frase manuscrita da marca entra como imagem SVG, não como fonte. Fotos pelo <code>next/image</code> a partir do Supabase Storage, em AVIF/WebP.</td></tr>
       <tr><td>Pagamento</td><td>Card Payment Brick do Mercado Pago carregado só quando a cliente escolhe cartão; PIX com o QR em imagem vindo do provedor.</td></tr>
       <tr><td>PWA</td><td>Manifesto e service worker (Serwist) guardando só a casca do app e as imagens; nunca <code>/api</code>, <code>/r</code> nem páginas com dados da cliente.</td></tr>
       <tr><td>Componentes em desenvolvimento</td><td>Página interna <code>/_componentes</code>, só no ambiente de desenvolvimento, com todos os componentes e estados nos dois temas. É ela que a comparação visual do CI fotografa.</td></tr>
