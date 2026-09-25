@@ -13,7 +13,7 @@
       itens:[{produto:'p6',qtd:2}],
       linha:[['17:50:00','Reserva criada','Expira às 18:05:00.'],['17:58:30','Cancelamento solicitado','Pela cliente.'],['17:59:10','Tentativa de pagamento registrada','Cobrança gerada.'],
              ['18:02:00','Cancelamento aprovado','Reserva encerrada; cobrança cancelada no provedor.'],['18:02:40','Provedor aprovou o pagamento','Chegou depois do encerramento: análise.']]},
-    {id:'c3',reserva:'#1031',cliente:'Rita L.',telefone:'(77) •••••-5520',motivo:'APROVADO_APOS_TOLERANCIA',valor:4990,transacao:'TX-88390011',situacao:'RESOLVIDA',
+    {id:'c3',reserva:'#1031',cliente:'Rita L.',telefone:'(77) •••••-5520',motivo:'APROVADO_APOS_TOLERANCIA',valor:4999,transacao:'TX-88390011',situacao:'RESOLVIDA',
       itens:[{produto:'p3',qtd:1}],resolucao:'Estornado em 24/09 às 10:12 por Carol (admin): "Cliente preferiu o reembolso."',
       linha:[['09:40:00','Reserva criada',''],['09:55:00','Reserva expirada','Sem tentativa pendente.'],['09:58:20','Provedor aprovou o pagamento','Análise aberta.']]}
   ];

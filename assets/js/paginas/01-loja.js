@@ -11,9 +11,13 @@
 
   const compreMais=PROMOCOES.filter(pr=>pr.tipo==='COMPRE_MAIS'&&situacaoPromocao(pr).texto==='Ativa');
 
+  function rotuloCompreMais(pr){
+    return pr.modo==='PRECO_POR_GRUPO'?`${pr.nome}: ${pr.grupo.qtd} por ${reais(pr.grupo.precoCentavos)}`:pr.niveis.map(n=>`Leve ${n.qtd}, ganhe ${n.pct}%`).join(' · ');
+  }
+
   function badgesPromocao(){
     document.getElementById('promoBadges').innerHTML=compreMais.map(pr=>
-      `<span class="badge citron">${pr.niveis.map(n=>`Leve ${n.qtd}, ganhe ${n.pct}%`).join(' · ')}</span>`).join('');
+      `<span class="badge citron">${rotuloCompreMais(pr)}</span>`).join('');
   }
 
   function cartao(p){
@@ -21,7 +25,7 @@
     const tier=compreMais.find(pr=>pr.escopo==='TODOS'||pr.produtos.includes(p.id));
     const preco=promo
       ?`<div class="strike">${reais(p.precoCentavos)}</div><div class="price">${reais(promo.preco)}</div><div class="muted" style="font-size:11px">${escaparHtml(promo.promocao.nome)}</div>`
-      :`<div class="price">${reais(p.precoCentavos)}</div>${tier?`<div class="muted" style="font-size:11px">${tier.niveis[0].pct}% OFF levando ${tier.niveis[0].qtd}</div>`:''}`;
+      :`<div class="price">${reais(p.precoCentavos)}</div>${tier?`<div class="muted" style="font-size:11px">${tier.modo==='PRECO_POR_GRUPO'?`${tier.grupo.qtd} por ${reais(tier.grupo.precoCentavos)}`:`${tier.niveis[0].pct}% OFF levando ${tier.niveis[0].qtd}`}</div>`:''}`;
     return `<article class="card product" data-col="${escaparHtml(p.colecao)}" data-status="${sit.texto}">
       <div class="product-media"><div class="dot"></div>${SVG}</div>
       <div class="row" style="margin-top:13px"><div><h3>${escaparHtml(p.nome)}</h3><div class="muted" style="font-size:12px">${escaparHtml(p.colecao)} · tamanho único</div></div><span class="badge ${sit.classe}">${sit.texto}</span></div>
@@ -37,7 +41,11 @@
       ||'<p class="muted">Nenhuma peça com esses filtros.</p>';
     const r=MotorPreco.calcular(Carrinho.itens(carrinho));
     document.getElementById('cartCount').textContent=r.pecas;
-    document.getElementById('summaryLine').textContent=r.pecas?`${r.pecas} peça(s) selecionada(s).`:'Nenhuma peça selecionada.';
+    const g=MotorPreco.faltaParaGrupo(Carrinho.itens(carrinho));
+    const oferta=g&&`${g.promocao.grupo.qtd} por ${reais(g.promocao.grupo.precoCentavos)}`;
+    const dica=!g||!r.pecas?'':g.falta===g.promocao.grupo.qtd?` Club fechado: ${oferta}.`
+      :r.pecas+g.falta<=9?` Falta${g.falta>1?'m':''} ${g.falta} para fechar o Club (${oferta}).`:'';
+    document.getElementById('summaryLine').textContent=(r.pecas?`${r.pecas} peça(s) selecionada(s).`:'Nenhuma peça selecionada.')+dica;
     document.getElementById('promoLine').textContent=r.aplicada?`Desconto aplicado: ${r.aplicada.rotulo}. Vale só a promoção mais vantajosa.`:'';
     document.getElementById('total').textContent=reais(r.total);
     document.getElementById('originalTotal').textContent=r.desconto?reais(r.subtotal):'';

@@ -4,7 +4,7 @@
 
   function regra(pr){
     if(pr.tipo==='COMPRE_MAIS'){
-      const niveis=pr.niveis.map(n=>`${n.qtd} peças → ${n.pct}%`).join(' · ');
+      const niveis=pr.modo==='PRECO_POR_GRUPO'?`A cada ${pr.grupo.qtd} peças, ${reais(pr.grupo.precoCentavos)}`:pr.niveis.map(n=>`${n.qtd} peças → ${n.pct}%`).join(' · ');
       const extra=[pr.umaPorCliente?'1 por cliente':'',pr.orcamentoCentavos?`orçamento ${reais(pr.orcamentoCentavos)}`:''].filter(Boolean).join(' · ');
       return niveis+(extra?`<div class="muted">${extra}</div>`:'')+`<div class="muted">${reais(pr.usadoCentavos)} concedidos</div>`;
     }

@@ -155,7 +155,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
 
 <main>
 <header class="top">
-  <p class="eyebrow">Desenho técnico · versão 12</p>
+  <p class="eyebrow">Desenho técnico · versão 13</p>
   <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
   <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
   <div class="meta">
@@ -164,7 +164,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
     <span><b>Execução:</b> <a href="painel-execucao.html">painel de execução</a></span>
   </div>
-  <div class="callout"><p><b>Versão 12.</b> Nova direção visual (D18), "clube de stickers": página branca e leve, com o rosa e o verde da marca como tempero (botões, stickers, destaques e momentos de impacto) e cores próprias para cada coleção (Mediterrâneo, Limão, Tomate). O botão volta ao rosa original com texto escuro. A prancha 2 é a oficial.</p><p><b>Versão 11.</b> Aplica a marca oficial T-shirt Club.br (D17): paleta da prancha 2 com tons derivados para contraste, Baloo 2 e Poppins, e a validação da marca no documento de design (M1 a M10). Ficam para a loja confirmar: logo em SVG, prancha oficial e o endereço do site (M5).</p><p><b>Versão 10.</b> Inclui o frontend e o design no plano (seção <a href="#frontend">18</a>): frente de design D1 a D6, arquitetura do frontend, critério de pronto de cada tela e as entregas de tela em todas as fases. O design proposto está em <a href="design-frontend.html">design-frontend.html</a>.</p><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
+  <div class="callout"><p><b>Versão 13.</b> Separa "vender desejo" de "processar a venda" (D21): a loja ganha uma camada de descoberta editorial (campanha, coleções, looks, página de produto) antes do fluxo de reserva, que fica como está. Oferta "Monte seu Club", 3 por R$ 119,99 a cada 3 peças (D19), cadastrada como compre e economize mais em preço por grupo. Produtos com até 10 fotos, coleções com cor configurável e looks (D20). A loja pública fica só no tema claro.</p><p><b>Versão 12.</b> Nova direção visual (D18), "clube de stickers": página branca e leve, com o rosa e o verde da marca como tempero (botões, stickers, destaques e momentos de impacto) e cores próprias para cada coleção (Mediterrâneo, Limão, Tomate). O botão volta ao rosa original com texto escuro. A prancha 2 é a oficial.</p><p><b>Versão 11.</b> Aplica a marca oficial T-shirt Club.br (D17): paleta da prancha 2 com tons derivados para contraste, Baloo 2 e Poppins, e a validação da marca no documento de design (M1 a M10). Ficam para a loja confirmar: logo em SVG, prancha oficial e o endereço do site (M5).</p><p><b>Versão 10.</b> Inclui o frontend e o design no plano (seção <a href="#frontend">18</a>): frente de design D1 a D6, arquitetura do frontend, critério de pronto de cada tela e as entregas de tela em todas as fases. O design proposto está em <a href="design-frontend.html">design-frontend.html</a>.</p><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
   <div class="flow" aria-label="Fluxo principal">
     <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
     <span class="st res">RESERVADO</span><span class="arrow">→</span>
@@ -203,6 +203,9 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
       <tr><td>D16</td><td>Design</td><td>Frontend e design entram no plano como frente própria (D1 a D6). O Claude cria o design; a loja aprova identidade, telas e textos antes da F2 (seção 18).</td></tr>
       <tr><td>D17</td><td>Marca</td><td>Marca oficial <b>T-shirt Club.br</b> enviada pela loja: rosa, verde, rosa claro e creme (prancha 2), Baloo 2 nos títulos e Poppins no texto. Onde o rosa vira texto, usa tons derivados do mesmo matiz para passar no contraste; o botão usa o rosa original com texto escuro (D18).</td></tr>
       <tr><td>D18</td><td>Cores no site</td><td>Rosa e verde são a assinatura, usados como <b>tempero</b>: botão principal (rosa original com texto escuro), stickers, estrelas, passo atual e momentos de impacto; o resto é papel branco e tinta. Cada coleção tem cor própria (Teddy: Tomate, Dog Club: Mediterrâneo, Trendy: Limão) na capa, no fundo das fotos e na estampa, sempre com nome e estampa junto (a cor nunca identifica a coleção sozinha). Cores novas de coleção passam pelo validador antes de entrar no ar.</td></tr>
+      <tr><td>D19</td><td>Oferta principal</td><td><b>"Monte seu Club"</b>: peça a R$ 49,99 e <b>cada grupo de 3 peças por R$ 119,99</b>; as que sobram pagam o preço normal (4 = R$ 169,98; 6 = R$ 239,98). Mostrada como "3 por R$ 119,99", nunca como porcentagem. Entra no motor como compre e economize mais no modo preço por grupo.</td></tr>
+      <tr><td>D20</td><td>Catálogo</td><td>Cada produto tem página própria e <b>de 1 a 10 fotos</b> (frente, costas, detalhe, vestida, campanha), com texto alternativo obrigatório e ordem definida pela loja. Coleções configuráveis no painel (nome, capa, descrição e cor escolhida numa lista aprovada). Looks: foto de campanha com os produtos marcados.</td></tr>
+      <tr><td>D21</td><td>Experiência da loja</td><td>Descoberta editorial primeiro (cerca de 80% foto, produto e coleção; 20% identidade), depois o fluxo de reserva. Stickers com moderação. A loja pública tem <b>só o tema claro</b>; o tema escuro fica no painel.</td></tr>
       <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login com e-mail, senha e autenticador (D12); todas as peças são de <b>tamanho único</b>.</td></tr>
     </tbody>
   </table></div>
@@ -536,9 +539,11 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
-      <tr><td><code>collections</code></td><td>id, name, slug, active</td><td>Filtros Teddy, Dog Club, Trendy.</td></tr>
-      <tr><td><code>products</code></td><td>id, collection_id, code, name, <b>price_cents</b> (preço fixo), active, <b>qty_total, qty_reserved, qty_sold</b>, updated_at</td><td>Tamanho único: o estoque fica no produto. <code>CHECK (qty_reserved ≥ 0 AND qty_sold ≥ 0 AND qty_reserved + qty_sold ≤ qty_total)</code>, a última barreira contra estoque negativo. Disponível = total − reservado − vendido.</td></tr>
-      <tr><td><code>product_images</code></td><td>id, product_id, storage_path, position</td><td>Supabase Storage.</td></tr>
+      <tr><td><code>collections</code></td><td>id, name, slug, description (até 160), <b>color_key</b>, cover_image_id, position, active</td><td><code>color_key</code> vem de uma lista fechada de cores já validadas quanto a contraste (enum <code>collection_color</code>: TOMATE, LIMAO, MEDITERRANEO, LAVANDA, MENTA; novas cores só depois de validadas); a loja escolhe, não digita cor. Exemplos: Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy, Dog Club.</td></tr>
+      <tr><td><code>products</code></td><td>id, collection_id, code, <b>slug</b>, name, <b>price_cents</b> (preço fixo), description, composition, fit, measurements jsonb, care, published_at, active, <b>qty_total, qty_reserved, qty_sold</b>, updated_at</td><td>Tamanho único: o estoque fica no produto. <code>CHECK (qty_reserved ≥ 0 AND qty_sold ≥ 0 AND qty_reserved + qty_sold ≤ qty_total)</code>, a última barreira contra estoque negativo. Disponível = total − reservado − vendido.</td></tr>
+      <tr><td><code>product_images</code></td><td>id, product_id, storage_path, <b>kind</b> (FRENTE, COSTAS, DETALHE, VESTIDA, CAMPANHA), <b>alt_text</b> (obrigatório, até 200), width, height, position</td><td>De 1 a 10 por produto (trigger conta ao inserir; publicar exige pelo menos 1). <code>UNIQUE (product_id, position)</code>; a posição 1 é a capa. O painel reduz a foto no navegador para até 2400 px em WebP e envia por URL assinada do Supabase Storage; o <code>next/image</code> gera os tamanhos. Reservas guardam nome e preço, não a foto.</td></tr>
+      <tr><td><code>looks</code> · <code>look_products</code></td><td>id, title, image_id, position, active · look_id, product_id, x, y (ponto marcado na foto, 0 a 1)</td><td>"Shop the look": a cliente adiciona à sacola a partir da foto.</td></tr>
+      <tr><td><code>home_blocks</code></td><td>id, kind (CAMPANHA, NOVIDADES, COLECOES, LOOKS, MONTE_SEU_CLUB, PRODUTOS), ref_id, title, position, active</td><td>Ordem da página inicial, editável no painel. Mudou, a CDN renova a página (revalidação por tag).</td></tr>
       <tr><td><code>stock_movements</code></td><td>id, product_id, kind, qty, reservation_id, actor_type, actor_id, reason, created_at</td><td>Somente inserção. Permite reconstruir o saldo.</td></tr>
     </tbody>
   </table></div>
@@ -657,9 +662,9 @@ sequenceDiagram
   <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
-      <tr><td><code>promotions</code></td><td>id, <b>type</b> (DESCONTO_PRODUTO, COMPRE_MAIS, CUPOM), name (até 50), starts_at, ends_at, scope (TODOS, ESPECIFICOS), one_per_customer, budget_cents, budget_used_cents, ended_at, created_by</td><td>Situação calculada: agendada, ativa, encerrada. Encerrar antes do fim grava <code>ended_at</code>. <code>CHECK (budget_used_cents ≤ budget_cents)</code> quando há orçamento.</td></tr>
+      <tr><td><code>promotions</code></td><td>id, <b>type</b> (DESCONTO_PRODUTO, COMPRE_MAIS, CUPOM), <b>buy_more_mode</b> (NIVEIS, PRECO_POR_GRUPO; só em COMPRE_MAIS), <b>group_qty</b> (2 a 9), <b>group_price_cents</b>, name (até 50), starts_at, ends_at, scope (TODOS, ESPECIFICOS), one_per_customer, budget_cents, budget_used_cents, ended_at, created_by</td><td>Situação calculada: agendada, ativa, encerrada. Encerrar antes do fim grava <code>ended_at</code>. <code>CHECK (budget_used_cents ≤ budget_cents)</code> quando há orçamento.</td></tr>
       <tr><td><code>promotion_products</code></td><td>promotion_id, product_id, <b>discount_kind</b> (PERCENTUAL, PRECO_FIXO), discount_value</td><td>Para DESCONTO_PRODUTO guarda o valor por produto; nos outros tipos, só o escopo. Um produto não entra em dois descontos do produto com períodos sobrepostos (constraint de exclusão com <code>tstzrange</code>).</td></tr>
-      <tr><td><code>promotion_tiers</code></td><td>promotion_id, level (1 a 3), min_qty (2 a 9), percent (1 a 90)</td><td>Quantidade e porcentagem crescentes entre níveis.</td></tr>
+      <tr><td><code>promotion_tiers</code></td><td>promotion_id, level (1 a 3), min_qty (2 a 9), percent (1 a 90)</td><td>Só no modo NIVEIS. Quantidade e porcentagem crescentes entre níveis. No modo PRECO_POR_GRUPO, <code>CHECK</code> exige <code>group_qty</code> e <code>group_price_cents</code> preenchidos e nenhum nível.</td></tr>
       <tr><td><code>coupons</code></td><td>promotion_id (PK), <b>code</b> (único, maiúsculas), kind (VALOR, PERCENTUAL), value, max_discount_cents, min_spend_cents, total_quantity, <b>used_quantity</b>, per_customer_limit, validity_days</td><td><code>CHECK (used_quantity ≤ total_quantity)</code>, até 9.999.999.</td></tr>
       <tr><td><code>coupon_uses</code></td><td>id, coupon_id, phone_e164, reservation_id, status (PRESO, USADO, DEVOLVIDO), first_used_at, created_at</td><td>PRESO enquanto a reserva está em RESERVADO; USADO quando paga; DEVOLVIDO se expirar. O limite por cliente conta PRESO + USADO do telefone.</td></tr>
       <tr><td><code>reservation_discounts</code></td><td>id, reservation_id, promotion_id, type, amount_cents, detail jsonb</td><td>Foto do que foi aplicado. Nunca é recalculada.</td></tr>
@@ -670,12 +675,18 @@ sequenceDiagram
 <pre tabindex="0">preço de cada item = preço fixo do produto
 candidatas = [sem promoção]
   + cada DESCONTO_PRODUTO ativo que cobre algum item   (preço promocional nesses itens)
-  + cada COMPRE_MAIS ativa: maior nível atingido pelas peças participantes → % sobre elas
-    (respeita orçamento restante e "uma por cliente")
+  + cada COMPRE_MAIS ativa (respeita orçamento restante e "uma por cliente"):
+      NIVEIS:           maior nível atingido pelas peças participantes → % sobre elas
+      PRECO_POR_GRUPO:  ordena as peças participantes do preço maior para o menor,
+                        forma floor(peças / group_qty) grupos; cada grupo custa group_price_cents;
+                        as que sobram pagam o preço normal; desconto = soma dos grupos − preço dos grupos
+                        (grupo que não economiza não conta). "Monte seu Club": group_qty 3, R$ 119,99
+                        → 3 = 119,99 · 4 = 169,98 · 6 = 239,98 · 9 = 359,97
   + CUPOM digitado, se válido: vigência, escopo, gasto mínimo sobre o subtotal sem desconto,
     quantidade restante, limite do telefone; valor ou % (com teto)
 aplicada = a candidata com MENOR total; empate → a que não consome cupom
-desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
+desconto ≤ subtotal; centavos arredondados meio para cima, por item
+(no preço por grupo, o desconto do grupo é rateado entre as 3 peças; a última absorve o centavo)</pre>
   <ul>
     <li><b>Código único:</b> o motor é TypeScript puro em <code>packages/domain</code>, usado pela loja (prévia) e pela Edge Function. A função SQL <code>create_reservation</code> recebe as linhas calculadas e só confirma o que depende de concorrência.</li>
     <li><b>Cupom perdido para promoção melhor:</b> se o cupom digitado não for a opção mais vantajosa, ele não é aplicado nem gasta o limite. A loja e a API avisam: <code>COUPON_NOT_BEST</code>, "Você já tem um desconto maior".</li>
@@ -894,7 +905,10 @@ END IF;</pre>
   <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Método e rota</th><th>Função</th><th>Erros principais</th></tr></thead>
     <tbody>
-      <tr><td><code>GET /v1/catalog/collections</code></td><td>Coleções ativas</td><td>—</td></tr>
+      <tr><td><code>GET /v1/catalog/home</code></td><td>Blocos da página inicial na ordem do painel (campanha, novidades, coleções, looks, "Monte seu Club", produtos)</td><td>—</td></tr>
+      <tr><td><code>GET /v1/catalog/collections</code></td><td>Coleções ativas, com cor, capa e descrição</td><td>—</td></tr>
+      <tr><td><code>GET /v1/catalog/products/:slug</code></td><td>Página do produto: fotos na ordem, detalhes, medidas, cuidados, preço vigente e disponibilidade</td><td><code>NOT_FOUND</code></td></tr>
+      <tr><td><code>GET /v1/catalog/looks</code></td><td>Looks ativos com os produtos marcados</td><td>—</td></tr>
       <tr><td><code>GET /v1/catalog/products?collection=&amp;availability=</code></td><td>Produtos, preço de tabela, preço promocional vigente e disponibilidade</td><td>—</td></tr>
       <tr><td><code>POST /v1/cart/quote</code></td><td><code>{items, coupon_code?}</code>: valida as regras 9 / 2 por produto e calcula promoções e cupom. Não reserva nada</td><td><code>MAX_ITEMS</code>, <code>MAX_PER_MODEL</code>, <code>INSUFFICIENT_STOCK</code></td></tr>
       <tr><td><code>POST /v1/reservation-attempts</code></td><td>Nome, telefone, intenção de entrega, itens, total esperado e Turnstile. Cria a tentativa, devolve a referência curta e o link <code>wa.me</code> e grava o cookie da tentativa. Não envia mensagem: o código sai quando a cliente escreve (W3)</td><td><code>PHONE_BLOCKED</code>, <code>ACTIVE_RESERVATION_EXISTS</code>, <code>OTP_LOCKED</code>, <code>WHATSAPP_OFFLINE</code>, <code>RATE_LIMITED</code></td></tr>
@@ -946,7 +960,8 @@ END IF;</pre>
       <tr><td><code>GET /v1/admin/mfa/factors</code> · <code>POST .../enroll</code> · <code>DELETE .../:id</code></td><td>Autenticadores cadastrados na tela Minha conta. Remover exige um código válido de outro autenticador (D12)</td></tr>
       <tr><td><code>PUT /v1/admin/settings/whatsapp</code></td><td>Ritmo da fila, modo lançamento e notificações opcionais (G5)</td></tr>
       <tr><td><code>GET /v1/admin/phone-blocks</code> · <code>POST .../:id/release</code> · <code>/keep</code></td><td>Liberar ou manter, com motivo</td></tr>
-      <tr><td><code>CRUD /v1/admin/products</code>, <code>/collections</code></td><td>Catálogo e imagens</td></tr>
+      <tr><td><code>CRUD /v1/admin/products</code>, <code>/collections</code>, <code>/looks</code>, <code>/home-blocks</code></td><td>Catálogo, coleções, looks e ordem da página inicial</td></tr>
+      <tr><td><code>POST /v1/admin/products/:id/images</code> · <code>PATCH .../images/order</code> · <code>DELETE .../images/:image_id</code></td><td>Devolve URL assinada de envio (só imagem, até 15 MB); grava tipo e texto alternativo; reordena; apaga (mínimo 1 se publicado)</td></tr>
       <tr><td><code>CRUD /v1/admin/promotions</code> · <code>POST .../:id/end</code></td><td>Desconto do produto, compre e economize mais, cupom; encerramento antecipado</td></tr>
       <tr><td><code>POST /v1/admin/products/:id/stock-adjustments</code></td><td><code>{delta, reason}</code>, sob o mesmo lock</td></tr>
       <tr><td><code>GET /v1/admin/audit?entity=&amp;id=</code></td><td>Consulta da auditoria</td></tr>
@@ -1135,7 +1150,7 @@ END IF;</pre>
       <tr><td>Link da reserva tentando confirmar a entrega sem validar o WhatsApp</td><td><code>PHONE_VERIFICATION_REQUIRED</code>; depois do código, aceito (D13)</td></tr>
       <tr><td>Restauração do backup num projeto vazio</td><td>Sistema sobe, e o verificador de invariantes passa</td></tr>
       <tr><td>Jornada completa no celular: loja → dados → código → reserva → PIX → meu pedido, em viewport de Android e de iPhone</td><td>Passa de ponta a ponta com os provedores falsos, sem violação do axe em nenhuma etapa</td></tr>
-      <tr><td>Página interna de componentes, nos temas claro e escuro</td><td>Capturas iguais às aprovadas; qualquer diferença visual precisa ser aceita no PR</td></tr>
+      <tr><td>Página interna de componentes (loja no claro; painel no claro e no escuro)</td><td>Capturas iguais às aprovadas; qualquer diferença visual precisa ser aceita no PR</td></tr>
     </tbody>
   </table></div>
   <p>Camadas: testes unitários do pacote <code>domain</code> (Vitest), pgTAP para funções, constraints e RLS, testes de integração das Edge Functions com provedores falsos, script de concorrência contra um Postgres local, ponta a ponta com Playwright em viewport de Android e de iPhone (com axe em cada tela), Lighthouse no CI com as metas da seção 2b, e teste de carga (k6) com 100 clientes simuladas.</p>
@@ -1202,11 +1217,11 @@ END IF;</pre>
   <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>Entrega</th><th>Quem</th><th>Quando</th></tr></thead>
     <tbody>
-      <tr><td>D1</td><td>Identidade: marca T-shirt Club.br (D17, prancha 2 oficial) na direção "clube de stickers" (D18): rosa e verde como tempero, cores de coleção, stickers recortados, etiqueta de papel como preço, destaques redondos como filtros, costura como cronômetro, padrão de fotos e tom de voz. Falta o logo em SVG (M4)</td><td>Loja envia, Claude valida e adapta</td><td>Antes da F2</td></tr>
-      <tr><td>D2</td><td>Design system: tokens (cores claro e escuro, fontes, raios, espaço, movimento) e componentes com estados. Contrastes medidos: texto a partir de 4,5:1, contornos e foco a partir de 3:1</td><td>Claude</td><td>Antes da F2; código na F1 e na F2</td></tr>
-      <tr><td>D3</td><td>Telas finais das jornadas principais no celular (7 telas no documento de design). As demais telas usam os mesmos componentes e o fluxo do protótipo, e são fechadas na fase de cada uma</td><td>Claude propõe, loja aprova</td><td>Antes da F2; restantes por fase</td></tr>
+      <tr><td>D1</td><td>Identidade: marca T-shirt Club.br (D17, prancha 2 oficial), rosa e verde como tempero (D18) e experiência editorial (D21): foto e produto na frente, stickers com moderação, Baloo 2 só nos títulos grandes, cores de coleção configuráveis, costura como cronômetro, direção de fotos e tom de voz. Falta o logo em SVG (M4)</td><td>Loja envia, Claude valida e adapta</td><td>Antes da F2</td></tr>
+      <tr><td>D2</td><td>Design system: tokens (loja só no claro; painel claro e escuro; fontes, raios, espaço, movimento) e componentes com estados. Contrastes medidos: texto a partir de 4,5:1, contornos e foco a partir de 3:1</td><td>Claude</td><td>Antes da F2; código na F1 e na F2</td></tr>
+      <tr><td>D3</td><td>Telas finais no celular: descoberta (início, coleção, produto com galeria, looks, sacola "Monte seu Club") e reserva (dados, código, PIX, pedido, expirada), além do painel. As demais telas usam os mesmos componentes e o fluxo do protótipo, e são fechadas na fase de cada uma</td><td>Claude propõe, loja aprova</td><td>Antes da F2; restantes por fase</td></tr>
       <tr><td>D4</td><td>Textos: erros por código da API, estados vazios, mensagens do WhatsApp (as 5 essenciais com 2 versões)</td><td>Claude propõe, loja revisa</td><td>Antes da F3</td></tr>
-      <tr><td>D5</td><td>Imagens: fotos dos produtos no padrão do D1, ícones do app (192, 512 e maskable), ícone para iPhone, favicon, imagem de compartilhamento</td><td>Loja (fotos) e Claude (ícones)</td><td>Fotos antes da F2; ícones na F11</td></tr>
+      <tr><td>D5</td><td>Imagens: por produto, frente, costas, detalhe da estampa e pelo menos uma foto vestida; campanha de cada coleção e looks (com jeans, saia, alfaiataria), no padrão do D1; ícones do app (192, 512 e maskable), ícone para iPhone, favicon, imagem de compartilhamento</td><td>Loja (fotos) e Claude (ícones)</td><td>Fotos antes da F2; ícones na F11</td></tr>
       <tr><td>D6</td><td>Teste de uso com 3 a 5 clientes no celular, fazendo uma reserva completa em ambiente de teste; ajustes do que travar</td><td>Loja convida, Claude conduz e ajusta</td><td>Antes da publicação</td></tr>
     </tbody>
   </table></div>
@@ -1216,16 +1231,16 @@ END IF;</pre>
     <thead><tr><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
       <tr><td>Design system</td><td><code>packages/ui</code>: tokens do design como variáveis CSS, preset do Tailwind gerado deles e componentes React usados pelos dois apps. Sem biblioteca de componentes pronta, para caber na meta de 150 KB de JavaScript inicial. Ícones do <code>lucide-react</code>, importados um a um.</td></tr>
-      <tr><td>Rotas da loja</td><td><code>/</code> loja · <code>/reserva</code> seus dados · <code>/reserva/codigo</code> código · <code>/reserva/[numero]</code> reserva ativa e pagamento · <code>/pedido/[numero]</code> meu pedido · <code>/r</code> entrada pelo link (chave no fragmento) · <code>/consulta</code> · <code>/privacidade</code> · <code>/offline</code>.</td></tr>
+      <tr><td>Rotas da loja</td><td><code>/</code> início · <code>/colecao/[slug]</code> · <code>/produto/[slug]</code> · <code>/looks</code> · <code>/sacola</code> · <code>/reserva</code> seus dados · <code>/reserva/codigo</code> código · <code>/reserva/[numero]</code> reserva ativa e pagamento · <code>/pedido/[numero]</code> meu pedido · <code>/r</code> entrada pelo link (chave no fragmento) · <code>/consulta</code> · <code>/privacidade</code> · <code>/offline</code>.</td></tr>
       <tr><td>Rotas do painel</td><td><code>/login</code> e <code>/login/codigo</code> (autenticador) · <code>/</code> · <code>/reservas</code> e <code>/reservas/[numero]</code> · <code>/catalogo</code> · <code>/estoque</code> · <code>/promocoes</code> · <code>/pagamentos</code> · <code>/disputas</code> · <code>/frete</code> · <code>/bloqueios</code> · <code>/whatsapp</code> · <code>/auditoria</code> · <code>/conta</code>.</td></tr>
       <tr><td>Renderização</td><td>Loja: catálogo gerado no servidor e guardado na CDN (seção 2b); estoque, reserva e pedido são componentes de cliente que buscam em <code>/api</code>, sem cache. Painel: tudo atrás do login, sem nada com dado pessoal em cache compartilhado.</td></tr>
       <tr><td>Dados na tela</td><td>Um cliente de API em <code>shared/api</code> que devolve o erro pelo código estável (seção 11). Hooks próprios: consulta periódica (pausa com a aba oculta, espaça depois de 1 min) e relógio do servidor (corrige o desvio por <code>server_now</code>). Sem biblioteca de estado global; o carrinho fica no <code>localStorage</code>.</td></tr>
       <tr><td>Formulários</td><td>Campos HTML nativos com os schemas Zod do <code>packages/domain</code>, as mesmas regras da API. Erro escrito junto do campo, com o texto do D4.</td></tr>
       <tr><td>Textos</td><td>Só português do Brasil, todos num arquivo (<code>packages/domain/textos.ts</code>). A tela nunca mostra a mensagem crua da API.</td></tr>
-      <tr><td>Fontes e imagens</td><td>Baloo 2 (600 a 800) e Poppins (400 a 600) por <code>next/font</code>, auto-hospedadas e só com o alfabeto latino. A frase manuscrita da marca entra como imagem SVG, não como fonte. Fotos pelo <code>next/image</code> a partir do Supabase Storage, em AVIF/WebP.</td></tr>
+      <tr><td>Fontes e imagens</td><td>Baloo 2 (600 a 800) e Poppins (400 a 600) por <code>next/font</code>, auto-hospedadas e só com o alfabeto latino. A frase manuscrita da marca entra como imagem SVG, não como fonte. Fotos pelo <code>next/image</code> a partir do Supabase Storage, em AVIF/WebP; galeria do produto com rolagem por encaixe (CSS <code>scroll-snap</code>) e zoom sem biblioteca; só a primeira foto carrega com prioridade.</td></tr>
       <tr><td>Pagamento</td><td>Card Payment Brick do Mercado Pago carregado só quando a cliente escolhe cartão; PIX com o QR em imagem vindo do provedor.</td></tr>
       <tr><td>PWA</td><td>Manifesto e service worker (Serwist) guardando só a casca do app e as imagens; nunca <code>/api</code>, <code>/r</code> nem páginas com dados da cliente.</td></tr>
-      <tr><td>Componentes em desenvolvimento</td><td>Página interna <code>/_componentes</code>, só no ambiente de desenvolvimento, com todos os componentes e estados nos dois temas. É ela que a comparação visual do CI fotografa.</td></tr>
+      <tr><td>Componentes em desenvolvimento</td><td>Página interna <code>/_componentes</code>, só no ambiente de desenvolvimento, com todos os componentes e estados (loja no tema claro; painel nos dois temas). É ela que a comparação visual do CI fotografa.</td></tr>
     </tbody>
   </table></div>
 
@@ -1233,7 +1248,7 @@ END IF;</pre>
   <ol>
     <li>Igual ao design aprovado (D3) ou, sem tela final, montada só com componentes do D2 e o fluxo do protótipo.</li>
     <li>Todos os estados feitos: carregando, vazio, erro (com o texto do D4), sucesso e sem conexão.</li>
-    <li>Funciona a partir de 360 px, sem rolagem lateral, e no tema escuro.</li>
+    <li>Funciona a partir de 360 px, sem rolagem lateral; no painel, também no tema escuro. A loja pública não tem tema escuro (D21).</li>
     <li>axe sem violação; dá para usar só com teclado; nas telas da reserva, testada com leitor de tela.</li>
     <li>Dentro das metas de desempenho da seção 2b (Lighthouse no CI).</li>
     <li>Coberta por um teste ponta a ponta no Playwright, em viewport de Android e de iPhone.</li>

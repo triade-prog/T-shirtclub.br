@@ -24,19 +24,19 @@
 {
   "meta": {
     "atualizado_em": "25/09/2026",
-    "arquitetura_versao": 12,
+    "arquitetura_versao": 13,
     "situacao": "Design do frontend em andamento; F1 aguardando liberação",
     "fase_atual": "D",
-    "proximo_passo": "A loja envia o logo em SVG, confirma o endereço do site, aprova a proposta 3 do design e libera a F1. Nenhum código de produção é escrito antes disso."
+    "proximo_passo": "A loja envia o logo em SVG, confirma o endereço do site, envia as fotos das peças, aprova a proposta 4 do design e libera a F1. Nenhum código de produção é escrito antes disso."
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
      "itens":[
-      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"andamento","nota":"Proposta 3, clube de stickers (D18): rosa e verde como tempero e cores de coleção; prancha 2 oficial. Faltam o logo em SVG e o endereço do site"},
-      {"id":"D2","texto":"Design system: tokens claro e escuro, contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"13 tokens base, 3 coleções (cor, fundo, texto) com contraste e daltonismo medidos e 12 componentes (proposta 3); aguarda aprovação"},
-      {"id":"D3","texto":"Telas finais das jornadas principais no celular (loja, dados, código, reserva e PIX, meu pedido, expirada, painel)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"7 telas prontas; aguardam aprovação. As demais fecham na fase de cada uma"},
+      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"andamento","nota":"Proposta 4: descoberta editorial (D21), 80% foto e produto; Baloo só em títulos de marca; stickers com moderação. Faltam o logo em SVG e o endereço do site"},
+      {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"11 tokens base, 5 cores de coleção aprovadas (contraste e daltonismo) e componentes novos: CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao (proposta 4); aguarda aprovação"},
+      {"id":"D3","texto":"Telas finais no celular: descoberta (início, coleção, produto, sacola) e reserva (dados, código, PIX, pago, expirada)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"Proposta 4: 4 telas novas de descoberta e 5 da reserva mantidas; faltam as fotos reais; aguarda aprovação"},
       {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
-      {"id":"D5","texto":"Imagens: fotos dos produtos no padrão do D1, ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"bloqueado","nota":"Fotos enviadas no Google Drive, mas drive.google.com está bloqueado na rede do ambiente (E13). Lista de arquivos esperados em design-frontend.html#fotos"},
       {"id":"D6","texto":"Teste de uso com 3 a 5 clientes no celular, com ajustes do que travar","sec":"frontend","refs":["G19"],"status":"pendente"}
      ]},
     {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
@@ -58,14 +58,14 @@
     {"id":"F2","nome":"Catálogo, estoque e promoções","sec":"promocoes","objetivo":"A loja mostra produtos com preço certo e o painel cadastra catálogo, estoque e promoções, com login seguro.",
      "itens":[
       {"id":"F2.1","texto":"Migrations 0010 e 0015: catálogo, movimentos de estoque, promoções, cupons e view de disponibilidade","sec":"dados","refs":[],"status":"pendente"},
-      {"id":"F2.2","texto":"Motor de preço (vale só a mais vantajosa) com testes unitários","sec":"promocoes","refs":[],"status":"pendente"},
+      {"id":"F2.2","texto":"Motor de preço (vale só a mais vantajosa), com compre e economize mais em níveis ou preço por grupo (\"3 por R$ 119,99\", D19), com testes unitários","sec":"promocoes","refs":[],"status":"pendente"},
       {"id":"F2.3","texto":"Migration 0180: ajuste de estoque sob o mesmo lock, sempre com motivo","sec":"estoque","refs":[],"status":"pendente"},
       {"id":"F2.4","texto":"Login do painel: senha de 12+ caracteres, autenticador obrigatório (AAL2), bloqueio por e-mail + IP, Turnstile","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
-      {"id":"F2.5","texto":"Painel: catálogo, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"pendente"},
-      {"id":"F2.6","texto":"Loja: catálogo gerado no servidor, filtros, carrinho e cupom, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"pendente"},
+      {"id":"F2.5","texto":"Painel: catálogo com 1 a 10 fotos por produto, coleções com cor aprovada, looks, blocos da página inicial, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"pendente"},
+      {"id":"F2.6","texto":"Loja: início editorial, coleção, página de produto e sacola gerados no servidor, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"pendente"},
       {"id":"F2.7","texto":"Telas da loja com contraste, foco, alvos de 44 px e erros junto do campo","sec":"mobile","refs":["G19"],"status":"pendente"},
-      {"id":"F2.8","texto":"Componentes da loja: Botao, Campo, EtiquetaPreco, SeloEstoque, SeletorQuantidade, CardProduto, Aviso, Toast","sec":"frontend","refs":[],"status":"pendente"},
-      {"id":"F2.9","texto":"Tela da loja (tela 1 do design) e barra de ação fixa com a sacola","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.8","texto":"Componentes da loja: Botao, Campo, CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao, SeloEstoque, Aviso, Toast","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.9","texto":"Telas da descoberta (telas 1 a 4 do design): início, coleção, produto com galeria e sacola \"Monte seu Club\"","sec":"frontend","refs":[],"status":"pendente"},
       {"id":"F2.10","texto":"Painel: layout, login com autenticador e telas de catálogo, estoque e promoções no design system","sec":"frontend","refs":["G7"],"status":"pendente"}
      ]},
     {"id":"F3","nome":"OTP por WhatsApp","sec":"whatsapp","objetivo":"A cliente valida o telefone pela verificação invertida, com a Z-API atrás de uma interface e limites que não barram quem é legítima.",
@@ -222,7 +222,9 @@
     {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
     {"id":"E10","texto":"Endereço do site: a marca usa \".br\" e o domínio registrado é tshirtclub.pt","quem":"Loja","precisa_em":"F1","refs":[],"status":"pendente"},
     {"id":"E11","texto":"Confirmar a prancha oficial da marca (as duas têm cores diferentes)","quem":"Loja","precisa_em":"F2","refs":["G19"],"status":"feito","nota":"Prancha 2 é a oficial (reenviada pela loja em 25/09)"},
-    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
+    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E13","texto":"Fotos das peças: liberar drive.google.com na rede do ambiente ou colocar os arquivos em docs/design/fotos/","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
   ],
   "achados": [
     {"id":"G1","titulo":"Cookie da cliente não funcionaria no iPhone","grav":"Crítico"},
@@ -268,9 +270,13 @@
     ["D15","Endereço guardado por 90 dias após a entrega"],
     ["D16","Frontend e design no plano; o Claude cria o design e a loja aprova"],
     ["D17","Marca oficial T-shirt Club.br; Baloo 2 e Poppins; tons derivados para contraste"],
-    ["D18","Rosa e verde como tempero; cada coleção com cor própria (Mediterrâneo, Limão, Tomate)"]
+    ["D18","Rosa e verde como tempero; cada coleção com cor própria"],
+    ["D19","Monte seu Club: 3 por R$ 119,99 a cada 3; peça a R$ 49,99"],
+    ["D20","Produto com página própria e 1 a 10 fotos; coleções com cor aprovada; looks"],
+    ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"]
   ],
   "historico": [
+    {"data":"25/09/2026","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21)."},
     {"data":"25/09/2026","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18)."},
     {"data":"25/09/2026","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11."},
     {"data":"25/09/2026","texto":"Frontend e design entram no plano (arquitetura v10, seção 18). Proposta de design criada: identidade, design system, 7 telas e textos."},

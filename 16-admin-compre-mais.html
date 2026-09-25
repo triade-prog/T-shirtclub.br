@@ -18,7 +18,7 @@
 
 <main><div class="shell">
   <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="active" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
-  <div class="hero"><div><div class="kicker">Promoções • nova</div><h1>Compre e economize mais</h1><p class="muted">Desconto progressivo pela quantidade de peças na reserva (até 9).</p></div><a class="btn secondary" href="14-admin-promocoes.html">← Promoções</a></div>
+  <div class="hero"><div><div class="kicker">Promoções • nova</div><h1>Compre e economize mais</h1><p class="muted">Desconto pela quantidade de peças na reserva (até 9): em níveis de porcentagem ou em preço fixo a cada grupo de peças, como "3 por R$ 119,99".</p></div><a class="btn secondary" href="14-admin-promocoes.html">← Promoções</a></div>
   <form class="promo-form" id="form" novalidate>
     <section class="psec">
       <div class="prow"><label class="lbl" for="nome">Nome da promoção <span class="counter" id="nomeCount"></span></label><input type="text" id="nome"></div>
@@ -26,9 +26,20 @@
       <div class="prow"><label class="lbl" for="fim">Hora final</label><div class="dt"><input type="datetime-local" id="fim"></div></div>
     </section>
     <section class="psec">
-      <div class="prow"><div id="tiers" class="grid" style="gap:14px"></div>
-        <button type="button" class="link-btn" id="addTier">+ Adicionar nível</button>
-        <p class="summary-line" id="simulation"></p></div>
+      <div class="prow"><span class="lbl" id="modoLbl">Como funciona o desconto</span>
+        <div class="radios" role="radiogroup" aria-labelledby="modoLbl">
+          <label><input type="radio" name="modo" value="PRECO_POR_GRUPO" checked> Preço fixo a cada grupo (ex.: 3 por R$ 119,99)</label>
+          <label><input type="radio" name="modo" value="NIVEIS"> Níveis de porcentagem (ex.: leve 3, ganhe 20%)</label>
+        </div></div>
+      <div class="prow" data-grupo="modo" data-mostra-para="PRECO_POR_GRUPO">
+        <div class="grid grid-2">
+          <div class="field"><label for="grupoQtd">A cada (peças)</label><input id="grupoQtd" type="number" min="2" max="9" value="3"></div>
+          <div class="field"><label for="grupoPreco">O grupo sai por (R$)</label><div class="money"><span>R$</span><input id="grupoPreco" type="text" inputmode="decimal" value="119,99"></div></div>
+        </div>
+        <p class="hint">Repete a cada grupo completo. Os grupos são montados com as peças mais caras primeiro; as que sobram pagam o preço normal.</p></div>
+      <div class="prow" data-grupo="modo" data-mostra-para="NIVEIS" hidden><div id="tiers" class="grid" style="gap:14px"></div>
+        <button type="button" class="link-btn" id="addTier">+ Adicionar nível</button></div>
+      <div class="prow"><p class="summary-line" id="simulation" aria-live="polite"></p></div>
       <div class="prow"><div class="toggle-row"><label for="onePerCustomer">É permitida apenas uma promoção por cliente</label><span class="toggle"><input type="checkbox" id="onePerCustomer"><span></span></span></div>
         <p class="hint" style="margin:0">Cada telefone usa esta promoção uma única vez (em uma reserva paga).</p></div>
       <div class="prow"><div class="toggle-row"><label for="hasBudget">Definir um orçamento</label><span class="toggle"><input type="checkbox" id="hasBudget"><span></span></span></div>

@@ -23,14 +23,43 @@ const MotorPreco=(function(){
     return desconto>0?{promocao:pr,desconto,rotulo:pr.nome}:null;
   }
 
+  // Preço por grupo: peças participantes do preço maior para o menor; cada grupo completo custa o preço do grupo.
+  function descontoPorGrupo(pr,part){
+    const precos=part.flatMap(l=>Array(l.qtd).fill(l.produto.precoCentavos)).sort((a,b)=>b-a);
+    const grupos=Math.floor(precos.length/pr.grupo.qtd);
+    let desconto=0;
+    for(let g=0;g<grupos;g++){
+      const soma=precos.slice(g*pr.grupo.qtd,(g+1)*pr.grupo.qtd).reduce((a,v)=>a+v,0);
+      desconto+=Math.max(0,soma-pr.grupo.precoCentavos); // grupo que não economiza não conta
+    }
+    return {desconto,grupos};
+  }
+
   function candidatoCompreMais(pr,linhas){
     const part=linhas.filter(l=>cobre(pr,l.produto.id));
     const pecas=part.reduce((a,l)=>a+l.qtd,0);
-    const nivel=[...pr.niveis].reverse().find(n=>pecas>=n.qtd);
-    if(!nivel)return null;
-    const desconto=part.reduce((a,l)=>a+pctDe(l.produto.precoCentavos*l.qtd,nivel.pct),0);
+    let desconto,rotulo;
+    if(pr.modo==='PRECO_POR_GRUPO'){
+      const r=descontoPorGrupo(pr,part);
+      if(!r.desconto)return null;
+      desconto=r.desconto;rotulo=`${pr.nome} (${r.grupos}× ${pr.grupo.qtd} por ${reais(pr.grupo.precoCentavos)})`;
+    }else{
+      const nivel=[...pr.niveis].reverse().find(n=>pecas>=n.qtd);
+      if(!nivel)return null;
+      desconto=part.reduce((a,l)=>a+pctDe(l.produto.precoCentavos*l.qtd,nivel.pct),0);
+      rotulo=`${pr.nome} (${pecas} peças, ${nivel.pct}%)`;
+    }
     if(pr.orcamentoCentavos!=null&&pr.usadoCentavos+desconto>pr.orcamentoCentavos)return null; // orçamento esgotado
-    return {promocao:pr,desconto,rotulo:`${pr.nome} (${pecas} peças, ${nivel.pct}%)`};
+    return {promocao:pr,desconto,rotulo};
+  }
+
+  // Quantas peças faltam para fechar o próximo grupo (para a sacola avisar). null se não houver oferta por grupo.
+  function faltaParaGrupo(itens){
+    const pr=PROMOCOES.find(x=>x.tipo==='COMPRE_MAIS'&&x.modo==='PRECO_POR_GRUPO'&&ativa(x));
+    if(!pr)return null;
+    const pecas=itens.filter(i=>cobre(pr,i.produto)).reduce((a,i)=>a+i.qtd,0);
+    const resto=pecas%pr.grupo.qtd;
+    return {promocao:pr,falta:resto?pr.grupo.qtd-resto:pr.grupo.qtd,pecas};
   }
 
   // Retorna {candidato} ou {erro} explicando por que o cupom não vale.
@@ -80,5 +109,5 @@ const MotorPreco=(function(){
     return {linhas,subtotal,desconto,total:subtotal-desconto,aplicada:melhor,cupom,pecas:linhas.reduce((a,l)=>a+l.qtd,0)};
   }
 
-  return {calcular,precoPromocional};
+  return {calcular,precoPromocional,faltaParaGrupo};
 })();
