@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitetura de Reservas T-shirt Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eef1f4; --ink:#141a22; --muted:#566070; --line:#d9dee5;
+  --accent:#0d5f6f; --accent-soft:#dcedf0;
+  --st-sel:#6b7280; --st-res:#a86412; --st-pag:#23764a; --st-ent:#2c5d9e; --st-exp:#b3322f;
+  --sev-crit:#b3322f; --sev-alto:#a86412; --sev-med:#2c5d9e; --sev-aj:#566070;
+  --chip-bg:#eef1f4;
+  --code-bg:#f6f8fa;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f1317; --surface:#161b21; --surface-2:#1c232b; --ink:#e4e8ee; --muted:#9aa4b2; --line:#2a323c;
+    --accent:#5bb4c5; --accent-soft:#16323a;
+    --st-sel:#9aa4b2; --st-res:#e0a04a; --st-pag:#5cc58c; --st-ent:#79a7e6; --st-exp:#ef7773;
+    --sev-crit:#ef7773; --sev-alto:#e0a04a; --sev-med:#79a7e6; --sev-aj:#9aa4b2;
+    --chip-bg:#1f2730; --code-bg:#12171c;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f1317; --surface:#161b21; --surface-2:#1c232b; --ink:#e4e8ee; --muted:#9aa4b2; --line:#2a323c;
+  --accent:#5bb4c5; --accent-soft:#16323a;
+  --st-sel:#9aa4b2; --st-res:#e0a04a; --st-pag:#5cc58c; --st-ent:#79a7e6; --st-exp:#ef7773;
+  --sev-crit:#ef7773; --sev-alto:#e0a04a; --sev-med:#79a7e6; --sev-aj:#9aa4b2;
+  --chip-bg:#1f2730; --code-bg:#12171c;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6;padding-inline:16px;padding-block:0 64px}
+.shell{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:40px}
+@media (min-width:1000px){.shell{grid-template-columns:230px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){
+  nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;padding-top:40px;font-size:13.5px}
+}
+nav.toc p{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:6px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--ink);background:var(--surface-2);outline:none}
+main{min-width:0}
+header.top{padding-block:40px 28px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 10px}
+h1{font-size:clamp(28px,4.2vw,40px);line-height:1.15;margin:0 0 14px;font-weight:700;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:24px;line-height:1.25;margin:0 0 6px;font-weight:600;text-wrap:balance}
+h3{font-size:17px;margin:28px 0 8px;font-weight:600}
+h4{font-size:14px;margin:18px 0 6px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+p{margin:0 0 12px;max-width:72ch}
+.lede{font-size:17px;color:var(--muted);max-width:68ch}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.secnum{font-family:var(--mono);font-size:13px;color:var(--accent);margin:0 0 4px}
+.sub{color:var(--muted);margin-bottom:20px}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--chip-bg);padding:1px 5px;border-radius:4px}
+pre{font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:10px 0 18px;color:var(--ink)}
+pre.mermaid{background:var(--surface);text-align:center}
+ul,ol{margin:0 0 14px;padding-left:22px;max-width:74ch}
+li{margin-bottom:4px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.callout{background:var(--accent-soft);border-radius:10px;padding:16px 18px;margin:18px 0;max-width:80ch}
+.callout p:last-child{margin:0}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 6px}
+.st{font-family:var(--mono);font-size:12.5px;font-weight:500;padding:4px 9px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.st.sel{color:var(--st-sel)} .st.res{color:var(--st-res)} .st.pag{color:var(--st-pag)} .st.ent{color:var(--st-ent)} .st.exp{color:var(--st-exp)}
+.arrow{color:var(--muted)}
+.tbl{overflow-x:auto;margin:12px 0 20px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+.findings{display:grid;gap:12px;margin:16px 0}
+.finding{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.finding .id{font-family:var(--mono);font-size:12.5px;color:var(--muted);padding-top:2px}
+.finding h5{margin:0;font-size:15px;font-weight:600;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.finding p{grid-column:2;margin:4px 0 0;font-size:14.5px}
+.finding p b{font-weight:600}
+.sev{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--chip-bg)}
+.sev.crit{color:var(--sev-crit)} .sev.alto{color:var(--sev-alto)} .sev.med{color:var(--sev-med)} .sev.aj{color:var(--sev-aj)}
+.decisions{display:grid;gap:12px;margin:18px 0 8px}
+.dec{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.dec header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin-bottom:6px}
+.dec .did{font-family:var(--mono);font-weight:600;color:var(--accent)}
+.dec h5{margin:0;font-size:15.5px;font-weight:600}
+.dec p{font-size:14.5px;margin:0 0 6px}
+.rec{font-size:14.5px;margin:8px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
+.rec b{color:var(--accent)}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h4{margin-top:0}
+.card ul{margin-bottom:0}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:14px}
+.kv dt{font-family:var(--mono);color:var(--muted)}
+.kv dd{margin:0}
+.phases{counter-reset:ph;list-style:none;padding:0;display:grid;gap:10px;max-width:none}
+.phases li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px 58px;position:relative;margin:0}
+.phases li::before{counter-increment:ph;content:"F" counter(ph);position:absolute;left:16px;top:12px;font-family:var(--mono);font-weight:600;color:var(--accent)}
+.phases b{display:block}
+.phases span{color:var(--muted);font-size:14px}
+footer{color:var(--muted);font-size:13px;padding-top:24px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",securityLevel:"strict"});
+</script>
+</head>
+<body>
+
+
+<div class="shell">
+<nav class="toc" aria-label="Sumário">
+  <p>Sumário</p>
+  <ol>
+    <li><a href="#aprovar">0. Decisões e pendências</a></li>
+    <li><a href="#revisao">1. Revisão da especificação</a></li>
+    <li><a href="#stack">2. Arquitetura e stack</a></li>
+    <li><a href="#mobile">2b. Celular e PWA</a></li>
+    <li><a href="#estados">3. Máquina de estados</a></li>
+    <li><a href="#dados">4. Modelo de dados</a></li>
+    <li><a href="#estoque">5. Concorrência de estoque</a></li>
+    <li><a href="#promocoes">5b. Preço e promoções</a></li>
+    <li><a href="#expiracao">6. Expiração e tolerância</a></li>
+    <li><a href="#whatsapp">7. WhatsApp e OTP</a></li>
+    <li><a href="#pagamento">8. Pagamento e idempotência</a></li>
+    <li><a href="#bloqueio">9. Bloqueio de telefone</a></li>
+    <li><a href="#eventos">10. Eventos e notificações</a></li>
+    <li><a href="#api">11. Endpoints</a></li>
+    <li><a href="#jobs">12. Jobs</a></li>
+    <li><a href="#seguranca">13. Segurança e LGPD</a></li>
+    <li><a href="#codigo">14. Organização do código</a></li>
+    <li><a href="#fases">15. Plano de entrega</a></li>
+    <li><a href="#testes">16. Estratégia de testes</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <p class="eyebrow">Desenho técnico · versão 7</p>
+  <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
+  <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
+  <div class="meta">
+    <span><b>Fonte:</b> especificacao_funcional_sistema_reserva.html + telas 00 a 08</span>
+    <span><b>Data:</b> 25/09/2026</span>
+    <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
+  </div>
+  <div class="callout"><p><b>Versão 7.</b> Registra o domínio <code>tshirtclub.pt</code> e o volume de menos de 50 pessoas simultâneas. O desenvolvimento (F1) só começa depois da revisão geral pedida em 25/09.</p></div>
+  <div class="flow" aria-label="Fluxo principal">
+    <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
+    <span class="st res">RESERVADO</span><span class="arrow">→</span>
+    <span class="st pag">PAGAMENTO_CONFIRMADO</span><span class="arrow">→</span>
+    <span class="st ent">ENTREGUE</span>
+  </div>
+  <div class="flow" aria-label="Fluxo alternativo">
+    <span class="st res">RESERVADO</span><span class="arrow">→</span>
+    <span class="st exp">EXPIRADO</span>
+  </div>
+</header>
+
+<!-- 0 -->
+<section id="aprovar">
+  <p class="secnum">00</p>
+  <h2>Decisões aprovadas</h2>
+  <p class="sub">Respostas do questionário de 25/09/2026. Este documento já está ajustado a elas.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
+    <tbody>
+      <tr><td>D1</td><td>Stack</td><td>Supabase (projeto novo) + <b>Next.js</b> (React) + Vercel. Loja <b>mobile-first</b> e instalável como <b>PWA</b> no Android e no iPhone (decisão de 25/09; a maior parte do acesso será pelo celular).</td></tr>
+      <tr><td>D2</td><td>Repositório</td><td><code>triade-prog/T-shirtclub.br</code>, numa pasta separada do protótipo.</td></tr>
+      <tr><td>D3</td><td>Pagamento</td><td>PIX <b>ou</b> cartão, nunca os dois na mesma reserva: a forma da primeira cobrança fica fixa. Provedor: Mercado Pago.</td></tr>
+      <tr><td>D4</td><td>WhatsApp</td><td><b>Ferramenta não oficial</b> (Z-API ou Evolution API), com risco de banimento aceito pela loja. Ver W1 a W3.</td></tr>
+      <tr><td>D5</td><td>Tolerância</td><td>Aprovada como proposta.</td></tr>
+      <tr><td>D6</td><td>Pagamento tardio</td><td>Admin pode estornar ou converter em novo pedido.</td></tr>
+      <tr><td>D7</td><td>Cancelamento</td><td>Termina em EXPIRADO com motivo "cancelamento aprovado" e <b>não</b> conta para o bloqueio.</td></tr>
+      <tr><td>D8</td><td>Frete</td><td>Cálculo manual pelo admin. Frete vencido: só alerta no painel.</td></tr>
+      <tr><td>D9</td><td>Preço e promoções</td><td>Preço fixo por produto + módulo de promoções nos 3 formatos das telas enviadas (seção 06).</td></tr>
+      <tr><td>D10</td><td>Bloqueio do código</td><td>Aprovado como proposto.</td></tr>
+      <tr><td>D11</td><td>Conversa</td><td>A equipe responde no app do celular; sem caixa de entrada no painel.</td></tr>
+      <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login só com e-mail e senha (sem segundo fator); todas as peças são de <b>tamanho único</b>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Pendências respondidas (P1 a P6)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
+    <tbody>
+      <tr><td>P1</td><td>Provedor de pagamento</td><td>Mercado Pago.</td></tr>
+      <tr><td>P2</td><td>Nome no WhatsApp</td><td>T-shirt Club.</td></tr>
+      <tr><td>P3</td><td>Mensagens</td><td>5 essenciais sempre ligadas (código, reserva criada, lembrete de 5 min, pagamento confirmado, expiração). As demais têm liga/desliga no painel.</td></tr>
+      <tr><td>P4</td><td>Trio</td><td>"3 por R$ 119,90" substituído por "Compre e economize mais" em porcentagem.</td></tr>
+      <tr><td>P5</td><td>Cupom</td><td>A cliente digita o código ao criar a reserva. A validade conta do primeiro uso.</td></tr>
+      <tr><td>P6</td><td>Combinação</td><td><b>Vale só a promoção mais vantajosa</b>, sem somar.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>WhatsApp (decisões W1 a W3)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
+    <tbody>
+      <tr><td>W1</td><td>Ferramenta</td><td><b>Z-API</b>, atrás da interface <code>WhatsAppProvider</code>.</td></tr>
+      <tr><td>W2</td><td>Número</td><td><b>Número principal da loja</b> (77 99815-5772). Risco de banimento aceito pela loja; a equipe continua atendendo nele.</td></tr>
+      <tr><td>W3</td><td>Verificação</td><td><b>Invertida com código</b>: a cliente pede o código pelo próprio WhatsApp e digita no site (seção 07).</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 1 -->
+<section id="revisao">
+  <p class="secnum">01</p>
+  <h2>Revisão da especificação e do protótipo</h2>
+  <p class="sub">A especificação é consistente no núcleo. Os pontos abaixo são lacunas ou ambiguidades que, sem decisão, virariam bug em produção. Cada um tem a resolução adotada neste desenho.</p>
+
+  <h3>Máquina de estados</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">R1</span><h5>O estado final de um cancelamento aprovado não está explícito <span class="sev alto">Alto</span></h5>
+      <p>"Cancelado" não é estado, mas as regras 20 e 12 não dizem para qual dos 5 estados a reserva vai. <b>Resolução:</b> RESERVADO → EXPIRADO com <code>closure_reason = CANCELAMENTO_APROVADO</code>. O prazo esgotado usa <code>PRAZO_ESGOTADO</code>. Ver D7 sobre o contador.</p></div>
+    <div class="finding"><span class="id">R2</span><h5>SELECIONADO não é persistido como reserva <span class="sev med">Médio</span></h5>
+      <p>Se o sistema criasse a linha da reserva já em SELECIONADO, o número (#1048) seria gasto antes da validação. <b>Resolução:</b> SELECIONADO vive no carrinho da cliente e numa tabela <code>reservation_attempts</code>, uma "tentativa" criada ao pedir o código. A tabela <code>reservations</code> nasce direto em RESERVADO, e o número vem de uma sequence que nunca é reutilizada.</p></div>
+    <div class="finding"><span class="id">R3</span><h5>O protótipo permite "Marcar como entregue" numa reserva em RESERVADO <span class="sev aj">Corrigido no protótipo</span></h5>
+      <p>Tela 07. <b>Resolução:</b> ENTREGUE só a partir de PAGAMENTO_CONFIRMADO, com substatus logístico pronto e frete quitado quando existir. Um gatilho no banco rejeita qualquer transição fora da tabela oficial, mesmo que a aplicação erre.</p></div>
+    <div class="finding"><span class="id">R4</span><h5>Uma solicitação de cancelamento pendente pode ficar órfã <span class="sev med">Médio</span></h5>
+      <p>Se a reserva expira ou é paga enquanto o admin não decide, a solicitação fica pendurada no painel. <b>Resolução:</b> ela passa automaticamente para <code>PREJUDICADA</code>, com registro em auditoria. Cancelamento depois do pagamento é pós-venda (fora do escopo).</p></div>
+  </div>
+
+  <h3>Estoque e concorrência</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">R5</span><h5>Não existe tela de catálogo e estoque no admin <span class="sev aj">Telas criadas (10 e 11)</span></h5>
+      <p>O protótipo não mostra onde se cadastram produtos, variações (tamanho) e entrada de estoque. <b>Resolução:</b> incluí um módulo de catálogo no admin, com ajuste de estoque que sempre exige motivo e fica registrado em movimento de estoque.</p></div>
+    <div class="finding"><span class="id">R6</span><h5>A loja do protótipo não mostra variações <span class="sev aj">Decidido: tamanho único</span></h5>
+      <p>A regra "máx. 2 do mesmo modelo, independentemente da variação" pressupõe tamanhos, mas a tela 01 não tem seletor. <b>Decisão:</b> todas as peças são de tamanho único. O estoque fica no produto, e o limite de 2 vale por produto.</p></div>
+    <div class="finding"><span class="id">R7</span><h5>O preço pode mudar entre a seleção e a reserva <span class="sev med">Médio</span></h5>
+      <p><b>Resolução:</b> o servidor sempre recalcula o total. O cliente envia o total que viu. Se o valor divergir, a API responde <code>409 PRICE_CHANGED</code> com o novo resumo, e nada é reservado em silêncio com outro preço.</p></div>
+    <div class="finding"><span class="id">R8</span><h5>Um estoque indisponível na checagem final forçaria um novo código <span class="sev aj">Ajuste de UX</span></h5>
+      <p><b>Resolução:</b> depois de validado, o telefone fica verificado para aquela tentativa por 10 min. A cliente ajusta os itens e confirma de novo sem receber outro código.</p></div>
+  </div>
+
+  <h3>Expiração, tolerância e pagamento</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">R9</span><h5>A tolerância de 5 min é ambígua <span class="sev crit">Crítico</span></h5>
+      <p>Não diz a partir de quando conta, o que é "tentativa real" nem se novas tentativas são aceitas durante a tolerância. <b>Resolução:</b> ver D5.</p></div>
+    <div class="finding"><span class="id">R10</span><h5>Corrida entre webhook atrasado e job de expiração <span class="sev crit">Crítico</span></h5>
+      <p>O provedor aprova aos 19min50s da reserva (dentro da tolerância), mas o webhook chega aos 20min30s, depois que o job já liberou o estoque. <b>Resolução:</b> antes de expirar uma reserva com tentativa pendente, o worker consulta o provedor de forma síncrona. Além disso, a cobrança PIX é criada com expiração no fim da tolerância, ou é cancelada via API nesse momento. O que ainda escapar vai para análise, nunca é confirmado automaticamente.</p></div>
+    <div class="finding"><span class="id">R11</span><h5>Pagamento duplicado e valor divergente <span class="sev aj">Decidido</span></h5>
+      <p><b>Decisão:</b> uma única forma de pagamento por reserva, com a cobrança gerada pelo sistema no valor exato do total. Esses casos deixam de existir e saíram do fluxo de análise. A idempotência continua valendo para reenvios do mesmo webhook.</p></div>
+    <div class="finding"><span class="id">R13</span><h5>Cartão em "análise antifraude" pode levar horas <span class="sev med">Médio</span></h5>
+      <p><b>Resolução:</b> usar modo binário (aprova ou recusa na hora) quando o provedor oferecer. Se não oferecer, o caso cai na regra de tolerância e depois em análise.</p></div>
+    <div class="finding"><span class="id">R14</span><h5>O cronômetro do protótipo roda no navegador <span class="sev aj">Ajuste</span></h5>
+      <p>Tela 04. <b>Resolução:</b> a API devolve <code>expires_at</code> e <code>server_now</code>. O front calcula o desvio do relógio e só exibe. Quem decide a expiração é o banco (<code>now()</code>).</p></div>
+  </div>
+
+  <h3>WhatsApp, privacidade e abuso</h3>
+  <div class="findings">
+    <div class="finding"><span class="id">R15</span><h5>O link da reserva no WhatsApp pode violar a regra 22 <span class="sev aj">Decidido</span></h5>
+      <p>Um link do tipo <code>/reserva/1048</code> expõe a reserva só pelo número, que é fácil de adivinhar. <b>Decisão:</b> cada reserva ganha uma chave aleatória na criação (<code>/r/k7Qm2xPz9aLw4tRb</code>). O link só mostra aquela reserva e não depende de sessão nem de validade.</p></div>
+    <div class="finding"><span class="id">R16</span><h5>Contadores de OTP podem ser zerados reiniciando o fluxo <span class="sev alto">Alto</span></h5>
+      <p><b>Resolução:</b> os contadores ficam no servidor, por telefone e numa janela de 30 min (D10). Há também limite por IP e captcha invisível (Cloudflare Turnstile) antes de enviar o código. Cada mensagem de autenticação custa dinheiro e é alvo de fraude de disparo em massa.</p></div>
+    <div class="finding"><span class="id">R17</span><h5>O "nono dígito" nos IDs do WhatsApp <span class="sev alto">Alto</span></h5>
+      <p>O <code>wa_id</code> de alguns celulares brasileiros chega sem o 9 (ex.: 55 77 8809-xxxx em vez de 55 77 9 8809-xxxx). Sem normalização, o "Minha reserva" não encontraria a cliente. <b>Resolução:</b> o telefone canônico é E.164 com o 9, e a busca por mensagem recebida aceita as duas formas.</p></div>
+    <div class="finding"><span class="id">R18</span><h5>Mensagens iniciadas pela loja exigem template aprovado <span class="sev aj">Não se aplica: ferramenta não oficial</span></h5>
+      <p>Fora da janela de 24 h, só templates aprovados pela Meta podem ser enviados, e a aprovação leva tempo. <b>Resolução:</b> o catálogo de templates está na seção 10 e deve ser submetido já na fase F2.</p></div>
+    <div class="finding"><span class="id">R19</span><h5>Faltam telas: pagamentos em análise, cálculo de frete e login admin <span class="sev aj">Telas criadas (09, 12 e 13)</span></h5>
+      <p>O painel (tela 06) mostra o alerta de "pagamento fora da tolerância", mas não há tela para resolvê-lo. <b>Resolução:</b> incluídas no escopo do admin (F9).</p></div>
+    <div class="finding"><span class="id">R20</span><h5>Para trocar itens, a cliente depende do admin <span class="sev aj">Observação</span></h5>
+      <p>A regra 11 exige cancelar para trocar, e o cancelamento só sai com aprovação do admin. Enquanto isso, a cliente não consegue criar outra reserva (limite de 1 ativa). Mantive como está na especificação. Se virar atrito, dá para liberar a autodesistência nos primeiros minutos.</p></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="stack">
+  <p class="secnum">02</p>
+  <h2>Arquitetura e stack</h2>
+  <p class="sub">Premissa central: <b>toda transição de estado e toda movimentação de estoque acontece dentro de uma função do PostgreSQL, numa única transação.</b> As Edge Functions validam a entrada, chamam essas funções e falam com os provedores externos. Assim, a correção não depende de quantas instâncias da API estão rodando.</p>
+
+<pre class="mermaid">
+flowchart LR
+  subgraph Cliente
+    WEB[Loja PWA - Next.js]
+    WAC[WhatsApp da cliente]
+  end
+  subgraph Loja
+    ADM[Painel admin - Next.js]
+  end
+  subgraph Supabase
+    API[api-public]
+    AAPI[api-admin]
+    WHP[webhook-payments]
+    WHW[webhook-whatsapp]
+    WK[worker]
+    DB[(PostgreSQL - funções de domínio)]
+    CRON[pg_cron]
+  end
+  PAY[Provedor de pagamento]
+  META[API de WhatsApp - Z-API ou Evolution]
+  WEB --> API --> DB
+  ADM --> AAPI --> DB
+  API --> PAY
+  API --> META
+  PAY -- webhook --> WHP --> DB
+  META -- webhook --> WHW --> DB
+  CRON -- a cada 10 s --> DB
+  CRON -- pg_net --> WK
+  WK --> DB
+  WK --> META
+  WK --> PAY
+  META --> WAC
+</pre>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Camada</th><th>Tecnologia</th><th>Responsabilidade</th></tr></thead>
+    <tbody>
+      <tr><td>Banco</td><td>PostgreSQL 15+ (Supabase)</td><td>Tabelas, constraints, funções de domínio (<code>SECURITY DEFINER</code>, só o service role executa), gatilho guardião de transições, auditoria somente de inserção.</td></tr>
+      <tr><td>API pública</td><td>Edge Function <code>api-public</code> (Deno, TypeScript, Hono, Zod)</td><td>Catálogo, orçamento do carrinho, OTP, criação de reserva, pagamento, cancelamento, consulta.</td></tr>
+      <tr><td>API admin</td><td>Edge Function <code>api-admin</code></td><td>Painel. Autenticação via Supabase Auth, com o usuário presente em <code>admin_users</code>.</td></tr>
+      <tr><td>Webhooks</td><td><code>webhook-payments</code>, <code>webhook-whatsapp</code></td><td>Verificam a assinatura, gravam o evento bruto (inbox idempotente) e processam.</td></tr>
+      <tr><td>Worker</td><td>Edge Function <code>worker</code>, chamada pelo pg_cron via pg_net</td><td>Envio da outbox de WhatsApp, reconciliação de pagamentos, expirações que exigem consulta ao provedor.</td></tr>
+      <tr><td>Jobs SQL</td><td>pg_cron (intervalos em segundos)</td><td>Varredura de expiração, lembrete de 5 min e vencimento de frete. Não dependem de HTTP.</td></tr>
+      <tr><td>Front</td><td>Next.js (App Router, React) + Tailwind, na Vercel</td><td>Dois apps: <code>web</code> (loja e área da cliente, mobile-first, PWA) e <code>admin</code> (painel). Nenhum dos dois acessa tabelas diretamente.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><p><b>Por que o front não usa o cliente Supabase direto nas tabelas:</b> a cliente não tem login, então qualquer acesso anônimo às tabelas seria uma superfície de ataque. O RLS nega tudo para <code>anon</code> e <code>authenticated</code>, e todo acesso passa pelas Edge Functions.</p></div>
+</section>
+
+<!-- 2b -->
+<section id="mobile">
+  <p class="secnum">02b</p>
+  <h2>Celular primeiro, desempenho e PWA</h2>
+  <p class="sub">A maior parte do acesso será pelo celular, com picos em lançamentos. Estas regras valem para todas as telas da cliente.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Tema</th><th>Decisão</th></tr></thead>
+    <tbody>
+      <tr><td>Layout</td><td>Projetado a partir de 360 px de largura. Alvos de toque de pelo menos 44 px. Ação principal fixa na parte de baixo da tela; cronômetro da reserva sempre visível.</td></tr>
+      <tr><td>Catálogo</td><td>Páginas geradas no servidor e guardadas na CDN da Vercel, com revalidação a cada 60 s e também quando o admin edita um produto. O estoque disponível vem de uma chamada leve e separada, sem cache.</td></tr>
+      <tr><td>Imagens</td><td>Otimização do Next.js: AVIF/WebP, tamanho por tela, carregamento sob demanda fora da primeira dobra.</td></tr>
+      <tr><td>Metas de desempenho</td><td>Em 4G e num Android intermediário: LCP &lt; 2,5 s, INP &lt; 200 ms, CLS &lt; 0,1. JavaScript inicial da loja abaixo de 150 KB comprimido. Medido no CI com Lighthouse.</td></tr>
+      <tr><td>PIX no celular</td><td>Botão principal "Copiar código PIX", com instruções para colar no app do banco. QR code como segunda opção, para quem está no computador.</td></tr>
+      <tr><td>PWA</td><td>Manifesto, ícones e service worker que guarda só a casca do app e as imagens. Preço, estoque e reserva vêm sempre da rede. Android: instalação pelo aviso do Chrome. iPhone: "Adicionar à Tela de Início" pelo menu Compartilhar, com um aviso na loja ensinando.</td></tr>
+      <tr><td>Notificações</td><td>Continuam pelo WhatsApp. Notificação push do navegador fica fora do MVP; no iPhone ela só funciona com o app adicionado à tela inicial.</td></tr>
+      <tr><td>Picos de acesso</td><td>Volume informado: menos de 50 pessoas ao mesmo tempo em lançamentos. O teste de carga simula 100 (margem de 2×), com várias clientes disputando a última peça. Pool de conexões do Supabase (modo transação) e limite de requisições por IP nas rotas de reserva e código. Para esse volume, os planos de entrada do Supabase e da Vercel devem bastar; confirmo os limites de cada plano antes de contratar.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 3 -->
+<section id="estados">
+  <p class="secnum">03</p>
+  <h2>Máquina de estados</h2>
+  <p class="sub">5 estados oficiais. Os substatus e sinalizações ficam em colunas e tabelas separadas e nunca alteram o estado oficial.</p>
+
+<pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> SELECIONADO
+  SELECIONADO --> RESERVADO: T1 OTP valido + estoque bloqueado
+  RESERVADO --> PAGAMENTO_CONFIRMADO: T2 provedor aprova no prazo
+  RESERVADO --> EXPIRADO: T3 prazo esgotado
+  RESERVADO --> EXPIRADO: T4 cancelamento aprovado
+  PAGAMENTO_CONFIRMADO --> ENTREGUE: T5 admin confirma entrega
+  ENTREGUE --> [*]
+  EXPIRADO --> [*]
+</pre>
+
+  <h3>Transições permitidas</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>De → Para</th><th>Evento / ator</th><th>Guardas (todas no banco)</th><th>Efeitos na mesma transação</th></tr></thead>
+    <tbody>
+      <tr><td>T1</td><td><span class="st sel">SELECIONADO</span> → <span class="st res">RESERVADO</span></td><td><code>ConfirmarReserva</code><br>cliente</td><td>Telefone verificado para a tentativa · telefone sem bloqueio ativo · nenhuma outra reserva RESERVADO do telefone · 1 a 9 peças · no máximo 2 por produto · produtos ativos · estoque disponível para <b>todos</b> os itens · promoções e cupom vigentes, com limite e orçamento · total igual ao esperado</td><td>Cria a reserva (número da sequence) e os itens com preço congelado · <code>qty_reserved += q</code> · uso de cupom e orçamento presos · movimentos de estoque · <code>expires_at = now() + 15 min</code> · outbox <code>reserva_criada</code> · auditoria</td></tr>
+      <tr><td>T2</td><td><span class="st res">RESERVADO</span> → <span class="st pag">PAGAMENTO_CONFIRMADO</span></td><td><code>PagamentoAprovado</code><br>provedor (verificado na API)</td><td>Pagamento da reserva com finalidade PRODUTOS · valor igual ao total · <code>approved_at ≤ prazo efetivo</code> · pagamento ainda não aplicado</td><td><code>qty_reserved −= q; qty_sold += q</code> · pagamento aplicado · cancelamento pendente → PREJUDICADA · cria o registro de entrega em <code>AGUARDANDO_MODALIDADE</code> · outbox · auditoria</td></tr>
+      <tr><td>T3</td><td><span class="st res">RESERVADO</span> → <span class="st exp">EXPIRADO</span></td><td><code>PrazoEsgotado</code><br>sistema (job)</td><td><code>now() ≥ expires_at</code> sem tentativa pendente anterior ao prazo, <b>ou</b> <code>now() ≥ grace_until</code> depois da consulta ao provedor</td><td><code>qty_reserved −= q</code> · <code>closure_reason = PRAZO_ESGOTADO</code> · cancela cobranças pendentes · cancelamento pendente → PREJUDICADA · avalia o bloqueio por abuso · outbox · auditoria</td></tr>
+      <tr><td>T4</td><td><span class="st res">RESERVADO</span> → <span class="st exp">EXPIRADO</span></td><td><code>CancelamentoAprovado</code><br>admin</td><td>Solicitação PENDENTE · reserva ainda RESERVADO · dentro do prazo efetivo · motivo preenchido</td><td>Libera o estoque · <code>closure_reason = CANCELAMENTO_APROVADO</code> · cancela cobranças pendentes · outbox · auditoria</td></tr>
+      <tr><td>T5</td><td><span class="st pag">PAGAMENTO_CONFIRMADO</span> → <span class="st ent">ENTREGUE</span></td><td><code>MarcarEntregue</code><br>admin</td><td>Substatus em <code>PRONTO_PARA_RETIRADA</code>, <code>SAIU_PARA_ENTREGA</code> ou <code>ENVIADO</code> · frete pago quando exigido</td><td><code>delivered_at</code>, <code>delivered_by</code> · outbox <code>pedido_entregue</code> · auditoria</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Proibidas</b> (o gatilho <code>trg_reservation_transition_guard</code> rejeita com erro): qualquer saída de EXPIRADO ou ENTREGUE, PAGAMENTO_CONFIRMADO → EXPIRADO/RESERVADO, e qualquer mudança do número da reserva.</p>
+
+  <h3>Sinalizações e substatus (não são estados)</h3>
+  <div class="grid2">
+    <div class="card"><h4>Enquanto RESERVADO</h4>
+      <ul>
+        <li><b>Pagamento em processamento</b>: existe tentativa <code>PENDENTE</code>. Quando <code>grace_until</code> está preenchido, a reserva está na tolerância.</li>
+        <li><b>Cancelamento solicitado</b>: existe <code>cancellation_requests.status = PENDENTE</code>. Não pausa o relógio.</li>
+        <li><b>Lembrete enviado</b>: <code>reminder_enqueued_at</code>.</li>
+      </ul></div>
+    <div class="card"><h4>Depois de PAGAMENTO_CONFIRMADO (logística)</h4>
+      <ul>
+        <li><code>fulfillments.substatus</code>, com a própria máquina abaixo.</li>
+        <li>Pagamento de frete em <code>payments</code> com finalidade <code>FRETE</code>.</li>
+      </ul></div>
+  </div>
+
+<pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> AGUARDANDO_MODALIDADE
+  AGUARDANDO_MODALIDADE --> EM_PREPARACAO: retirada confirmada
+  AGUARDANDO_MODALIDADE --> AGUARDANDO_CALCULO_FRETE: motoboy ou envio
+  AGUARDANDO_CALCULO_FRETE --> AGUARDANDO_PAGAMENTO_FRETE: admin informa frete
+  AGUARDANDO_PAGAMENTO_FRETE --> AGUARDANDO_MODALIDADE: cliente altera modalidade
+  AGUARDANDO_PAGAMENTO_FRETE --> EM_PREPARACAO: frete pago
+  AGUARDANDO_PAGAMENTO_FRETE --> FRETE_VENCIDO: 2 h sem pagamento
+  FRETE_VENCIDO --> AGUARDANDO_PAGAMENTO_FRETE: admin recalcula
+  EM_PREPARACAO --> PRONTO_PARA_RETIRADA
+  EM_PREPARACAO --> SAIU_PARA_ENTREGA
+  EM_PREPARACAO --> ENVIADO
+</pre>
+</section>
+
+<!-- 4 -->
+<section id="dados">
+  <p class="secnum">04</p>
+  <h2>Modelo de dados</h2>
+  <p class="sub">Valores em centavos (<code>integer</code>), datas em <code>timestamptz</code> (UTC, exibidas em America/Bahia), identificadores internos <code>uuid</code>. Os enums ficam no Postgres.</p>
+
+  <h3>Enums</h3>
+<pre>reservation_status   SELECIONADO* | RESERVADO | PAGAMENTO_CONFIRMADO | ENTREGUE | EXPIRADO
+closure_reason       PRAZO_ESGOTADO | CANCELAMENTO_APROVADO
+delivery_mode        RETIRADA | MOTOBOY | ENVIO
+fulfillment_substatus AGUARDANDO_MODALIDADE | AGUARDANDO_CALCULO_FRETE | AGUARDANDO_PAGAMENTO_FRETE
+                     | FRETE_VENCIDO | EM_PREPARACAO | PRONTO_PARA_RETIRADA | SAIU_PARA_ENTREGA | ENVIADO
+payment_purpose      PRODUTOS | FRETE
+payment_method       a forma única escolhida em D3
+payment_status       CRIADO | PENDENTE | APROVADO | RECUSADO | CANCELADO | FALHOU | EM_ANALISE | ESTORNADO
+review_reason        APROVADO_APOS_TOLERANCIA | RESERVA_ENCERRADA
+cancel_status        PENDENTE | APROVADA | RECUSADA | PREJUDICADA
+otp_purpose          RESERVA | CONSULTA
+stock_movement_kind  ENTRADA | AJUSTE | RESERVA | LIBERACAO | VENDA
+actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
+<span style="color:var(--muted)">* SELECIONADO existe no enum só para a tentativa e a auditoria; nenhuma linha de reservations o usa.</span></pre>
+
+  <h3>Catálogo e estoque</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
+    <tbody>
+      <tr><td><code>collections</code></td><td>id, name, slug, active</td><td>Filtros Teddy, Dog Club, Trendy.</td></tr>
+      <tr><td><code>products</code></td><td>id, collection_id, code, name, <b>price_cents</b> (preço fixo), active, <b>qty_total, qty_reserved, qty_sold</b>, updated_at</td><td>Tamanho único: o estoque fica no produto. <code>CHECK (qty_reserved ≥ 0 AND qty_sold ≥ 0 AND qty_reserved + qty_sold ≤ qty_total)</code>, a última barreira contra estoque negativo. Disponível = total − reservado − vendido.</td></tr>
+      <tr><td><code>product_images</code></td><td>id, product_id, storage_path, position</td><td>Supabase Storage.</td></tr>
+      <tr><td><code>stock_movements</code></td><td>id, product_id, kind, qty, reservation_id, actor_type, actor_id, reason, created_at</td><td>Somente inserção. Permite reconstruir o saldo.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Cliente, OTP e bloqueios</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
+    <tbody>
+      <tr><td><code>customers</code></td><td>id, <b>phone_e164</b> (único), last_name_informed, <b>expiration_counter_reset_at</b>, created_at</td><td>O telefone é a identidade. Liberar o bloqueio só mexe em <code>expiration_counter_reset_at</code>; o histórico fica intacto.</td></tr>
+      <tr><td><code>otp_sessions</code></td><td>id, phone_e164, purpose, status (ABERTA, VERIFICADA, BLOQUEADA, ENCERRADA), codes_sent, blocked_until, verified_at, last_activity_at</td><td>Uma sessão aberta por telefone e finalidade dentro da janela de 30 min.</td></tr>
+      <tr><td><code>otp_codes</code></td><td>id, session_id, <b>code_hash</b> (HMAC-SHA256 com pepper), expires_at (+5 min), attempts_used (máx. 2), status, wa_message_id</td><td>O código nunca é gravado em texto puro. Emitir um código novo invalida o anterior.</td></tr>
+      <tr><td><code>phone_blocks</code></td><td>id, customer_id, status (ATIVO, LIBERADO), trigger_reservations uuid[], created_at, released_at, released_by, release_reason</td><td>Índice único parcial: um bloqueio ATIVO por cliente.</td></tr>
+      <tr><td><code>phone_block_decisions</code></td><td>id, block_id, decision (LIBERAR, MANTER), reason, admin_id, created_at</td><td>"Manter bloqueado" também fica registrado.</td></tr>
+      <tr><td><code>customer_sessions</code></td><td>id, phone_e164, token_hash, scope (TELEFONE ou RESERVA:id), expires_at, revoked_at</td><td>Criada depois de um OTP ou de um link assinado. Cookie httpOnly.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Reserva</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
+    <tbody>
+      <tr><td><code>reservation_attempts</code></td><td>id, customer_name, phone_e164, delivery_intent, items jsonb, expected_total_cents, otp_session_id, status (AGUARDANDO_VALIDACAO, VERIFICADA, CONVERTIDA, FALHOU_ESTOQUE, ABANDONADA), reservation_id, ip_hash</td><td>É o "Selecionado" do lado do servidor. Serve de chave de idempotência da criação.</td></tr>
+      <tr><td><code>reservations</code></td><td>id, <b>number</b> (sequence, começa em 1001), <b>access_key</b> (aleatória, única), payment_method (fixada na primeira cobrança), coupon_code, customer_id, phone_e164, customer_name, <b>status</b>, closure_reason, delivery_intent, subtotal_cents, discount_cents, total_cents, <b>created_at, expires_at, grace_until</b>, reminder_enqueued_at, payment_confirmed_at, expired_at, delivered_at, delivered_by, attempt_id</td><td><code>UNIQUE (customer_id) WHERE status = 'RESERVADO'</code> garante 1 ativa por telefone no banco.<br><code>CHECK ((status = 'EXPIRADO') = (closure_reason IS NOT NULL))</code></td></tr>
+      <tr><td><code>reservation_items</code></td><td>id, reservation_id, product_id, name_snapshot, <b>list_price_cents, unit_price_cents</b>, qty, discounts jsonb</td><td><code>CHECK (qty BETWEEN 1 AND 2)</code>. Preço de tabela, preço final e descontos ficam congelados.</td></tr>
+      <tr><td><code>reservation_transitions</code></td><td>id, reservation_id, from_status, to_status, event, actor_type, actor_id, reason, created_at</td><td>Preenchida pelo gatilho guardião. É a linha do tempo do detalhe admin.</td></tr>
+      <tr><td><code>cancellation_requests</code></td><td>id, reservation_id, status, customer_note, requested_at, decided_at, decided_by, decision_reason</td><td>Único parcial: uma PENDENTE por reserva.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Pagamento, entrega, mensagens e auditoria</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
+    <tbody>
+      <tr><td><code>payments</code></td><td>id, reservation_id, purpose, shipping_quote_id, provider, method, <b>idempotency_key</b>, <b>provider_payment_id</b>, amount_cents, status, provider_status, <b>created_at</b>, approved_at, pix_qr, pix_expires_at, <b>applied</b>, review_reason</td><td><code>UNIQUE (provider, provider_payment_id)</code> · <code>UNIQUE (idempotency_key)</code> · <code>UNIQUE (reservation_id, purpose) WHERE applied</code>: só um pagamento efetivo por finalidade · <code>UNIQUE (reservation_id, purpose) WHERE status IN ('CRIADO','PENDENTE')</code>: uma cobrança em curso. A forma da primeira cobrança fica gravada na reserva (<code>reservations.payment_method</code>); nova tentativa só pela mesma forma, e só depois que a anterior foi recusada ou cancelada.</td></tr>
+      <tr><td><code>payment_events</code></td><td>id, provider, provider_event_id, payment_ref, payload jsonb, signature_ok, received_at, processed_at, error</td><td>Inbox de webhooks. <code>UNIQUE (provider, provider_event_id)</code>: um reenvio vira no-op.</td></tr>
+      <tr><td><code>payment_reviews</code></td><td>id, payment_id, reservation_id, reason, status (ABERTA, RESOLVIDA), resolution (ESTORNAR, CONVERTER_EM_PEDIDO), new_reservation_id, decided_by, note</td><td>Fila de análise administrativa (D6).</td></tr>
+      <tr><td><code>fulfillments</code></td><td>reservation_id (PK), mode, substatus, address jsonb, pickup_code, tracking_code, confirmed_at, updated_at</td><td>Endereço só quando a modalidade exige (LGPD).</td></tr>
+      <tr><td><code>shipping_quotes</code></td><td>id, reservation_id, mode, amount_cents, calculated_by, calculated_at, <b>pay_until</b> (+2 h), status (AGUARDANDO_PAGAMENTO, PAGO, VENCIDO, SUBSTITUIDO)</td><td>Uma cotação ativa por pedido.</td></tr>
+      <tr><td><code>outbox_messages</code></td><td>id, <b>dedupe_key</b> (único), phone_e164, template, params jsonb, status, attempts, next_attempt_at, provider_message_id, last_error, created_at, sent_at, delivered_at</td><td>Gravada na mesma transação da mudança de estado. Nenhuma notificação se perde ou duplica.</td></tr>
+      <tr><td><code>whatsapp_inbound</code></td><td>id, wa_message_id (único), from_wa_id, text, received_at, handled_as</td><td>Idempotência do webhook de entrada.</td></tr>
+      <tr><td><code>admin_users</code></td><td>id (auth.users), name, active</td><td>Todos com as mesmas permissões no MVP.</td></tr>
+      <tr><td><code>audit_log</code></td><td>id bigserial, occurred_at, actor_type, actor_id, action, entity_type, entity_id, reservation_id, data jsonb, ip_hash</td><td>Gatilho bloqueia <code>UPDATE</code> e <code>DELETE</code>. Sobrevive a zeragens de contador.</td></tr>
+      <tr><td><code>app_settings</code></td><td>key, value jsonb</td><td>15 min, 5 min, 9 peças, 2 por produto, 3/30 d, 2 h, limite de "últimas unidades", notificações opcionais ligadas. Nada fica fixo no código.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 5 -->
+<section id="estoque">
+  <p class="secnum">05</p>
+  <h2>Concorrência de estoque</h2>
+  <p class="sub">Objetivo: com 1 unidade e N clientes confirmando ao mesmo tempo, exatamente 1 vence e as outras recebem <code>STOCK_UNAVAILABLE</code> com a lista de itens afetados. Não existe reserva parcial.</p>
+
+  <h3>Estratégia: bloqueio pessimista de linha, em ordem fixa, numa única transação</h3>
+<pre>-- create_reservation(p_attempt_id uuid, p_expected_total int) — READ COMMITTED
+BEGIN;
+  -- 0. Idempotência: se a tentativa já foi CONVERTIDA, devolve a mesma reserva.
+  -- 1. Serializa pedidos do mesmo telefone (duplo clique, duas abas)
+  SELECT id FROM customers WHERE phone_e164 = v_phone FOR UPDATE;
+  -- 2. Guardas: bloqueio ativo? reserva RESERVADO existente? limites 9 / 2 por modelo?
+  -- 3. Trava os produtos SEMPRE em ordem crescente de id (evita deadlock)
+  SELECT id, qty_total, qty_reserved, qty_sold
+    FROM products
+   WHERE id = ANY(v_product_ids)
+   ORDER BY id
+     FOR UPDATE;
+  -- 4. Confere todas; se alguma faltar: RAISE 'STOCK_UNAVAILABLE' com detalhes → ROLLBACK total
+  -- 5. UPDATE products SET qty_reserved = qty_reserved + q  (CHECK é a última barreira)
+  -- 6. Trava promoções/cupom usados (seção 5b), confere vigência, limites e orçamento;
+  --    recalcula o preço no servidor; compara com p_expected_total → 'PRICE_CHANGED'
+  -- 7. INSERT reservations (expires_at = now() + 15 min), reservation_items, stock_movements,
+  --    outbox_messages('reserva_criada'), audit_log; tentativa → CONVERTIDA
+COMMIT;</pre>
+
+  <ul>
+    <li><b>Por que não usar só o <code>CHECK</code>:</b> ele impede estoque negativo, mas daria erro genérico. O bloqueio de linha permite devolver quais itens faltaram.</li>
+    <li><b>Por que não usar SERIALIZABLE:</b> exigiria retentativas na aplicação. O <code>FOR UPDATE</code> em ordem fixa resolve com previsibilidade, e o bloqueio dura milissegundos.</li>
+    <li><b>Ordem global de locks</b>, usada em todas as funções: <code>customers</code> → <code>reservations</code> → <code>payments</code> → <code>products</code> (por id) → <code>promotions</code>/<code>coupons</code> (por id). Criação, pagamento, expiração e cancelamento seguem a mesma ordem, o que elimina deadlocks entre eles.</li>
+    <li><b>Reservas vencidas ainda não varridas:</b> antes de conferir o estoque, <code>create_reservation</code> expira as reservas vencidas <i>sem tentativa pendente</i> que prendem os mesmos produtos. O estoque nunca fica preso esperando o próximo ciclo do job.</li>
+    <li><b>Disponibilidade na loja</b>: a view <code>v_product_availability</code> expõe <code>available</code> e o rótulo DISPONIVEL, ULTIMAS_UNIDADES ou ESGOTADO. É informativa. A verdade é decidida no passo 4.</li>
+    <li><b>Ajuste administrativo de estoque</b> passa pelo mesmo lock e não pode deixar <code>qty_total &lt; reservado + vendido</code>.</li>
+    <li><b>Verificador de invariantes</b> (job noturno): <code>qty_reserved = Σ itens de reservas RESERVADO</code> e <code>qty_sold = Σ itens de PAGAMENTO_CONFIRMADO + ENTREGUE</code>. Qualquer divergência gera alerta no painel.</li>
+  </ul>
+
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Cliente
+  participant A as api-public
+  participant DB as PostgreSQL
+  participant W as WhatsApp
+  C->>A: POST /v1/reservation-attempts (itens, nome, telefone)
+  A->>DB: valida regras e pré-checa bloqueio, reserva ativa e estoque
+  A->>DB: cria tentativa + sessão OTP
+  A->>W: mensagem com o código (ou verificação invertida, W3)
+  C->>A: POST /v1/reservation-attempts/:id/confirm (código)
+  A->>DB: verify_otp() e create_reservation() na mesma transação
+  Note over DB: trava cliente, trava produtos em ordem,<br/>confere tudo, reserva, grava outbox e auditoria
+  DB-->>A: reserva 1048, expires_at
+  A-->>C: 201 + cookie de sessão
+  DB-)W: outbox reserva_criada (worker envia)
+</pre>
+</section>
+
+<!-- 5b -->
+<section id="promocoes">
+  <p class="secnum">05b</p>
+  <h2>Preço e promoções</h2>
+  <p class="sub">Cada produto tem um preço fixo. As promoções seguem os três formatos das telas enviadas e são calculadas por um único motor de preço, usado pela loja (simulação) e pelo servidor (valor que vale).</p>
+
+  <h3>Tabelas</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
+    <tbody>
+      <tr><td><code>promotions</code></td><td>id, <b>type</b> (DESCONTO_PRODUTO, COMPRE_MAIS, CUPOM), name (até 50), starts_at, ends_at, scope (TODOS, ESPECIFICOS), one_per_customer, budget_cents, budget_used_cents, ended_at, created_by</td><td>Situação calculada: agendada, ativa, encerrada. Encerrar antes do fim grava <code>ended_at</code>. <code>CHECK (budget_used_cents ≤ budget_cents)</code> quando há orçamento.</td></tr>
+      <tr><td><code>promotion_products</code></td><td>promotion_id, product_id, <b>discount_kind</b> (PERCENTUAL, PRECO_FIXO), discount_value</td><td>Para DESCONTO_PRODUTO guarda o valor por produto; nos outros tipos, só o escopo. Um produto não entra em dois descontos do produto com períodos sobrepostos (constraint de exclusão com <code>tstzrange</code>).</td></tr>
+      <tr><td><code>promotion_tiers</code></td><td>promotion_id, level (1 a 3), min_qty (2 a 9), percent (1 a 90)</td><td>Quantidade e porcentagem crescentes entre níveis.</td></tr>
+      <tr><td><code>coupons</code></td><td>promotion_id (PK), <b>code</b> (único, maiúsculas), kind (VALOR, PERCENTUAL), value, max_discount_cents, min_spend_cents, total_quantity, <b>used_quantity</b>, per_customer_limit, validity_days</td><td><code>CHECK (used_quantity ≤ total_quantity)</code>, até 9.999.999.</td></tr>
+      <tr><td><code>coupon_uses</code></td><td>id, coupon_id, phone_e164, reservation_id, status (PRESO, USADO, DEVOLVIDO), first_used_at, created_at</td><td>PRESO enquanto a reserva está em RESERVADO; USADO quando paga; DEVOLVIDO se expirar. O limite por cliente conta PRESO + USADO do telefone.</td></tr>
+      <tr><td><code>reservation_discounts</code></td><td>id, reservation_id, promotion_id, type, amount_cents, detail jsonb</td><td>Foto do que foi aplicado. Nunca é recalculada.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Motor de preço: só a mais vantajosa (P6)</h3>
+<pre>preço de cada item = preço fixo do produto
+candidatas = [sem promoção]
+  + cada DESCONTO_PRODUTO ativo que cobre algum item   (preço promocional nesses itens)
+  + cada COMPRE_MAIS ativa: maior nível atingido pelas peças participantes → % sobre elas
+    (respeita orçamento restante e "uma por cliente")
+  + CUPOM digitado, se válido: vigência, escopo, gasto mínimo sobre o subtotal sem desconto,
+    quantidade restante, limite do telefone; valor ou % (com teto)
+aplicada = a candidata com MENOR total; empate → a que não consome cupom
+desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
+  <ul>
+    <li><b>Código único:</b> o motor é TypeScript puro em <code>packages/domain</code>, usado pela loja (prévia) e pela Edge Function. A função SQL <code>create_reservation</code> recebe as linhas calculadas e só confirma o que depende de concorrência.</li>
+    <li><b>Cupom perdido para promoção melhor:</b> se o cupom digitado não for a opção mais vantajosa, ele não é aplicado nem gasta o limite. A loja e a API avisam: <code>COUPON_NOT_BEST</code>, "Você já tem um desconto maior".</li>
+    <li><b>Concorrência de cupom e orçamento:</b> dentro da mesma transação da reserva, trava a linha do cupom e da promoção (<code>FOR UPDATE</code>, depois dos produtos), confere vigência pelo <code>now()</code> do banco, soma <code>used_quantity</code> e <code>budget_used_cents</code>. Se o último cupom ou o fim do orçamento for disputado, só uma reserva leva, e a outra recebe <code>PRICE_CHANGED</code> com o novo total.</li>
+    <li><b>Devolução:</b> quando a reserva expira ou o cancelamento é aprovado, o uso do cupom volta (DEVOLVIDO) e o orçamento é devolvido. Quando é paga, fica definitivo.</li>
+    <li><b>Mudanças no meio do caminho:</b> editar ou encerrar uma promoção não altera reservas já criadas. O preço e os descontos ficam congelados em <code>reservation_items</code> e <code>reservation_discounts</code>.</li>
+    <li><b>Auditoria:</b> criar, editar e encerrar promoção entram no <code>audit_log</code>.</li>
+  </ul>
+</section>
+
+<!-- 6 -->
+<section id="expiracao">
+  <p class="secnum">06</p>
+  <h2>Expiração, lembrete e tolerância</h2>
+  <p class="sub">O relógio é o <code>now()</code> do banco. Fechar ou recarregar a página não afeta nada. A reserva nunca é renovada.</p>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Situação quando <code>now() ≥ expires_at</code> (min 15)</th><th>O que o sistema faz</th></tr></thead>
+    <tbody>
+      <tr><td>Nenhuma tentativa de pagamento</td><td>Expira (T3). O estoque volta na hora.</td></tr>
+      <tr><td>Só tentativas recusadas, falhas ou canceladas</td><td>Expira (T3).</td></tr>
+      <tr><td>Tentativa <code>PENDENTE</code> com <code>created_at &lt; expires_at</code></td><td>Grava <code>grace_until = expires_at + 5 min</code>, evento <code>ToleranciaIniciada</code>, e a tela mostra "Pagamento em processamento". Continua RESERVADO. Novas tentativas ficam bloqueadas (D5).</td></tr>
+      <tr><td>Provedor aprova com <code>approved_at ≤ grace_until</code></td><td>Confirma (T2), mesmo que o webhook chegue segundos depois, desde que a reserva ainda esteja RESERVADO.</td></tr>
+      <tr><td><code>now() ≥ grace_until</code> e ainda pendente</td><td>O worker consulta o provedor. Se aprovado dentro do prazo, confirma. Se não, cancela a cobrança no provedor e expira (T3).</td></tr>
+      <tr><td>Aprovação chega com a reserva já EXPIRADO</td><td>O pagamento vira <code>EM_ANALISE</code> (<code>RESERVA_ENCERRADA</code> ou <code>APROVADO_APOS_TOLERANCIA</code>). Nunca reativa. O admin resolve (D6).</td></tr>
+    </tbody>
+  </table></div>
+
+  <ul>
+    <li><b>Prazo efetivo</b>, em uma função só, usada por todos: <code>effective_deadline(r) = COALESCE(r.grace_until, r.expires_at)</code>.</li>
+    <li><b>PIX com prazo alinhado:</b> a cobrança é criada com expiração em <code>expires_at + 5 min</code> quando o provedor aceita expiração curta. Se não aceitar, o worker cancela via API no fim da tolerância. Assim o banco da cliente recusa o pagamento tardio, e a análise manual fica rara.</li>
+    <li><b>Lembrete de 5 min:</b> quando <code>now() ≥ expires_at − 5 min</code>, a reserva está RESERVADO e o lembrete ainda não foi enfileirado, entra na outbox com <code>dedupe_key = 'lembrete:' || id</code>.</li>
+    <li><b>Folga do job:</b> a varredura roda a cada 10 s. No pior caso, o estoque fica preso até 10 s além do prazo, mas toda operação de escrita já trata <code>now() ≥ prazo efetivo</code> como vencida (<code>start_payment</code> recusa, <code>create_reservation</code> libera antes).</li>
+    <li><b>Rede de segurança:</b> se o worker HTTP cair, a varredura SQL expira sozinha qualquer reserva com <code>now() ≥ grace_until + 2 min</code>. O estoque nunca fica preso indefinidamente. Uma aprovação tardia cai em análise.</li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section id="whatsapp">
+  <p class="secnum">07</p>
+  <h2>Validação por WhatsApp (OTP) e canal de mensagens</h2>
+
+  <h3>Ferramenta não oficial: como reduzir o risco de banimento</h3>
+  <ul>
+    <li><b>Verificação invertida (W3):</b> a cliente manda a primeira mensagem. O sistema quase só responde conversas abertas por ela.</li>
+    <li><b>Ritmo humano:</b> a fila da outbox envia uma mensagem por vez, com intervalo aleatório de alguns segundos e limite por minuto e por hora. Nunca dispara em massa.</li>
+    <li><b>Sem link encurtado e texto variado:</b> cada template tem 2 ou 3 variações de texto, sorteadas. O link é o domínio da loja.</li>
+    <li><b>Monitor da conexão:</b> o worker consulta o status da sessão a cada minuto. Se cair, alerta no painel com o QR code para reconectar, e as mensagens esperam na fila. Nada se perde.</li>
+    <li><b>Plano B pronto:</b> a interface <code>WhatsAppProvider</code> tem as implementações não oficial, oficial (Cloud API) e falsa (testes). Mudar é trocar uma configuração.</li>
+    <li><b>Sem WhatsApp, o fluxo não trava:</b> se a sessão estiver fora do ar, o site avisa "Validação pelo WhatsApp indisponível agora, tente em alguns minutos" em vez de criar reserva sem telefone validado.</li>
+  </ul>
+
+  <h3>Fluxo de verificação (W3)</h3>
+  <ol>
+    <li>Ao informar nome e WhatsApp, o servidor cria a tentativa com uma <b>referência curta</b> (ex.: <code>K7Q2</code>), única entre as tentativas abertas.</li>
+    <li>O site mostra o botão "Receber código no WhatsApp": link <code>https://wa.me/5577998155772?text=Quero meu código da reserva (ref. K7Q2)</code>. Na consulta, o texto é "Quero consultar minhas reservas (ref. …)".</li>
+    <li>O webhook da Z-API recebe a mensagem, acha a tentativa pela referência e confere se o remetente é o telefone informado (com e sem o nono dígito). Número diferente recebe "Este número não é o da reserva" e nenhum código.</li>
+    <li>O sistema responde na mesma conversa: "Seu código de verificação é 482193…", com botão "Copiar código" quando a Z-API conseguir enviá-lo; se não, só o texto.</li>
+    <li>O site acompanha a tentativa (consulta a cada 2 s) e mostra o campo do código assim que ele é enviado. A cliente digita e segue o fluxo normal.</li>
+    <li>"Pedir novo código" é enviar a mensagem de novo. Cada novo envio conta como reenvio.</li>
+  </ol>
+  <h3>Regras do código</h3>
+  <dl class="kv">
+    <dt>formato</dt><dd>6 dígitos, gerados por CSPRNG, guardados como HMAC-SHA256 com pepper em segredo do servidor</dd>
+    <dt>validade</dt><dd>5 min por código</dd>
+    <dt>tentativas</dt><dd>2 por código. Na segunda falha, o código vira ESGOTADO</dd>
+    <dt>reenvios</dt><dd>2 novos códigos por sessão (até 3 códigos), pedidos pela cliente reenviando a mensagem. Intervalo mínimo de 30 s entre códigos</dd>
+    <dt>bloqueio</dt><dd>30 min por telefone, para as duas finalidades, conforme D10</dd>
+    <dt>janela</dt><dd>A sessão OTP dura até ser verificada ou até 30 min de inatividade. Recomeçar o fluxo reaproveita a sessão e os contadores</dd>
+    <dt>anti-abuso</dt><dd>Turnstile no primeiro envio · no máximo 5 telefones distintos por IP por hora · no máximo 10 envios por IP por hora</dd>
+    <dt>comparação</dt><dd>Em tempo constante. A resposta de erro diz quantas tentativas restam, mas não revela se o telefone existe</dd>
+  </dl>
+
+  <h3>Verificações antes de gastar uma mensagem</h3>
+  <p>No envio do código com finalidade RESERVA, a API já confere: telefone bloqueado por abuso, reserva RESERVADO existente, bloqueio temporário de OTP, regras do carrinho e estoque aproximado. Assim a cliente sabe do problema antes de receber o código, e nenhuma mensagem é gasta à toa. Todas essas verificações se repetem dentro de <code>create_reservation</code>.</p>
+
+  <h3>Envio</h3>
+  <ul>
+    <li>O código é enviado pelo webhook de entrada, na hora, como resposta à mensagem da cliente. Não existe envio de código para número que não escreveu antes.</li>
+    <li>As demais mensagens vão pela <b>outbox</b>: o worker envia com retentativa (1 min, 5 min, 15 min, até 5 vezes) e grava o <code>provider_message_id</code>. O webhook de status atualiza entregue ou lida.</li>
+  </ul>
+
+  <h3>Entrada: "Minha reserva"</h3>
+  <ol>
+    <li>O webhook confere o token secreto configurado na ferramenta (cabeçalho ou parâmetro) e deduplica por <code>wa_message_id</code>.</li>
+    <li>Normaliza o texto (minúsculas, sem acento). Aceita "minha reserva", "minhas reservas" e "status".</li>
+    <li>Resolve o telefone a partir do <code>wa_id</code>, nas formas com e sem o nono dígito (R17).</li>
+    <li>Responde na mesma conversa: número, estado, itens resumidos e tempo restante ou substatus. Sem novo código, conforme a regra 22.</li>
+  </ol>
+
+  <h3>Link na mensagem de reserva criada</h3>
+  <p><code>https://loja/r/&lt;chave&gt;</code>: chave aleatória de 16 caracteres (cerca de 95 bits, gerada por CSPRNG) guardada em <code>reservations.access_key</code>, única. O link mostra só aquela reserva, com o telefone mascarado. Para ver as outras reservas do mesmo telefone, a cliente usa a consulta com código.</p>
+</section>
+
+<!-- 8 -->
+<section id="pagamento">
+  <p class="secnum">08</p>
+  <h2>Integração de pagamento e idempotência</h2>
+
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Cliente
+  participant A as api-public
+  participant DB as PostgreSQL
+  participant P as Provedor
+  participant H as webhook-payments
+  C->>A: POST /v1/reservations/:id/payments (Idempotency-Key)
+  A->>DB: register_payment_attempt() exige RESERVADO e now menor que expires_at
+  A->>P: cria cobrança com chave de idempotência igual ao id da tentativa
+  P-->>A: id da transação e QR PIX
+  A->>DB: tentativa PENDENTE
+  P->>H: webhook assinado
+  H->>DB: grava evento, único por provedor e id
+  H->>P: GET pagamento (fonte da verdade)
+  H->>DB: apply_payment_result()
+  Note over DB: trava reserva, pagamento e produtos<br/>reservado vira vendido uma única vez
+</pre>
+
+  <h3>Cinco camadas de idempotência</h3>
+  <ol>
+    <li><b>Cliente → API:</b> o header <code>Idempotency-Key</code> (UUID gerado no front por clique). Repetir a chamada devolve a mesma tentativa e não cria outra cobrança.</li>
+    <li><b>API → Provedor:</b> a chave de idempotência do provedor é o <code>id</code> da tentativa. Uma retentativa de rede não cria cobrança duplicada.</li>
+    <li><b>Webhook → Banco:</b> <code>UNIQUE (provider, provider_event_id)</code> em <code>payment_events</code>. O reenvio do provedor é descartado e recebe <code>200</code>.</li>
+    <li><b>Aplicação do resultado:</b> <code>apply_payment_result()</code> trava a reserva e o pagamento. Se <code>payments.applied</code> já é verdadeiro, retorna <code>ALREADY_APPLIED</code> sem mexer no estoque.</li>
+    <li><b>Constraint final:</b> <code>UNIQUE (reservation_id, purpose) WHERE applied</code>. Mesmo com bug na aplicação, o banco recusa uma segunda venda.</li>
+  </ol>
+
+  <h3>Decisão em <code>apply_payment_result(payment_id, status, approved_at, amount)</code></h3>
+<pre>se status ≠ APROVADO             → atualiza tentativa (RECUSADO/CANCELADO); se houver tempo, cliente tenta de novo
+se payment.applied              → ALREADY_APPLIED (no-op)
+se reserva = EXPIRADO           → EM_ANALISE (RESERVA_ENCERRADA)
+se approved_at > prazo efetivo  → expira a reserva agora + EM_ANALISE (APROVADO_APOS_TOLERANCIA)
+senão                            → T2: RESERVADO → PAGAMENTO_CONFIRMADO, reservado → vendido</pre>
+
+  <ul>
+    <li><b>Nunca confiar no corpo do webhook:</b> o webhook só avisa que algo mudou. O status real vem de uma consulta à API do provedor com a credencial da loja.</li>
+    <li><b>Webhook que falha no processamento</b> responde <code>500</code> para o provedor reenviar. A reconciliação (seção 12) cobre o caso em que ele desiste.</li>
+    <li><b>Valor:</b> a cobrança é criada pelo servidor com o total congelado. A cliente não digita valor.</li>
+    <li><b>Se a forma for cartão:</b> tokenizado no navegador pelo SDK do provedor (PCI SAQ-A). O servidor nunca vê o número. Modo binário quando existir.</li>
+    <li><b>Frete</b> usa o mesmo fluxo, com <code>purpose = FRETE</code> e vínculo com <code>shipping_quote_id</code>. Não afeta o estado oficial, só o substatus.</li>
+    <li><b>Estorno</b> (análise): chamada à API de reembolso do provedor. Fica registrado em <code>payments.status = ESTORNADO</code> e na auditoria.</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section id="bloqueio">
+  <p class="secnum">09</p>
+  <h2>Bloqueio de telefone por abuso</h2>
+<pre>-- dentro da transação de T3 (PRAZO_ESGOTADO), depois de expirar:
+v_count := count(*) FROM reservations
+           WHERE customer_id = v_customer
+             AND status = 'EXPIRADO' AND closure_reason = 'PRAZO_ESGOTADO'
+             AND expired_at > greatest(now() - interval '30 days',
+                                       coalesce(c.expiration_counter_reset_at, '-infinity'));
+IF v_count >= 3 AND NOT EXISTS (bloqueio ATIVO) THEN
+   INSERT phone_blocks(status='ATIVO', trigger_reservations=[...]);
+   outbox 'telefone_bloqueado'; audit 'PHONE_BLOCKED';
+END IF;</pre>
+  <ul>
+    <li><b>Onde é checado:</b> no envio do código (finalidade RESERVA) e dentro de <code>create_reservation</code>. A consulta de reservas (finalidade CONSULTA) continua liberada.</li>
+    <li><b>Liberar telefone</b> (admin, motivo obrigatório): bloqueio → LIBERADO, <code>expiration_counter_reset_at = now()</code>, que zera o contador operacional sem apagar nenhuma reserva. Grava a decisão, a auditoria e a outbox <code>telefone_liberado</code>.</li>
+    <li><b>Manter bloqueado</b>: grava a decisão e o motivo, e envia a outbox <code>bloqueio_mantido</code>. O bloqueio continua ATIVO até uma nova decisão.</li>
+    <li>O bloqueio não expira sozinho. Só o painel libera (regra 21).</li>
+  </ul>
+</section>
+
+<!-- 10 -->
+<section id="eventos">
+  <p class="secnum">10</p>
+  <h2>Eventos de domínio e notificações</h2>
+  <p class="sub">Cada evento vira uma linha de auditoria e, quando aplicável, uma mensagem na outbox, na mesma transação. As mensagens usam só o primeiro nome e nunca incluem endereço ou telefone completo. As opcionais têm liga/desliga no painel (P3).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Evento</th><th>Origem</th><th>Mensagem</th><th>Envio</th></tr></thead>
+    <tbody>
+      <tr><td><code>OtpEnviado</code></td><td>API</td><td><code>codigo_verificacao</code></td><td>Sempre</td></tr>
+      <tr><td><code>ReservaCriada</code></td><td>T1</td><td><code>reserva_criada</code> (número, itens, total, expira às, link)</td><td>Sempre</td></tr>
+      <tr><td><code>LembreteExpiracao</code></td><td>job</td><td><code>reserva_lembrete_5min</code></td><td>Sempre</td></tr>
+      <tr><td><code>TentativaPagamentoRegistrada</code> / <code>ToleranciaIniciada</code></td><td>API / job</td><td>(sem mensagem; só auditoria)</td><td>—</td></tr>
+      <tr><td><code>PagamentoConfirmado</code></td><td>T2</td><td><code>pagamento_confirmado</code> (pede a confirmação da modalidade)</td><td>Sempre</td></tr>
+      <tr><td><code>PagamentoEmAnalise</code></td><td>webhook</td><td><code>pagamento_em_analise</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>ReservaExpirada</code></td><td>T3</td><td><code>reserva_expirada</code></td><td>Sempre</td></tr>
+      <tr><td><code>CancelamentoSolicitado</code></td><td>cliente</td><td><code>cancelamento_recebido</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>CancelamentoAprovado</code> / <code>Recusado</code></td><td>T4 / admin</td><td><code>cancelamento_aprovado</code> / <code>cancelamento_recusado</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>ModalidadeConfirmada</code></td><td>cliente</td><td><code>entrega_confirmada</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>FreteCalculado</code></td><td>admin</td><td><code>frete_calculado</code> (valor, pagar até)</td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>FreteVencido</code></td><td>job</td><td>(alerta no painel; mensagem depende de D8)</td><td>—</td></tr>
+      <tr><td><code>SubstatusAlterado</code></td><td>admin</td><td><code>pronto_retirada</code> · <code>saiu_entrega</code> · <code>pedido_enviado</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>PedidoEntregue</code></td><td>T5</td><td><code>pedido_entregue</code></td><td>Opcional (liga/desliga)</td></tr>
+      <tr><td><code>TelefoneBloqueado</code> / <code>Liberado</code> / <code>BloqueioMantido</code></td><td>T3 / admin</td><td><code>telefone_bloqueado</code> · <code>telefone_liberado</code> · <code>bloqueio_mantido</code></td><td>Opcional (liga/desliga)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 11 -->
+<section id="api">
+  <p class="secnum">11</p>
+  <h2>Endpoints</h2>
+  <p class="sub">JSON, versão <code>/v1</code>. Os erros seguem o formato <code>{ "error": { "code": "STOCK_UNAVAILABLE", "message": "...", "details": {...} } }</code>, com um código estável que o front traduz para a mensagem da cliente.</p>
+
+  <h3>Público (sem sessão)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Método e rota</th><th>Função</th><th>Erros principais</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /v1/catalog/collections</code></td><td>Coleções ativas</td><td>—</td></tr>
+      <tr><td><code>GET /v1/catalog/products?collection=&amp;availability=</code></td><td>Produtos, preço de tabela, preço promocional vigente e disponibilidade</td><td>—</td></tr>
+      <tr><td><code>POST /v1/cart/quote</code></td><td><code>{items, coupon_code?}</code>: valida as regras 9 / 2 por produto e calcula promoções e cupom. Não reserva nada</td><td><code>MAX_ITEMS</code>, <code>MAX_PER_MODEL</code>, <code>INSUFFICIENT_STOCK</code></td></tr>
+      <tr><td><code>POST /v1/reservation-attempts</code></td><td>Nome, telefone, intenção de entrega, itens, total esperado e Turnstile. Cria a tentativa e envia o código</td><td><code>PHONE_BLOCKED</code>, <code>ACTIVE_RESERVATION_EXISTS</code>, <code>OTP_LOCKED</code>, <code>NO_WHATSAPP</code>, <code>RATE_LIMITED</code></td></tr>
+      <tr><td><code>POST /v1/otp-sessions/:id/resend</code></td><td>Reenvia o código</td><td><code>RESEND_LIMIT</code> (dispara o bloqueio), <code>RESEND_TOO_SOON</code></td></tr>
+      <tr><td><code>POST /v1/reservation-attempts/:id/confirm</code></td><td>Código (ou sessão já verificada) → <code>create_reservation</code>. Devolve a reserva e o cookie de sessão</td><td><code>OTP_INVALID</code> (restantes), <code>OTP_EXPIRED</code>, <code>OTP_LOCKED</code>, <code>STOCK_UNAVAILABLE</code> (itens), <code>PRICE_CHANGED</code></td></tr>
+      <tr><td><code>PUT /v1/reservation-attempts/:id/items</code></td><td>Ajusta os itens depois de um <code>STOCK_UNAVAILABLE</code> sem novo código (R8)</td><td><code>ATTEMPT_NOT_VERIFIED</code></td></tr>
+      <tr><td><code>POST /v1/lookup/otp</code> · <code>POST /v1/lookup/verify</code></td><td>Consulta pelo site com código</td><td>Mesmos erros de OTP</td></tr>
+      <tr><td><code>GET /v1/r/:chave</code></td><td>Reserva aberta pelo link do WhatsApp (só aquela reserva, telefone mascarado)</td><td><code>NOT_FOUND</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Cliente (cookie de sessão)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Método e rota</th><th>Função</th><th>Erros principais</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /v1/me/reservations</code></td><td>Reservas do telefone da sessão</td><td>—</td></tr>
+      <tr><td><code>GET /v1/reservations/:id</code></td><td>Estado, itens, totais, <code>server_now</code>, <code>expires_at</code>, <code>grace_until</code>, pagamento, cancelamento, entrega</td><td><code>NOT_FOUND</code> (também para a reserva de outro telefone)</td></tr>
+      <tr><td><code>POST /v1/reservations/:id/payments</code></td><td><code>{method, card_token?}</code> + <code>Idempotency-Key</code> → QR PIX ou resultado do cartão. A forma da primeira cobrança fica fixa</td><td><code>METHOD_LOCKED</code>, <code>RESERVATION_NOT_ACTIVE</code>, <code>DEADLINE_PASSED</code>, <code>PAYMENT_IN_PROGRESS</code></td></tr>
+      <tr><td><code>GET /v1/reservations/:id/payments/:pid</code></td><td>Status (consultado a cada 3 s pela tela enquanto pendente)</td><td>—</td></tr>
+      <tr><td><code>POST /v1/reservations/:id/cancellation-request</code></td><td>Solicita o cancelamento</td><td><code>ALREADY_REQUESTED</code>, <code>RESERVATION_NOT_ACTIVE</code></td></tr>
+      <tr><td><code>PUT /v1/reservations/:id/fulfillment</code></td><td>Confirma ou altera a modalidade (e o endereço)</td><td><code>NOT_PAID</code>, <code>SHIPPING_ALREADY_PAID</code></td></tr>
+      <tr><td><code>POST /v1/reservations/:id/shipping-payments</code></td><td>Paga o frete + <code>Idempotency-Key</code></td><td><code>QUOTE_EXPIRED</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Webhooks</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Método e rota</th><th>Função</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /webhooks/payments/:provider</code></td><td>Verifica a assinatura, grava na inbox, consulta o provedor e aplica. Responde 200 rápido</td></tr>
+            <tr><td><code>POST /webhooks/whatsapp</code></td><td>Mensagens recebidas ("Minha reserva") e status de entrega das mensagens enviadas</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Admin (JWT Supabase Auth + <code>admin_users</code>)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Método e rota</th><th>Função</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /v1/admin/dashboard</code></td><td>Contadores: ativas, pagas, expiradas hoje, entregues, cancelamentos pendentes, bloqueados, análises, fretes vencendo</td></tr>
+      <tr><td><code>GET /v1/admin/reservations?status=&amp;q=&amp;page=</code></td><td>Busca por número, telefone ou nome</td></tr>
+      <tr><td><code>GET /v1/admin/reservations/:id</code></td><td>Detalhe completo, com transições, pagamentos, entrega e auditoria</td></tr>
+      <tr><td><code>POST /v1/admin/cancellation-requests/:id/approve</code> · <code>/reject</code></td><td>Decisão com motivo obrigatório</td></tr>
+      <tr><td><code>POST /v1/admin/reservations/:id/shipping-quote</code></td><td>Informa o frete (inicia o prazo de 2 h)</td></tr>
+      <tr><td><code>PUT /v1/admin/reservations/:id/fulfillment/substatus</code></td><td>Avança o substatus logístico</td></tr>
+      <tr><td><code>POST /v1/admin/reservations/:id/deliver</code></td><td>T5: marca como Entregue</td></tr>
+      <tr><td><code>GET /v1/admin/payment-reviews</code> · <code>POST .../:id/resolve</code></td><td>Estornar ou converter em novo pedido (D6)</td></tr>
+      <tr><td><code>GET /v1/admin/phone-blocks</code> · <code>POST .../:id/release</code> · <code>/keep</code></td><td>Liberar ou manter, com motivo</td></tr>
+      <tr><td><code>CRUD /v1/admin/products</code>, <code>/collections</code></td><td>Catálogo e imagens</td></tr>
+      <tr><td><code>CRUD /v1/admin/promotions</code> · <code>POST .../:id/end</code></td><td>Desconto do produto, compre e economize mais, cupom; encerramento antecipado</td></tr>
+      <tr><td><code>POST /v1/admin/products/:id/stock-adjustments</code></td><td><code>{delta, reason}</code>, sob o mesmo lock</td></tr>
+      <tr><td><code>GET /v1/admin/audit?entity=&amp;id=</code></td><td>Consulta da auditoria</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 12 -->
+<section id="jobs">
+  <p class="secnum">12</p>
+  <h2>Jobs</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Job</th><th>Onde</th><th>Frequência</th><th>O que faz</th></tr></thead>
+    <tbody>
+      <tr><td><code>sweep_reservations()</code></td><td>pg_cron (SQL)</td><td>10 s</td><td>Com <code>FOR UPDATE SKIP LOCKED</code>, em lotes de 100: enfileira lembretes de 5 min · inicia a tolerância quando há tentativa pendente · expira reservas vencidas sem pendência · rede de segurança em <code>grace_until + 2 min</code></td></tr>
+      <tr><td><code>worker: grace-expirations</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Reservas com <code>grace_until</code> vencido e tentativa pendente: consulta o provedor, depois confirma ou cancela a cobrança e expira</td></tr>
+      <tr><td><code>worker: outbox-dispatch</code></td><td>Edge Function via pg_net</td><td>10 s</td><td>Envia as mensagens pendentes com backoff. Usa <code>SKIP LOCKED</code> para rodar em paralelo com segurança</td></tr>
+      <tr><td><code>worker: payment-reconcile</code></td><td>Edge Function via pg_net</td><td>1 min</td><td>Tentativas PENDENTE há mais de 2 min sem webhook: consulta o provedor e aplica</td></tr>
+      <tr><td><code>sweep_shipping_quotes()</code></td><td>pg_cron (SQL)</td><td>1 min</td><td><code>pay_until</code> vencido → cotação VENCIDO, substatus <code>FRETE_VENCIDO</code>, alerta (D8)</td></tr>
+      <tr><td><code>check_stock_invariants()</code></td><td>pg_cron (SQL)</td><td>diário, 03:10</td><td>Compara os saldos com os itens. Divergência vira alerta no painel</td></tr>
+      <tr><td><code>purge_expired_otp()</code></td><td>pg_cron (SQL)</td><td>diário, 03:25</td><td>Remove as sessões e os códigos OTP com mais de 30 dias (LGPD). A auditoria fica</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 13 -->
+<section id="seguranca">
+  <p class="secnum">13</p>
+  <h2>Segurança e LGPD</h2>
+  <div class="grid2">
+    <div class="card"><h4>Acesso</h4><ul>
+      <li>RLS habilitado em todas as tabelas, sem políticas para <code>anon</code> e <code>authenticated</code>.</li>
+      <li>As funções de domínio são <code>SECURITY DEFINER</code>, com <code>search_path</code> fixo e <code>EXECUTE</code> só para <code>service_role</code>.</li>
+      <li>Admin: Supabase Auth com e-mail e senha (decisão: sem segundo fator), bloqueio de 15 min após 5 senhas erradas, e checagem em <code>admin_users</code> em toda rota.</li>
+      <li>Sessão da cliente: cookie <code>httpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code>. O token é guardado só como hash.</li>
+      <li>Uma reserva de outro telefone responde <code>404</code>, nunca <code>403</code>, para não confirmar que ela existe.</li>
+      <li>Chave do link com limite de requisições por IP, para impedir tentativa e erro.</li>
+    </ul></div>
+    <div class="card"><h4>Dados</h4><ul>
+      <li>Coleta mínima: nome e telefone. Endereço só para motoboy ou envio.</li>
+      <li>Telefone mascarado nas telas, como <code>(77) •••••-8809</code>. O admin vê o número completo só no detalhe.</li>
+      <li>IP guardado como hash com sal rotativo, só para limitar abuso.</li>
+      <li>Segredos (provedores, pepper do OTP, assinatura dos webhooks) ficam nos Secrets do Supabase e nunca no front.</li>
+      <li>CORS restrito aos domínios da loja e do painel.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section id="codigo">
+  <p class="secnum">14</p>
+  <h2>Organização do código</h2>
+  <p class="sub">Nenhum arquivo concentra o sistema. Cada migration trata de um assunto, cada função SQL tem seu arquivo, cada rota da API fica no seu módulo, e os provedores externos ficam atrás de interfaces com uma implementação falsa para testes.</p>
+<pre>/
+├─ apps/
+│  ├─ web/                      loja + área da cliente (Next.js, mobile-first, PWA)
+│  │  └─ src/
+│  │     ├─ features/catalog/     listagem, filtros, card de produto, seletor de tamanho
+│  │     ├─ features/cart/        carrinho (localStorage), regras e promoção
+│  │     ├─ features/reservation/ formulário, OTP, reserva ativa, cronômetro (relógio do servidor)
+│  │     ├─ features/payment/     PIX (QR/copia e cola), cartão (SDK do provedor), status
+│  │     ├─ features/lookup/      consulta com código, lista de reservas
+│  │     ├─ features/fulfillment/ modalidade, frete
+│  │     └─ shared/               api client, componentes de UI, formatadores
+│  └─ admin/                    painel (Next.js)
+│     └─ src/features/{auth,dashboard,reservations,cancellations,payment-reviews,
+│                       fulfillment,phone-blocks,catalog,stock,audit}/
+├─ packages/
+│  └─ domain/                   TS puro, sem I/O: regras do carrinho, promoção, telefone E.164,
+│                               máscaras, códigos de erro, schemas Zod compartilhados front/API
+├─ supabase/
+│  ├─ migrations/
+│  │  ├─ 0001_extensions.sql          pgcrypto, pg_cron, pg_net
+│  │  ├─ 0002_enums.sql
+│  │  ├─ 0003_settings.sql
+│  │  ├─ 0010_catalog.sql             collections, products, images, movements
+│  │  ├─ 0015_promotions.sql          promotions, promotion_products, tiers, coupons, coupon_uses
+│  │  ├─ 0020_customers_otp.sql       customers, otp_sessions, otp_codes, customer_sessions
+│  │  ├─ 0030_reservations.sql        attempts, reservations, items, transitions, cancellations
+│  │  ├─ 0040_payments.sql            payments, payment_events, payment_reviews
+│  │  ├─ 0050_fulfillment.sql         fulfillments, shipping_quotes
+│  │  ├─ 0060_blocks.sql              phone_blocks, phone_block_decisions
+│  │  ├─ 0070_messaging.sql           outbox_messages, whatsapp_inbound
+│  │  ├─ 0080_audit.sql               audit_log + gatilho somente-inserção
+│  │  ├─ 0100_fn_transition_guard.sql
+│  │  ├─ 0110_fn_otp.sql
+│  │  ├─ 0120_fn_create_reservation.sql
+│  │  ├─ 0130_fn_payments.sql         register_payment_attempt, apply_payment_result
+│  │  ├─ 0140_fn_expiration.sql       sweep_reservations, expire_reservation, grace
+│  │  ├─ 0150_fn_cancellation.sql
+│  │  ├─ 0160_fn_blocks.sql
+│  │  ├─ 0170_fn_fulfillment.sql
+│  │  ├─ 0180_fn_stock_admin.sql
+│  │  ├─ 0200_rls.sql
+│  │  └─ 0300_cron.sql
+│  ├─ functions/
+│  │  ├─ _shared/            db, erros, http, auth, rate-limit, turnstile
+│  │  │  ├─ payments/        PaymentProvider (interface) · mercadopago.ts · fake.ts
+│  │  │  └─ whatsapp/        WhatsAppProvider (interface) · meta-cloud.ts · fake.ts
+│  │  ├─ api-public/         index.ts (router) + routes/{catalog,attempts,otp,reservations,payments,lookup}.ts
+│  │  ├─ api-admin/          index.ts + routes/{dashboard,reservations,cancellations,reviews,blocks,catalog,audit}.ts
+│  │  ├─ webhook-payments/
+│  │  ├─ webhook-whatsapp/
+│  │  └─ worker/             index.ts + jobs/{outbox,grace,reconcile}.ts
+│  └─ tests/                 pgTAP: transições, estoque, idempotência, bloqueio
+├─ tests/concurrency/        scripts que disparam N confirmações simultâneas
+└─ docs/                     arquitetura.md (este documento), adr/, runbook.md</pre>
+</section>
+
+<!-- 15 -->
+<section id="fases">
+  <p class="secnum">15</p>
+  <h2>Plano de entrega por fases</h2>
+  <p class="sub">Cada fase é um conjunto de commits revisável, com testes e funcionando de ponta a ponta com os provedores falsos. As integrações reais entram atrás das mesmas interfaces.</p>
+  <ol class="phases">
+    <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP), migrations de enums, settings, auditoria e gatilho guardião, pacote <code>domain</code> com testes.</span></li>
+    <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos.</span></li>
+    <li><b>OTP por WhatsApp</b><span>Sessões, códigos, limites, bloqueio de 30 min, Turnstile, provedor falso e Z-API/Evolution (W1), verificação invertida (W3), fila de envio com ritmo controlado.</span></li>
+    <li><b>Criação atômica da reserva</b><span><code>create_reservation</code>, tela de reserva ativa com relógio do servidor, teste de concorrência (N clientes, 1 unidade).</span></li>
+    <li><b>Expiração e mensagens</b><span>Varredura, lembrete de 5 min, outbox e worker de envio, bloqueio por 3 expirações.</span></li>
+    <li><b>Pagamento</b><span>PIX ou cartão, fixo por reserva, webhook, inbox, idempotência em 5 camadas, tolerância, reconciliação, fila de análise.</span></li>
+    <li><b>Cancelamento</b><span>Solicitação da cliente, decisão do admin, PREJUDICADA automática.</span></li>
+    <li><b>Pós-pagamento</b><span>Modalidade, frete (manual), segundo pagamento, prazo de 2 h, substatus logísticos, Entregue.</span></li>
+    <li><b>Consulta</b><span>Consulta pelo site com código, link assinado, "Minha reserva" no WhatsApp com tratamento do nono dígito.</span></li>
+    <li><b>Painel admin completo</b><span>Dashboard, filtros e busca, detalhe com linha do tempo, bloqueados, análises, auditoria.</span></li>
+    <li><b>Endurecimento</b><span>Teste de carga, verificador de invariantes, retenção LGPD, runbook de operação e checklist de produção.</span></li>
+  </ol>
+</section>
+
+<!-- 16 -->
+<section id="testes">
+  <p class="secnum">16</p>
+  <h2>Estratégia de testes</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Cenário</th><th>Resultado esperado</th></tr></thead>
+    <tbody>
+      <tr><td>50 confirmações simultâneas para a última unidade</td><td>Exatamente 1 reserva. 49 recebem <code>STOCK_UNAVAILABLE</code>. <code>qty_reserved = 1</code></td></tr>
+      <tr><td>Carrinho com 3 itens, 1 sem estoque</td><td>Nenhuma reserva e nenhum estoque alterado. Erro lista o item</td></tr>
+      <tr><td>Duas abas do mesmo telefone confirmando juntas</td><td>1 reserva. A outra recebe a mesma reserva (idempotência) ou <code>ACTIVE_RESERVATION_EXISTS</code></td></tr>
+      <tr><td>Mesmo webhook de aprovação entregue 10 vezes</td><td>1 transição, estoque vendido 1 vez, 9 eventos no-op</td></tr>
+      <tr><td>Aprovação e expiração no mesmo instante</td><td>Serializadas pelo lock da reserva. Resultado consistente: pago, ou expirado com pagamento em análise</td></tr>
+      <tr><td>PIX pendente criado aos 14min59s da reserva, aprovado aos 19min30s</td><td>Tolerância iniciada, confirmação normal</td></tr>
+      <tr><td>Mesmo PIX aprovado aos 20min01s</td><td>EXPIRADO + <code>EM_ANALISE</code>, sem reativar</td></tr>
+      <tr><td>Tentativas de transição proibidas direto no SQL</td><td>O gatilho rejeita todas</td></tr>
+      <tr><td>2 erros, 2 reenvios, 2 erros no último código</td><td>Bloqueio de 30 min. Novo fluxo no mesmo telefone continua bloqueado</td></tr>
+      <tr><td>3 expirações em 30 dias, liberação, nova expiração</td><td>Bloqueio, liberação com contador zerado. A 4ª expiração conta como 1</td></tr>
+      <tr><td>Consulta com o número de outra cliente</td><td><code>404</code> e nenhum dado exposto</td></tr>
+    </tbody>
+  </table></div>
+  <p>Camadas: testes unitários do pacote <code>domain</code> (Vitest), pgTAP para funções e constraints, testes de integração das Edge Functions com provedores falsos, e um script de concorrência contra um Postgres local.</p>
+</section>
+
+<footer>Desenho técnico derivado da especificação funcional consolidada e do protótipo HTML (telas 00 a 08). O protótipo foi tratado como referência de fluxo e regras, não como código.</footer>
+</main>
+</div>
+
+</body>
+</html>
