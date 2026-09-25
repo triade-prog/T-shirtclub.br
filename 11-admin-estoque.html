@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estoque</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="active" href="11-admin-estoque.html">Estoque</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero">
+    <div><div class="kicker">Área administrativa • estoque</div><h1>Estoque</h1><p class="muted">Saldo por tamanho (SKU). <strong>Reservado</strong> e <strong>vendido</strong> mudam só pelo fluxo de reservas; aqui a loja lança entradas e correções, sempre com motivo.</p></div>
+  </div>
+
+  <div class="grid grid-4" id="stats"></div>
+
+  <section class="card" style="margin-top:16px">
+    <div class="row" style="flex-wrap:wrap">
+      <div class="toolbar">
+        <input id="search" style="max-width:260px" placeholder="Produto ou SKU" aria-label="Buscar SKU">
+        <select id="filterStatus" style="max-width:220px" aria-label="Situação"><option value="">Todas as situações</option><option>Disponível</option><option>Últimas unidades</option><option>Esgotado</option></select>
+      </div>
+      <div class="legend"><span><i style="background:var(--ink)"></i>Vendido</span><span><i style="background:var(--pink)"></i>Reservado</span><span><i style="background:#ECE9E2"></i>Disponível</span></div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>SKU</th><th>Produto</th><th class="num">Total</th><th class="num">Reservado</th><th class="num">Vendido</th><th class="num">Disponível</th><th>Ocupação</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="stockRows"></tbody>
+      </table>
+    </div>
+    <p class="hint">"Últimas unidades" aparece na loja quando restam 2 ou menos. Disponível = total − reservado − vendido, e nunca fica negativo.</p>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Movimentações recentes</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Quando</th><th>SKU</th><th>Tipo</th><th class="num">Qtd.</th><th>Reserva</th><th>Autor</th><th>Motivo</th></tr></thead>
+        <tbody id="moveRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="modal" id="adjustModal" role="dialog" aria-modal="true" aria-labelledby="adjustTitle">
+    <form class="modal-box" id="adjustForm" novalidate>
+      <h2 id="adjustTitle">Ajustar estoque</h2>
+      <p class="muted" id="adjustCurrent"></p>
+      <div class="field"><label for="adjType">Tipo</label>
+        <select id="adjType">
+          <option value="ENTRADA">Entrada de mercadoria (+)</option>
+          <option value="AJUSTE_MAIS">Correção de contagem (+)</option>
+          <option value="AJUSTE_MENOS">Correção de contagem (−)</option>
+          <option value="PERDA">Avaria ou perda (−)</option>
+        </select></div>
+      <div class="field" style="margin-top:10px"><label for="adjQty">Quantidade</label><input id="adjQty" type="number" min="1" step="1" value="1"></div>
+      <div class="field" style="margin-top:10px"><label for="adjReason">Motivo</label><textarea id="adjReason" placeholder="Obrigatório. Ex.: NF 3321 do fornecedor, contagem de 25/09"></textarea></div>
+      <div class="notice" id="adjPreview" style="margin-top:12px"></div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn" type="submit" id="adjSubmit">Registrar ajuste</button><button class="btn ghost" type="button" id="closeAdjust">Cancelar</button></div>
+    </form>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/11-admin-estoque.js"></script>
+</body>
+</html>
