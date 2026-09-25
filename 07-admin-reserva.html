@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Detalhe da reserva</title>
 <link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
 <header class="topbar">
@@ -15,56 +16,75 @@
 </header>
 
 <main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="active" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="notice" style="margin-bottom:16px">
+    <div class="toolbar"><label for="scenario" style="margin:0">Protótipo · ver esta tela com a reserva em:</label>
+      <select id="scenario" style="max-width:360px">
+        <option value="RESERVADO">Reservado, com cancelamento solicitado</option>
+        <option value="PAGO_PREPARACAO">Pagamento confirmado, em preparação</option>
+        <option value="PAGO_PRONTO">Pagamento confirmado, pronto para retirada</option>
+        <option value="ENTREGUE">Entregue</option>
+        <option value="EXPIRADO">Expirado</option>
+      </select></div>
+  </div>
   <div class="hero">
-    <div><div class="kicker">Área administrativa • página 2 de 3</div><h1>Reserva #1048</h1><div class="toolbar"><span class="badge success">RESERVADO</span><span class="badge warning">Cancelamento solicitado</span></div></div>
-    <div class="toolbar"><a class="btn secondary" href="06-admin-painel.html">← Voltar ao painel</a><button class="btn" id="markDelivered">Marcar como entregue</button></div>
+    <div><div class="kicker">Área administrativa • detalhe</div><h1>Reserva #1048</h1><div class="toolbar" id="badges"></div></div>
+    <div class="grid" style="gap:8px;justify-items:end">
+      <div class="toolbar"><a class="btn secondary" href="06-admin-painel.html">← Voltar ao painel</a><button class="btn" id="markDelivered" type="button">Marcar como entregue</button></div>
+      <div class="guard" id="deliverGuard"></div>
+    </div>
   </div>
   <div class="grid grid-3">
     <section class="card"><h3>Cliente</h3><strong>Marina Souza</strong><p class="muted">(77) 9••••-8809<br>WhatsApp confirmado</p></section>
-    <section class="card"><h3>Reserva</h3><strong>24/09/2026 • 22:48</strong><p class="muted">Expira às 23:03<br>3 itens</p></section>
-    <section class="card"><h3>Pagamento</h3><strong>Aguardando</strong><p class="muted">R$ 119,90<br>Nenhuma confirmação ainda</p></section>
+    <section class="card"><h3>Reserva</h3><strong>24/09/2026 • 22:48</strong><p class="muted" id="reserveInfo"></p></section>
+    <section class="card"><h3>Pagamento</h3><strong id="payTitle"></strong><p class="muted" id="payInfo"></p></section>
   </div>
   <div class="grid grid-2" style="margin-top:16px">
     <section class="card">
       <h2>Produtos</h2>
       <div class="list">
-        <div class="row"><span>Teddy Rose ×1</span><strong>R$ 49,90</strong></div>
-        <div class="row"><span>Dog Club 01 ×1</span><strong>R$ 49,90</strong></div>
-        <div class="row"><span>Teddy Bleu ×1</span><strong>R$ 49,90</strong></div>
+        <div class="row"><span>Teddy Rose · M ×1</span><strong>R$ 49,90</strong></div>
+        <div class="row"><span>Dog Club 01 · M ×1</span><strong>R$ 49,90</strong></div>
+        <div class="row"><span>Teddy Bleu · G ×1</span><strong>R$ 49,90</strong></div>
       </div>
       <div class="sep"></div><div class="row"><strong>Total promocional</strong><span class="price">R$ 119,90</span></div>
     </section>
-    <section class="card soft">
+
+    <section class="card soft" id="cancelSection">
       <h2>Solicitação de cancelamento</h2>
       <p class="muted">A cliente solicitou cancelamento às 22:53. O relógio da reserva não foi pausado.</p>
-      <div class="toolbar"><button class="btn danger" id="approveCancel">Aprovar</button><button class="btn secondary" id="denyCancel">Recusar</button></div>
-      <div class="field" style="margin-top:14px"><label>Motivo / observação administrativa</label><textarea id="reason" placeholder="Obrigatório para registrar a decisão"></textarea></div>
+      <div class="toolbar"><button class="btn danger" id="approveCancel" type="button">Aprovar</button><button class="btn secondary" id="denyCancel" type="button">Recusar</button></div>
+      <div class="field" style="margin-top:14px"><label for="reason">Motivo / observação administrativa</label><textarea id="reason" placeholder="Obrigatório para registrar a decisão"></textarea></div>
     </section>
+
+    <section class="card soft" id="fulfillSection" hidden>
+      <h2>Entrega</h2>
+      <p class="muted">Modalidade confirmada: <strong>Retirada</strong> · código de retirada <strong>R-1048</strong></p>
+      <div class="field"><label for="substatus">Substatus logístico</label>
+        <select id="substatus"><option value="EM_PREPARACAO">Em preparação</option><option value="PRONTO_PARA_RETIRADA">Pronto para retirada</option></select></div>
+      <p class="hint">O substatus não muda o estado oficial. Cada mudança avisa a cliente no WhatsApp.</p>
+    </section>
+
+    <section class="card soft" id="closedSection" hidden><h2 id="closedTitle"></h2><p class="muted" id="closedText"></p></section>
   </div>
   <section class="card" style="margin-top:16px">
     <h2>Histórico / auditoria</h2>
-    <div class="timeline">
-      <div class="timeline-item"><div><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-copy"><strong>22:48 • Reserva criada</strong><div class="muted">WhatsApp validado, estoque conferido e 3 peças bloqueadas.</div></div></div>
-      <div class="timeline-item"><div><div class="timeline-dot"></div><div class="timeline-line"></div></div><div class="timeline-copy"><strong>22:48 • WhatsApp notificado</strong><div class="muted">Código #1048, produtos, total, horário de expiração e link enviados.</div></div></div>
-      <div class="timeline-item"><div><div class="timeline-dot"></div></div><div class="timeline-copy"><strong>22:53 • Cancelamento solicitado</strong><div class="muted">Aguardando decisão administrativa.</div></div></div>
-    </div>
+    <div class="timeline" id="timeline"></div>
   </section>
+
+  <div class="modal" id="deliverModal" role="dialog" aria-modal="true" aria-labelledby="deliverTitle">
+    <div class="modal-box">
+      <h2 id="deliverTitle">Confirmar entrega?</h2>
+      <p class="muted">A reserva passa para <strong>Entregue</strong>, estado final. Não é possível voltar. Data, hora e seu usuário ficam registrados.</p>
+      <div class="field"><label for="deliverNote">Observação (opcional)</label><input id="deliverNote" placeholder="Ex.: retirado pela própria cliente"></div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn" id="confirmDeliver" type="button">Confirmar entrega</button><button class="btn ghost" id="closeDeliver" type="button">Voltar</button></div>
+    </div>
+  </div>
 </div></main>
 
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
-<script>
-
-function decide(type){
-  const reason=document.getElementById('reason').value.trim();
-  if(!reason)return toast('Informe o motivo/observação para registrar a decisão.');
-  toast(type==='approve'?'Cancelamento aprovado e estoque liberado.':'Cancelamento recusado. Cliente notificada.');
-}
-document.getElementById('approveCancel').addEventListener('click',()=>decide('approve'));
-document.getElementById('denyCancel').addEventListener('click',()=>decide('deny'));
-document.getElementById('markDelivered').addEventListener('click',()=>toast('Somente admin: pedido marcado como Entregue e registrado na auditoria.'));
-
-</script>
+<script src="assets/js/paginas/07-admin-reserva.js"></script>
 </body>
 </html>
