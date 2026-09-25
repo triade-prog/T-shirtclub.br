@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meu pedido</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/cliente.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="active" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <div class="hero" style="margin-bottom:12px">
+    <div><div class="kicker">Cliente • acompanhamento</div><h1>Pedido #1048</h1><div class="toolbar"><span class="badge" id="stateBadge"></span><span class="badge" id="subBadge" hidden></span></div></div>
+  </div>
+  <div class="notice" style="margin-bottom:16px">
+    <div class="toolbar"><label for="scenario" style="margin:0">Protótipo · ver o pedido em:</label>
+      <select id="scenario" style="max-width:320px">
+        <option value="MODALIDADE">Pago · confirmar entrega</option>
+        <option value="AGUARDANDO_FRETE">Pago · loja calculando o frete</option>
+        <option value="FRETE_A_PAGAR">Pago · frete para pagar</option>
+        <option value="FRETE_VENCIDO">Pago · prazo do frete vencido</option>
+        <option value="EM_PREPARACAO">Pago · em preparação</option>
+        <option value="PRONTO_PARA_RETIRADA">Pago · pronto para retirada</option>
+        <option value="SAIU_PARA_ENTREGA">Pago · saiu para entrega</option>
+        <option value="ENVIADO">Pago · enviado pelos Correios</option>
+        <option value="ENTREGUE">Entregue</option>
+        <option value="EXPIRADO">Reserva expirada</option>
+        <option value="CANCELADO">Cancelamento aprovado</option>
+      </select></div>
+  </div>
+  <div class="grid grid-2">
+    <section class="card" id="actionCard" aria-live="polite"></section>
+    <section class="card soft">
+      <h2>Andamento</h2>
+      <div class="order-steps" id="steps"></div>
+      <div class="sep"></div>
+      <h3>Itens</h3>
+      <div class="list" id="items"></div>
+      <div class="sep"></div>
+      <div class="row"><span class="muted">Produtos</span><strong id="productsTotal"></strong></div>
+      <div class="row" id="freightRow" hidden><span class="muted">Frete</span><strong id="freightTotal"></strong></div>
+      <div class="row"><span class="muted">Pagamento</span><span id="payInfo"></span></div>
+      <p class="muted" style="font-size:13px;margin-top:14px">Dúvidas? Fale com a loja no WhatsApp. Lá você também pode enviar "Minha reserva" a qualquer momento.</p>
+    </section>
+  </div>
+</div></main>
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/motor-preco.js"></script>
+<script src="assets/js/carrinho.js"></script>
+<script src="assets/js/paginas/19-pedido.js"></script>
+</body>
+</html>
