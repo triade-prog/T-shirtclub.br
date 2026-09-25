@@ -12,6 +12,18 @@ Páginas:
 - 06-admin-painel.html — painel administrativo
 - 07-admin-reserva.html — detalhe / auditoria / cancelamento
 - 08-admin-bloqueados.html — bloqueios e liberação
+- 09-admin-login.html — login administrativo (senha + verificação em duas etapas)
+- 10-admin-catalogo.html — produtos, coleções e tamanhos
+- 11-admin-estoque.html — saldo por SKU, ajustes com motivo e movimentações
+- 12-admin-pagamentos-analise.html — pagamentos aprovados fora do prazo
+- 13-admin-frete.html — cálculo de frete e prazo de 2 horas
+
+Organização:
+- assets/css/prototipo.css — estilos compartilhados de todas as páginas
+- assets/css/admin.css — complementos das telas administrativas
+- assets/js/prototipo.js — utilitários compartilhados (toast)
+- assets/js/dados-exemplo.js — dados de exemplo do catálogo e estoque
+- assets/js/paginas/ — script de cada tela nova, um arquivo por página
 
 Regras incorporadas:
 - até 9 peças por reserva
