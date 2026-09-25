@@ -34,16 +34,19 @@
     </section>
     <aside class="card soft">
       <h2>Resumo</h2>
-      <div class="list">
-        <div class="row"><div><strong>Teddy Rose</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-        <div class="row"><div><strong>Dog Club 01</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-        <div class="row"><div><strong>Teddy Bleu</strong><div class="muted">1 unidade</div></div><strong>R$ 49,90</strong></div>
-      </div>
+      <div class="list" id="summaryItems"></div>
       <div class="sep"></div>
-      <div class="row"><span class="muted">Subtotal</span><span class="strike">R$ 149,70</span></div>
-      <div class="row"><strong>Leve 3, ganhe 20%</strong><strong>− R$ 29,94</strong></div>
-      <div class="row" style="margin-top:8px"><strong>Total dos produtos</strong><span class="price">R$ 119,76</span></div>
-      <div class="notice pink" style="margin-top:14px"><strong>Importante:</strong> a reserva só será criada após validar o WhatsApp e uma nova checagem de estoque.</div>
+      <form class="field" id="couponForm" novalidate>
+        <label for="coupon">Cupom de desconto</label>
+        <div class="toolbar" style="flex-wrap:nowrap"><input id="coupon" placeholder="Ex.: BEMVINDA10" style="text-transform:uppercase" maxlength="20" autocomplete="off"><button class="btn secondary" type="submit">Aplicar</button></div>
+        <div id="couponMsg" class="muted" style="font-size:13px" role="status"></div>
+      </form>
+      <div class="sep"></div>
+      <div class="row"><span class="muted">Subtotal</span><span id="subtotal"></span></div>
+      <div class="row" id="discountRow"><strong id="discountLabel"></strong><strong id="discountValue"></strong></div>
+      <div class="row" style="margin-top:8px"><strong>Total dos produtos</strong><span class="price" id="totalValue"></span></div>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">Vale só a promoção mais vantajosa: descontos não se somam.</p>
+      <div class="notice pink" style="margin-top:14px"><strong>Importante:</strong> a reserva só será criada após validar o WhatsApp e uma nova checagem de estoque e de preço.</div>
     </aside>
   </div>
 </div></main>
@@ -51,14 +54,9 @@
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
 <script src="assets/js/prototipo.js"></script>
-<script>
-
-document.getElementById('reserveForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  if(!e.target.reportValidity())return;
-  location.href='03-validar-whatsapp.html';
-});
-
-</script>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/motor-preco.js"></script>
+<script src="assets/js/carrinho.js"></script>
+<script src="assets/js/paginas/02-reserva.js"></script>
 </body>
 </html>
