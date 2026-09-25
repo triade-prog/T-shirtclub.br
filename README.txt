@@ -22,11 +22,16 @@ Páginas:
 - 16-admin-compre-mais.html — compre e economize mais (níveis por quantidade)
 - 17-admin-cupom.html — cupom com código, gasto mínimo e limite por cliente
 - 18-admin-whatsapp.html — conexão Z-API (QR code), fila de envio e liga/desliga das notificações
+- 19-pedido.html — meu pedido: entrega, endereço, frete (2 h), andamento, entregue, expirada, cancelada
+- 20-privacidade.html — política de privacidade (texto-modelo para revisão jurídica)
+- 21-admin-auditoria.html — consulta do registro permanente de eventos
+- 22-admin-conta.html — troca de senha e aparelhos conectados
 
 Organização:
 - assets/css/prototipo.css — estilos compartilhados de todas as páginas
 - assets/css/admin.css — complementos das telas administrativas
 - assets/css/promocoes.css — formulários de promoção
+- assets/css/cliente.css — complementos mobile-first das telas da cliente
 - assets/js/prototipo.js — utilitários compartilhados (toast)
 - assets/js/dados-exemplo.js — dados de exemplo do catálogo, estoque e promoções
 - assets/js/motor-preco.js — cálculo de preço: vale só a promoção mais vantajosa
