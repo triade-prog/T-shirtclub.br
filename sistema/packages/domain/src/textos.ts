@@ -1,0 +1,108 @@
+// Textos da interface (D4). Todos em português do Brasil e num lugar só.
+// Tom da marca: carinhosa e direta; prazo sempre com horário; nunca culpa nem susto.
+
+import type { CodigoErro } from "./erros.ts";
+import { formatarReais } from "./dinheiro.ts";
+
+export interface ContextoErro {
+  produtos?: string[];
+  totalCentavos?: number;
+  tentativasRestantes?: number;
+  horario?: string;
+  numeroReserva?: number;
+  maxPecas?: number;
+  maxPorProduto?: number;
+  whatsappLoja?: string;
+}
+
+export interface TextoErro {
+  mensagem: string;
+  acao?: string;
+}
+
+function lista(nomes: string[] = []): string {
+  if (nomes.length <= 1) return nomes[0] ?? "Uma peça";
+  return `${nomes.slice(0, -1).join(", ")} e ${nomes.at(-1)}`;
+}
+
+export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
+  switch (codigo) {
+    case "STOCK_UNAVAILABLE":
+    case "INSUFFICIENT_STOCK": {
+      const n = c.produtos?.length ?? 1;
+      return {
+        mensagem: `${lista(c.produtos)} ${n > 1 ? "acabaram" : "acabou"} agora. Tire da sacola para continuar; o resto segue separado para você.`,
+        acao: "Ajustar a sacola",
+      };
+    }
+    case "PRICE_CHANGED":
+      return {
+        mensagem: c.totalCentavos === undefined
+          ? "O preço mudou desde que você escolheu."
+          : `O preço mudou desde que você escolheu: agora o total é ${formatarReais(c.totalCentavos)}.`,
+        acao: "Ver o novo total e confirmar",
+      };
+    case "COUPON_NOT_BEST":
+      return { mensagem: "Você já tem um desconto maior. O cupom fica guardado para outra compra." };
+    case "OTP_INVALID": {
+      const r = c.tentativasRestantes ?? 0;
+      return {
+        mensagem: r > 0 ? `Código errado. ${r === 1 ? "Resta 1 tentativa" : `Restam ${r} tentativas`} com este código.` : "Código errado.",
+        acao: "Digitar de novo",
+      };
+    }
+    case "OTP_EXPIRED":
+      return { mensagem: "Este código venceu. Peça outro pelo WhatsApp.", acao: "Pedir outro código" };
+    case "OTP_LOCKED":
+      return {
+        mensagem: c.horario ? `Muitas tentativas. Você pode pedir um código de novo às ${c.horario}.` : "Muitas tentativas. Espere um pouco para pedir um código de novo.",
+        acao: "Voltar para a loja",
+      };
+    case "PHONE_BLOCKED":
+      return {
+        mensagem: `Este número está com as reservas pausadas. Fale com a gente pelo WhatsApp${c.whatsappLoja ? ` ${c.whatsappLoja}` : ""}.`,
+        acao: "Abrir conversa",
+      };
+    case "ACTIVE_RESERVATION_EXISTS":
+      return {
+        mensagem: c.numeroReserva && c.horario
+          ? `Você já tem a reserva #${c.numeroReserva} aberta até ${c.horario}. Conclua ou espere ela terminar para fazer outra.`
+          : "Você já tem uma reserva aberta. Conclua ou espere ela terminar para fazer outra.",
+        acao: c.numeroReserva ? `Ir para a reserva #${c.numeroReserva}` : "Ir para a reserva",
+      };
+    case "WHATSAPP_OFFLINE":
+      return { mensagem: "A confirmação pelo WhatsApp está fora do ar agora. Tente de novo em alguns minutos.", acao: "Tentar de novo" };
+    case "RATE_LIMITED":
+      return { mensagem: "Muitas tentativas seguidas. Espere um minutinho e tente de novo." };
+    case "MAX_ITEMS":
+      return { mensagem: `Cabem até ${c.maxPecas ?? 9} peças por reserva.` };
+    case "MAX_PER_MODEL":
+      return { mensagem: `Até ${c.maxPorProduto ?? 2} peças do mesmo modelo por reserva.` };
+    case "DEADLINE_PASSED":
+      return { mensagem: "O prazo desta reserva acabou; não dá para começar um pagamento novo.", acao: "Ver a reserva" };
+    case "METHOD_LOCKED":
+      return { mensagem: "Esta reserva já começou por uma forma de pagamento; continue por ela.", acao: "Voltar ao pagamento" };
+    case "PAYMENT_IN_PROGRESS":
+      return { mensagem: "Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro." };
+    case "PHONE_VERIFICATION_REQUIRED":
+      return { mensagem: "Para mexer na entrega, confirme que é você com um código pelo WhatsApp.", acao: "Receber código" };
+    case "QUOTE_EXPIRED":
+      return { mensagem: "O prazo para pagar o frete venceu. A gente fala com você pelo WhatsApp.", acao: "Prefiro retirar na loja" };
+    case "NOT_FOUND":
+      return { mensagem: "Não achamos esta reserva. Confira o link ou consulte pelo seu WhatsApp.", acao: "Consultar reservas" };
+    case "PHONE_INVALID":
+      return { mensagem: "Confira o número: use DDD + celular com 9 dígitos." };
+    case "NO_WHATSAPP":
+      return { mensagem: "Este número não tem WhatsApp. Use um número com WhatsApp para receber o código." };
+    case "UPSTREAM_UNAVAILABLE":
+      return { mensagem: "Sem conexão com a loja agora. Sua reserva continua valendo; tente de novo em instantes.", acao: "Tentar de novo" };
+    default:
+      return { mensagem: "Algo não saiu como esperado. Tente de novo em instantes.", acao: "Tentar de novo" };
+  }
+}
+
+/** Mensagem da tela quando o aparelho fica sem internet. */
+export const TEXTO_SEM_CONEXAO: TextoErro = {
+  mensagem: "Sem conexão. Sua reserva continua valendo; a tela atualiza quando a internet voltar.",
+  acao: "Tentar de novo",
+};

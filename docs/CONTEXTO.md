@@ -7,7 +7,7 @@ Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atuali
 | O quê | Onde |
 |---|---|
 | Especificação funcional (atualizada com as decisões) | `especificacao_funcional_sistema_reserva.html` |
-| Desenho técnico, versão 13 | `docs/arquitetura-reservas.html` |
+| Desenho técnico, versão 14 | `docs/arquitetura-reservas.html` |
 | Relatório da revisão geral (achados G1 a G24) | `docs/REVISAO-GERAL.md` |
 | Painel de execução (fases, entregas, testes, publicação, dependências) | `docs/painel-execucao.html` |
 | Design do frontend (identidade, design system, telas finais, textos) | `docs/design-frontend.html` |
@@ -51,9 +51,31 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 **Catálogo (D20):** cada produto tem página própria e de 1 a 10 fotos (tipo e texto alternativo obrigatório), além de looks e blocos da página inicial configuráveis. Está na especificação (regra 30), no desenho técnico (tabelas e API) e no protótipo (tela 10).
 
-Pendências da loja: fotos (o Google Drive está bloqueado na rede do ambiente; liberar `drive.google.com`, `drive.usercontent.google.com` e `lh3.googleusercontent.com` ou colocar os arquivos em `docs/design/fotos/`), dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
+**Fotos (25/09):** as 42 fotos de produto foram lidas pelo conector do Google Drive (a rede do ambiente bloqueia o Drive direto) e convertidas para WebP em `docs/design/fotos/produtos/` (4:5, cerca de 35 KB cada). Os recortes de estampa viraram capas de coleção, e a primeira dobra usa uma campanha provisória montada com as fotos de produto. A seção "Catálogo real" do design lista as peças com nome e coleção sugeridos: Limone, Dolce Vita, Teddy, Dog Club, Just a Girl, Um Dia de Cada Vez e Outras. A pasta do site de referência trouxe só apps de terceiros: pacotes, lista de desejos, aviso de volta ao estoque, avaliações, recomendações, e-mail, chat e contador.
 
-**Próximo passo:** a F1 (Fundação) **não foi liberada** (resposta "ainda não" em 25/09). Ela só começa com uma nova liberação explícita da loja.
+**Referência (25/09):** o HTML da página inicial da Coucou Suzette foi lido; os estilos e as fotos não vieram. O que ele mostra:
+- **Cores:** fundo creme #FFFBF0, texto bordô #420002, títulos e botões em #FF3D00, e faixas de cor inteiras (rosa, verde, amarelo, laranja) coladas umas nas outras.
+- **Fontes e formas:** títulos em Hammer 900 e texto em Lora serifada; botões de 4 px, card de 8 px e fotos sem canto arredondado.
+- **Menu:** Produtos, A marca e The Club (fidelidade); coleções com emoji no nome.
+
+Já entrou na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, bloco "Quem faz o Club" e garantias. Ficam para a loja decidir: botões menos arredondados, texto em serifada, grupo VIP no WhatsApp e programa de fidelidade.
+
+Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; decidir os pontos da referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
+
+**F1 (Fundação): liberada pela loja em 25/09, junto com o logo oficial, e implementada em `sistema/`** (ver `sistema/README.md` e `sistema/docs/adr/0001-decisoes-da-fundacao.md`):
+- **Estrutura:** monorepo pnpm com `apps/web` (loja), `apps/admin` (painel), `packages/domain`, `packages/ui`, `packages/servidor` e `supabase/`.
+- **Stack:** Next.js 16 (middleware agora é `proxy.ts`), Tailwind 4 (tokens como `@theme`), TypeScript 6 e ESLint 9 (por compatibilidade das ferramentas).
+- **Banco:** migrations 0001–0003, 0080, 0100 e 0200 (configurações, `app_now()`, limites, auditoria somente de inserção, gatilho guardião, RLS fechado), com 46 testes pgTAP.
+- **Domínio e segurança:** `domain` com 39 testes, que roda no Node e no Deno; repasse `/api` com cookies `__Host-` e CSP com nonce, com 16 testes.
+- **Telas e medições:** 18 testes ponta a ponta no celular (axe e comparação visual); Lighthouse no celular com desempenho 98 e acessibilidade 100.
+- **Logo:** aplicado sem fundo, com favicon e ícones do app.
+
+Pendências da F1:
+- **F1.4 (conta da loja):** criar o projeto Supabase em sa-east-1 e o projeto Vercel na região gru1.
+- **Primeira execução do CI no GitHub.**
+- **Referências visuais:** gerar no container do CI (workflow "Atualizar telas de referência").
+
+A F2 começa depois disso e da aprovação do design (D1 e D2).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

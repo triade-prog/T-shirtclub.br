@@ -1,0 +1,7 @@
+# Regras padrão do gitleaks; exemplos de .env e textos do protótipo não são segredo.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Arquivos de exemplo"
+paths = ['''sistema/\.env\.example$''', '''sistema/supabase/functions/.*_test\.ts$''']

@@ -1,0 +1,125 @@
+/*
+ * Design system da T-shirt Club (D2, proposta 4 de docs/design-frontend.html).
+ * Única fonte de cores, fontes e raios dos dois apps. O @theme do Tailwind v4 cumpre o
+ * papel do "preset": cada token vira utilitário (bg-rosa, text-tinta, font-display…).
+ * A loja pública só tem o tema claro (D21); o painel tem claro e escuro.
+ * Contrastes medidos: texto a partir de 4,5:1; contornos e foco a partir de 3:1.
+ */
+
+@theme {
+  --color-*: initial;
+  --color-papel: var(--tc-papel);
+  --color-branco: var(--tc-branco);
+  --color-algodao: var(--tc-algodao);
+  --color-tinta: var(--tc-tinta);
+  --color-tinta-suave: var(--tc-tinta-suave);
+  --color-linha: var(--tc-linha);
+  --color-borda-campo: var(--tc-borda-campo);
+  --color-rosa: var(--tc-rosa);
+  --color-rosa-press: var(--tc-rosa-press);
+  --color-rosa-bruma: var(--tc-rosa-bruma);
+  --color-no-rosa: var(--tc-no-rosa);
+  --color-verde: var(--tc-verde);
+  --color-verde-broto: var(--tc-verde-broto);
+  --color-verde-escuro: var(--tc-verde-escuro);
+  --color-ok: var(--tc-ok);
+  --color-ok-fundo: var(--tc-ok-fundo);
+  --color-aviso: var(--tc-aviso);
+  --color-aviso-fundo: var(--tc-aviso-fundo);
+  --color-erro: var(--tc-erro);
+  --color-erro-fundo: var(--tc-erro-fundo);
+  --color-info: var(--tc-info);
+  --color-info-fundo: var(--tc-info-fundo);
+  --color-foco: var(--tc-foco);
+  /* Coleção: definidas por .col-* no elemento da coleção */
+  --color-colecao: var(--c-cor);
+  --color-colecao-fundo: var(--c-fundo);
+  --color-colecao-tinta: var(--c-tinta);
+  --color-transparent: transparent;
+
+  --font-display: var(--font-baloo), "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-texto: var(--font-poppins), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radius-pilula: 999px;
+  --radius-cartao: 16px;
+  --radius-campo: 12px;
+  --radius-foto: 4px;
+}
+
+:root {
+  --tc-papel: #fffcfa;
+  --tc-branco: #ffffff;
+  --tc-algodao: #f6efec;
+  --tc-tinta: #26191e;
+  --tc-tinta-suave: #6b5d62;
+  --tc-linha: #ece2de;
+  --tc-borda-campo: #928181;
+  --tc-rosa: #e8478a;
+  --tc-rosa-press: #c73576;
+  --tc-rosa-bruma: #fde7ef;
+  --tc-no-rosa: #26191e;
+  --tc-verde: #6b8b1f;
+  --tc-verde-broto: #eef3dc;
+  --tc-verde-escuro: #3f5a10;
+  --tc-ok: #3f5a10;
+  --tc-ok-fundo: #eef3dc;
+  --tc-aviso: #7a4a00;
+  --tc-aviso-fundo: #fff1d6;
+  --tc-erro: #b3261e;
+  --tc-erro-fundo: #fde8e6;
+  --tc-info: #3b4a63;
+  --tc-info-fundo: #edf1f7;
+  --tc-foco: #26191e;
+  color-scheme: light;
+}
+
+/* Painel no escuro (a loja nunca recebe data-app="painel"). */
+@media (prefers-color-scheme: dark) {
+  :root[data-app="painel"]:not([data-tema="claro"]) {
+    --tc-papel: #181114;
+    --tc-branco: #221a1d;
+    --tc-algodao: #2a2024;
+    --tc-tinta: #f7eef0;
+    --tc-tinta-suave: #bbaab0;
+    --tc-linha: #3a2e32;
+    --tc-borda-campo: #7c6a70;
+    --tc-rosa: #ff7fb2;
+    --tc-rosa-press: #e86a9c;
+    --tc-rosa-bruma: #3a1f2a;
+    --tc-no-rosa: #181114;
+    --tc-verde: #a9c24a;
+    --tc-verde-broto: #263019;
+    --tc-verde-escuro: #c8dc8a;
+    --tc-ok: #c8dc8a;
+    --tc-ok-fundo: #263019;
+    --tc-aviso: #f2b45a;
+    --tc-aviso-fundo: #33280f;
+    --tc-erro: #ff8a80;
+    --tc-erro-fundo: #3a1714;
+    --tc-info: #b9c6de;
+    --tc-info-fundo: #1f2633;
+    --tc-foco: #ffd6e4;
+    color-scheme: dark;
+  }
+}
+
+/* Cores de coleção aprovadas (D20): a loja escolhe uma destas no painel. */
+.col-tomate { --c-cor: #ee4a2a; --c-fundo: #ffe7de; --c-tinta: #a63a1c; --c-sobre: #26191e; }
+.col-limao { --c-cor: #f2dd3d; --c-fundo: #fff9c9; --c-tinta: #6b5600; --c-sobre: #26191e; }
+.col-mediterraneo { --c-cor: #2f6fd0; --c-fundo: #e4eefc; --c-tinta: #1d4e9a; --c-sobre: #ffffff; }
+.col-lavanda { --c-cor: #a77be0; --c-fundo: #f1eafb; --c-tinta: #5e3b99; --c-sobre: #26191e; }
+.col-menta { --c-cor: #2fa58a; --c-fundo: #e0f4ee; --c-tinta: #1c6b58; --c-sobre: #26191e; }
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--tc-papel);
+    color: var(--tc-tinta);
+    font-family: var(--font-texto);
+    line-height: 1.6;
+  }
+  :focus-visible { outline: 3px solid var(--tc-foco); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+}

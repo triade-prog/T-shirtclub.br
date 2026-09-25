@@ -1,0 +1,105 @@
+# CI do sistema (sistema/): roda em cada push e pull request.
+# Qualidade (lint, tipos, Vitest, Deno) · Banco (pgTAP) · Ponta a ponta (Playwright + axe +
+# comparação visual) · Lighthouse no celular · Varredura de segredos.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: sistema
+
+jobs:
+  qualidade:
+    name: Lint, tipos e testes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Edge Functions no Deno (tipos, lint, testes)
+        run: pnpm test:deno
+      - name: Dependências sem vulnerabilidade alta
+        run: pnpm audit --prod --audit-level high
+
+  banco:
+    name: Banco (pgTAP)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: pgTAP
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-16-pgtap libtap-parser-sourcehandler-pgtap-perl
+      - run: PGBIN=/usr/lib/postgresql/16/bin bash scripts/test-db.sh
+
+  ponta-a-ponta:
+    name: Ponta a ponta no celular
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env: { MOSTRAR_COMPONENTES: "1" }
+      - run: pnpm e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: |
+            sistema/playwright-report
+            sistema/test-results
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse no celular
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @tshirtclub/web build
+      - run: bash scripts/subir-apps.sh
+      - run: npx lhci autorun --config=lighthouserc.cjs
+        env: { CHROME_PATH: /usr/bin/google-chrome }
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: lighthouse, path: sistema/.lighthouseci, retention-days: 7 }
+
+  segredos:
+    name: Varredura de segredos
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: gitleaks
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest git /repo --redact --verbose --config /repo/.gitleaks.toml

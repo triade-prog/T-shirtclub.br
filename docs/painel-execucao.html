@@ -25,9 +25,9 @@
   "meta": {
     "atualizado_em": "25/09/2026",
     "arquitetura_versao": 13,
-    "situacao": "Design do frontend em andamento; F1 aguardando liberação",
-    "fase_atual": "D",
-    "proximo_passo": "A loja envia o logo em SVG, confirma o endereço do site, envia as fotos das peças, aprova a proposta 4 do design e libera a F1. Nenhum código de produção é escrito antes disso."
+    "situacao": "F1 (Fundação) em andamento: liberada pela loja em 25/09",
+    "fase_atual": "F1",
+    "proximo_passo": "Loja libera o GitHub Actions no repositório (F1.2) e cria os projetos Supabase em sa-east-1 e Vercel em gru1 (F1.4). Com o CI rodando, gerar as referências visuais no container (F1.13). Depois, F2."
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
@@ -36,24 +36,24 @@
       {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"11 tokens base, 5 cores de coleção aprovadas (contraste e daltonismo) e componentes novos: CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao (proposta 4); aguarda aprovação"},
       {"id":"D3","texto":"Telas finais no celular: descoberta (início, coleção, produto, sacola) e reserva (dados, código, PIX, pago, expirada)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"Proposta 4: 4 telas novas de descoberta e 5 da reserva mantidas; faltam as fotos reais; aguarda aprovação"},
       {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
-      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"bloqueado","nota":"Fotos enviadas no Google Drive, mas drive.google.com está bloqueado na rede do ambiente (E13). Lista de arquivos esperados em design-frontend.html#fotos"},
+      {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"andamento","nota":"42 fotos de produto recebidas pelo conector do Google Drive e já nas telas (docs/design/fotos/produtos). Faltam fotos com modelo, costas, looks e clientes"},
       {"id":"D6","texto":"Teste de uso com 3 a 5 clientes no celular, com ajustes do que travar","sec":"frontend","refs":["G19"],"status":"pendente"}
      ]},
     {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
      "itens":[
-      {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"pendente"},
-      {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"pendente"},
-      {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"pendente"},
-      {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"pendente"},
-      {"id":"F1.5","texto":"Migrations 0001 a 0003: extensões, enums, app_settings, app_now() e rate_limits","sec":"dados","refs":["G18","G20"],"status":"pendente"},
-      {"id":"F1.6","texto":"Migration 0080: auditoria somente de inserção, sem dados pessoais","sec":"dados","refs":["G9"],"status":"pendente"},
-      {"id":"F1.7","texto":"Migration 0100: gatilho guardião das transições de estado","sec":"estados","refs":[],"status":"pendente"},
-      {"id":"F1.8","texto":"Migration 0200: RLS negando tudo para anon e authenticated","sec":"seguranca","refs":[],"status":"pendente"},
-      {"id":"F1.9","texto":"Pacote domain: regras do carrinho, telefone E.164 com nono dígito, códigos de erro, schemas Zod; importável pelo Deno","sec":"codigo","refs":["G22"],"status":"pendente"},
-      {"id":"F1.10","texto":"Repasse /api no mesmo domínio, com segredo de repasse e IP real; cookies __Host-","sec":"stack","refs":["G1"],"status":"pendente"},
-      {"id":"F1.11","texto":"Cabeçalhos de segurança e CSP com nonce nos dois apps","sec":"seguranca","refs":["G16"],"status":"pendente"},
-      {"id":"F1.12","texto":"packages/ui: tokens do design como variáveis CSS, preset do Tailwind, fontes por next/font e layouts base da loja e do painel","sec":"frontend","refs":["G17"],"status":"pendente"},
-      {"id":"F1.13","texto":"Página interna /_componentes e comparação visual no CI, nos temas claro e escuro","sec":"frontend","refs":["G19"],"status":"pendente"}
+      {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"feito","evidencia":"sistema/ com pnpm: apps/web, apps/admin, packages/domain, packages/ui, packages/servidor e supabase/ (README e ADR 0001)"},
+      {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"bloqueado","nota":"Workflow pronto e válido (actionlint), e tudo passa localmente. No GitHub, as execuções param antes de começar (startup_failure, sem jobs), mesmo usando só actions do GitHub: é configuração da conta. Ver em Settings › Actions › General (Actions ligado e ações permitidas) e em Billing (minutos do Actions para repositório privado)"},
+      {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"bloqueado","nota":"gitleaks no CI e Dependabot configurados; dependem do GitHub Actions funcionando (ver F1.2)"},
+      {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"bloqueado","nota":"Precisa das contas da loja: criar o projeto Supabase em sa-east-1 e o projeto Vercel (região gru1, já em apps/*/vercel.json). Configuração pronta em supabase/config.toml e .env.example"},
+      {"id":"F1.5","texto":"Migrations 0001 a 0003: extensões, enums, app_settings, app_now() e rate_limits","sec":"dados","refs":["G18","G20"],"status":"feito","evidencia":"migrations 0001 a 0003; supabase/tests/pgtap/001_settings_test.sql (16 testes, relógio em 14min59s e 20min01s)"},
+      {"id":"F1.6","texto":"Migration 0080: auditoria somente de inserção, sem dados pessoais","sec":"dados","refs":["G9"],"status":"feito","evidencia":"migration 0080; 002_audit_test.sql (9 testes: UPDATE, DELETE e TRUNCATE bloqueados; dado pessoal recusado)"},
+      {"id":"F1.7","texto":"Migration 0100: gatilho guardião das transições de estado","sec":"estados","refs":[],"status":"feito","evidencia":"migration 0100; 003_transition_guard_test.sql (13 testes). O gatilho é ligado à tabela reservations na 0030 (F4)"},
+      {"id":"F1.8","texto":"Migration 0200: RLS negando tudo para anon e authenticated","sec":"seguranca","refs":[],"status":"feito","evidencia":"migration 0200; 004_rls_test.sql (8 testes, inclusive tabela criada depois)"},
+      {"id":"F1.9","texto":"Pacote domain: regras do carrinho, telefone E.164 com nono dígito, códigos de erro, schemas Zod; importável pelo Deno","sec":"codigo","refs":["G22"],"status":"feito","evidencia":"packages/domain: 39 testes Vitest; importado pelo Deno nas Edge Functions (pnpm test:deno)"},
+      {"id":"F1.10","texto":"Repasse /api no mesmo domínio, com segredo de repasse e IP real; cookies __Host-","sec":"stack","refs":["G1"],"status":"feito","evidencia":"packages/servidor/src/repasse.test.ts (segredo, IP real, só cookies __Host- permitidos, caminhos /v1); nota: a ligação real com as funções depende da F1.4"},
+      {"id":"F1.11","texto":"Cabeçalhos de segurança e CSP com nonce nos dois apps","sec":"seguranca","refs":["G16"],"status":"feito","evidencia":"cabecalhos.test.ts e tests/e2e/fundacao.spec.ts: CSP com nonce respeitada na loja e no painel, sem erro no console"},
+      {"id":"F1.12","texto":"packages/ui: tokens do design como variáveis CSS, preset do Tailwind, fontes por next/font e layouts base da loja e do painel","sec":"frontend","refs":["G17"],"status":"feito","evidencia":"packages/ui/src/tema.css (tokens, loja clara e painel claro/escuro), Botao, Campo, Aviso; next/font; logo oficial em apps/*/public/marca; Lighthouse: desempenho 98, acessibilidade 100"},
+      {"id":"F1.13","texto":"Página interna /_componentes e comparação visual no CI, nos temas claro e escuro","sec":"frontend","refs":["G19"],"status":"andamento","nota":"Página /_componentes e comparação visual passando localmente (18 testes); as imagens de referência serão geradas no container do CI pelo workflow Atualizar telas de referência"}
      ]},
     {"id":"F2","nome":"Catálogo, estoque e promoções","sec":"promocoes","objetivo":"A loja mostra produtos com preço certo e o painel cadastra catálogo, estoque e promoções, com login seguro.",
      "itens":[
@@ -151,8 +151,8 @@
     {"id":"T2","texto":"Carrinho com 1 item sem estoque: nenhuma reserva, nenhum estoque alterado","fase":"F4","refs":[],"status":"pendente"},
     {"id":"T3","texto":"Duas abas do mesmo telefone confirmando juntas: 1 reserva","fase":"F4","refs":[],"status":"pendente"},
     {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12","G18"],"status":"pendente"},
-    {"id":"T5","texto":"Transições proibidas direto no SQL: o gatilho rejeita","fase":"F1","refs":[],"status":"pendente"},
-    {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":["G18"],"status":"pendente"},
+    {"id":"T5","texto":"Transições proibidas direto no SQL: o gatilho rejeita","fase":"F1","refs":[],"status":"feito","evidencia":"supabase/tests/pgtap/003_transition_guard_test.sql"},
+    {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":["G18"],"status":"feito","evidencia":"supabase/tests/pgtap/004_rls_test.sql"},
     {"id":"T7","texto":"Senha certa sem código do autenticador: 403 em todo o painel","fase":"F2","refs":["G7"],"status":"pendente"},
     {"id":"T8","texto":"5 senhas erradas de outro IP: o administrador continua entrando","fase":"F2","refs":["G7","G18"],"status":"pendente"},
     {"id":"T9","texto":"2 erros, 2 reenvios, 2 erros no último código: bloqueio de 30 min","fase":"F3","refs":[],"status":"pendente"},
@@ -173,7 +173,7 @@
     {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
     {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"},
     {"id":"T26","texto":"Jornada completa no celular (Android e iPhone), da loja ao meu pedido, sem violação do axe","fase":"F9","refs":["G19"],"status":"pendente"},
-    {"id":"T27","texto":"Comparação visual da página de componentes nos temas claro e escuro","fase":"F1","refs":["G19"],"status":"pendente"}
+    {"id":"T27","texto":"Comparação visual da página de componentes nos temas claro e escuro","fase":"F1","refs":["G19"],"status":"andamento","nota":"Passa localmente; falta gerar as referências no container do CI"}
   ],
   "publicacao": [
     {"grupo":"Contas e ambiente","itens":[
@@ -219,12 +219,13 @@
     {"id":"E6","texto":"Dados da empresa: razão social, CNPJ, endereço, nome e e-mail do encarregado","quem":"Loja","precisa_em":"Publicação","refs":["G9"],"status":"pendente"},
     {"id":"E7","texto":"Endereço e horário de retirada na loja","quem":"Loja","precisa_em":"F8","refs":[],"status":"pendente"},
     {"id":"E8","texto":"Prazo fiscal de guarda das vendas confirmado pela contabilidade","quem":"Loja","precisa_em":"F11","refs":["G9"],"status":"pendente"},
-    {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"andamento","nota":"Logo oficial recebido em imagem em 25/09 e aplicado (fundo removido, favicon e ícones do app). Falta o SVG para impressão e ícones nítidos em qualquer tamanho"},
     {"id":"E10","texto":"Endereço do site: a marca usa \".br\" e o domínio registrado é tshirtclub.pt","quem":"Loja","precisa_em":"F1","refs":[],"status":"pendente"},
     {"id":"E11","texto":"Confirmar a prancha oficial da marca (as duas têm cores diferentes)","quem":"Loja","precisa_em":"F2","refs":["G19"],"status":"feito","nota":"Prancha 2 é a oficial (reenviada pela loja em 25/09)"},
-    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
-    {"id":"E13","texto":"Fotos das peças: liberar drive.google.com na rede do ambiente ou colocar os arquivos em docs/design/fotos/","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
-    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
+    {"id":"E12","texto":"Liberar coucousuzette.com na rede do ambiente para conferir o site de referência","quem":"Loja","precisa_em":"F2","refs":[],"status":"feito","nota":"HTML da página inicial enviado em 25/09: cores, fontes, formas, ordem das seções e menu lidos e aplicados (design-frontend.html#referencia). Estilos e fotos não vieram"},
+    {"id":"E13","texto":"Fotos das peças","quem":"Loja","precisa_em":"F2","refs":[],"status":"feito","nota":"42 fotos de produto lidas pelo conector do Google Drive em 25/09; faltam fotos com modelo, costas e looks (E15)"},
+    {"id":"E14","texto":"Dados das peças: composição, gramatura, medidas, cuidados e altura da modelo","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"},
+    {"id":"E15","texto":"Fotos com modelo (jeans, saia, alfaiataria), costas e looks; confirmar nomes e coleções das 42 peças","quem":"Loja","precisa_em":"F2","refs":[],"status":"pendente"}
   ],
   "achados": [
     {"id":"G1","titulo":"Cookie da cliente não funcionaria no iPhone","grav":"Crítico"},
@@ -276,6 +277,9 @@
     ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"]
   ],
   "historico": [
+    {"data":"25/09/2026","texto":"F1 liberada e implementada em sistema/: monorepo, 6 migrations com 46 testes pgTAP, domain (39 testes, roda no Deno), repasse /api e CSP com nonce (16 testes), design system e apps Next.js 16 (18 testes ponta a ponta com axe, Lighthouse 98/100), CI, gitleaks e Dependabot. Logo oficial aplicado. Falta: contas Supabase/Vercel (F1.4) e a primeira execução do CI."},
+    {"data":"25/09/2026","texto":"Referência Coucou Suzette lida do HTML da página inicial (paleta, Hammer + Lora, botões de 4 px, faixas de cor sem espaço, menu com emoji). Aplicado na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, história e garantias."},
+    {"data":"25/09/2026","texto":"42 fotos de produto lidas pelo conector do Google Drive e aplicadas no design (catálogo real com coleções sugeridas, capas por recorte de estampa, campanha provisória). Pasta do site de referência analisada: só apps de terceiros."},
     {"data":"25/09/2026","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21)."},
     {"data":"25/09/2026","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18)."},
     {"data":"25/09/2026","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11."},

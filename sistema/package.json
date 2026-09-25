@@ -1,0 +1,33 @@
+{
+  "name": "tshirtclub-sistema",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @tshirtclub/web dev",
+    "dev:admin": "pnpm --filter @tshirtclub/admin dev",
+    "build": "pnpm -r --filter ./apps/* build",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:db": "bash scripts/test-db.sh",
+    "test:deno": "bash scripts/test-deno.sh",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@eslint/js": "^9.39.5",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.2",
+    "deno": "^2.9.6",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.6",
+    "sharp": "^0.35.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.2"
+  }
+}
