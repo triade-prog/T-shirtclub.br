@@ -1,0 +1,8 @@
+# Temporário: confirma se o GitHub Actions consegue iniciar qualquer job neste repositório.
+name: Diagnóstico
+on: push
+jobs:
+  ola:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Actions funcionando"
