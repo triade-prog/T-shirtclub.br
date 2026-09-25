@@ -9,35 +9,30 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap">
 <style>
 /* ==========================================================================
-   TOKENS: fonte da verdade do design system (D2), a partir da marca
-   T-shirt Club.br (pranchas em design/marca/). As cores da marca ficam no
-   logo, nos enfeites e nos títulos grandes; texto e botões usam os tons
-   "-forte", derivados no mesmo matiz para passar no contraste (WCAG AA).
+   TOKENS (D2) · proposta 3 "clube de stickers"
+   Base quase branca e arejada. Rosa e verde do Club são tempero: botões,
+   stickers, estrelas, destaques. Cada coleção tem cor própria (Mediterrâneo,
+   Limão, Tomate), usada na capa, no fundo das fotos e na estampa.
    O preset do Tailwind em packages/ui é gerado destes nomes.
    ========================================================================== */
 :root{
-  --fundo:#FFF8F5;         /* creme da marca */
-  --superficie:#FFFFFF;
-  --rosa-claro:#FCDDE0;    /* rosa claro da marca: destaques, bolhas, etiqueta */
-  --rosa-nevoa:#FFEFF2;    /* fundo alternativo das fotos */
-  --verde-claro:#E9F0D6;   /* fundo alternativo das fotos e selo "ok" */
-  --tinta:#3A1F2B;         /* texto (14,2:1 no creme) */
-  --tinta-suave:#6E4A5A;   /* texto secundário (7,2:1) */
-  --linha:#EFD9DD;
-  --borda-campo:#9A7A88;   /* contorno de campo (3,8:1) */
-  --rosa:#E8478A;          /* rosa da marca: logo, estrela, títulos grandes (3,5:1) */
-  --rosa-forte:#B81E62;    /* botão, link, preço promocional (5,9:1; branco sobre ele 6,2:1) */
-  --no-rosa-forte:#FFFFFF;
-  --verde:#6B8B1F;         /* verde da marca: contorno do logo, enfeites (3,8:1) */
-  --verde-forte:#4E6614;   /* texto verde, sucesso (6,2:1) */
-  --foco:#3A1F2B;          /* anel de foco, afastado 2px do elemento */
-  --ok:#4E6614; --ok-fundo:#E9F0D6;
-  --aviso:#8A5300; --aviso-fundo:#FDF0D8;
-  --erro:#A8400E; --erro-fundo:#FDEBDD;   /* puxado para o laranja, longe do rosa; sempre com ícone */
-  --info:#6E4A5A; --info-fundo:#F4E7EB;
-  --trilho-cronometro:rgba(255,255,255,.3);
-  --sombra:0 2px 10px rgba(184,30,98,.10);
-  --r-etiqueta:10px; --r-controle:16px; --r-cartao:22px; --r-pilula:999px;
+  /* base */
+  --papel:#FFFCFA; --branco:#FFFFFF; --algodao:#F6EFEC;
+  --tinta:#26191E; --tinta-suave:#6B5D62; --linha:#ECE2DE; --borda-campo:#928181;
+  /* tempero do Club (cores originais da marca, sem escurecer) */
+  --rosa:#E8478A; --rosa-press:#C73576; --rosa-bruma:#FDE7EF; --no-rosa:#26191E;
+  --verde:#6B8B1F; --verde-broto:#EEF3DC; --verde-escuro:#3F5A10;
+  /* coleções: cor · fundo · texto */
+  --med:#2F6FD0; --med-fundo:#E4EEFC; --med-tinta:#1D4E9A; --med-sobre:#FFFFFF;
+  --limao:#F2DD3D; --limao-fundo:#FFF9C9; --limao-tinta:#6B5600;
+  --tomate:#EE4A2A; --tomate-fundo:#FFE7DE; --tomate-tinta:#A63A1C;
+  /* estados (sempre com ícone e texto) */
+  --ok:#3F5A10; --ok-fundo:#EEF3DC;
+  --aviso:#7A4A00; --aviso-fundo:#FFF1D6;
+  --erro:#B3261E; --erro-fundo:#FDE8E6;
+  --info:#3B4A63; --info-fundo:#EDF1F7;
+  --foco:#26191E;
+  --sombra-sticker:0 2px 0 rgba(38,25,30,.12),0 6px 14px rgba(38,25,30,.10);
   --titulo:"Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
   --texto:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --dur-rapida:150ms; --dur-media:250ms;
@@ -45,208 +40,237 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --fundo:#1E1117; --superficie:#2A1820; --rosa-claro:#3D2230; --rosa-nevoa:#33202A; --verde-claro:#26301A;
-    --tinta:#FFF1F4; --tinta-suave:#D9BFC8; --linha:#45283A; --borda-campo:#8E6E7C;
-    --rosa:#FF6FA8; --rosa-forte:#FF8AB8; --no-rosa-forte:#1E1117; --verde:#A9C24A; --verde-forte:#BFD774; --foco:#FFD6E4;
-    --ok:#BFD774; --ok-fundo:#26301A; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF9A5C; --erro-fundo:#3A1D10; --info:#D9BFC8; --info-fundo:#35222C;
-    --trilho-cronometro:rgba(30,17,23,.3); --sombra:0 1px 2px rgba(0,0,0,.4);
+    --papel:#181114; --branco:#221A1D; --algodao:#2A2024; --tinta:#F7EEF0; --tinta-suave:#BBAAB0; --linha:#3A2E32; --borda-campo:#7C6A70;
+    --rosa:#FF7FB2; --rosa-press:#E86A9C; --rosa-bruma:#3A1F2A; --no-rosa:#181114; --verde:#A9C24A; --verde-broto:#263019; --verde-escuro:#C8DC8A;
+    --med:#6FA3F2; --med-fundo:#1B2433; --med-tinta:#9CC1FF; --med-sobre:#181114; --limao:#F5DC6A; --limao-fundo:#2A2610; --limao-tinta:#F5DC6A; --tomate:#FF7F5E; --tomate-fundo:#33190F; --tomate-tinta:#FF9C7A;
+    --ok:#C8DC8A; --ok-fundo:#263019; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF8A80; --erro-fundo:#3A1714; --info:#B9C6DE; --info-fundo:#1F2633; --foco:#FFD6E4;
+    --sombra-sticker:0 2px 0 rgba(0,0,0,.4),0 6px 14px rgba(0,0,0,.3);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --fundo:#1E1117; --superficie:#2A1820; --rosa-claro:#3D2230; --rosa-nevoa:#33202A; --verde-claro:#26301A;
-  --tinta:#FFF1F4; --tinta-suave:#D9BFC8; --linha:#45283A; --borda-campo:#8E6E7C;
-  --rosa:#FF6FA8; --rosa-forte:#FF8AB8; --no-rosa-forte:#1E1117; --verde:#A9C24A; --verde-forte:#BFD774; --foco:#FFD6E4;
-  --ok:#BFD774; --ok-fundo:#26301A; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF9A5C; --erro-fundo:#3A1D10; --info:#D9BFC8; --info-fundo:#35222C;
-  --trilho-cronometro:rgba(30,17,23,.3); --sombra:0 1px 2px rgba(0,0,0,.4);
+  --papel:#181114; --branco:#221A1D; --algodao:#2A2024; --tinta:#F7EEF0; --tinta-suave:#BBAAB0; --linha:#3A2E32; --borda-campo:#7C6A70;
+  --rosa:#FF7FB2; --rosa-press:#E86A9C; --rosa-bruma:#3A1F2A; --no-rosa:#181114; --verde:#A9C24A; --verde-broto:#263019; --verde-escuro:#C8DC8A;
+  --med:#6FA3F2; --med-fundo:#1B2433; --med-tinta:#9CC1FF; --med-sobre:#181114; --limao:#F5DC6A; --limao-fundo:#2A2610; --limao-tinta:#F5DC6A; --tomate:#FF7F5E; --tomate-fundo:#33190F; --tomate-tinta:#FF9C7A;
+  --ok:#C8DC8A; --ok-fundo:#263019; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF8A80; --erro-fundo:#3A1714; --info:#B9C6DE; --info-fundo:#1F2633; --foco:#FFD6E4;
+  --sombra-sticker:0 2px 0 rgba(0,0,0,.4),0 6px 14px rgba(0,0,0,.3);
 }
 
 /* ---------- página do documento ---------- */
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--fundo);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.6;padding-inline:16px;padding-block:0 72px}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.6;padding-inline:16px;padding-block:0 72px}
+b,strong{font-weight:600}
 .doc{max-width:1120px;margin:0 auto;display:grid}
-a{color:var(--rosa-forte);text-underline-offset:3px}
-:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
-.topo{padding-block:36px 28px;display:grid;gap:14px;border-bottom:1px solid var(--linha)}
-.topo .logo{width:min(260px,70vw);height:auto}
-.rotulo{font-family:var(--texto);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-suave);margin:0}
-h1,h2,h3{font-family:var(--titulo);margin:0;text-wrap:balance;line-height:1.1}
-h1{font-weight:800;font-size:clamp(34px,6vw,56px);color:var(--rosa-forte)}
-h2{font-weight:800;font-size:clamp(26px,3.6vw,34px)}
-h3{font-weight:700;font-size:20px}
-p{margin:0;max-width:66ch}
-.lede{font-size:18px;color:var(--tinta-suave)}
+a{color:var(--tinta);text-decoration-color:var(--rosa);text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--foco);outline-offset:3px}
+h1,h2,h3,h4{font-family:var(--titulo);margin:0;text-wrap:balance;line-height:1.05;letter-spacing:-.01em}
+h1{font-weight:800;font-size:clamp(40px,7vw,76px)}
+h2{font-weight:800;font-size:clamp(28px,4vw,40px)}
+h3{font-weight:700;font-size:21px}
+p{margin:0;max-width:64ch}
+.sub{color:var(--tinta-suave)}
+.nota{font-size:14px;color:var(--tinta-suave)}
+.rotulo{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-suave);margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:var(--algodao);border-radius:4px;padding:1px 5px}
+pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.5;background:var(--branco);border:1px solid var(--linha);border-radius:12px;padding:14px 16px;overflow-x:auto;margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--linha);border-radius:12px;background:var(--branco)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-suave);font-weight:600;background:var(--algodao);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums}
+ul.lista{margin:0;padding-left:18px;display:grid;gap:4px}
+.amostra{width:40px;height:28px;border-radius:6px;border:1px solid var(--linha);flex:none;display:inline-block}
+
+.capa-doc{padding-block:40px 32px;display:grid;gap:18px;border-bottom:2px dashed var(--linha);position:relative}
+.capa-doc .logo{width:min(220px,60vw);height:auto}
+.capa-doc h1 .grifo{position:relative;white-space:nowrap}
+.capa-doc h1 .grifo svg{position:absolute;left:-2%;bottom:-.12em;width:104%;height:.32em;color:var(--rosa)}
+.capa-doc .lede{font-size:18px;color:var(--tinta-suave);max-width:60ch}
 .meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--tinta-suave)}
 .meta b{color:var(--tinta)}
 nav.sumario{display:flex;flex-wrap:wrap;gap:8px}
-nav.sumario a{font-size:14px;font-weight:600;text-decoration:none;color:var(--tinta);border:1.5px solid var(--linha);background:var(--superficie);border-radius:var(--r-pilula);padding:8px 16px;min-height:44px;display:inline-flex;align-items:center}
-section.bloco{padding-block:48px 16px;border-bottom:1px solid var(--linha);display:grid;gap:20px}
-.sub{color:var(--tinta-suave)}
+nav.sumario a{font-size:14px;font-weight:600;text-decoration:none;border:1.5px solid var(--linha);background:var(--branco);border-radius:999px;padding:8px 16px;min-height:44px;display:inline-flex;align-items:center}
+.brilho-solto{position:absolute;color:var(--rosa);width:30px;height:30px}
+
+section.bloco{padding-block:52px 20px;border-bottom:2px dashed var(--linha);display:grid;gap:22px}
 .grade{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-.painel{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-cartao);padding:18px;display:grid;gap:12px;align-content:start}
-.nota{font-size:14px;color:var(--tinta-suave)}
-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:var(--rosa-nevoa);border-radius:4px;padding:1px 5px}
-pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.5;background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-controle);padding:14px 16px;overflow-x:auto;margin:0}
-.tbl{overflow-x:auto;border:1px solid var(--linha);border-radius:var(--r-controle);background:var(--superficie)}
-table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
-th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-suave);font-weight:600;background:var(--rosa-nevoa);white-space:nowrap}
-tr:last-child td{border-bottom:0}
-.amostra{width:44px;height:32px;border-radius:8px;border:1px solid var(--linha);flex:none}
-.num{font-variant-numeric:tabular-nums}
-ul.lista{margin:0;padding-left:18px;display:grid;gap:4px}
+.painel{background:var(--branco);border:1px solid var(--linha);border-radius:18px;padding:18px;display:grid;gap:12px;align-content:start}
 .achados{display:grid;gap:10px}
-.achado{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-controle);padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.achado{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
 .achado .id{font-weight:600;color:var(--tinta-suave);font-size:14px;padding-top:2px}
-.achado h3{font-size:17px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.achado h3{font-size:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .achado p{grid-column:2;font-size:15px}
-.grav{font-family:var(--texto);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;border-radius:var(--r-pilula);padding:2px 8px;background:var(--rosa-nevoa);color:var(--tinta-suave)}
-.grav.alto{background:var(--erro-fundo);color:var(--erro)} .grav.medio{background:var(--aviso-fundo);color:var(--aviso)}
+.grav{font-family:var(--texto);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--algodao);color:var(--tinta-suave)}
+.grav.feito{background:var(--ok-fundo);color:var(--ok)} .grav.conf{background:var(--aviso-fundo);color:var(--aviso)}
+.antes-depois{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.antes-depois figure{margin:0;display:grid;gap:6px}
+.faixa{display:flex;height:56px;border-radius:12px;overflow:hidden;border:1px solid var(--linha)}
+.faixa i{display:block;height:100%}
 
 /* ==========================================================================
-   COMPONENTES (D2). Mesmos nomes dos componentes React em packages/ui.
+   COMPONENTES (packages/ui)
    ========================================================================== */
-.tc-botao{font-family:var(--texto);font-size:16px;font-weight:600;min-height:50px;padding:0 24px;border-radius:var(--r-pilula);border:2px solid var(--rosa-forte);background:var(--rosa-forte);color:var(--no-rosa-forte);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:transform var(--dur-rapida)}
-.tc-botao:active{transform:translateY(1px)}
-.tc-botao.secundario{background:transparent;color:var(--tinta);border-color:var(--tinta)}
-.tc-botao.perigo{background:transparent;color:var(--erro);border-color:var(--erro)}
-.tc-botao.texto{background:transparent;border-color:transparent;color:var(--rosa-forte);text-decoration:underline;text-underline-offset:3px;padding:0 8px;min-height:44px}
-.tc-botao[disabled]{opacity:.45;cursor:not-allowed}
+/* Botão: o rosa verdadeiro da marca com texto escuro (4,6:1) e uma base mais
+   escura embaixo, como um sticker que se aperta. */
+.tc-botao{font-family:var(--titulo);font-size:19px;font-weight:700;line-height:1.1;min-height:52px;padding:8px 26px;text-align:center;border-radius:999px;border:0;background:var(--rosa);color:var(--no-rosa);box-shadow:0 4px 0 var(--rosa-press);display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform var(--dur-rapida),box-shadow var(--dur-rapida);margin-bottom:4px}
+.tc-botao:active{transform:translateY(3px);box-shadow:0 1px 0 var(--rosa-press)}
+.tc-botao.contorno{background:var(--branco);color:var(--tinta);box-shadow:inset 0 0 0 2px var(--tinta),0 4px 0 var(--tinta)}
+.tc-botao.contorno:active{box-shadow:inset 0 0 0 2px var(--tinta),0 1px 0 var(--tinta)}
+.tc-botao.link{background:none;color:var(--tinta);box-shadow:none;font-family:var(--texto);font-size:15px;font-weight:600;min-height:44px;padding:0 6px;text-decoration:underline;text-decoration-color:var(--rosa);text-decoration-thickness:2px;text-underline-offset:4px;margin:0}
+.tc-botao[disabled]{background:var(--algodao);color:var(--tinta-suave);box-shadow:0 4px 0 var(--linha);cursor:not-allowed}
 .tc-botao.cheio{width:100%}
-.tc-botao svg{width:20px;height:20px;flex:none}
-.tc-giro{width:16px;height:16px;border:2.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira .9s linear infinite}
+.tc-botao svg{width:22px;height:22px;flex:none}
+.tc-giro{width:18px;height:18px;border:3px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira .9s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
+
+/* Sticker: recorte com borda branca, levemente torto. Formas: pílula, redondo, estrela. */
+.tc-sticker{display:inline-flex;align-items:center;gap:5px;font-family:var(--titulo);font-weight:800;font-size:15px;line-height:1;padding:7px 12px 6px;border-radius:999px;background:var(--rosa);color:var(--no-rosa);box-shadow:0 0 0 3px var(--branco),var(--sombra-sticker);transform:rotate(-5deg);white-space:nowrap}
+.tc-sticker svg{width:15px;height:15px}
+.tc-sticker.direita{transform:rotate(4deg)}
+.tc-sticker.verde{background:var(--verde-broto);color:var(--verde-escuro)}
+.tc-sticker.aviso{background:var(--aviso-fundo);color:var(--aviso)}
+.tc-sticker.neutro{background:var(--algodao);color:var(--tinta-suave)}
+.tc-sticker.redondo{width:58px;height:58px;padding:0;justify-content:center;border-radius:50%;font-size:17px}
+.tc-sticker.estrela{width:70px;height:70px;padding:0;justify-content:center;border-radius:0;box-shadow:none;filter:drop-shadow(0 0 0 var(--branco)) drop-shadow(0 3px 5px rgba(38,25,30,.18));clip-path:polygon(50% 0,61% 16%,79% 9%,80% 28%,98% 32%,88% 49%,100% 64%,82% 71%,82% 90%,63% 86%,50% 100%,37% 86%,18% 90%,18% 71%,0 64%,12% 49%,2% 32%,20% 28%,21% 9%,39% 16%);font-size:17px;transform:rotate(-10deg)}
+
+/* Etiqueta de preço: papel branco, furo e barbante rosa, como a tag das pranchas */
+.tc-etiqueta{position:relative;display:inline-grid;background:var(--branco);color:var(--tinta);padding:5px 12px 5px 24px;border:1.5px solid var(--linha);border-radius:4px 10px 10px 4px;font-variant-numeric:tabular-nums}
+.tc-etiqueta::before{content:"";position:absolute;left:8px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--rosa)}
+.tc-etiqueta::after{content:"";position:absolute;left:-14px;top:50%;width:18px;height:2px;background:var(--rosa);border-radius:2px;transform:rotate(-18deg);transform-origin:right center}
+.tc-etiqueta .preco{font-family:var(--titulo);font-weight:800;font-size:20px;line-height:1.1}
+.tc-etiqueta .de{font-size:12.5px;text-decoration:line-through;color:var(--tinta-suave);line-height:1.2}
+
+/* Filtro de coleção: os destaques redondos do Instagram, cada um na cor da coleção */
+.tc-colecoes{display:flex;gap:14px;overflow-x:auto;padding:6px 2px 4px;scrollbar-width:none}
+.tc-colecao{display:grid;justify-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--tinta);background:none;border:0;padding:0;cursor:pointer;font-family:var(--texto);min-width:66px}
+.tc-colecao .bola{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:var(--c-fundo,var(--rosa-bruma));color:var(--c-tinta,var(--tinta));box-shadow:0 0 0 2px var(--papel),0 0 0 4px var(--c-cor,var(--rosa))}
+.tc-colecao[aria-pressed="true"] .bola{background:var(--c-cor,var(--rosa));color:var(--c-sobre,var(--no-rosa))}
+.tc-colecao .bola svg{width:28px;height:28px}
+.col-med{--c-cor:var(--med);--c-fundo:var(--med-fundo);--c-tinta:var(--med-tinta);--c-sobre:var(--med-sobre);--c-capa:var(--med)}
+.col-limao{--c-cor:var(--limao);--c-fundo:var(--limao-fundo);--c-tinta:var(--limao-tinta);--c-sobre:#26191E;--c-capa:var(--limao-tinta)}
+.col-tomate{--c-cor:var(--tomate);--c-fundo:var(--tomate-fundo);--c-tinta:var(--tomate-tinta);--c-sobre:#26191E;--c-capa:var(--tomate)}
+
+/* Card de produto: foto no fundo da coleção, texto no papel; só o sticker tem sombra */
+.tc-produto{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.tc-produto .foto{aspect-ratio:4/5;max-width:100%;background:var(--c-fundo,var(--algodao));border-radius:16px;display:grid;place-items:center;position:relative}
+.tc-produto .foto > svg{width:82%;height:auto}
+.tc-produto .foto .tc-sticker{position:absolute;left:-4px;top:10px}
+.tc-produto .foto .tc-sticker.estrela{left:auto;right:-8px;top:-10px}
+.tc-produto .colecao-nome{font-size:12.5px;font-weight:600;color:var(--c-tinta,var(--tinta-suave))}
+.tc-produto h4{font-weight:700;font-size:19px;line-height:1.1}
+.tc-produto .linha{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+.tc-qtd{display:inline-flex;align-items:center;border:1.5px solid var(--borda-campo);border-radius:999px;background:var(--branco)}
+.tc-qtd button{width:44px;height:44px;border:0;background:transparent;color:var(--tinta);font-size:22px;cursor:pointer;border-radius:50%}
+.tc-qtd button[disabled]{opacity:.35;cursor:not-allowed}
+.tc-qtd output{min-width:24px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
 
 .tc-campo{display:grid;gap:6px}
 .tc-campo label{font-weight:600;font-size:15px}
-.tc-campo input{font:inherit;font-size:16px;min-height:50px;border:1.5px solid var(--borda-campo);border-radius:var(--r-controle);background:var(--superficie);color:var(--tinta);padding:0 16px;width:100%}
+.tc-campo input{font:inherit;font-size:16px;min-height:52px;border:1.5px solid var(--borda-campo);border-radius:14px;background:var(--branco);color:var(--tinta);padding:0 16px;width:100%}
 .tc-campo input:focus-visible{outline:3px solid var(--foco);outline-offset:2px;border-color:var(--tinta)}
-.tc-campo .ajuda{font-size:14px;color:var(--tinta-suave);margin:0}
-.tc-campo .erro{font-size:14px;color:var(--erro);font-weight:600;margin:0;display:flex;gap:6px;align-items:flex-start}
+.tc-campo .ajuda{font-size:14px;color:var(--tinta-suave)}
+.tc-campo .erro{font-size:14px;color:var(--erro);font-weight:600;display:flex;gap:6px;align-items:flex-start}
 .tc-campo .erro svg{flex:none;margin-top:2px}
 .tc-campo.com-erro input{border-color:var(--erro);border-width:2px}
-.tc-codigo input{font-family:var(--titulo);font-weight:800;font-size:32px;letter-spacing:.3em;text-align:center;font-variant-numeric:tabular-nums;min-height:66px}
+.tc-codigo input{font-family:var(--titulo);font-weight:800;font-size:34px;letter-spacing:.3em;text-align:center;font-variant-numeric:tabular-nums;min-height:70px;border-style:dashed}
 
-/* etiqueta de preço: a tag rosa pendurada na camiseta, como nas pranchas */
-.tc-etiqueta{position:relative;display:inline-grid;background:var(--rosa-claro);color:var(--tinta);padding:6px 14px 6px 26px;border-radius:var(--r-etiqueta);clip-path:polygon(12px 0,100% 0,100% 100%,12px 100%,0 50%)}
-.tc-etiqueta::before{content:"";position:absolute;left:10px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:var(--superficie);box-shadow:inset 0 0 0 1.5px var(--rosa)}
-.tc-etiqueta .preco{font-family:var(--titulo);font-weight:800;font-size:20px;line-height:1.15;font-variant-numeric:tabular-nums}
-.tc-etiqueta.promo .preco{color:var(--rosa-forte)}
-.tc-etiqueta .de{font-size:12.5px;text-decoration:line-through;color:var(--tinta-suave)}
-
-.tc-selo{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;border-radius:var(--r-pilula);padding:3px 10px;white-space:nowrap;background:var(--rosa-nevoa);color:var(--tinta-suave)}
-.tc-selo svg{width:14px;height:14px;flex:none}
-.tc-selo.novo{background:var(--rosa-forte);color:var(--no-rosa-forte)}
-.tc-selo.ok{background:var(--ok-fundo);color:var(--ok)} .tc-selo.aviso{background:var(--aviso-fundo);color:var(--aviso)}
-.tc-selo.erro{background:var(--erro-fundo);color:var(--erro)} .tc-selo.info{background:var(--info-fundo);color:var(--info)}
-.tc-desconto{display:inline-block;background:var(--verde-forte);color:var(--superficie);font-weight:600;font-size:13px;border-radius:var(--r-pilula);padding:2px 9px}
-
-/* destaques redondos, como os do Instagram da marca: filtros de coleção */
-.tc-destaques{display:flex;gap:12px;overflow-x:auto;padding:4px 2px;scrollbar-width:none}
-.tc-destaque{display:grid;justify-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--tinta);text-decoration:none;min-width:64px;background:none;border:0;cursor:pointer;padding:0;font-family:var(--texto)}
-.tc-destaque .bola{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--rosa-claro);color:var(--rosa-forte);border:2.5px solid var(--superficie);box-shadow:0 0 0 2px var(--rosa)}
-.tc-destaque.verde .bola{background:var(--verde-claro);color:var(--verde-forte);box-shadow:0 0 0 2px var(--verde)}
-.tc-destaque[aria-pressed="true"] .bola{background:var(--rosa-forte);color:var(--no-rosa-forte)}
-.tc-destaque .bola svg{width:26px;height:26px}
-
-.tc-qtd{display:inline-flex;align-items:center;border:1.5px solid var(--borda-campo);border-radius:var(--r-pilula);overflow:hidden;background:var(--superficie)}
-.tc-qtd button{width:44px;height:44px;border:0;background:transparent;color:var(--tinta);font-size:22px;font-weight:600;cursor:pointer}
-.tc-qtd button[disabled]{opacity:.35;cursor:not-allowed}
-.tc-qtd output{min-width:28px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
-
-.tc-produto{background:var(--superficie);border-radius:var(--r-cartao);overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
-.tc-produto .foto{aspect-ratio:4/5;max-width:100%;background:var(--rosa-nevoa);display:grid;place-items:center;position:relative;border-radius:var(--r-cartao)}
-.tc-produto.verde .foto{background:var(--verde-claro)}
-.tc-produto .foto > svg{width:80%;height:auto}
-.tc-produto .foto .tc-selo{position:absolute;left:10px;top:10px}
-.tc-produto .corpo{padding:10px 4px 4px;display:grid;gap:8px}
-.tc-produto h4{margin:0;font-family:var(--titulo);font-weight:700;font-size:18px;line-height:1.15}
-.tc-produto .linha2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-
-.tc-cronometro{display:grid;gap:6px;background:var(--rosa-forte);color:var(--no-rosa-forte);border-radius:var(--r-cartao);padding:12px 16px}
+/* Cronômetro: cartão branco, número grande e a linha de costura que vai se desfazendo */
+.tc-cronometro{display:grid;gap:8px;background:var(--branco);border:1.5px solid var(--linha);border-radius:18px;padding:14px 16px}
 .tc-cronometro .linha{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.tc-cronometro .tempo{font-family:var(--titulo);font-weight:800;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
-.tc-cronometro .ate{font-size:14px}
-.tc-cronometro .trilho{height:6px;border-radius:3px;background:var(--trilho-cronometro);overflow:hidden}
-.tc-cronometro .trilho i{display:block;height:100%;background:var(--no-rosa-forte);border-radius:3px}
-.tc-cronometro.tolerancia{background:var(--aviso-fundo);color:var(--aviso)}
-.tc-cronometro.tolerancia .trilho{background:rgba(138,83,0,.18)}
-.tc-cronometro.tolerancia .trilho i{background:var(--aviso)}
+.tc-cronometro .tempo{font-family:var(--titulo);font-weight:800;font-size:44px;line-height:.9;font-variant-numeric:tabular-nums}
+.tc-cronometro .ate{font-size:14px;color:var(--tinta-suave);text-align:right}
+.tc-costura{height:6px;background:repeating-linear-gradient(90deg,var(--linha) 0 10px,transparent 10px 16px);border-radius:3px;position:relative;overflow:hidden}
+.tc-costura i{position:absolute;inset:0 auto 0 0;background:repeating-linear-gradient(90deg,var(--rosa) 0 10px,transparent 10px 16px)}
+.tc-cronometro.atencao .tc-costura i{background:repeating-linear-gradient(90deg,var(--aviso) 0 10px,transparent 10px 16px)}
+.tc-cronometro.atencao .tempo{color:var(--aviso)}
+.tc-cronometro.tolerancia{background:var(--aviso-fundo);border-color:transparent}
 
-.tc-pix{display:grid;gap:12px;background:var(--superficie);border:1.5px solid var(--linha);border-radius:var(--r-cartao);padding:16px}
-.tc-pix .valor{display:flex;justify-content:space-between;align-items:baseline}
-.tc-pix .valor b{font-family:var(--titulo);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.tc-pix{display:grid;gap:12px;background:var(--branco);border:1.5px solid var(--linha);border-radius:18px;padding:16px}
+.tc-pix .valor{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
+.tc-pix .valor b{font-family:var(--titulo);font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
 .tc-pix ol{margin:0;padding-left:20px;font-size:15px;color:var(--tinta-suave);display:grid;gap:2px}
 .tc-pix details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:44px;display:flex;align-items:center}
 
-.tc-aviso{display:grid;grid-template-columns:auto 1fr;gap:10px;border-radius:var(--r-controle);padding:12px 14px;font-size:15px;background:var(--info-fundo);color:var(--tinta)}
-.tc-aviso svg{width:20px;height:20px;color:var(--info);margin-top:2px}
-.tc-aviso.marca{background:var(--rosa-claro)} .tc-aviso.marca svg{color:var(--rosa-forte)}
+.tc-aviso{display:grid;grid-template-columns:auto 1fr;gap:10px;border-radius:14px;padding:12px 14px;font-size:15px;background:var(--info-fundo);color:var(--tinta)}
+.tc-aviso svg{width:20px;height:20px;margin-top:2px;color:var(--info)}
+.tc-aviso.bruma{background:var(--rosa-bruma)} .tc-aviso.bruma svg{color:var(--tinta)}
 .tc-aviso.ok{background:var(--ok-fundo)} .tc-aviso.ok svg{color:var(--ok)}
 .tc-aviso.atencao{background:var(--aviso-fundo)} .tc-aviso.atencao svg{color:var(--aviso)}
 .tc-aviso.erro{background:var(--erro-fundo)} .tc-aviso.erro svg{color:var(--erro)}
 .tc-aviso b{display:block}
 
+.tc-selo{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap;background:var(--algodao);color:var(--tinta-suave)}
+.tc-selo svg{width:14px;height:14px;flex:none}
+.tc-selo.ok{background:var(--ok-fundo);color:var(--ok)} .tc-selo.info{background:var(--info-fundo);color:var(--info)} .tc-selo.aviso{background:var(--aviso-fundo);color:var(--aviso)}
+
 .tc-passos{list-style:none;margin:0;padding:0;display:grid}
 .tc-passos li{display:grid;grid-template-columns:30px 1fr;gap:10px;padding-bottom:14px;position:relative;font-size:15px}
-.tc-passos li::after{content:"";position:absolute;left:14px;top:28px;bottom:2px;width:2px;background:var(--linha)}
+.tc-passos li::after{content:"";position:absolute;left:14px;top:30px;bottom:2px;border-left:2px dashed var(--linha)}
 .tc-passos li:last-child::after{display:none}
-.tc-passos .marca-passo{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--linha);background:var(--superficie);font-size:13px;font-weight:600}
-.tc-passos li.feito .marca-passo{background:var(--verde-forte);border-color:var(--verde-forte);color:var(--superficie)}
-.tc-passos li.agora .marca-passo{border-color:var(--rosa-forte);color:var(--rosa-forte);box-shadow:0 0 0 3px var(--rosa-claro)}
+.tc-passos .marca{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--linha);background:var(--branco);font-size:13px;font-weight:600}
+.tc-passos li.feito .marca{background:var(--verde-broto);border-color:var(--verde);color:var(--verde-escuro)}
+.tc-passos li.agora .marca{background:var(--rosa);border-color:var(--rosa);color:var(--no-rosa)}
 .tc-passos li.depois{color:var(--tinta-suave)}
 
-.tc-rodape-acao{position:sticky;bottom:0;background:var(--superficie);border-top:1px solid var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px}
+.tc-rodape-acao{position:sticky;bottom:0;background:var(--branco);border-top:2px dashed var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px}
 .tc-rodape-acao .resumo{display:flex;justify-content:space-between;font-size:15px}
 .tc-rodape-acao .resumo b{font-variant-numeric:tabular-nums}
 
-.tc-toast{display:inline-flex;align-items:center;gap:10px;background:var(--tinta);color:var(--fundo);border-radius:var(--r-pilula);padding:12px 18px;font-size:15px;font-weight:600;box-shadow:var(--sombra)}
-
-.tc-cabecalho{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--fundo);border-bottom:1px solid var(--linha)}
-.tc-cabecalho img{height:40px;width:auto}
-.tc-sacola{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--rosa-claro);color:var(--rosa-forte)}
-.tc-sacola .n{position:absolute;right:-4px;top:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--rosa-forte);color:var(--no-rosa-forte);font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 5px}
-
-.tc-numero{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-controle);padding:14px;display:grid;gap:2px}
-.tc-numero .valor{font-family:var(--titulo);font-weight:800;font-size:32px;line-height:1.1}
+.tc-toast{display:inline-flex;align-items:center;gap:10px;background:var(--tinta);color:var(--papel);border-radius:999px;padding:12px 18px;font-size:15px;font-weight:600}
+.tc-cabecalho{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--papel)}
+.tc-cabecalho img{height:38px;width:auto}
+.tc-sacola{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--tinta);color:var(--tinta);background:var(--branco)}
+.tc-sacola .n{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;border-radius:11px;background:var(--rosa);color:var(--no-rosa);font-family:var(--titulo);font-size:13px;font-weight:800;display:grid;place-items:center;padding:0 5px;box-shadow:0 0 0 2px var(--papel)}
+.tc-numero{background:var(--branco);border:1px solid var(--linha);border-radius:14px;padding:14px;display:grid;gap:2px}
+.tc-numero .valor{font-family:var(--titulo);font-weight:800;font-size:34px;line-height:1.05}
 .tc-numero .rot{font-size:14px;color:var(--tinta-suave)}
 
+/* Capa de coleção: o nome gigante atrás da peça, na cor da coleção */
+.tc-capa{position:relative;background:var(--c-fundo);border-radius:22px;padding:18px 18px 0;overflow:hidden;min-height:250px;display:grid;align-content:start}
+.tc-capa .nome{font-family:var(--titulo);font-weight:800;font-size:64px;line-height:.85;color:var(--c-capa,var(--c-cor));letter-spacing:-.02em;position:relative;z-index:0}
+.tc-capa .conta{font-size:13.5px;color:var(--c-tinta);font-weight:600;position:relative;z-index:1;max-width:46%;margin-top:6px}
+.tc-capa > svg.peca{position:absolute;right:-10px;bottom:-30px;width:56%;height:auto;z-index:1}
+.tc-capa .doodle{position:absolute;color:var(--c-cor);width:26px;height:26px}
+
+/* Hero da loja: grifo à mão e brilhos, o momento de impacto */
+.hero{display:grid;gap:10px;padding:6px 2px 4px;position:relative}
+.hero p.frase{font-family:var(--titulo);font-weight:800;font-size:36px;line-height:.98;letter-spacing:-.01em}
+.hero .grifo{position:relative;white-space:nowrap}
+.hero .grifo svg{position:absolute;left:-3%;bottom:-.1em;width:106%;height:.34em;color:var(--rosa)}
+.hero .brilho{position:absolute;right:10px;top:46px;width:26px;height:26px;color:var(--verde)}
+
 /* ---------- molduras de tela ---------- */
-.telas{display:grid;gap:28px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));align-items:start}
-.tela{display:grid;gap:10px}
-.tela figcaption{display:grid;gap:4px}
-.tela figcaption b{font-family:var(--titulo);font-weight:700;font-size:18px}
+.telas{display:grid;gap:30px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));align-items:start}
+.tela{display:grid;gap:10px;margin:0}
+.tela figcaption{display:grid;gap:3px}
+.tela figcaption b{font-family:var(--titulo);font-weight:700;font-size:19px}
 .tela figcaption span{font-size:13.5px;color:var(--tinta-suave)}
-figure{margin:0}
-.celular{width:100%;max-width:360px;border:8px solid #2B1520;border-radius:34px;overflow:hidden;background:var(--fundo);box-shadow:var(--sombra)}
-.celular .conteudo{display:grid;gap:14px;padding:16px}
-.celular .conteudo h2{font-size:28px}
-.tablet{max-width:100%;border:8px solid #2B1520;border-radius:26px;overflow:hidden;background:var(--fundo)}
+.celular{width:100%;max-width:360px;border:7px solid #1C1417;border-radius:36px;overflow:hidden;background:var(--papel)}
+.celular .conteudo{display:grid;gap:16px;padding:14px 16px 18px}
+.celular .conteudo h2{font-size:30px}
+.tablet{max-width:100%;border:7px solid #1C1417;border-radius:26px;overflow:hidden;background:var(--papel)}
+.dupla{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 12px}
 .linha-flex{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.item-sacola{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center}
-.item-sacola .mini{width:56px;height:70px;border-radius:12px;background:var(--rosa-nevoa);display:grid;place-items:center}
-.item-sacola .mini.verde{background:var(--verde-claro)}
+.item-sacola{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center}
+.item-sacola .mini{width:56px;height:70px;border-radius:12px;background:var(--c-fundo);display:grid;place-items:center}
 .item-sacola .mini svg{width:46px;height:auto}
-.soma{display:grid;gap:4px;font-size:15px}
+.soma{display:grid;gap:4px;font-size:15px;border-top:2px dashed var(--linha);padding-top:10px}
 .soma div{display:flex;justify-content:space-between}
-.soma .total{font-family:var(--titulo);font-weight:800;font-size:24px}
-.whats{background:#FFFFFF;color:#1F2A24;border-radius:14px 14px 14px 3px;padding:10px 12px;font-size:14.5px;max-width:92%;border:1px solid #E3E8E4}
+.soma .total{font-family:var(--titulo);font-weight:800;font-size:26px}
+.whats{background:#FFFFFF;color:#1F2A24;border-radius:14px 14px 14px 3px;padding:10px 12px;font-size:14.5px;border:1px solid #E3E8E4}
 .whats.eu{background:#D9FDD3;border-color:#C5EBBE;border-radius:14px 14px 3px 14px;justify-self:end}
 .whats b{font-weight:600}
-/* Poppins só tem 400 a 600: negrito do texto corrido em 600, para o navegador não inventar um 700 */
-b,strong{font-weight:600}
 .msg-wa{display:grid;gap:8px}
-.msg-wa .whats{max-width:100%}
-.hero-loja{background:var(--rosa-claro);border-radius:var(--r-cartao);padding:16px;display:grid;gap:4px}
-.hero-loja p{font-family:var(--titulo);font-weight:800;font-size:26px;line-height:1.05;color:var(--rosa-forte)}
 .pranchas{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
-.pranchas img{width:100%;height:auto;border-radius:var(--r-controle);border:1px solid var(--linha)}
+.pranchas img{width:100%;height:auto;border-radius:14px;border:1px solid var(--linha)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<!-- Ícones de traço arredondado (estilo Lucide, o pacote do código), iguais aos destaques da marca, e a camiseta das fotos de exemplo -->
+<!-- Ícones de traço arredondado (estilo Lucide), rabiscos à mão e as camisetas das três coleções -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -255,127 +279,124 @@ b,strong{font-weight:600}
     <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m9 9 6 6M15 9l-6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-sacola" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
-    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
-    <symbol id="i-whats" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 9.5c.3 2 2 3.8 4.5 4.5l1-1.2 2 .8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-whats" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 9.5c.3 2 2 3.8 4.5 4.5l1-1.2 2 .8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
     <symbol id="i-cadeado" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="3" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
-    <symbol id="i-coracao" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
-    <symbol id="i-brilho" viewBox="0 0 24 24"><path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z" fill="currentColor"/></symbol>
-    <symbol id="i-camiseta" viewBox="0 0 24 24"><path d="M8 4 4 6.5 5.5 10 7 9.3V20h10V9.3l1.5.7L20 6.5 16 4c-.5 1.4-2 2.3-4 2.3S8.5 5.4 8 4Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
-    <symbol id="tee" viewBox="0 0 220 240">
-      <path d="M70 30 92 20h36l22 10 42 24-18 40-24-12v142H70V82L46 94 28 54Z" fill="#FFFFFF" stroke="#3A1F2B" stroke-width="4" stroke-linejoin="round"/>
-      <path d="M92 21c3 12 10 18 18 18s15-6 18-18" fill="none" stroke="#3A1F2B" stroke-width="4" stroke-linecap="round"/>
-      <circle cx="110" cy="112" r="30" fill="currentColor"/>
-      <circle cx="97" cy="86" r="10" fill="currentColor"/><circle cx="123" cy="86" r="10" fill="currentColor"/>
-      <circle cx="100" cy="110" r="4" fill="#3A1F2B"/><circle cx="120" cy="110" r="4" fill="#3A1F2B"/>
-      <path d="M103 123c4 4 10 4 14 0" fill="none" stroke="#3A1F2B" stroke-width="3.5" stroke-linecap="round"/>
+    <symbol id="i-coracao" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-brilho" viewBox="0 0 24 24"><path d="M12 2c.7 4.8 3.2 7.3 8 8-4.8.7-7.3 3.2-8 8-.7-4.8-3.2-7.3-8-8 4.8-.7 7.3-3.2 8-8Z" fill="currentColor"/></symbol>
+    <symbol id="i-urso" viewBox="0 0 24 24"><circle cx="6.5" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="17.5" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M10.3 14.8c1 .8 2.4.8 3.4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-pata" viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="4.6" ry="3.8" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="6" cy="10" r="1.9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9.5" cy="6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="14.5" cy="6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="10" r="1.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="rabisco" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M3 13c30-6 62-8 95-6 30 2 60 3 99-4-28 8-60 10-92 9-28-1-57 0-86 5" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="tee-urso" viewBox="0 0 220 240">
+      <path d="M70 30 92 20h36l22 10 42 24-18 40-24-12v142H70V82L46 94 28 54Z" fill="#FFFFFF" stroke="#26191E" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M92 21c3 12 10 18 18 18s15-6 18-18" fill="none" stroke="#26191E" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="94" cy="88" r="11" fill="currentColor"/><circle cx="126" cy="88" r="11" fill="currentColor"/><circle cx="110" cy="114" r="30" fill="currentColor"/>
+      <circle cx="100" cy="110" r="3.6" fill="#26191E"/><circle cx="120" cy="110" r="3.6" fill="#26191E"/><path d="M103 123c4 4 10 4 14 0" fill="none" stroke="#26191E" stroke-width="3.4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="tee-cao" viewBox="0 0 220 240">
+      <path d="M70 30 92 20h36l22 10 42 24-18 40-24-12v142H70V82L46 94 28 54Z" fill="#FFFFFF" stroke="#26191E" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M92 21c3 12 10 18 18 18s15-6 18-18" fill="none" stroke="#26191E" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="110" cy="114" r="29" fill="currentColor"/><ellipse cx="84" cy="112" rx="9" ry="19" fill="#26191E" opacity=".85" transform="rotate(18 84 112)"/><ellipse cx="136" cy="112" rx="9" ry="19" fill="#26191E" opacity=".85" transform="rotate(-18 136 112)"/>
+      <circle cx="101" cy="108" r="3.6" fill="#26191E"/><circle cx="119" cy="108" r="3.6" fill="#26191E"/><ellipse cx="110" cy="121" rx="6" ry="4.5" fill="#26191E"/>
+    </symbol>
+    <symbol id="tee-sol" viewBox="0 0 220 240">
+      <path d="M70 30 92 20h36l22 10 42 24-18 40-24-12v142H70V82L46 94 28 54Z" fill="#FFFFFF" stroke="#26191E" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M92 21c3 12 10 18 18 18s15-6 18-18" fill="none" stroke="#26191E" stroke-width="4" stroke-linecap="round"/>
+      <g stroke="currentColor" stroke-width="7" stroke-linecap="round"><path d="M110 70v10M110 148v10M66 114h10M144 114h10M79 83l7 7M134 138l7 7M79 145l7-7M134 90l7-7"/></g>
+      <circle cx="110" cy="114" r="24" fill="currentColor"/><path d="M101 116c5 5 13 5 18 0" fill="none" stroke="#26191E" stroke-width="3.4" stroke-linecap="round"/>
     </symbol>
   </defs>
 </svg>
 
 <div class="doc">
-<header class="topo">
+<header class="capa-doc">
+  <svg class="brilho-solto" style="right:4%;top:44px" aria-hidden="true"><use href="#i-brilho"/></svg>
   <img class="logo" src="design/marca/logo-referencia.webp" alt="Logotipo T-shirt Club.br: letras arredondadas creme com contorno verde, Club em rosa e uma estrela rosa">
-  <p class="rotulo">Design do frontend · proposta 2 · marca T-shirt Club.br</p>
-  <h1>Design da Loja T-shirt Club</h1>
-  <p class="lede">Moda que acompanha a sua história, agora na loja e no painel. Este documento traz a validação da marca que a loja enviou, o design system derivado dela, as telas finais e os textos. O protótipo (telas 00 a 22) continua valendo para fluxo e regras; este documento vale para a aparência.</p>
+  <p class="rotulo">Design do frontend · proposta 3 · clube de stickers</p>
+  <h1>Design da Loja T-shirt Club, <span class="grifo">leve<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><use href="#rabisco"/></svg></span> e com tempero.</h1>
+  <p class="lede">A página é branca e arejada. O rosa e o verde do Club aparecem onde a cliente age ou se encanta: botões, stickers, estrelas, destaques. Cada coleção chega com a cor dela (Mediterrâneo, Limão, Tomate), sem apagar a cara do Club. O protótipo (telas 00 a 22) continua valendo para fluxo e regras; este documento vale para a aparência.</p>
   <div class="meta">
     <span><b>Data:</b> 25/09/2026</span>
     <span><b>Arquitetura:</b> <a href="arquitetura-reservas.html#frontend">seção 18, Frontend e design</a></span>
     <span><b>Acompanhamento:</b> <a href="painel-execucao.html#fase-D">painel, frente D</a></span>
   </div>
   <nav class="sumario" aria-label="Seções">
-    <a href="#validacao">Validação da marca</a><a href="#identidade">D1 Identidade</a><a href="#sistema">D2 Design system</a><a href="#componentes">Componentes</a><a href="#telas">D3 Telas</a><a href="#textos">D4 Textos</a>
+    <a href="#direcao">Direção</a><a href="#validacao">Validação</a><a href="#sistema">D2 Cores e tokens</a><a href="#componentes">Componentes</a><a href="#telas">D3 Telas</a><a href="#textos">D4 Textos</a>
   </nav>
 </header>
+
+<!-- ===================================================================== direção -->
+<section class="bloco" id="direcao" aria-labelledby="h-dir">
+  <p class="rotulo">D1 · Direção criativa</p>
+  <h2 id="h-dir">Clube de stickers</h2>
+  <p>As pranchas mostram a marca aplicada em sacola, etiqueta, adesivo e camiseta: objetos que a cliente pega na mão. A loja traz esses objetos para a tela, em vez de pintar a tela de rosa.</p>
+  <div class="grade">
+    <div class="painel"><h3>Tempero, não molho</h3><p class="nota">Rosa e verde só onde há ação ou festa: o botão principal, a sacola, os stickers, as estrelas, o passo atual. O resto é papel branco e tinta quase preta. Uma tela típica tem no máximo 3 pontos de rosa.</p></div>
+    <div class="painel"><h3>Coleção com cor própria</h3><p class="nota">Teddy é Tomate, Dog Club é Mediterrâneo, Trendy é Limão. A cor da coleção vai para a capa, o fundo da foto e a estampa; o Club continua no logo, no botão e nos stickers.</p></div>
+    <div class="painel"><h3>Objetos de verdade</h3><p class="nota">Selos são adesivos recortados, com borda branca e um pouco tortos. O preço é a etiqueta de papel com barbante rosa. O tempo da reserva é uma linha de costura que vai se desfazendo.</p></div>
+    <div class="painel"><h3>Rabisco na hora certa</h3><p class="nota">Grifo à mão, coração e brilho aparecem só em momentos de impacto: a frase da loja, o pagamento confirmado, o pedido entregue. Nunca como marcador de lista.</p></div>
+  </div>
+  <div class="antes-depois">
+    <figure><div class="faixa" role="img" aria-label="Proporção de cor da proposta 2: muito rosa escuro e ameixa"><i style="flex:5;background:#B81E62"></i><i style="flex:3;background:#3A1F2B"></i><i style="flex:3;background:#FCDDE0"></i><i style="flex:2;background:#FFF8F5"></i></div><figcaption class="nota">Proposta 2: rosa escuro e ameixa cobrindo áreas grandes. Pesada.</figcaption></figure>
+    <figure><div class="faixa" role="img" aria-label="Proporção de cor da proposta 3: quase tudo papel branco, com pontos de rosa, verde e cores de coleção"><i style="flex:12;background:#FFFCFA"></i><i style="flex:2;background:#F6EFEC"></i><i style="flex:1;background:#E8478A"></i><i style="flex:.5;background:#6B8B1F"></i><i style="flex:1;background:#E4EEFC"></i><i style="flex:1;background:#FFF9C9"></i><i style="flex:1;background:#FFE7DE"></i></div><figcaption class="nota">Proposta 3: papel branco na maior parte; rosa e verde em pontos; tons claros das coleções nas fotos.</figcaption></figure>
+  </div>
+</section>
 
 <!-- ===================================================================== validação -->
 <section class="bloco" id="validacao" aria-labelledby="h-val">
   <p class="rotulo">Validação</p>
-  <h2 id="h-val">Validação da marca</h2>
-  <p>A loja enviou duas pranchas de marca (logo, paleta, tipografia, ícones, aplicações e fotos). Elas foram conferidas com o validador de cores da habilidade dataviz, as regras de design da habilidade artifact-design e os requisitos de acessibilidade e desempenho do desenho técnico. A marca é forte e coerente com o público. Os ajustes abaixo são para ela funcionar bem numa tela de celular, sem mudar o que ela é.</p>
+  <h2 id="h-val">Validação da marca e das cores</h2>
+  <p>Conferido com o validador de cores da habilidade dataviz (contraste WCAG e separação para daltonismo), com o processo editorial da habilidade artifact-design (plano de design revisado contra a lista de "cara de IA") e com os requisitos de acessibilidade e desempenho do desenho técnico.</p>
   <div class="pranchas">
-    <img src="design/marca/prancha-marca-1.webp" alt="Prancha de marca 1: logo, paleta com rosa F24D8F, rosa claro FFC7D6, verde 8A9A3A e creme FDF8EF, tipografia Recoleta e Poppins, ícones de destaque e aplicações em sacola, etiqueta e camiseta" loading="lazy" width="1122" height="1402">
-    <img src="design/marca/prancha-marca-2.webp" alt="Prancha de marca 2: logo, paleta com rosa E8478A, verde 6B8B1F, rosa claro FCDDE0 e fundo FFF8F5, tipografia Baloo 2 e Poppins, ícones de destaque e aplicações" loading="lazy" width="1122" height="1402">
+    <img src="design/marca/prancha-marca-2.webp" alt="Prancha de marca oficial: logo T-shirt Club.br, paleta com rosa E8478A, verde 6B8B1F, rosa claro FCDDE0 e fundo FFF8F5, tipografia Baloo 2 e Poppins, ícones de destaque e aplicações em sacola, etiqueta, adesivo e camiseta" loading="lazy" width="1122" height="1402">
+    <img src="design/marca/prancha-marca-1.webp" alt="Prancha de marca alternativa, com rosa F24D8F, rosa claro FFC7D6, verde 8A9A3A e creme FDF8EF" loading="lazy" width="1122" height="1402">
   </div>
   <div class="achados">
-    <div class="achado"><span class="id">M1</span><h3>As cores da marca não passam como texto <span class="grav alto">Ajustado</span></h3>
-      <p>O rosa (#E8478A) dá 3,5:1 sobre o creme, e o verde (#6B8B1F) dá 3,8:1. O mínimo para texto é 4,5:1, e o branco sobre o rosa (um botão) fica em 3,7:1. <b>Solução:</b> as cores originais ficam no logo, nos enfeites, nas estrelas e nos títulos grandes, onde 3:1 basta. Texto, links, preço e botões usam tons do mesmo matiz, mais fechados: rosa-forte #B81E62 (5,9:1; branco sobre ele 6,2:1) e verde-forte #4E6614 (6,2:1).</p></div>
-    <div class="achado"><span class="id">M2</span><h3>As duas pranchas têm valores diferentes <span class="grav medio">Confirmar</span></h3>
-      <p>Prancha 1: rosa #F24D8F, rosa claro #FFC7D6, verde #8A9A3A, creme #FDF8EF. Prancha 2: rosa #E8478A, verde #6B8B1F, rosa claro #FCDDE0, fundo #FFF8F5. <b>Adotada a prancha 2:</b> o verde dela é mais legível (3,8:1 contra 2,9:1), e o rosa é um pouco mais escuro. Se a marca oficial for a prancha 1, basta trocar os tokens.</p></div>
-    <div class="achado"><span class="id">M3</span><h3>Recoleta é uma fonte paga <span class="grav medio">Ajustado</span></h3>
-      <p>A prancha 1 cita Recoleta "ou similar", que exige licença para uso na web. A prancha 2 usa <b>Baloo 2</b>, gratuita, com as mesmas letras arredondadas do logo. <b>Adotadas Baloo 2 (títulos, pesos 600 a 800) e Poppins (texto, pesos 400 a 600)</b>, auto-hospedadas com <code>next/font</code> e só com o alfabeto latino, para caber na meta de desempenho.</p></div>
-    <div class="achado"><span class="id">M4</span><h3>O logo só existe como imagem nas pranchas <span class="grav alto">Pedir à loja</span></h3>
-      <p>O recorte usado aqui (<code>design/marca/logo-referencia.webp</code>) serve de referência, mas tem baixa resolução para o site. <b>Precisamos do logo em SVG</b>, em 4 versões: completa (a das pranchas), horizontal para o cabeçalho, ícone redondo (a foto de perfil do Instagram) para o app e o favicon, e uma versão de uma cor só. Com os contornos grossos, o logo completo fica legível a partir de uns 120 px de largura; abaixo disso, entra o ícone.</p></div>
-    <div class="achado"><span class="id">M5</span><h3>O nome tem ".br", e o domínio decidido é tshirtclub.pt <span class="grav alto">Confirmar</span></h3>
-      <p>O logo e o Instagram usam "tshirtclub.br", mas o desenho técnico registrou o domínio <code>tshirtclub.pt</code>. Até onde sei, o Registro.br não registra nomes direto em ".br" para lojas (os domínios são do tipo <code>.com.br</code>). <b>Falta decidir o endereço do site:</b> <code>tshirtclub.com.br</code>, <code>tshirtclub.pt</code> ou outro. Ele aparece nos links do WhatsApp, nos e-mails e nos cookies.</p></div>
-    <div class="achado"><span class="id">M6</span><h3>O vermelho de erro ficaria parecido com o rosa da marca <span class="grav medio">Ajustado</span></h3>
-      <p>Um vermelho comum de erro fica perto demais do rosa-forte (diferença de 9,4, e o mínimo para a vista separar é 15). O erro passou para <b>#A8400E</b>, puxado para o laranja (diferença de 12,5). Além disso, o erro sempre vem com ícone e texto, nunca só pela cor.</p></div>
-    <div class="achado"><span class="id">M7</span><h3>Letra cursiva e emojis <span class="grav">Orientação</span></h3>
-      <p>A frase manuscrita ("Estilo, conforto e dias melhores") é linda em banner, mas cansa na leitura e seria uma terceira fonte para baixar. <b>Ela entra como imagem SVG</b> em banners e na página inicial, nunca em textos da interface. Os corações e as estrelas entram como enfeite e nos destaques, sem substituir palavras.</p></div>
-    <div class="achado"><span class="id">M8</span><h3>As pranchas mostram fotos de estilo de vida <span class="grav">Orientação</span></h3>
-      <p>Para vender, a vitrine precisa também da foto da peça sozinha, igual em todos os produtos. <b>Padrão:</b> peça estendida sobre fundo rosa-névoa ou verde-claro (alternando por coleção), 4:5; as fotos com pessoas vão para banners e para a segunda foto do produto (D5).</p></div>
-    <div class="achado"><span class="id">M9</span><h3>O site de referência não pôde ser aberto <span class="grav medio">Pendente</span></h3>
-      <p>O acesso a coucousuzette.com está bloqueado pela rede deste ambiente. Do que se conhece dessa loja, entraram aqui: produtos sobre fundos em tons pastel alternados, selos divertidos (como "Novo"), títulos arredondados e grandes, e uma grade de 2 colunas no celular. <b>Quando o acesso for liberado,</b> confiro a página de novidades e ajusto.</p></div>
-    <div class="achado"><span class="id">M10</span><h3>Tema escuro <span class="grav">Orientação</span></h3>
-      <p>A marca é clara e pastel. O tema escuro foi derivado para quem usa o celular no modo escuro: fundo ameixa (#1E1117), rosa e verde clareados, todos os contrastes medidos. O logo continua com as cores dele.</p></div>
-  </div>
-</section>
-
-<!-- ===================================================================== D1 -->
-<section class="bloco" id="identidade" aria-labelledby="h-id">
-  <p class="rotulo">D1</p>
-  <h2 id="h-id">Identidade: T-shirt Club.br</h2>
-  <p>Moda feminina, brasileira, para todas: camisetas que acompanham a rotina. A tela segue a marca, com creme de fundo, rosa como cor de ação, verde como apoio e cantos bem arredondados como as letras do logo. As fotos das peças são a estrela. A etiqueta rosa pendurada (das pranchas) vira o preço, e os destaques redondos do Instagram viram os filtros de coleção.</p>
-  <div class="grade">
-    <div class="painel">
-      <p class="rotulo">Assinaturas</p>
-      <p style="font-family:var(--titulo);font-weight:800;font-size:26px;color:var(--rosa-forte);line-height:1.1">Moda que acompanha a sua história.</p>
-      <p class="nota">Frase de apoio: "Estilo, conforto e dias melhores." Valores: autêntica, criativa, confortável, brasileira, para todas.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">Tipografia</p>
-      <p style="font-family:var(--titulo);font-weight:800;font-size:30px;line-height:1">Novidades da semana</p>
-      <p style="font-family:var(--titulo);font-weight:700;font-size:20px">Teddy Rose</p>
-      <p>Suas peças estão guardadas por 15 minutos.</p>
-      <p class="nota"><b>Baloo 2</b> para títulos e números grandes; <b>Poppins</b> para todo o texto.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">Tom de voz</p>
-      <ul class="lista nota">
-        <li>Carinhosa e direta, como a amiga que trabalha na loja.</li>
-        <li>Frases curtas: o que aconteceu e o que fazer agora.</li>
-        <li>Prazo sempre com horário: "até 14:32".</li>
-        <li>Nunca culpa nem susto: "a reserva expirou", não "você perdeu".</li>
-        <li>Um coração ou estrela no fim de mensagens boas, no máximo.</li>
-      </ul>
-    </div>
+    <div class="achado"><span class="id">M1</span><h3>O rosa verdadeiro volta, sem escurecer <span class="grav feito">Resolvido</span></h3>
+      <p>O botão usa o rosa original da marca (#E8478A) com <b>texto quase preto (4,6:1)</b>, e não mais um rosa escuro com texto branco. Rosa e verde nunca aparecem como texto miúdo: nos stickers, o verde vai de fundo claro com texto verde-escuro (6,9:1).</p></div>
+    <div class="achado"><span class="id">M2</span><h3>Prancha oficial <span class="grav feito">Resolvido</span></h3>
+      <p>A prancha 2 é a oficial (enviada de novo pela loja): rosa #E8478A, verde #6B8B1F, rosa claro #FCDDE0, fundo #FFF8F5, Baloo 2 e Poppins.</p></div>
+    <div class="achado"><span class="id">M3</span><h3>Cores das coleções testadas no validador <span class="grav feito">Ajustado</span></h3>
+      <p>Tomate e o rosa do Club ficam parecidos (diferença de 11,9) e, para quem tem daltonismo, o tomate pode se confundir com o verde. Foi escolhido o tomate #EE4A2A, o mais separado do verde (6,3). Por isso, <b>a cor nunca identifica a coleção sozinha</b>: toda coleção aparece com nome e estampa própria (urso, pata, sol). O nome gigante da capa usa a cor da coleção quando ela passa de 3:1 no fundo (Mediterrâneo 4,2; Tomate 3,1); o Limão é claro demais para texto (1,3) e usa o tom de texto da coleção.</p></div>
+    <div class="achado"><span class="id">M4</span><h3>Logo em SVG <span class="grav conf">Pedir à loja</span></h3>
+      <p>O recorte das pranchas serve só de referência. Precisamos do logo em SVG: completo, horizontal para o cabeçalho, ícone redondo para o app e o favicon, e de uma cor só.</p></div>
+    <div class="achado"><span class="id">M5</span><h3>Endereço do site <span class="grav conf">Confirmar</span></h3>
+      <p>A marca usa "tshirtclub.br" e o domínio registrado no plano é <code>tshirtclub.pt</code>. Até onde sei, lojas no Registro.br usam <code>.com.br</code>. Falta decidir.</p></div>
+    <div class="achado"><span class="id">M6</span><h3>Fontes <span class="grav feito">Resolvido</span></h3>
+      <p>Baloo 2 (600 a 800) e Poppins (400 a 600), gratuitas, auto-hospedadas, só alfabeto latino. Negrito do texto em 600. A frase manuscrita da marca entra como imagem SVG em banners, nunca como fonte.</p></div>
+    <div class="achado"><span class="id">M7</span><h3>Site de referência <span class="grav conf">Pendente</span></h3>
+      <p>coucousuzette.com segue bloqueado pela rede deste ambiente. O que se conhece da loja entrou aqui (fundos de coleção, stickers, títulos grandes arredondados, grade de 2 colunas). Confiro quando o acesso for liberado.</p></div>
   </div>
 </section>
 
 <!-- ===================================================================== D2 -->
 <section class="bloco" id="sistema" aria-labelledby="h-sis">
   <p class="rotulo">D2</p>
-  <h2 id="h-sis">Design system</h2>
-  <p>Os tokens abaixo são a única fonte de cores, fontes, raios e tempos. No código viram o preset do Tailwind em <code>packages/ui</code>, usado pela loja e pelo painel. Contrastes medidos com o validador da habilidade dataviz: texto a partir de 4,5:1; contornos, foco e títulos grandes a partir de 3:1.</p>
+  <h2 id="h-sis">Cores e tokens</h2>
+  <p>A única fonte de cores do código (preset do Tailwind em <code>packages/ui</code>). Contraste medido nos dois temas: texto a partir de 4,5:1; contornos, foco e títulos grandes a partir de 3:1.</p>
+  <h3>Base e tempero</h3>
   <div class="tbl"><table>
-    <thead><tr><th>Token</th><th>Claro</th><th>Escuro</th><th>Uso</th><th>Contraste (claro · escuro)</th></tr></thead>
+    <thead><tr><th>Token</th><th>Claro</th><th>Escuro</th><th>Onde entra</th><th>Contraste</th></tr></thead>
     <tbody id="tabTokens"></tbody>
   </table></div>
-  <div class="grade">
-    <div class="painel"><p class="rotulo">Espaço e forma</p><ul class="lista nota"><li>Base de 4 px: 4, 8, 12, 16, 24, 32, 48.</li><li>Margem lateral de 16 px no celular.</li><li>Raios generosos, como o logo: controle 16, cartão 22, botões em pílula.</li><li>Uma sombra rosada só, para o que flutua.</li></ul></div>
-    <div class="painel"><p class="rotulo">Toque e foco</p><ul class="lista nota"><li>Alvo mínimo de 44 × 44 px; botão principal com 50 px.</li><li>Foco: anel de 3 px na cor do texto, afastado 2 px, visível sobre o rosa.</li><li>Campos com 16 px de fonte (o iPhone não dá zoom).</li></ul></div>
-    <div class="painel"><p class="rotulo">Movimento</p><ul class="lista nota"><li>150 ms para toque, 250 ms para entrar e sair.</li><li>Nada pisca no cronômetro.</li><li>Com "reduzir movimento" ligado, tudo fica parado.</li></ul></div>
-    <div class="painel"><p class="rotulo">Larguras</p><ul class="lista nota"><li>Projetado a partir de 360 px.</li><li>Loja: 2 colunas no celular, 3 a partir de 768, 4 a partir de 1200.</li><li>Painel: menu lateral a partir de 1024.</li></ul></div>
-  </div>
+  <h3>Coleções</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Coleção</th><th>Cor</th><th>Fundo da foto</th><th>Texto da coleção</th><th>Estampa</th><th>Contraste do texto</th></tr></thead>
+    <tbody id="tabColecoes"></tbody>
+  </table></div>
+  <p class="nota">Coleções novas ganham cor, fundo e texto nos mesmos três papéis, testados no validador antes de entrar no ar. No painel, a loja escolhe a cor da coleção numa lista já aprovada, sem digitar hexadecimal.</p>
 <pre><code>// packages/ui/tailwind-preset.ts (gerado dos tokens deste documento)
 export default {
   theme: {
-    colors: { fundo: 'var(--fundo)', superficie: 'var(--superficie)', tinta: 'var(--tinta)',
-      'tinta-suave': 'var(--tinta-suave)', rosa: 'var(--rosa)', 'rosa-forte': 'var(--rosa-forte)',
-      'rosa-claro': 'var(--rosa-claro)', verde: 'var(--verde)', 'verde-forte': 'var(--verde-forte)',
-      ok: 'var(--ok)', aviso: 'var(--aviso)', erro: 'var(--erro)', info: 'var(--info)', /* … */ },
+    colors: {
+      papel: 'var(--papel)', branco: 'var(--branco)', algodao: 'var(--algodao)',
+      tinta: 'var(--tinta)', 'tinta-suave': 'var(--tinta-suave)', linha: 'var(--linha)',
+      rosa: 'var(--rosa)', 'rosa-bruma': 'var(--rosa-bruma)', verde: 'var(--verde)', 'verde-broto': 'var(--verde-broto)',
+      colecao: { cor: 'var(--c-cor)', fundo: 'var(--c-fundo)', tinta: 'var(--c-tinta)' },  // definidos por coleção
+      ok: 'var(--ok)', aviso: 'var(--aviso)', erro: 'var(--erro)', info: 'var(--info)',
+    },
     fontFamily: { titulo: 'var(--font-baloo)', texto: 'var(--font-poppins)' },
-    borderRadius: { etiqueta: '10px', controle: '16px', cartao: '22px', pilula: '999px' },
   },
 }</code></pre>
 </section>
@@ -384,61 +405,58 @@ export default {
 <section class="bloco" id="componentes" aria-labelledby="h-comp">
   <p class="rotulo">D2 · Componentes</p>
   <h2 id="h-comp">Componentes</h2>
-  <p>Cada componente abaixo existirá em <code>packages/ui</code> com o mesmo nome. Estados obrigatórios: normal, foco, desabilitado, carregando e erro.</p>
+  <p>Cada um existirá em <code>packages/ui</code> com o mesmo nome. Estados obrigatórios: normal, foco, desabilitado, carregando e erro.</p>
   <div class="grade">
     <div class="painel">
       <p class="rotulo">Botao</p>
       <button class="tc-botao cheio" type="button">Reservar 3 peças</button>
-      <button class="tc-botao secundario cheio" type="button">Continuar escolhendo</button>
-      <button class="tc-botao cheio" type="button" disabled>Reservar</button>
+      <button class="tc-botao contorno cheio" type="button">Continuar escolhendo</button>
+      <button class="tc-botao cheio" type="button" disabled>Escolha uma peça</button>
       <button class="tc-botao cheio" type="button" aria-busy="true"><span class="tc-giro" aria-hidden="true"></span>Gerando PIX…</button>
-      <button class="tc-botao perigo cheio" type="button">Pedir cancelamento</button>
+      <button class="tc-botao link" type="button" style="justify-self:start">Pedir cancelamento</button>
+      <p class="nota">Rosa da marca com base mais escura embaixo: ao tocar, o botão "afunda" como um sticker apertado.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Sticker</p>
+      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap;gap:18px;padding:8px 4px">
+        <span class="tc-sticker"><svg aria-hidden="true"><use href="#i-brilho"/></svg>Novo!</span>
+        <span class="tc-sticker aviso direita">Últimas 2</span>
+        <span class="tc-sticker estrela">−15%</span>
+        <span class="tc-sticker verde">Tam. único</span>
+        <span class="tc-sticker neutro direita">Esgotado</span>
+      </div>
+      <p class="nota">Borda branca de recorte e uma sombra curta: é o único elemento com sombra. Promoção vem na estrela.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">EtiquetaPreco</p>
+      <div class="linha-flex" style="justify-content:flex-start;gap:26px;padding:4px 0 4px 14px">
+        <span class="tc-etiqueta"><span class="preco">R$ 49,90</span></span>
+        <span class="tc-etiqueta"><span class="de">R$ 49,90</span><span class="preco">R$ 42,42</span></span>
+      </div>
+      <p class="nota">Papel branco, furo e barbante rosa. O preço fica sempre em tinta; o desconto é o sticker estrela.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">FiltroColecao</p>
+      <div class="tc-colecoes" role="group" aria-label="Coleções">
+        <button class="tc-colecao" type="button" aria-pressed="true"><span class="bola"><svg aria-hidden="true"><use href="#i-brilho"/></svg></span>Novidades</button>
+        <button class="tc-colecao col-tomate" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-urso"/></svg></span>Teddy</button>
+        <button class="tc-colecao col-med" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-pata"/></svg></span>Dog Club</button>
+        <button class="tc-colecao col-limao" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-sol"/></svg></span>Trendy</button>
+      </div>
+      <p class="nota">Os destaques redondos do Instagram, cada um com a cor e a estampa da coleção. "Novidades" é do Club, em rosa.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Cronometro</p>
+      <div class="tc-cronometro" role="timer" aria-label="Tempo da reserva"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="tc-costura"><i style="width:76%"></i></div></div>
+      <div class="tc-cronometro atencao"><div class="linha"><span class="tempo">04:51</span><span class="ate">termina às 14:32</span></div><div class="tc-costura"><i style="width:32%"></i></div></div>
+      <div class="tc-cronometro tolerancia"><b>Pagamento em processamento</b><span class="nota" style="color:var(--aviso)">Aguardando o banco até 14:37. Não pague de novo.</span></div>
+      <p class="nota">A costura rosa vai se desfazendo; nos últimos 5 minutos vira âmbar. O leitor de tela ouve só aos 5 min e no fim.</p>
     </div>
     <div class="painel">
       <p class="rotulo">Campo · CampoCodigo</p>
       <div class="tc-campo"><label for="c-nome">Nome</label><input id="c-nome" autocomplete="name" value="Marina Souza"></div>
       <div class="tc-campo com-erro"><label for="c-tel">WhatsApp</label><input id="c-tel" type="tel" autocomplete="tel-national" value="(77) 9981" aria-invalid="true" aria-describedby="c-tel-e"><p class="erro" id="c-tel-e"><svg width="18" height="18" aria-hidden="true"><use href="#i-alerta"/></svg>Falta número: use DDD + 9 dígitos.</p></div>
       <div class="tc-campo tc-codigo"><label for="c-cod">Código do WhatsApp</label><input id="c-cod" inputmode="numeric" autocomplete="one-time-code" value="482193" aria-describedby="c-cod-a"><p class="ajuda" id="c-cod-a">Pode colar o código copiado.</p></div>
-    </div>
-    <div class="painel">
-      <p class="rotulo">EtiquetaPreco · Selos</p>
-      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
-        <span class="tc-etiqueta"><span class="preco">R$ 49,90</span></span>
-        <span class="tc-etiqueta promo"><span class="de">R$ 49,90</span><span class="preco">R$ 42,42</span></span>
-        <span class="tc-desconto">−15%</span>
-      </div>
-      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
-        <span class="tc-selo novo"><svg aria-hidden="true"><use href="#i-brilho"/></svg>Novo</span>
-        <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Disponível</span>
-        <span class="tc-selo aviso"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Últimas 2</span>
-        <span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Esgotado</span>
-      </div>
-      <p class="nota">A etiqueta é a tag rosa das pranchas, com o furo. Tamanho único aparece no nome da coleção, sem selo próprio.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">Destaques (filtro de coleção)</p>
-      <div class="tc-destaques" role="group" aria-label="Coleções">
-        <button class="tc-destaque" type="button" aria-pressed="true"><span class="bola"><svg aria-hidden="true"><use href="#i-brilho"/></svg></span>Novidades</button>
-        <button class="tc-destaque verde" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-coracao"/></svg></span>Teddy</button>
-        <button class="tc-destaque" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-camiseta"/></svg></span>Dog Club</button>
-        <button class="tc-destaque verde" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-sacola"/></svg></span>Trendy</button>
-      </div>
-      <p class="nota">Os círculos dos destaques do Instagram viram os filtros da loja. O ativo fica preenchido de rosa.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">SeletorQuantidade · Sacola</p>
-      <div class="linha-flex" style="justify-content:flex-start">
-        <div class="tc-qtd" role="group" aria-label="Quantidade de Teddy Rose"><button type="button" aria-label="Tirar uma">−</button><output aria-live="polite">1</output><button type="button" aria-label="Pôr mais uma">+</button></div>
-        <div class="tc-qtd" role="group" aria-label="Quantidade de Dog Club 01"><button type="button" aria-label="Tirar uma">−</button><output>2</output><button type="button" aria-label="Pôr mais uma" disabled>+</button></div>
-        <span class="tc-sacola" role="img" aria-label="Sacola com 3 peças"><svg width="22" height="22" aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">3</span></span>
-      </div>
-      <p class="nota">No limite (2 do mesmo modelo ou 9 peças), o "+" desativa e o motivo aparece embaixo do cartão.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">Cronometro</p>
-      <div class="tc-cronometro" role="timer" aria-label="Tempo da reserva"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="trilho"><i style="width:76%"></i></div></div>
-      <div class="tc-cronometro tolerancia"><div class="linha"><span class="tempo" style="font-size:22px">Pagamento em processamento</span></div><span class="ate">Aguardando o banco até 14:37. Não pague de novo.</span></div>
-      <p class="nota">Fixo no topo da reserva. O leitor de tela ouve só aos 5 min e no fim.</p>
     </div>
     <div class="painel">
       <p class="rotulo">BlocoPix</p>
@@ -450,36 +468,19 @@ export default {
       </div>
     </div>
     <div class="painel">
-      <p class="rotulo">Aviso</p>
-      <div class="tc-aviso marca"><svg aria-hidden="true"><use href="#i-coracao"/></svg><span><b>Leve 3, ganhe 20%.</b>Vale só a promoção mais vantajosa.</span></div>
-      <div class="tc-aviso ok"><svg aria-hidden="true"><use href="#i-ok"/></svg><span><b>Pagamento confirmado!</b>Pedido #1048 pago no PIX.</span></div>
-      <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-relogio"/></svg><span><b>Faltam 5 minutos.</b>Depois das 14:32 as peças voltam para a loja.</span></div>
+      <p class="rotulo">Aviso · SeloStatus · Andamento</p>
+      <div class="tc-aviso ok"><svg aria-hidden="true"><use href="#i-coracao"/></svg><span><b>Pagamento confirmado!</b>Pedido #1048 pago no PIX.</span></div>
       <div class="tc-aviso erro"><svg aria-hidden="true"><use href="#i-alerta"/></svg><span><b>Teddy Bleu acabou agora.</b>Tire da sacola para continuar; o resto segue separado para você.</span></div>
-    </div>
-    <div class="painel">
-      <p class="rotulo">SeloStatus · Andamento</p>
       <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
         <span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span>
         <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Pago</span>
-        <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-coracao"/></svg>Entregue</span>
         <span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span>
       </div>
       <ol class="tc-passos">
-        <li class="feito"><span class="marca-passo">✓</span><span>Pagamento confirmado</span></li>
-        <li class="agora"><span class="marca-passo">2</span><span><b>Escolher a entrega</b></span></li>
-        <li class="depois"><span class="marca-passo">3</span><span>Em preparação</span></li>
-        <li class="depois"><span class="marca-passo">4</span><span>Entregue</span></li>
+        <li class="feito"><span class="marca">✓</span><span>Pagamento confirmado</span></li>
+        <li class="agora"><span class="marca">2</span><span><b>Escolher a entrega</b></span></li>
+        <li class="depois"><span class="marca">3</span><span>Em preparação</span></li>
       </ol>
-      <p class="nota">Os 5 estados oficiais usam sempre ícone e nome, nunca só a cor.</p>
-    </div>
-    <div class="painel">
-      <p class="rotulo">Painel · BlocoNumero · Aviso rápido</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="tc-numero"><span class="valor">12</span><span class="rot">Reservas ativas</span></div>
-        <div class="tc-numero"><span class="valor">2</span><span class="rot">Pagamentos em análise</span></div>
-      </div>
-      <span class="tc-toast"><svg width="18" height="18" aria-hidden="true"><use href="#i-ok"/></svg>Código PIX copiado</span>
-      <p class="nota">Bloco de número no contrato da habilidade dataviz: rótulo curto, valor grande, cor de status só com ícone e texto.</p>
     </div>
   </div>
 </section>
@@ -488,28 +489,53 @@ export default {
 <section class="bloco" id="telas" aria-labelledby="h-telas">
   <p class="rotulo">D3</p>
   <h2 id="h-telas">Telas finais</h2>
-  <p>As jornadas principais no celular, com a marca aplicada. Cada tela diz a rota no Next.js e a fase em que entra. As demais telas usam os mesmos componentes e o fluxo do protótipo.</p>
+  <p>As jornadas principais no celular. Cada tela diz a rota no Next.js e a fase em que entra; as demais usam os mesmos componentes e o fluxo do protótipo.</p>
   <div class="telas">
 
     <figure class="tela">
       <div class="celular">
         <div class="tc-cabecalho"><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="tc-sacola" role="img" aria-label="Sacola com 3 peças"><svg width="22" height="22" aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">3</span></span></div>
         <div class="conteudo">
-          <div class="hero-loja"><span class="rotulo">Novidades</span><p>Estilo, conforto e dias melhores.</p><span class="nota">Leve 3 peças e ganhe 20%.</span></div>
-          <div class="tc-destaques" role="group" aria-label="Coleções">
-            <button class="tc-destaque" type="button" aria-pressed="true"><span class="bola"><svg aria-hidden="true"><use href="#i-brilho"/></svg></span>Novidades</button>
-            <button class="tc-destaque verde" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-coracao"/></svg></span>Teddy</button>
-            <button class="tc-destaque" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-camiseta"/></svg></span>Dog Club</button>
-            <button class="tc-destaque verde" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-sacola"/></svg></span>Trendy</button>
+          <div class="hero">
+            <svg class="brilho" aria-hidden="true"><use href="#i-brilho"/></svg>
+            <p class="rotulo">Drop de primavera · 3 coleções</p>
+            <p class="frase">Moda que acompanha a sua <span class="grifo">história<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><use href="#rabisco"/></svg></span>.</p>
           </div>
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
-            <article class="tc-produto"><div class="foto" style="color:#F7A8C4"><span class="tc-selo novo"><svg aria-hidden="true"><use href="#i-brilho"/></svg>Novo</span><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta branca com urso rosa"><use href="#tee"/></svg></div><div class="corpo"><h4>Teddy Rose</h4><div class="linha2"><span class="tc-etiqueta"><span class="preco" style="font-size:17px">R$ 49,90</span></span></div><div class="tc-qtd" role="group" aria-label="Quantidade de Teddy Rose"><button type="button" aria-label="Tirar uma">−</button><output>1</output><button type="button" aria-label="Pôr mais uma">+</button></div></div></article>
-            <article class="tc-produto verde"><div class="foto" style="color:#A9C24A"><span class="tc-selo aviso"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Últimas 2</span><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta branca com cachorro verde"><use href="#tee"/></svg></div><div class="corpo"><h4>Dog Club 01</h4><div class="linha2"><span class="tc-etiqueta promo"><span class="de">R$ 49,90</span><span class="preco" style="font-size:17px">R$ 42,42</span></span><span class="tc-desconto">−15%</span></div><div class="tc-qtd" role="group" aria-label="Quantidade de Dog Club 01"><button type="button" aria-label="Tirar uma">−</button><output>2</output><button type="button" aria-label="Pôr mais uma" disabled>+</button></div><p class="nota" style="font-size:12.5px">Até 2 do mesmo modelo.</p></div></article>
+          <div class="tc-colecoes" role="group" aria-label="Coleções">
+            <button class="tc-colecao" type="button" aria-pressed="true"><span class="bola"><svg aria-hidden="true"><use href="#i-brilho"/></svg></span>Novidades</button>
+            <button class="tc-colecao col-tomate" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-urso"/></svg></span>Teddy</button>
+            <button class="tc-colecao col-med" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-pata"/></svg></span>Dog Club</button>
+            <button class="tc-colecao col-limao" type="button" aria-pressed="false"><span class="bola"><svg aria-hidden="true"><use href="#i-sol"/></svg></span>Trendy</button>
+          </div>
+          <div class="dupla">
+            <article class="tc-produto col-tomate"><div class="foto" style="color:var(--tomate)"><span class="tc-sticker"><svg aria-hidden="true"><use href="#i-brilho"/></svg>Novo!</span><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta branca com urso tomate"><use href="#tee-urso"/></svg></div><span class="colecao-nome">Teddy</span><h4>Teddy Rose</h4><div class="linha"><span class="tc-etiqueta" style="margin-left:12px"><span class="preco" style="font-size:18px">R$ 49,90</span></span></div></article>
+            <article class="tc-produto col-med"><div class="foto" style="color:var(--med)"><span class="tc-sticker estrela" style="width:60px;height:60px;font-size:15px">−15%</span><span class="tc-sticker aviso direita" style="top:auto;bottom:10px">Últimas 2</span><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta branca com cachorro azul"><use href="#tee-cao"/></svg></div><span class="colecao-nome">Dog Club</span><h4>Dog Club 01</h4><div class="linha"><span class="tc-etiqueta" style="margin-left:12px"><span class="de">R$ 49,90</span><span class="preco" style="font-size:18px">R$ 42,42</span></span></div></article>
           </div>
         </div>
-        <div class="tc-rodape-acao"><div class="resumo"><span>3 peças · 20% off</span><b>R$ 119,76</b></div><button class="tc-botao cheio" type="button">Reservar 3 peças</button></div>
+        <div class="tc-rodape-acao"><div class="resumo"><span>3 peças · 20% off</span><b>R$ 119,76</b></div><button class="tc-botao cheio" type="button">Ver sacola e reservar</button></div>
       </div>
-      <figcaption><b>1. Loja</b><span>Rota <code>/</code> · F2. Destaques redondos como filtro, fotos em fundos pastel alternados, barra fixa com o total.</span></figcaption>
+      <figcaption><b>1. Loja</b><span>Rota <code>/</code> · F2. Branca, com o grifo rosa no único momento de impacto; cor vem das coleções e das fotos.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="tc-cabecalho"><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="tc-sacola" role="img" aria-label="Sacola com 3 peças"><svg width="22" height="22" aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">3</span></span></div>
+        <div class="conteudo">
+          <div class="tc-capa col-med">
+            <svg class="doodle" style="left:62%;top:16px" aria-hidden="true"><use href="#i-pata"/></svg>
+            <svg class="doodle" style="left:80%;top:64px;width:20px;height:20px" aria-hidden="true"><use href="#i-brilho"/></svg>
+            <span class="nome">Dog<br>Club</span>
+            <span class="conta">6 estampas · azul mediterrâneo</span>
+            <svg class="peca" viewBox="0 0 220 240" role="img" aria-label="Camiseta Dog Club com cachorro azul" style="color:var(--med)"><use href="#tee-cao"/></svg>
+          </div>
+          <p class="sub" style="font-size:15px">Para quem tem um melhor amigo de quatro patas. Tamanho único, algodão macio.</p>
+          <div class="dupla">
+            <article class="tc-produto col-med"><div class="foto" style="color:var(--med)"><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta Dog Club 02"><use href="#tee-cao"/></svg></div><h4>Dog Club 02</h4><span class="tc-etiqueta" style="margin-left:12px;justify-self:start"><span class="preco" style="font-size:18px">R$ 49,90</span></span></article>
+            <article class="tc-produto col-med"><div class="foto" style="color:var(--med-tinta)"><span class="tc-sticker neutro">Esgotado</span><svg viewBox="0 0 220 240" role="img" aria-label="Camiseta Dog Club 03, esgotada" style="opacity:.55"><use href="#tee-cao"/></svg></div><h4>Dog Club 03</h4><span class="nota">Volta no próximo drop</span></article>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>1b. Coleção</b><span>Rota <code>/?colecao=dog-club</code> · F2. A coleção pinta a capa com a cor dela; o Club fica no logo e na sacola.</span></figcaption>
     </figure>
 
     <figure class="tela">
@@ -518,10 +544,10 @@ export default {
           <p class="rotulo">Passo 1 de 3</p>
           <h2>Seus dados</h2>
           <div style="display:grid;gap:10px">
-            <div class="item-sacola"><span class="mini" style="color:#F7A8C4"><svg viewBox="0 0 220 240" aria-hidden="true"><use href="#tee"/></svg></span><span><b>Teddy Rose</b><br><span class="nota">1 × R$ 49,90</span></span><b class="num">R$ 49,90</b></div>
-            <div class="item-sacola"><span class="mini verde" style="color:#A9C24A"><svg viewBox="0 0 220 240" aria-hidden="true"><use href="#tee"/></svg></span><span><b>Dog Club 01</b><br><span class="nota">2 × R$ 49,90</span></span><b class="num">R$ 99,80</b></div>
+            <div class="item-sacola col-tomate"><span class="mini" style="color:var(--tomate)"><svg viewBox="0 0 220 240" aria-hidden="true"><use href="#tee-urso"/></svg></span><span><b>Teddy Rose</b><br><span class="nota">1 × R$ 49,90</span></span><b class="num">R$ 49,90</b></div>
+            <div class="item-sacola col-med"><span class="mini" style="color:var(--med)"><svg viewBox="0 0 220 240" aria-hidden="true"><use href="#tee-cao"/></svg></span><span><b>Dog Club 01</b><br><span class="nota">2 × R$ 49,90</span></span><b class="num">R$ 99,80</b></div>
           </div>
-          <div class="soma"><div><span>Subtotal</span><span class="num">R$ 149,70</span></div><div style="color:var(--verde-forte)"><span>Leve 3, ganhe 20%</span><span class="num">− R$ 29,94</span></div><div class="total"><span>Total</span><span class="num">R$ 119,76</span></div></div>
+          <div class="soma"><div><span>Subtotal</span><span class="num">R$ 149,70</span></div><div style="color:var(--ok)"><span>Leve 3, ganhe 20%</span><span class="num">− R$ 29,94</span></div><div class="total"><span>Total</span><span class="num">R$ 119,76</span></div></div>
           <div class="tc-campo"><label for="t2-nome">Nome</label><input id="t2-nome" autocomplete="name" value="Marina Souza"></div>
           <div class="tc-campo"><label for="t2-tel">WhatsApp</label><input id="t2-tel" type="tel" value="(77) 99812-8809" aria-describedby="t2-tel-a"><p class="ajuda" id="t2-tel-a">O código chega neste número.</p></div>
           <div class="tc-campo"><label for="t2-cup">Cupom (opcional)</label><input id="t2-cup" value="BEMVINDA10" aria-describedby="t2-cup-a"><p class="ajuda" id="t2-cup-a">Você já tem um desconto maior; o cupom fica guardado para outra compra.</p></div>
@@ -529,7 +555,7 @@ export default {
         </div>
         <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button"><svg aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
       </div>
-      <figcaption><b>2. Dados e sacola</b><span>Rota <code>/reserva</code> · F3. O desconto aparece em verde; o cupom que perdeu para a promoção não tem tom de erro.</span></figcaption>
+      <figcaption><b>2. Dados e sacola</b><span>Rota <code>/reserva</code> · F3. Cada peça traz o fundo da sua coleção; o resto é papel.</span></figcaption>
     </figure>
 
     <figure class="tela">
@@ -542,8 +568,8 @@ export default {
             <span class="whats">Seu código da T-shirt Club.br é <b>482193</b>. Vale por 5 minutos. Não passe para ninguém.</span>
           </div>
           <div class="tc-campo tc-codigo"><label for="t3-cod">Código de 6 dígitos</label><input id="t3-cod" inputmode="numeric" autocomplete="one-time-code" value="482193" aria-describedby="t3-a"><p class="ajuda" id="t3-a">Vale até 14:22 · 2 tentativas</p></div>
-          <div class="tc-aviso marca"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Nada fica guardado ainda.</b>Depois do código conferimos o estoque e começa o prazo de 15 minutos.</span></div>
-          <button class="tc-botao texto" type="button">Não chegou? Pedir outro código</button>
+          <div class="tc-aviso bruma"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Nada fica guardado ainda.</b>Depois do código conferimos o estoque e começa o prazo de 15 minutos.</span></div>
+          <button class="tc-botao link" type="button" style="justify-self:start">Não chegou? Pedir outro código</button>
         </div>
         <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button">Confirmar e reservar</button></div>
       </div>
@@ -553,10 +579,10 @@ export default {
     <figure class="tela">
       <div class="celular">
         <div class="conteudo">
-          <div class="tc-cronometro"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="trilho"><i style="width:76%"></i></div></div>
+          <div class="tc-cronometro"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="tc-costura"><i style="width:76%"></i></div></div>
           <div class="linha-flex"><h2>Reserva #1048</h2><span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span></div>
           <div role="radiogroup" aria-label="Forma de pagamento" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <label class="painel" style="padding:12px;border:2px solid var(--rosa-forte);gap:2px"><span><input type="radio" name="t4f" checked> <b>PIX</b></span><span class="nota" style="font-size:13px">Aprova na hora</span></label>
+            <label class="painel" style="padding:12px;border:2px solid var(--tinta);gap:2px"><span><input type="radio" name="t4f" checked> <b>PIX</b></span><span class="nota" style="font-size:13px">Aprova na hora</span></label>
             <label class="painel" style="padding:12px;gap:2px"><span><input type="radio" name="t4f"> <b>Cartão</b></span><span class="nota" style="font-size:13px">Crédito à vista</span></label>
           </div>
           <div class="tc-pix">
@@ -565,46 +591,51 @@ export default {
             <ol><li>Abra o app do seu banco.</li><li>Pix › Copia e cola.</li><li>Cole e confirme. Esta tela atualiza sozinha.</li></ol>
           </div>
           <p class="nota" style="font-size:13px">A forma escolhida no primeiro pagamento vale para toda a reserva.</p>
-          <button class="tc-botao texto" type="button" style="justify-self:start">Pedir cancelamento</button>
+          <button class="tc-botao link" type="button" style="justify-self:start">Pedir cancelamento</button>
         </div>
       </div>
-      <figcaption><b>4. Reserva ativa e PIX</b><span>Rota <code>/reserva/[numero]</code> · F4 e F6. Cronômetro rosa pelo relógio do servidor; cartão só carrega se escolhido.</span></figcaption>
+      <figcaption><b>4. Reserva ativa e PIX</b><span>Rota <code>/reserva/[numero]</code> · F4 e F6. Cartão branco com a costura rosa; o único rosa forte é o botão de copiar.</span></figcaption>
     </figure>
 
     <figure class="tela">
       <div class="celular">
         <div class="conteudo">
-          <div class="tc-aviso ok"><svg aria-hidden="true"><use href="#i-coracao"/></svg><span><b>Pagamento confirmado!</b>Pedido #1048 · R$ 119,76 no PIX.</span></div>
-          <h2>Como você quer receber?</h2>
+          <div style="display:grid;gap:6px;justify-items:start;position:relative">
+            <span class="tc-sticker verde" style="font-size:16px"><svg aria-hidden="true"><use href="#i-coracao"/></svg>Pago!</span>
+            <h2 style="margin-top:6px">Suas peças são suas.</h2>
+            <p class="sub">Pedido #1048 · R$ 119,76 no PIX. Agora falta só escolher como receber.</p>
+            <svg style="position:absolute;right:4px;top:0;width:28px;height:28px;color:var(--rosa)" aria-hidden="true"><use href="#i-brilho"/></svg>
+          </div>
           <ol class="tc-passos">
-            <li class="feito"><span class="marca-passo">✓</span><span>Pago</span></li>
-            <li class="agora"><span class="marca-passo">2</span><span><b>Escolher a entrega</b></span></li>
-            <li class="depois"><span class="marca-passo">3</span><span>Em preparação</span></li>
-            <li class="depois"><span class="marca-passo">4</span><span>Entregue</span></li>
+            <li class="feito"><span class="marca">✓</span><span>Pago</span></li>
+            <li class="agora"><span class="marca">2</span><span><b>Escolher a entrega</b></span></li>
+            <li class="depois"><span class="marca">3</span><span>Em preparação</span></li>
+            <li class="depois"><span class="marca">4</span><span>Entregue</span></li>
           </ol>
-          <div class="tc-aviso marca"><svg aria-hidden="true"><use href="#i-cadeado"/></svg><span><b>Confirme que é você.</b>Para proteger seu endereço, peça um código pelo WhatsApp do número da reserva.</span></div>
+          <div class="tc-aviso bruma"><svg aria-hidden="true"><use href="#i-cadeado"/></svg><span><b>Confirme que é você.</b>Para proteger seu endereço, peça um código pelo WhatsApp do número da reserva.</span></div>
         </div>
         <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button"><svg aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
       </div>
-      <figcaption><b>5. Meu pedido (pelo link)</b><span>Rotas <code>/r</code> e <code>/pedido/[numero]</code> · F8 e F9. A entrega pede o código (D13).</span></figcaption>
+      <figcaption><b>5. Meu pedido (pelo link)</b><span>Rotas <code>/r</code> e <code>/pedido/[numero]</code> · F8 e F9. Momento de festa: sticker verde e brilho. A entrega pede o código (D13).</span></figcaption>
     </figure>
 
     <figure class="tela">
       <div class="celular">
         <div class="conteudo">
           <div class="linha-flex"><h2>Reserva #1048</h2><span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span></div>
-          <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-relogio"/></svg><span><b>A reserva expirou às 14:32.</b>O pagamento não chegou a tempo e as peças voltaram para a loja. Nada foi cobrado.</span></div>
+          <div class="tc-cronometro"><div class="linha"><span class="tempo" style="color:var(--tinta-suave)">00:00</span><span class="ate">terminou às 14:32</span></div><div class="tc-costura"><i style="width:0"></i></div></div>
+          <p>O pagamento não chegou a tempo e as peças voltaram para a loja. <b>Nada foi cobrado.</b></p>
           <p class="sub">Se ainda quiser, é só reservar de novo. O estoque pode ter mudado.</p>
-          <button class="tc-botao cheio" type="button">Voltar para a loja</button>
+          <button class="tc-botao contorno cheio" type="button">Voltar para a loja</button>
           <p class="nota" style="font-size:13px">Pagou depois das 14:37? A loja confere e fala com você pelo WhatsApp.</p>
         </div>
       </div>
-      <figcaption><b>6. Reserva expirada</b><span>Mesmo endereço da reserva · F5. Sem culpa, com o próximo passo claro.</span></figcaption>
+      <figcaption><b>6. Reserva expirada</b><span>Mesmo endereço da reserva · F5. Sem rosa: a costura acabou, e o próximo passo é claro.</span></figcaption>
     </figure>
 
     <figure class="tela" style="grid-column:1/-1">
       <div class="tablet">
-        <div class="tc-cabecalho"><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="nota">Painel · carol@tshirtclub.pt</span></div>
+        <div class="tc-cabecalho" style="border-bottom:2px dashed var(--linha)"><img src="design/marca/logo-referencia.webp" alt="T-shirt Club.br"><span class="nota">Painel · carol@tshirtclub.pt</span></div>
         <div class="conteudo" style="display:grid;gap:14px;padding:16px">
           <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-alerta"/></svg><span><b>2 pagamentos em análise e 1 frete vencido.</b><a href="#">Resolver agora</a></span></div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
@@ -623,7 +654,7 @@ export default {
           </table></div>
         </div>
       </div>
-      <figcaption><b>7. Painel da loja</b><span>App <code>admin</code>, rota <code>/</code> · F10. O que pede ação primeiro; números depois; a tabela por último.</span></figcaption>
+      <figcaption><b>7. Painel da loja</b><span>App <code>admin</code>, rota <code>/</code> · F10. Ferramenta de trabalho: quase sem tempero, o que pede ação primeiro.</span></figcaption>
     </figure>
   </div>
 </section>
@@ -632,51 +663,53 @@ export default {
 <section class="bloco" id="textos" aria-labelledby="h-txt">
   <p class="rotulo">D4</p>
   <h2 id="h-txt">Textos</h2>
-  <p>Mensagens de erro por código da API e as mensagens do WhatsApp, no tom da marca. No código, os textos ficam num arquivo só (<code>packages/domain/textos.ts</code>).</p>
+  <p>Tom da marca: carinhosa e direta, como a amiga que trabalha na loja. Prazo sempre com horário, nunca culpa nem susto, no máximo um coração ou brilho em mensagens boas. No código, tudo em <code>packages/domain/textos.ts</code>.</p>
   <h3>Erros e avisos na tela</h3>
   <div class="tbl"><table>
     <thead><tr><th>Código</th><th>O que a cliente lê</th><th>Ação oferecida</th></tr></thead>
     <tbody id="tabErros"></tbody>
   </table></div>
   <h3>Mensagens do WhatsApp</h3>
-  <p class="sub">As 5 essenciais têm 2 versões, sorteadas pela fila, para variar o texto e reduzir o risco de bloqueio do número (G5). Só o primeiro nome, nunca endereço nem telefone completo; o link é sempre do domínio da loja.</p>
+  <p class="sub">As 5 essenciais têm 2 versões, sorteadas pela fila, para variar o texto e reduzir o risco de bloqueio do número (G5). Só o primeiro nome; o link é sempre do domínio da loja.</p>
   <div class="grade" id="gradeWhats"></div>
 </section>
 
-<footer class="sub" style="padding-top:24px;font-size:14px">Proposta 2 do design, com a marca T-shirt Club.br enviada pela loja. Ao aprovar, os tokens deste arquivo viram o preset do Tailwind e os componentes entram em <code>packages/ui</code> na F1 e na F2.</footer>
+<footer class="sub" style="padding-top:24px;font-size:14px">Proposta 3 do design ("clube de stickers"), com a marca oficial T-shirt Club.br. Ao aprovar, os tokens deste arquivo viram o preset do Tailwind e os componentes entram em <code>packages/ui</code> na F1 e na F2.</footer>
 </div>
 
 <script>
 // Tabelas geradas de listas, para o conteúdo ficar num lugar só.
 (function(){
   const el=(t,a={},...f)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='text')e.textContent=v;else e.setAttribute(k,v);}f.forEach(x=>x!=null&&e.append(x));return e;};
-  // Áreas com rolagem lateral recebem foco para quem usa teclado.
   document.querySelectorAll('.tbl,pre').forEach(x=>{x.tabIndex=0;x.setAttribute('role','region');x.setAttribute('aria-label',(x.closest('section,figure')?.querySelector('h2,h3,b')?.textContent||'Conteúdo').trim());});
+  const amostra=c=>{const s=el('span',{class:'amostra'});s.style.background=c;return s;};
+  const cor=c=>el('span',{style:'display:flex;gap:8px;align-items:center'},amostra(c),el('code',{text:c}));
 
   const TOKENS=[
-    ['--fundo','#FFF8F5','#1E1117','Fundo da página (creme da marca)','—'],
-    ['--superficie','#FFFFFF','#2A1820','Cartões e campos','—'],
-    ['--rosa-claro','#FCDDE0','#3D2230','Destaques, etiqueta de preço, avisos da marca','—'],
-    ['--tinta','#3A1F2B','#FFF1F4','Texto principal','14,2 · 16,7'],
-    ['--tinta-suave','#6E4A5A','#D9BFC8','Texto secundário','7,2 · 9,8'],
-    ['--rosa','#E8478A','#FF6FA8','Logo, estrelas, títulos grandes (só ≥ 24 px)','3,5 · 7,1'],
-    ['--rosa-forte','#B81E62','#FF8AB8','Botão, link, preço promocional','5,9 · 7,7'],
-    ['--no-rosa-forte','#FFFFFF','#1E1117','Texto sobre o botão rosa','6,2 · 8,4'],
-    ['--verde','#6B8B1F','#A9C24A','Contorno do logo, enfeites (não texto)','3,8 · —'],
-    ['--verde-forte','#4E6614','#BFD774','Texto verde, desconto, sucesso','6,2 · 10,6'],
-    ['--borda-campo','#9A7A88','#8E6E7C','Contorno de campo','3,8 · 3,7'],
-    ['--foco','#3A1F2B','#FFD6E4','Anel de foco','14,2 · 13,9'],
-    ['--ok','#4E6614','#BFD774','Pago, disponível, entregue','5,5 · 8,7'],
-    ['--aviso','#8A5300','#F2B45A','Últimas unidades, prazo acabando','5,6 · 7,9'],
-    ['--erro','#A8400E','#FF9A5C','Erro, esgotado agora (sempre com ícone)','5,3 · 7,4'],
-    ['--info','#6E4A5A','#D9BFC8','Reservado, informação','6,3 · 8,6']
+    ['--papel','#FFFCFA','#181114','Fundo de tudo','—'],
+    ['--algodao','#F6EFEC','#2A2024','Áreas recuadas, sticker neutro','—'],
+    ['--tinta','#26191E','#F7EEF0','Texto, texto do botão rosa','16,6 · 16,3'],
+    ['--tinta-suave','#6B5D62','#BBAAB0','Texto secundário','6,1 · 8,4'],
+    ['--borda-campo','#928181','#7C6A70','Contorno de campo','3,7 · 3,4'],
+    ['--rosa','#E8478A','#FF7FB2','Botão principal, sacola, sticker "Novo", passo atual, grifo','4,6 com tinta · 7,9'],
+    ['--rosa-bruma','#FDE7EF','#3A1F2A','Aviso da marca (fundo)','14,4 com tinta'],
+    ['--verde','#6B8B1F','#A9C24A','Brilhos, borda de "feito", enfeite','3,9 (não texto)'],
+    ['--verde-broto','#EEF3DC','#263019','Sticker verde, passo feito (texto verde-escuro)','6,9'],
+    ['--ok','#3F5A10','#C8DC8A','Pago, disponível','6,9'],
+    ['--aviso','#7A4A00','#F2B45A','Últimas unidades, prazo acabando','6,7'],
+    ['--erro','#B3261E','#FF8A80','Erro (sempre com ícone)','5,6'],
+    ['--info','#3B4A63','#B9C6DE','Reservado, informação','7,9']
   ];
   const tb=document.getElementById('tabTokens');
-  TOKENS.forEach(([n,c,e,u,ct])=>{
-    const a=el('span',{class:'amostra'});a.style.background=c;
-    const b=el('span',{class:'amostra'});b.style.background=e;
-    tb.append(el('tr',{},el('td',{},el('code',{text:n})),el('td',{},el('span',{style:'display:flex;gap:8px;align-items:center'},a,el('code',{text:c}))),el('td',{},el('span',{style:'display:flex;gap:8px;align-items:center'},b,el('code',{text:e}))),el('td',{text:u}),el('td',{class:'num',text:ct})));
-  });
+  TOKENS.forEach(([n,c,e,u,ct])=>tb.append(el('tr',{},el('td',{},el('code',{text:n})),el('td',{},cor(c)),el('td',{},cor(e)),el('td',{text:u}),el('td',{class:'num',text:ct}))));
+
+  const COLECOES=[
+    ['Teddy (Tomate)','#EE4A2A','#FFE7DE','#A63A1C','Urso','5,5'],
+    ['Dog Club (Mediterrâneo)','#2F6FD0','#E4EEFC','#1D4E9A','Pata','6,9'],
+    ['Trendy (Limão)','#F2DD3D','#FFF9C9','#6B5600','Sol','6,7']
+  ];
+  const tc=document.getElementById('tabColecoes');
+  COLECOES.forEach(([n,c,f,t,e,ct])=>tc.append(el('tr',{},el('td',{text:n}),el('td',{},cor(c)),el('td',{},cor(f)),el('td',{},cor(t)),el('td',{text:e}),el('td',{class:'num',text:ct}))));
 
   const ERROS=[
     ['STOCK_UNAVAILABLE','Teddy Bleu acabou agora. Tire da sacola para continuar; o resto segue separado para você.','Ajustar a sacola (sem novo código)'],
