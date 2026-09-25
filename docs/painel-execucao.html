@@ -27,7 +27,7 @@
     "arquitetura_versao": 13,
     "situacao": "F1 (Fundação) em andamento: liberada pela loja em 25/09",
     "fase_atual": "F1",
-    "proximo_passo": "Primeira execução do CI no GitHub e referências visuais geradas no container. A loja cria os projetos Supabase (sa-east-1) e Vercel (gru1) para ligar o repasse às funções (F1.4). Depois, F2."
+    "proximo_passo": "Loja libera o GitHub Actions no repositório (F1.2) e cria os projetos Supabase em sa-east-1 e Vercel em gru1 (F1.4). Com o CI rodando, gerar as referências visuais no container (F1.13). Depois, F2."
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
@@ -42,8 +42,8 @@
     {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
      "itens":[
       {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"feito","evidencia":"sistema/ com pnpm: apps/web, apps/admin, packages/domain, packages/ui, packages/servidor e supabase/ (README e ADR 0001)"},
-      {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"andamento","nota":"Workflow .github/workflows/ci.yml escrito (lint, tipos, Vitest, Deno, pgTAP, Playwright com axe, Lighthouse, auditoria de dependências); tudo passa localmente; falta a primeira execução verde no GitHub"},
-      {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"andamento","nota":"gitleaks no CI e .github/dependabot.yml (npm e Actions) configurados; falta a primeira execução no GitHub"},
+      {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"bloqueado","nota":"Workflow pronto e válido (actionlint), e tudo passa localmente. No GitHub, as execuções param antes de começar (startup_failure, sem jobs), mesmo usando só actions do GitHub: é configuração da conta. Ver em Settings › Actions › General (Actions ligado e ações permitidas) e em Billing (minutos do Actions para repositório privado)"},
+      {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"bloqueado","nota":"gitleaks no CI e Dependabot configurados; dependem do GitHub Actions funcionando (ver F1.2)"},
       {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"bloqueado","nota":"Precisa das contas da loja: criar o projeto Supabase em sa-east-1 e o projeto Vercel (região gru1, já em apps/*/vercel.json). Configuração pronta em supabase/config.toml e .env.example"},
       {"id":"F1.5","texto":"Migrations 0001 a 0003: extensões, enums, app_settings, app_now() e rate_limits","sec":"dados","refs":["G18","G20"],"status":"feito","evidencia":"migrations 0001 a 0003; supabase/tests/pgtap/001_settings_test.sql (16 testes, relógio em 14min59s e 20min01s)"},
       {"id":"F1.6","texto":"Migration 0080: auditoria somente de inserção, sem dados pessoais","sec":"dados","refs":["G9"],"status":"feito","evidencia":"migration 0080; 002_audit_test.sql (9 testes: UPDATE, DELETE e TRUNCATE bloqueados; dado pessoal recusado)"},
