@@ -11,8 +11,8 @@
 :root{
   --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eef1f4; --ink:#141a22; --muted:#566070; --line:#d9dee5;
   --accent:#0d5f6f; --accent-soft:#dcedf0;
-  --st-sel:#6b7280; --st-res:#a86412; --st-pag:#23764a; --st-ent:#2c5d9e; --st-exp:#b3322f;
-  --sev-crit:#b3322f; --sev-alto:#a86412; --sev-med:#2c5d9e; --sev-aj:#566070;
+  --st-sel:#5b6270; --st-res:#8a5208; --st-pag:#23764a; --st-ent:#2c5d9e; --st-exp:#b3322f;
+  --sev-crit:#b3322f; --sev-alto:#8a5208; --sev-med:#2c5d9e; --sev-aj:#566070;
   --chip-bg:#eef1f4;
   --code-bg:#f6f8fa;
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -149,12 +149,13 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <li><a href="#fases">15. Plano de entrega</a></li>
     <li><a href="#testes">16. Estratégia de testes</a></li>
     <li><a href="#publicacao">17. Checklist de publicação</a></li>
+    <li><a href="#frontend">18. Frontend e design</a></li>
   </ol>
 </nav>
 
 <main>
 <header class="top">
-  <p class="eyebrow">Desenho técnico · versão 9</p>
+  <p class="eyebrow">Desenho técnico · versão 10</p>
   <h1>Sistema de Reserva T-shirt Club: arquitetura</h1>
   <p class="lede">Revisão da especificação funcional e do protótipo navegável, seguida do desenho técnico completo: banco, estados, eventos, APIs, jobs, integrações e concorrência. Nada foi desenvolvido ainda. O código começa depois da sua aprovação.</p>
   <div class="meta">
@@ -163,7 +164,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
     <span><b>Fuso operacional:</b> America/Bahia (UTC−3)</span>
     <span><b>Execução:</b> <a href="painel-execucao.html">painel de execução</a></span>
   </div>
-  <div class="callout"><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
+  <div class="callout"><p><b>Versão 10.</b> Inclui o frontend e o design no plano (seção <a href="#frontend">18</a>): frente de design D1 a D6, arquitetura do frontend, critério de pronto de cada tela e as entregas de tela em todas as fases. O design proposto está em <a href="design-frontend.html">design-frontend.html</a>.</p><p><b>Versão 9.</b> Registra as decisões da loja sobre a revisão (D12 a D15): autenticador obrigatório no painel, confirmação de entrega pelo link exige o código do WhatsApp, modo lançamento aprovado e endereço guardado por 90 dias. A F1 continua aguardando liberação.</p><p><b>Versão 8.</b> Incorpora a revisão geral de 25/09 (segurança, web e celular, testes, publicação, acessibilidade e textos): achados G1 a G24 na seção <a href="#revisao-geral">1b</a>, correções aplicadas nas seções afetadas e o checklist de publicação na seção <a href="#publicacao">17</a>. O desenvolvimento (F1) só começa com a liberação da loja.</p></div>
   <div class="flow" aria-label="Fluxo principal">
     <span class="st sel">SELECIONADO</span><span class="arrow">→</span>
     <span class="st res">RESERVADO</span><span class="arrow">→</span>
@@ -181,7 +182,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
   <p class="secnum">00</p>
   <h2>Decisões aprovadas</h2>
   <p class="sub">Respostas do questionário de 25/09/2026 (D1 a D11) e do formulário de decisões da revisão geral, também de 25/09 (D12 a D15). Este documento já está ajustado a elas.</p>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
       <tr><td>D1</td><td>Stack</td><td>Supabase (projeto novo) + <b>Next.js</b> (React) + Vercel. Loja <b>mobile-first</b> e instalável como <b>PWA</b> no Android e no iPhone (decisão de 25/09; a maior parte do acesso será pelo celular).</td></tr>
@@ -199,12 +200,13 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
       <tr><td>D13</td><td>Link da reserva</td><td>Acompanhar, pagar e pedir cancelamento. <b>Confirmar ou mudar a entrega pede o código do WhatsApp</b> (G6).</td></tr>
       <tr><td>D14</td><td>Modo lançamento</td><td>Aprovado. A loja liga no painel nos lançamentos; o risco maior de bloqueio do número fica aceito (G5, W2).</td></tr>
       <tr><td>D15</td><td>Endereço de entrega</td><td>Guardado por <b>90 dias</b> após a entrega; depois fica só a cidade (G9).</td></tr>
+      <tr><td>D16</td><td>Design</td><td>Frontend e design entram no plano como frente própria (D1 a D6). O Claude cria o design; a loja aprova identidade, telas e textos antes da F2 (seção 18).</td></tr>
       <tr><td>—</td><td>Loja</td><td>Domínio <code>tshirtclub.pt</code> (confirmado); menos de 50 pessoas ao mesmo tempo nos lançamentos; 1 administrador; login com e-mail, senha e autenticador (D12); todas as peças são de <b>tamanho único</b>.</td></tr>
     </tbody>
   </table></div>
 
   <h3>Pendências respondidas (P1 a P6)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
       <tr><td>P1</td><td>Provedor de pagamento</td><td>Mercado Pago.</td></tr>
@@ -217,7 +219,7 @@ mermaid.initialize({startOnLoad:true,theme:window.matchMedia("(prefers-color-sch
   </table></div>
 
   <h3>WhatsApp (decisões W1 a W3)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
       <tr><td>W1</td><td>Ferramenta</td><td><b>Z-API</b>, atrás da interface <code>WhatsAppProvider</code>.</td></tr>
@@ -402,7 +404,7 @@ flowchart LR
   META --> WAC
 </pre>
 
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Camada</th><th>Tecnologia</th><th>Responsabilidade</th></tr></thead>
     <tbody>
       <tr><td>Banco</td><td>PostgreSQL 15+ (Supabase)</td><td>Tabelas, constraints, funções de domínio (<code>SECURITY DEFINER</code>, só o service role executa), gatilho guardião de transições, auditoria somente de inserção.</td></tr>
@@ -423,7 +425,7 @@ flowchart LR
   <p class="secnum">02b</p>
   <h2>Celular primeiro, desempenho e PWA</h2>
   <p class="sub">A maior parte do acesso será pelo celular, com picos em lançamentos. Estas regras valem para todas as telas da cliente.</p>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tema</th><th>Decisão</th></tr></thead>
     <tbody>
       <tr><td>Layout</td><td>Projetado a partir de 360 px de largura. Alvos de toque de pelo menos 44 px. Ação principal fixa na parte de baixo da tela; cronômetro da reserva sempre visível.</td></tr>
@@ -462,7 +464,7 @@ stateDiagram-v2
 </pre>
 
   <h3>Transições permitidas</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>#</th><th>De → Para</th><th>Evento / ator</th><th>Guardas (todas no banco)</th><th>Efeitos na mesma transação</th></tr></thead>
     <tbody>
       <tr><td>T1</td><td><span class="st sel">SELECIONADO</span> → <span class="st res">RESERVADO</span></td><td><code>ConfirmarReserva</code><br>cliente</td><td>Telefone verificado para a tentativa · telefone sem bloqueio ativo · nenhuma outra reserva RESERVADO do telefone · 1 a 9 peças · no máximo 2 por produto · produtos ativos · estoque disponível para <b>todos</b> os itens · promoções e cupom vigentes, com limite e orçamento · total igual ao esperado</td><td>Cria a reserva (número da sequence) e os itens com preço congelado · <code>qty_reserved += q</code> · uso de cupom e orçamento presos · movimentos de estoque · <code>expires_at = now() + 15 min</code> · outbox <code>reserva_criada</code> · auditoria</td></tr>
@@ -513,7 +515,7 @@ stateDiagram-v2
   <p class="sub">Valores em centavos (<code>integer</code>), datas em <code>timestamptz</code> (UTC, exibidas em America/Bahia), identificadores internos <code>uuid</code>. Os enums ficam no Postgres.</p>
 
   <h3>Enums</h3>
-<pre>reservation_status   SELECIONADO* | RESERVADO | PAGAMENTO_CONFIRMADO | ENTREGUE | EXPIRADO
+<pre tabindex="0">reservation_status   SELECIONADO* | RESERVADO | PAGAMENTO_CONFIRMADO | ENTREGUE | EXPIRADO
 closure_reason       PRAZO_ESGOTADO | CANCELAMENTO_APROVADO
 delivery_mode        RETIRADA | MOTOBOY | ENVIO
 fulfillment_substatus AGUARDANDO_MODALIDADE | AGUARDANDO_CALCULO_FRETE | AGUARDANDO_PAGAMENTO_FRETE
@@ -529,7 +531,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
 <span style="color:var(--muted)">* SELECIONADO existe no enum só para a tentativa e a auditoria; nenhuma linha de reservations o usa.</span></pre>
 
   <h3>Catálogo e estoque</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
       <tr><td><code>collections</code></td><td>id, name, slug, active</td><td>Filtros Teddy, Dog Club, Trendy.</td></tr>
@@ -540,7 +542,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   </table></div>
 
   <h3>Cliente, OTP e bloqueios</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
       <tr><td><code>customers</code></td><td>id, <b>phone_e164</b> (único), last_name_informed, <b>expiration_counter_reset_at</b>, created_at</td><td>O telefone é a identidade. Liberar o bloqueio só mexe em <code>expiration_counter_reset_at</code>; o histórico fica intacto.</td></tr>
@@ -553,7 +555,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   </table></div>
 
   <h3>Reserva</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
       <tr><td><code>reservation_attempts</code></td><td>id, customer_name, phone_e164, delivery_intent, items jsonb, expected_total_cents, otp_session_id, status (AGUARDANDO_VALIDACAO, VERIFICADA, CONVERTIDA, FALHOU_ESTOQUE, ABANDONADA), reservation_id, ip_hash, <b>browser_token_hash</b></td><td>É o "Selecionado" do lado do servidor. Serve de chave de idempotência da criação. Só o navegador com o cookie <code>__Host-tentativa</code> consulta, confirma ou troca itens (G12).</td></tr>
@@ -565,7 +567,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   </table></div>
 
   <h3>Pagamento, entrega, mensagens e auditoria</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
       <tr><td><code>payments</code></td><td>id, reservation_id, purpose, shipping_quote_id, provider, method, <b>idempotency_key</b>, <b>provider_payment_id</b>, amount_cents, status, provider_status, <b>created_at</b>, approved_at, pix_qr, pix_expires_at, <b>applied</b>, review_reason</td><td><code>UNIQUE (provider, provider_payment_id)</code> · <code>UNIQUE (idempotency_key)</code> · <code>UNIQUE (reservation_id, purpose) WHERE applied</code>: só um pagamento efetivo por finalidade · <code>UNIQUE (reservation_id, purpose) WHERE status IN ('CRIADO','PENDENTE')</code>: uma cobrança em curso. A forma da primeira cobrança fica gravada na reserva (<code>reservations.payment_method</code>); nova tentativa só pela mesma forma, e só depois que a anterior foi recusada ou cancelada.</td></tr>
@@ -591,7 +593,7 @@ actor_type           CLIENTE | ADMIN | SISTEMA | PROVEDOR
   <p class="sub">Objetivo: com 1 unidade e N clientes confirmando ao mesmo tempo, exatamente 1 vence e as outras recebem <code>STOCK_UNAVAILABLE</code> com a lista de itens afetados. Não existe reserva parcial.</p>
 
   <h3>Estratégia: bloqueio pessimista de linha, em ordem fixa, numa única transação</h3>
-<pre>-- create_reservation(p_attempt_id uuid, p_expected_total int) — READ COMMITTED
+<pre tabindex="0">-- create_reservation(p_attempt_id uuid, p_expected_total int) — READ COMMITTED
 BEGIN;
   -- 0. Idempotência: se a tentativa já foi CONVERTIDA, devolve a mesma reserva.
   -- 1. Serializa pedidos do mesmo telefone (duplo clique, duas abas)
@@ -650,7 +652,7 @@ sequenceDiagram
   <p class="sub">Cada produto tem um preço fixo. As promoções seguem os três formatos das telas enviadas e são calculadas por um único motor de preço, usado pela loja (simulação) e pelo servidor (valor que vale).</p>
 
   <h3>Tabelas</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Tabela</th><th>Colunas principais</th><th>Regras</th></tr></thead>
     <tbody>
       <tr><td><code>promotions</code></td><td>id, <b>type</b> (DESCONTO_PRODUTO, COMPRE_MAIS, CUPOM), name (até 50), starts_at, ends_at, scope (TODOS, ESPECIFICOS), one_per_customer, budget_cents, budget_used_cents, ended_at, created_by</td><td>Situação calculada: agendada, ativa, encerrada. Encerrar antes do fim grava <code>ended_at</code>. <code>CHECK (budget_used_cents ≤ budget_cents)</code> quando há orçamento.</td></tr>
@@ -663,7 +665,7 @@ sequenceDiagram
   </table></div>
 
   <h3>Motor de preço: só a mais vantajosa (P6)</h3>
-<pre>preço de cada item = preço fixo do produto
+<pre tabindex="0">preço de cada item = preço fixo do produto
 candidatas = [sem promoção]
   + cada DESCONTO_PRODUTO ativo que cobre algum item   (preço promocional nesses itens)
   + cada COMPRE_MAIS ativa: maior nível atingido pelas peças participantes → % sobre elas
@@ -688,7 +690,7 @@ desconto ≤ subtotal; centavos arredondados meio para cima, por item</pre>
   <h2>Expiração, lembrete e tolerância</h2>
   <p class="sub">O relógio é o <code>now()</code> do banco. Fechar ou recarregar a página não afeta nada. A reserva nunca é renovada.</p>
 
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Situação quando <code>now() ≥ expires_at</code> (min 15)</th><th>O que o sistema faz</th></tr></thead>
     <tbody>
       <tr><td>Nenhuma tentativa de pagamento</td><td>Expira (T3). O estoque volta na hora.</td></tr>
@@ -809,7 +811,7 @@ sequenceDiagram
   </ol>
 
   <h3>Decisão em <code>apply_payment_result(payment_id, status, approved_at, amount)</code></h3>
-<pre>se referência, moeda ou conta não conferem → descarta, registra e alerta (nunca aplica)
+<pre tabindex="0">se referência, moeda ou conta não conferem → descarta, registra e alerta (nunca aplica)
 se payment.applied e status ∈ {ESTORNADO, CONTESTADO, CANCELADO} → abre payment_disputes (G2)
 se status ≠ APROVADO             → atualiza tentativa (RECUSADO/CANCELADO); se houver tempo, cliente tenta de novo
 se payment.applied              → ALREADY_APPLIED (no-op)
@@ -834,7 +836,7 @@ senão                            → T2: RESERVADO → PAGAMENTO_CONFIRMADO, re
 <section id="bloqueio">
   <p class="secnum">09</p>
   <h2>Bloqueio de telefone por abuso</h2>
-<pre>-- dentro da transação de T3 (PRAZO_ESGOTADO), depois de expirar:
+<pre tabindex="0">-- dentro da transação de T3 (PRAZO_ESGOTADO), depois de expirar:
 v_count := count(*) FROM reservations
            WHERE customer_id = v_customer
              AND status = 'EXPIRADO' AND closure_reason = 'PRAZO_ESGOTADO'
@@ -857,7 +859,7 @@ END IF;</pre>
   <p class="secnum">10</p>
   <h2>Eventos de domínio e notificações</h2>
   <p class="sub">Cada evento vira uma linha de auditoria e, quando aplicável, uma mensagem na outbox, na mesma transação. As mensagens usam só o primeiro nome e nunca incluem endereço ou telefone completo. As opcionais têm liga/desliga no painel (P3).</p>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Evento</th><th>Origem</th><th>Mensagem</th><th>Envio</th></tr></thead>
     <tbody>
       <tr><td><code>OtpEnviado</code></td><td>API</td><td><code>codigo_verificacao</code></td><td>Sempre</td></tr>
@@ -887,7 +889,7 @@ END IF;</pre>
   <p class="sub">JSON, versão <code>/v1</code>, sempre chamada pelo navegador em <code>/api/v1/...</code> do próprio domínio (G1). Os erros seguem o formato <code>{ "error": { "code": "STOCK_UNAVAILABLE", "message": "...", "details": {...} } }</code>, com um código estável que o front traduz para a mensagem da cliente.</p>
 
   <h3>Público (sem sessão)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Método e rota</th><th>Função</th><th>Erros principais</th></tr></thead>
     <tbody>
       <tr><td><code>GET /v1/catalog/collections</code></td><td>Coleções ativas</td><td>—</td></tr>
@@ -903,7 +905,7 @@ END IF;</pre>
   </table></div>
 
   <h3>Cliente (cookie de sessão)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Método e rota</th><th>Função</th><th>Erros principais</th></tr></thead>
     <tbody>
       <tr><td><code>GET /v1/me/reservations</code></td><td>Reservas do telefone da sessão</td><td>—</td></tr>
@@ -917,7 +919,7 @@ END IF;</pre>
   </table></div>
 
   <h3>Webhooks</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Método e rota</th><th>Função</th></tr></thead>
     <tbody>
       <tr><td><code>POST /webhooks/payments/mercadopago</code></td><td>Valida <code>x-signature</code> e a janela de 5 min, grava na inbox e responde 200. A consulta ao provedor e a aplicação ficam fora da requisição (G3)</td></tr>
@@ -926,7 +928,7 @@ END IF;</pre>
   </table></div>
 
   <h3>Admin (JWT Supabase Auth + <code>admin_users</code>)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Método e rota</th><th>Função</th></tr></thead>
     <tbody>
       <tr><td><code>GET /v1/admin/dashboard</code></td><td>Contadores: ativas, pagas, expiradas hoje, entregues, cancelamentos pendentes, bloqueados, análises, fretes vencendo</td></tr>
@@ -954,7 +956,7 @@ END IF;</pre>
 <section id="jobs">
   <p class="secnum">12</p>
   <h2>Jobs</h2>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Job</th><th>Onde</th><th>Frequência</th><th>O que faz</th></tr></thead>
     <tbody>
       <tr><td><code>sweep_reservations()</code></td><td>pg_cron (SQL)</td><td>10 s</td><td>Com <code>FOR UPDATE SKIP LOCKED</code>, em lotes de 100: enfileira lembretes de 5 min · inicia a tolerância quando há tentativa pendente · expira reservas vencidas sem pendência · rede de segurança em <code>grace_until + 2 min</code></td></tr>
@@ -996,7 +998,7 @@ END IF;</pre>
   </div>
 
   <h3>Prazos de guarda (G9)</h3>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Dado</th><th>Prazo</th><th>Depois</th></tr></thead>
     <tbody>
       <tr><td>Códigos e sessões OTP, tentativas não convertidas</td><td>30 dias</td><td>Apagados</td></tr>
@@ -1015,7 +1017,7 @@ END IF;</pre>
   <p class="secnum">14</p>
   <h2>Organização do código</h2>
   <p class="sub">Nenhum arquivo concentra o sistema. Cada migration trata de um assunto, cada função SQL tem seu arquivo, cada rota da API fica no seu módulo, e os provedores externos ficam atrás de interfaces com uma implementação falsa para testes.</p>
-<pre>/
+<pre tabindex="0">/
 ├─ apps/
 │  ├─ web/                      loja + área da cliente (Next.js, mobile-first, PWA)
 │  │  └─ src/
@@ -1025,14 +1027,17 @@ END IF;</pre>
 │  │     ├─ features/payment/     PIX (QR/copia e cola), cartão (SDK do provedor), status
 │  │     ├─ features/lookup/      consulta com código, lista de reservas
 │  │     ├─ features/fulfillment/ modalidade, frete
-│  │     ├─ app/api/[...path]/   repasse para as Edge Functions (G1)
-│  │     └─ shared/               api client, componentes de UI, formatadores
-│  └─ admin/                    painel (Next.js)
+│  │     ├─ app/                  rotas da loja (seção 18) e app/api/[...path]/, o repasse para as Edge Functions (G1)
+│  │     └─ shared/               cliente da API, hooks (consulta periódica, relógio do servidor), formatadores
+│  └─ admin/                    painel (Next.js), rotas na seção 18
 │     └─ src/features/{auth,dashboard,reservations,cancellations,payment-reviews,
 │                       fulfillment,phone-blocks,catalog,stock,audit}/
 ├─ packages/
+│  ├─ ui/                       design system: tokens, preset do Tailwind e componentes React
+│  │                            (Botao, Campo, CampoCodigo, EtiquetaPreco, SeloEstoque, SeletorQuantidade,
+│  │                            CardProduto, Cronometro, BlocoPix, Aviso, SeloStatus, Andamento, BlocoNumero…)
 │  └─ domain/                   TS puro, sem I/O: regras do carrinho, promoção, telefone E.164,
-│                               máscaras, códigos de erro, schemas Zod compartilhados front/API
+│                               máscaras, códigos de erro, textos da interface (D4), schemas Zod compartilhados front/API
 │                               (importado pelo Deno por caminho relativo .ts; sem dependências de runtime, G22)
 ├─ supabase/
 │  ├─ migrations/
@@ -1070,7 +1075,7 @@ END IF;</pre>
 │  │  └─ worker/             index.ts + jobs/{outbox,grace,reconcile}.ts
 │  └─ tests/                 pgTAP: transições, estoque, idempotência, bloqueio
 ├─ tests/concurrency/        scripts que disparam N confirmações simultâneas
-├─ tests/e2e/                Playwright no celular (Android e iPhone) + axe
+├─ tests/e2e/                Playwright no celular (Android e iPhone), axe e comparação visual dos componentes
 └─ docs/                     arquitetura.md (este documento), adr/, runbook.md</pre>
 </section>
 
@@ -1079,18 +1084,19 @@ END IF;</pre>
   <p class="secnum">15</p>
   <h2>Plano de entrega por fases</h2>
   <p class="sub">Cada fase é um conjunto de commits revisável, com testes e funcionando de ponta a ponta com os provedores falsos. As integrações reais entram atrás das mesmas interfaces.</p>
+  <div class="callout"><p><b>Frente de design (D1 a D6):</b> corre antes e junto da F1, que não tem telas. A F2 só começa com identidade (D1) e design system (D2) aprovados. Cada fase abaixo entrega também as suas telas, no critério de pronto da seção 18.</p></div>
   <ol class="phases">
-    <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP, axe e Lighthouse), migrations de enums, settings, <code>app_now()</code>, limites, auditoria e gatilho guardião, pacote <code>domain</code> com testes, repasse <code>/api</code> no mesmo domínio e cabeçalhos de segurança.</span></li>
-    <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos. Login do painel com senha e autenticador (D12).</span></li>
-    <li><b>OTP por WhatsApp</b><span>Sessões, códigos, limites, bloqueio de 30 min, Turnstile, provedor falso e Z-API/Evolution (W1), verificação invertida (W3), fila de envio com ritmo controlado.</span></li>
-    <li><b>Criação atômica da reserva</b><span><code>create_reservation</code>, tela de reserva ativa com relógio do servidor, teste de concorrência (N clientes, 1 unidade).</span></li>
-    <li><b>Expiração e mensagens</b><span>Varredura, lembrete de 5 min, outbox e worker de envio, bloqueio por 3 expirações.</span></li>
-    <li><b>Pagamento</b><span>PIX ou cartão, fixo por reserva, webhook, inbox, idempotência em 5 camadas, tolerância, reconciliação, fila de análise.</span></li>
-    <li><b>Cancelamento</b><span>Solicitação da cliente, decisão do admin, PREJUDICADA automática.</span></li>
-    <li><b>Pós-pagamento</b><span>Modalidade, frete (manual), segundo pagamento, prazo de 2 h, substatus logísticos, Entregue.</span></li>
-    <li><b>Consulta</b><span>Consulta pelo site com código, link com chave aleatória (no fragmento, só hash no banco), "Minha reserva" no WhatsApp com tratamento do nono dígito.</span></li>
-    <li><b>Painel admin completo</b><span>Dashboard, filtros e busca, detalhe com linha do tempo, bloqueados, análises, auditoria.</span></li>
-    <li><b>Endurecimento</b><span>Teste de carga, verificador de invariantes, retenção LGPD, ensaio de restauração de backup, runbook de operação e checklist de publicação (seção 17).</span></li>
+    <li><b>Fundação</b><span>Monorepo, CI (lint, typecheck, testes, pgTAP, axe e Lighthouse), migrations de enums, settings, <code>app_now()</code>, limites, auditoria e gatilho guardião, pacote <code>domain</code> com testes, repasse <code>/api</code> no mesmo domínio e cabeçalhos de segurança. Frontend: os dois apps Next.js, <code>packages/ui</code> com o preset dos tokens, fontes, layouts base e a página interna de componentes.</span></li>
+    <li><b>Catálogo, estoque e promoções</b><span>Tabelas, view de disponibilidade, CRUD e ajuste de estoque no admin, módulo de promoções (3 formatos), motor de preço, loja com filtros e carrinho com descontos. Login do painel com senha e autenticador (D12). Telas: loja (tela 1 do design), layout do painel, login, catálogo, estoque e promoções.</span></li>
+    <li><b>OTP por WhatsApp</b><span>Sessões, códigos, limites, bloqueio de 30 min, Turnstile, provedor falso e Z-API/Evolution (W1), verificação invertida (W3), fila de envio com ritmo controlado. Telas: seus dados e código (telas 2 e 3).</span></li>
+    <li><b>Criação atômica da reserva</b><span><code>create_reservation</code>, tela de reserva ativa com relógio do servidor (tela 4, sem o pagamento), teste de concorrência (N clientes, 1 unidade).</span></li>
+    <li><b>Expiração e mensagens</b><span>Varredura, lembrete de 5 min, outbox e worker de envio, bloqueio por 3 expirações. Telas: reserva expirada (tela 6), aviso de 5 min e tela de telefone bloqueado.</span></li>
+    <li><b>Pagamento</b><span>PIX ou cartão, fixo por reserva, webhook, inbox, idempotência em 5 camadas, tolerância, reconciliação, fila de análise. Telas: pagamento na reserva (PIX, cartão, em processamento, recusado) e pagamentos em análise no painel.</span></li>
+    <li><b>Cancelamento</b><span>Solicitação da cliente, decisão do admin, PREJUDICADA automática. Telas: pedido de cancelamento com confirmação e a decisão no detalhe do painel.</span></li>
+    <li><b>Pós-pagamento</b><span>Modalidade, frete (manual), segundo pagamento, prazo de 2 h, substatus logísticos, Entregue. Telas: meu pedido (tela 5: entrega, endereço, frete, andamento, código de retirada) e frete no painel.</span></li>
+    <li><b>Consulta</b><span>Consulta pelo site com código, link com chave aleatória (no fragmento, só hash no banco), "Minha reserva" no WhatsApp com tratamento do nono dígito. Telas: consulta e a entrada pelo link, com o código para mexer na entrega (D13).</span></li>
+    <li><b>Painel admin completo</b><span>Dashboard (tela 7), filtros e busca, detalhe com linha do tempo, bloqueados, análises, disputas, WhatsApp, auditoria e minha conta.</span></li>
+    <li><b>Endurecimento</b><span>Teste de carga, verificador de invariantes, retenção LGPD, ensaio de restauração de backup, runbook de operação e checklist de publicação (seção 17). Frontend: PWA completo (manifesto, ícones, aviso de instalação no iPhone, página sem conexão), teste com leitor de tela e em aparelhos reais, teste de uso com clientes (D6).</span></li>
   </ol>
 </section>
 
@@ -1098,7 +1104,7 @@ END IF;</pre>
 <section id="testes">
   <p class="secnum">16</p>
   <h2>Estratégia de testes</h2>
-  <div class="tbl"><table>
+  <div class="tbl" tabindex="0"><table>
     <thead><tr><th>Cenário</th><th>Resultado esperado</th></tr></thead>
     <tbody>
       <tr><td>50 confirmações simultâneas para a última unidade</td><td>Exatamente 1 reserva. 49 recebem <code>STOCK_UNAVAILABLE</code>. <code>qty_reserved = 1</code></td></tr>
@@ -1126,6 +1132,8 @@ END IF;</pre>
       <tr><td>Senha certa sem o código do autenticador (sessão AAL1) em qualquer rota do painel</td><td><code>403</code>, nada exposto (D12)</td></tr>
       <tr><td>Link da reserva tentando confirmar a entrega sem validar o WhatsApp</td><td><code>PHONE_VERIFICATION_REQUIRED</code>; depois do código, aceito (D13)</td></tr>
       <tr><td>Restauração do backup num projeto vazio</td><td>Sistema sobe, e o verificador de invariantes passa</td></tr>
+      <tr><td>Jornada completa no celular: loja → dados → código → reserva → PIX → meu pedido, em viewport de Android e de iPhone</td><td>Passa de ponta a ponta com os provedores falsos, sem violação do axe em nenhuma etapa</td></tr>
+      <tr><td>Página interna de componentes, nos temas claro e escuro</td><td>Capturas iguais às aprovadas; qualquer diferença visual precisa ser aceita no PR</td></tr>
     </tbody>
   </table></div>
   <p>Camadas: testes unitários do pacote <code>domain</code> (Vitest), pgTAP para funções, constraints e RLS, testes de integração das Edge Functions com provedores falsos, script de concorrência contra um Postgres local, ponta a ponta com Playwright em viewport de Android e de iPhone (com axe em cada tela), Lighthouse no CI com as metas da seção 2b, e teste de carga (k6) com 100 clientes simuladas.</p>
@@ -1182,6 +1190,54 @@ END IF;</pre>
     </ul></div>
   </div>
 </section>
+<!-- 18 -->
+<section id="frontend">
+  <p class="secnum">18</p>
+  <h2>Frontend e design</h2>
+  <p class="sub">Como a loja e o painel são desenhados e construídos. O design proposto (identidade, design system, telas finais e textos) está em <a href="design-frontend.html">design-frontend.html</a>. O protótipo continua valendo para fluxo e regras; o design vale para a aparência.</p>
+
+  <h3>Frente de design</h3>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>#</th><th>Entrega</th><th>Quem</th><th>Quando</th></tr></thead>
+    <tbody>
+      <tr><td>D1</td><td>Identidade: logotipo, paleta, tipografia, padrão de fotos, tom de voz. Proposta "etiqueta" (kraft, índigo, Archivo e Instrument Sans), porque a loja não tinha marca definida</td><td>Claude propõe, loja aprova</td><td>Antes da F2</td></tr>
+      <tr><td>D2</td><td>Design system: tokens (cores claro e escuro, fontes, raios, espaço, movimento) e componentes com estados. Contrastes medidos: texto a partir de 4,5:1, contornos e foco a partir de 3:1</td><td>Claude</td><td>Antes da F2; código na F1 e na F2</td></tr>
+      <tr><td>D3</td><td>Telas finais das jornadas principais no celular (7 telas no documento de design). As demais telas usam os mesmos componentes e o fluxo do protótipo, e são fechadas na fase de cada uma</td><td>Claude propõe, loja aprova</td><td>Antes da F2; restantes por fase</td></tr>
+      <tr><td>D4</td><td>Textos: erros por código da API, estados vazios, mensagens do WhatsApp (as 5 essenciais com 2 versões)</td><td>Claude propõe, loja revisa</td><td>Antes da F3</td></tr>
+      <tr><td>D5</td><td>Imagens: fotos dos produtos no padrão do D1, ícones do app (192, 512 e maskable), ícone para iPhone, favicon, imagem de compartilhamento</td><td>Loja (fotos) e Claude (ícones)</td><td>Fotos antes da F2; ícones na F11</td></tr>
+      <tr><td>D6</td><td>Teste de uso com 3 a 5 clientes no celular, fazendo uma reserva completa em ambiente de teste; ajustes do que travar</td><td>Loja convida, Claude conduz e ajusta</td><td>Antes da publicação</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Arquitetura do frontend</h3>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>Tema</th><th>Decisão</th></tr></thead>
+    <tbody>
+      <tr><td>Design system</td><td><code>packages/ui</code>: tokens do design como variáveis CSS, preset do Tailwind gerado deles e componentes React usados pelos dois apps. Sem biblioteca de componentes pronta, para caber na meta de 150 KB de JavaScript inicial. Ícones do <code>lucide-react</code>, importados um a um.</td></tr>
+      <tr><td>Rotas da loja</td><td><code>/</code> loja · <code>/reserva</code> seus dados · <code>/reserva/codigo</code> código · <code>/reserva/[numero]</code> reserva ativa e pagamento · <code>/pedido/[numero]</code> meu pedido · <code>/r</code> entrada pelo link (chave no fragmento) · <code>/consulta</code> · <code>/privacidade</code> · <code>/offline</code>.</td></tr>
+      <tr><td>Rotas do painel</td><td><code>/login</code> e <code>/login/codigo</code> (autenticador) · <code>/</code> · <code>/reservas</code> e <code>/reservas/[numero]</code> · <code>/catalogo</code> · <code>/estoque</code> · <code>/promocoes</code> · <code>/pagamentos</code> · <code>/disputas</code> · <code>/frete</code> · <code>/bloqueios</code> · <code>/whatsapp</code> · <code>/auditoria</code> · <code>/conta</code>.</td></tr>
+      <tr><td>Renderização</td><td>Loja: catálogo gerado no servidor e guardado na CDN (seção 2b); estoque, reserva e pedido são componentes de cliente que buscam em <code>/api</code>, sem cache. Painel: tudo atrás do login, sem nada com dado pessoal em cache compartilhado.</td></tr>
+      <tr><td>Dados na tela</td><td>Um cliente de API em <code>shared/api</code> que devolve o erro pelo código estável (seção 11). Hooks próprios: consulta periódica (pausa com a aba oculta, espaça depois de 1 min) e relógio do servidor (corrige o desvio por <code>server_now</code>). Sem biblioteca de estado global; o carrinho fica no <code>localStorage</code>.</td></tr>
+      <tr><td>Formulários</td><td>Campos HTML nativos com os schemas Zod do <code>packages/domain</code>, as mesmas regras da API. Erro escrito junto do campo, com o texto do D4.</td></tr>
+      <tr><td>Textos</td><td>Só português do Brasil, todos num arquivo (<code>packages/domain/textos.ts</code>). A tela nunca mostra a mensagem crua da API.</td></tr>
+      <tr><td>Fontes e imagens</td><td>Archivo e Instrument Sans por <code>next/font</code>, auto-hospedadas e só com o alfabeto latino. Fotos pelo <code>next/image</code> a partir do Supabase Storage, em AVIF/WebP.</td></tr>
+      <tr><td>Pagamento</td><td>Card Payment Brick do Mercado Pago carregado só quando a cliente escolhe cartão; PIX com o QR em imagem vindo do provedor.</td></tr>
+      <tr><td>PWA</td><td>Manifesto e service worker (Serwist) guardando só a casca do app e as imagens; nunca <code>/api</code>, <code>/r</code> nem páginas com dados da cliente.</td></tr>
+      <tr><td>Componentes em desenvolvimento</td><td>Página interna <code>/_componentes</code>, só no ambiente de desenvolvimento, com todos os componentes e estados nos dois temas. É ela que a comparação visual do CI fotografa.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Critério de pronto de uma tela</h3>
+  <ol>
+    <li>Igual ao design aprovado (D3) ou, sem tela final, montada só com componentes do D2 e o fluxo do protótipo.</li>
+    <li>Todos os estados feitos: carregando, vazio, erro (com o texto do D4), sucesso e sem conexão.</li>
+    <li>Funciona a partir de 360 px, sem rolagem lateral, e no tema escuro.</li>
+    <li>axe sem violação; dá para usar só com teclado; nas telas da reserva, testada com leitor de tela.</li>
+    <li>Dentro das metas de desempenho da seção 2b (Lighthouse no CI).</li>
+    <li>Coberta por um teste ponta a ponta no Playwright, em viewport de Android e de iPhone.</li>
+  </ol>
+</section>
+
 <footer>Desenho técnico derivado da especificação funcional consolidada e do protótipo HTML (telas 00 a 22). O protótipo foi tratado como referência de fluxo e regras, não como código.</footer>
 </main>
 </div>

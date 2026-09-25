@@ -13,7 +13,7 @@
   Como atualizar (a cada entrega, no mesmo commit do código):
     1. Mude o "status" do item: "pendente" | "andamento" | "feito" | "bloqueado".
        Em "feito", preencha "evidencia" (commit, PR ou teste que comprova).
-       Em "bloqueado", preencha "nota" com o motivo.
+       Em "bloqueado", preencha "nota" com o motivo ("nota" também serve para qualquer status).
     2. Atualize "meta.atualizado_em" e "meta.situacao". Quando a loja liberar uma fase,
        ponha o id dela em "meta.fase_atual" (ex.: "F1"); enquanto for null, o painel mostra a próxima fase.
     3. Acrescente uma linha no topo de "historico".
@@ -24,12 +24,21 @@
 {
   "meta": {
     "atualizado_em": "25/09/2026",
-    "arquitetura_versao": 9,
-    "situacao": "Aguardando liberação da F1",
-    "fase_atual": null,
-    "proximo_passo": "A loja libera a F1 (Fundação). Até lá, nenhum código de produção é escrito."
+    "arquitetura_versao": 10,
+    "situacao": "Design do frontend em andamento; F1 aguardando liberação",
+    "fase_atual": "D",
+    "proximo_passo": "A loja revisa e aprova a proposta de design (D1 a D4) e libera a F1. Nenhum código de produção é escrito antes disso."
   },
   "fases": [
+    {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
+     "itens":[
+      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"andamento","nota":"Proposta \"etiqueta\" pronta em design-frontend.html; aguarda aprovação da loja"},
+      {"id":"D2","texto":"Design system: tokens claro e escuro, contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"Tokens e 12 componentes especificados; aguarda aprovação"},
+      {"id":"D3","texto":"Telas finais das jornadas principais no celular (loja, dados, código, reserva e PIX, meu pedido, expirada, painel)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"7 telas prontas; aguardam aprovação. As demais fecham na fase de cada uma"},
+      {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
+      {"id":"D5","texto":"Imagens: fotos dos produtos no padrão do D1, ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"D6","texto":"Teste de uso com 3 a 5 clientes no celular, com ajustes do que travar","sec":"frontend","refs":["G19"],"status":"pendente"}
+     ]},
     {"id":"F1","nome":"Fundação","sec":"fases","objetivo":"Base do projeto: monorepo, CI, banco com as regras que não podem falhar, e o site já falando só com o próprio domínio.",
      "itens":[
       {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"pendente"},
@@ -42,7 +51,9 @@
       {"id":"F1.8","texto":"Migration 0200: RLS negando tudo para anon e authenticated","sec":"seguranca","refs":[],"status":"pendente"},
       {"id":"F1.9","texto":"Pacote domain: regras do carrinho, telefone E.164 com nono dígito, códigos de erro, schemas Zod; importável pelo Deno","sec":"codigo","refs":["G22"],"status":"pendente"},
       {"id":"F1.10","texto":"Repasse /api no mesmo domínio, com segredo de repasse e IP real; cookies __Host-","sec":"stack","refs":["G1"],"status":"pendente"},
-      {"id":"F1.11","texto":"Cabeçalhos de segurança e CSP com nonce nos dois apps","sec":"seguranca","refs":["G16"],"status":"pendente"}
+      {"id":"F1.11","texto":"Cabeçalhos de segurança e CSP com nonce nos dois apps","sec":"seguranca","refs":["G16"],"status":"pendente"},
+      {"id":"F1.12","texto":"packages/ui: tokens do design como variáveis CSS, preset do Tailwind, fontes por next/font e layouts base da loja e do painel","sec":"frontend","refs":["G17"],"status":"pendente"},
+      {"id":"F1.13","texto":"Página interna /_componentes e comparação visual no CI, nos temas claro e escuro","sec":"frontend","refs":["G19"],"status":"pendente"}
      ]},
     {"id":"F2","nome":"Catálogo, estoque e promoções","sec":"promocoes","objetivo":"A loja mostra produtos com preço certo e o painel cadastra catálogo, estoque e promoções, com login seguro.",
      "itens":[
@@ -52,7 +63,10 @@
       {"id":"F2.4","texto":"Login do painel: senha de 12+ caracteres, autenticador obrigatório (AAL2), bloqueio por e-mail + IP, Turnstile","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
       {"id":"F2.5","texto":"Painel: catálogo, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"pendente"},
       {"id":"F2.6","texto":"Loja: catálogo gerado no servidor, filtros, carrinho e cupom, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"pendente"},
-      {"id":"F2.7","texto":"Telas da loja com contraste, foco, alvos de 44 px e erros junto do campo","sec":"mobile","refs":["G19"],"status":"pendente"}
+      {"id":"F2.7","texto":"Telas da loja com contraste, foco, alvos de 44 px e erros junto do campo","sec":"mobile","refs":["G19"],"status":"pendente"},
+      {"id":"F2.8","texto":"Componentes da loja: Botao, Campo, EtiquetaPreco, SeloEstoque, SeletorQuantidade, CardProduto, Aviso, Toast","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.9","texto":"Tela da loja (tela 1 do design) e barra de ação fixa com a sacola","sec":"frontend","refs":[],"status":"pendente"},
+      {"id":"F2.10","texto":"Painel: layout, login com autenticador e telas de catálogo, estoque e promoções no design system","sec":"frontend","refs":["G7"],"status":"pendente"}
      ]},
     {"id":"F3","nome":"OTP por WhatsApp","sec":"whatsapp","objetivo":"A cliente valida o telefone pela verificação invertida, com a Z-API atrás de uma interface e limites que não barram quem é legítima.",
      "itens":[
@@ -62,20 +76,23 @@
       {"id":"F3.4","texto":"Tentativa com referência curta, cookie __Host-tentativa e rota de acompanhamento","sec":"api","refs":["G12","G13"],"status":"pendente"},
       {"id":"F3.5","texto":"Turnstile ao criar a tentativa; limites por telefone e tentativa; IP só com teto alto","sec":"whatsapp","refs":["G11"],"status":"pendente"},
       {"id":"F3.6","texto":"Tela do código: campo único, one-time-code, aceita colar","sec":"mobile","refs":["G8"],"status":"pendente"},
-      {"id":"F3.7","texto":"Outbox com prioridade, validade por mensagem e modo lançamento (D14)","sec":"whatsapp","refs":["G5"],"status":"pendente"}
+      {"id":"F3.7","texto":"Outbox com prioridade, validade por mensagem e modo lançamento (D14)","sec":"whatsapp","refs":["G5"],"status":"pendente"},
+      {"id":"F3.8","texto":"Telas Seus dados (sacola, cupom, aviso de privacidade) e Código (telas 2 e 3), com o campo aparecendo sozinho","sec":"frontend","refs":["G8","G12"],"status":"pendente"}
      ]},
     {"id":"F4","nome":"Criação atômica da reserva","sec":"estoque","objetivo":"Com 1 peça e muitas clientes, exatamente uma reserva vence. O prazo corre pelo relógio do banco.",
      "itens":[
       {"id":"F4.1","texto":"Migrations 0030 e 0120: reservas, itens, transições e create_reservation com locks em ordem fixa","sec":"estoque","refs":[],"status":"pendente"},
       {"id":"F4.2","texto":"Chave aleatória do link gerada na criação, guardada só como hash","sec":"whatsapp","refs":["G6"],"status":"pendente"},
       {"id":"F4.3","texto":"Tela da reserva ativa com relógio do servidor e aviso falado aos 5 min e no fim","sec":"expiracao","refs":["G19"],"status":"pendente"},
-      {"id":"F4.4","texto":"Script de concorrência: N clientes disputando a última unidade","sec":"testes","refs":[],"status":"pendente"}
+      {"id":"F4.4","texto":"Script de concorrência: N clientes disputando a última unidade","sec":"testes","refs":[],"status":"pendente"},
+      {"id":"F4.5","texto":"Componentes Cronometro e SeloStatus; hook do relógio do servidor","sec":"frontend","refs":[],"status":"pendente"}
      ]},
     {"id":"F5","nome":"Expiração e mensagens","sec":"expiracao","objetivo":"Reservas vencem sozinhas, o lembrete chega a tempo e o bloqueio por abuso funciona.",
      "itens":[
       {"id":"F5.1","texto":"Migration 0140: varredura a cada 10 s, lembrete de 5 min e rede de segurança","sec":"jobs","refs":[],"status":"pendente"},
       {"id":"F5.2","texto":"Migration 0070 e worker da outbox, chamado só quando há fila","sec":"jobs","refs":["G5","G21"],"status":"pendente"},
-      {"id":"F5.3","texto":"Migration 0160: bloqueio por 3 expirações em 30 dias; liberar e manter com motivo","sec":"bloqueio","refs":[],"status":"pendente"}
+      {"id":"F5.3","texto":"Migration 0160: bloqueio por 3 expirações em 30 dias; liberar e manter com motivo","sec":"bloqueio","refs":[],"status":"pendente"},
+      {"id":"F5.4","texto":"Telas de reserva expirada (tela 6), aviso de 5 min e telefone bloqueado","sec":"frontend","refs":[],"status":"pendente"}
      ]},
     {"id":"F6","nome":"Pagamento","sec":"pagamento","objetivo":"PIX ou cartão pelo Mercado Pago, com tolerância, idempotência em 5 camadas e nenhum pagamento aplicado duas vezes.",
      "itens":[
@@ -87,32 +104,37 @@
       {"id":"F6.6","texto":"apply_payment_result: confere referência, valor, moeda e conta; VALOR_DIVERGENTE vai para análise","sec":"pagamento","refs":["G3"],"status":"pendente"},
       {"id":"F6.7","texto":"Tolerância de 15 + 5 min, grace-expirations e reconciliação","sec":"expiracao","refs":[],"status":"pendente"},
       {"id":"F6.8","texto":"Estorno ou contestação depois de pago abre disputa e trava o Entregue","sec":"pagamento","refs":["G2"],"status":"pendente"},
-      {"id":"F6.9","texto":"Fila de pagamentos em análise: estornar ou converter em novo pedido (tela 12)","sec":"pagamento","refs":[],"status":"pendente"}
+      {"id":"F6.9","texto":"Fila de pagamentos em análise: estornar ou converter em novo pedido (tela 12)","sec":"pagamento","refs":[],"status":"pendente"},
+      {"id":"F6.10","texto":"Tela de pagamento: escolha da forma, BlocoPix, cartão, em processamento e recusado (tela 4)","sec":"frontend","refs":["G17"],"status":"pendente"}
      ]},
     {"id":"F7","nome":"Cancelamento","sec":"estados","objetivo":"A cliente pede, o painel decide, e o relógio não para.",
      "itens":[
-      {"id":"F7.1","texto":"Migration 0150: solicitação, aprovar ou recusar com motivo, PREJUDICADA automática","sec":"estados","refs":[],"status":"pendente"}
+      {"id":"F7.1","texto":"Migration 0150: solicitação, aprovar ou recusar com motivo, PREJUDICADA automática","sec":"estados","refs":[],"status":"pendente"},
+      {"id":"F7.2","texto":"Pedido de cancelamento com confirmação na tela e decisão no detalhe do painel","sec":"frontend","refs":[],"status":"pendente"}
      ]},
     {"id":"F8","nome":"Pós-pagamento","sec":"estados","objetivo":"Entrega, frete manual com 2 h para pagar, substatus e Entregue.",
      "itens":[
       {"id":"F8.1","texto":"Migrations 0050 e 0170: entrega, cotações de frete e substatus","sec":"dados","refs":[],"status":"pendente"},
       {"id":"F8.2","texto":"Código de retirada aleatório, nunca o número da reserva","sec":"dados","refs":["G15"],"status":"pendente"},
       {"id":"F8.3","texto":"Frete: informado pelo painel, segundo pagamento, prazo de 2 h e alerta de vencido","sec":"jobs","refs":[],"status":"pendente"},
-      {"id":"F8.4","texto":"T5 Entregue só com substatus pronto, frete pago e sem disputa aberta","sec":"estados","refs":["G2"],"status":"pendente"}
+      {"id":"F8.4","texto":"T5 Entregue só com substatus pronto, frete pago e sem disputa aberta","sec":"estados","refs":["G2"],"status":"pendente"},
+      {"id":"F8.5","texto":"Tela Meu pedido: entrega, endereço, frete, Andamento e código de retirada (tela 5); frete no painel","sec":"frontend","refs":["G15"],"status":"pendente"}
      ]},
     {"id":"F9","nome":"Consulta","sec":"whatsapp","objetivo":"A cliente acha as reservas dela pelo site, pelo link ou pelo WhatsApp, sem expor dados de ninguém.",
      "itens":[
       {"id":"F9.1","texto":"Consulta pelo site com código (lookup-attempts)","sec":"api","refs":["G13"],"status":"pendente"},
       {"id":"F9.2","texto":"Link /r#chave: POST /v1/r, escopo da reserva, telefone e endereço mascarados, 30 dias após o fim","sec":"whatsapp","refs":["G6"],"status":"pendente"},
       {"id":"F9.3","texto":"Pelo link, confirmar ou mudar a entrega pede o código do WhatsApp (D13)","sec":"whatsapp","refs":["G6"],"status":"pendente"},
-      {"id":"F9.4","texto":"\"Minha reserva\" no WhatsApp, aceitando o número com e sem o nono dígito","sec":"whatsapp","refs":[],"status":"pendente"}
+      {"id":"F9.4","texto":"\"Minha reserva\" no WhatsApp, aceitando o número com e sem o nono dígito","sec":"whatsapp","refs":[],"status":"pendente"},
+      {"id":"F9.5","texto":"Telas de consulta e de entrada pelo link, com o código antes de mexer na entrega","sec":"frontend","refs":["G6"],"status":"pendente"}
      ]},
     {"id":"F10","nome":"Painel admin completo","sec":"api","objetivo":"Tudo o que a loja precisa operar num lançamento, com rastro na auditoria.",
      "itens":[
       {"id":"F10.1","texto":"Dashboard, busca e detalhe da reserva com linha do tempo","sec":"api","refs":[],"status":"pendente"},
       {"id":"F10.2","texto":"Telas de bloqueados, pagamentos em análise, disputas e auditoria","sec":"api","refs":["G2"],"status":"pendente"},
       {"id":"F10.3","texto":"Tela do WhatsApp: conexão com QR, fila, modo lançamento e notificações","sec":"whatsapp","refs":["G5"],"status":"pendente"},
-      {"id":"F10.4","texto":"Minha conta: troca de senha, autenticadores e aparelhos conectados","sec":"seguranca","refs":["G7","G24"],"status":"pendente"}
+      {"id":"F10.4","texto":"Minha conta: troca de senha, autenticadores e aparelhos conectados","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
+      {"id":"F10.5","texto":"Dashboard do painel (tela 7) com o que pede ação primeiro, BlocoNumero e tabela","sec":"frontend","refs":[],"status":"pendente"}
      ]},
     {"id":"F11","nome":"Endurecimento","sec":"fases","objetivo":"Provar que aguenta um lançamento e que dá para operar e recuperar.",
      "itens":[
@@ -120,7 +142,8 @@
       {"id":"F11.2","texto":"Verificador de invariantes do estoque rodando todo dia","sec":"estoque","refs":[],"status":"pendente"},
       {"id":"F11.3","texto":"purge_personal_data com os prazos de guarda (endereço em 90 dias, D15)","sec":"seguranca","refs":["G9"],"status":"pendente"},
       {"id":"F11.4","texto":"Runbook: WhatsApp caiu, Mercado Pago fora, contestação, perda do autenticador, backup, incidente de dados","sec":"publicacao","refs":["G9"],"status":"pendente"},
-      {"id":"F11.5","texto":"Monitoramento de erros sem dados pessoais e alerta de falha dos jobs","sec":"publicacao","refs":[],"status":"pendente"}
+      {"id":"F11.5","texto":"Monitoramento de erros sem dados pessoais e alerta de falha dos jobs","sec":"publicacao","refs":[],"status":"pendente"},
+      {"id":"F11.6","texto":"PWA completo: manifesto, ícones (D5), aviso de instalação no iPhone e página sem conexão","sec":"mobile","refs":[],"status":"pendente"}
      ]}
   ],
   "testes": [
@@ -148,7 +171,9 @@
     {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
     {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
     {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
-    {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"}
+    {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"},
+    {"id":"T26","texto":"Jornada completa no celular (Android e iPhone), da loja ao meu pedido, sem violação do axe","fase":"F9","refs":["G19"],"status":"pendente"},
+    {"id":"T27","texto":"Comparação visual da página de componentes nos temas claro e escuro","fase":"F1","refs":["G19"],"status":"pendente"}
   ],
   "publicacao": [
     {"grupo":"Contas e ambiente","itens":[
@@ -236,9 +261,11 @@
     ["D12","Autenticador obrigatório no painel"],
     ["D13","Entrega pelo link pede o código do WhatsApp"],
     ["D14","Modo lançamento aprovado"],
-    ["D15","Endereço guardado por 90 dias após a entrega"]
+    ["D15","Endereço guardado por 90 dias após a entrega"],
+    ["D16","Frontend e design no plano; o Claude cria o design e a loja aprova"]
   ],
   "historico": [
+    {"data":"25/09/2026","texto":"Frontend e design entram no plano (arquitetura v10, seção 18). Proposta de design criada: identidade, design system, 7 telas e textos."},
     {"data":"25/09/2026","texto":"Painel validado com as habilidades code-review, dataviz e simplify; correções aplicadas."},
     {"data":"25/09/2026","texto":"Painel de execução criado. F1 aguardando liberação da loja.","ref":"a566824"},
     {"data":"25/09/2026","texto":"Decisões D12 a D15 registradas; desenho técnico na versão 9.","ref":"b857477"},
@@ -375,7 +402,8 @@ details.phase summary .bar{grid-column:2 / 4}
 a.ref:hover{text-decoration:underline}
 .note{font-size:13px;color:var(--s-bloq)}
 .evid{font-size:12.5px;color:var(--s-feito)}
-.note,.evid{display:block;flex-basis:100%}
+.nota-item{font-size:13px;color:var(--muted)}
+.note,.evid,.nota-item{display:block;flex-basis:100%}
 
 /* tabelas */
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
@@ -437,6 +465,7 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
     <span><b>Atualizado em:</b> <span id="mAtual"></span></span>
     <span><b>Arquitetura:</b> versão <span id="mVersao"></span></span>
     <span><b>Relatório da revisão:</b> <a href="REVISAO-GERAL.md">REVISAO-GERAL.md</a></span>
+    <span><b>Design:</b> <a href="design-frontend.html">design-frontend.html</a></span>
   </div>
 </header>
 
@@ -523,12 +552,12 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
   const CHAVES=Object.keys(STATUS);
   const FILTROS={todos:'Todas',...Object.fromEntries(['pendente','andamento','bloqueado','feito'].map(k=>[k,STATUS[k].plural]))};
   // Rótulo de cada âncora da arquitetura, com o número da seção.
-  const SECOES={aprovar:'§0 Decisões','revisao-geral':'§1b Revisão',stack:'§2 Stack',mobile:'§2b Celular',estados:'§3 Estados',dados:'§4 Dados',estoque:'§5 Estoque',promocoes:'§5b Promoções',expiracao:'§6 Expiração',whatsapp:'§7 WhatsApp',pagamento:'§8 Pagamento',bloqueio:'§9 Bloqueio',eventos:'§10 Eventos',api:'§11 Endpoints',jobs:'§12 Jobs',seguranca:'§13 Segurança',codigo:'§14 Código',fases:'§15 Fases',testes:'§16 Testes',publicacao:'§17 Publicação'};
+  const SECOES={aprovar:'§0 Decisões','revisao-geral':'§1b Revisão',stack:'§2 Stack',mobile:'§2b Celular',estados:'§3 Estados',dados:'§4 Dados',estoque:'§5 Estoque',promocoes:'§5b Promoções',expiracao:'§6 Expiração',whatsapp:'§7 WhatsApp',pagamento:'§8 Pagamento',bloqueio:'§9 Bloqueio',eventos:'§10 Eventos',api:'§11 Endpoints',jobs:'§12 Jobs',seguranca:'§13 Segurança',codigo:'§14 Código',fases:'§15 Fases',testes:'§16 Testes',publicacao:'§17 Publicação',frontend:'§18 Frontend'};
   const $=id=>document.getElementById(id);
   const el=(tag,attrs={},...filhos)=>{const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else e.setAttribute(k,v);}filhos.forEach(f=>f!=null&&e.append(f));return e;};
   const pct=(n,t)=>t?Math.round(n/t*100):0;
   const conta=lista=>lista.reduce((c,i)=>(c[i.status]++,c),Object.fromEntries(CHAVES.map(k=>[k,0])));
-  const linkFase=f=>/^F\d+$/.test(f)?el('a',{href:'#fase-'+f,text:f}):f;
+  const linkFase=f=>/^(F\d+|D)$/.test(f)?el('a',{href:'#fase-'+f,text:f}):f;
   const st=k=>el('span',{class:'st '+k},el('span',{class:'ic','aria-hidden':'true',text:STATUS[k].icone}),STATUS[k].nome);
   const refLink=r=>el('a',{class:'ref',href:'#achado-'+r,text:r});
 
@@ -554,7 +583,7 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
   // Rodapé comum a todo item: referências, motivo do bloqueio e evidência.
   const detalhes=i=>[
     ...(i.refs||[]).flatMap(r=>[' ',refLink(r)]),
-    i.status==='bloqueado'&&i.nota?el('span',{class:'note',text:'Bloqueio: '+i.nota}):null,
+    i.nota?el('span',{class:i.status==='bloqueado'?'note':'nota-item',text:(i.status==='bloqueado'?'Bloqueio: ':'Nota: ')+i.nota}):null,
     i.status==='feito'&&i.evidencia?el('span',{class:'evid',text:'Evidência: '+i.evidencia}):null
   ];
 

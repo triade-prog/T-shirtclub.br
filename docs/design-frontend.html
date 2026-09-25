@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design da Loja T-shirt Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* ==========================================================================
+   TOKENS: fonte da verdade do design system (D2). O preset do Tailwind em
+   packages/ui é gerado a partir destes nomes; mudar aqui muda a loja e o painel.
+   ========================================================================== */
+:root{
+  --algodao:#F4F4F0;      /* fundo da página */
+  --superficie:#FFFFFF;   /* cartões, campos */
+  --superficie-2:#EBEBE5; /* áreas recuadas */
+  --indigo:#1E2350;       /* texto principal e botão principal */
+  --indigo-suave:#555A73; /* texto secundário (6,1:1 no algodão) */
+  --linha:#DAD9D2;        /* divisórias */
+  --borda-campo:#8A8DA3;  /* contorno de campo (3,3:1) */
+  --kraft:#D9B98C;        /* etiqueta de preço */
+  --kraft-escuro:#B8955F; /* furo e barbante da etiqueta */
+  --promo:#C8102E;        /* preço promocional e selo de desconto */
+  --no-promo:#FFFFFF;     /* texto sobre --promo */
+  --acao:#1E2350;         /* fundo do botão principal */
+  --no-acao:#FFFFFF;      /* texto do botão principal */
+  --foco:#E4572E;         /* anel de foco (3,7:1 no branco) */
+  --trilho-cronometro:rgba(244,244,240,.22); /* parte do prazo já gasta */
+  --ok:#16704A; --ok-fundo:#E4F3EA;
+  --aviso:#8A5300; --aviso-fundo:#FDF0D8;
+  --erro:#B4232C; --erro-fundo:#FBE6E7;
+  --info:#27408B; --info-fundo:#E6EAF7;
+  --sombra:0 1px 2px rgba(30,35,80,.08),0 4px 14px rgba(30,35,80,.06);
+  --r-etiqueta:6px; --r-controle:12px; --r-cartao:14px; --r-pilula:999px;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --texto:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --dur-rapida:150ms; --dur-media:250ms;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --algodao:#12142A; --superficie:#1C1F3D; --superficie-2:#242848; --indigo:#EDECE6; --indigo-suave:#A9ABC2;
+    --linha:#2E3256; --borda-campo:#6E7194; --kraft:#C9A571; --kraft-escuro:#9C7C4C; --promo:#FF7A8A; --no-promo:#12142A;
+    --acao:#AEB6FF; --no-acao:#12142A; --foco:#FF8A5B; --trilho-cronometro:rgba(18,20,42,.18);
+    --ok:#6FD6A0; --ok-fundo:#15302A; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF8A90; --erro-fundo:#3A1A20; --info:#A9B8FF; --info-fundo:#1E2550;
+    --sombra:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --algodao:#12142A; --superficie:#1C1F3D; --superficie-2:#242848; --indigo:#EDECE6; --indigo-suave:#A9ABC2;
+  --linha:#2E3256; --borda-campo:#6E7194; --kraft:#C9A571; --kraft-escuro:#9C7C4C; --promo:#FF7A8A; --no-promo:#12142A;
+  --acao:#AEB6FF; --no-acao:#12142A; --foco:#FF8A5B; --trilho-cronometro:rgba(18,20,42,.18);
+  --ok:#6FD6A0; --ok-fundo:#15302A; --aviso:#F2B45A; --aviso-fundo:#33280F; --erro:#FF8A90; --erro-fundo:#3A1A20; --info:#A9B8FF; --info-fundo:#1E2550;
+  --sombra:0 1px 2px rgba(0,0,0,.4);
+}
+
+/* ---------- página do documento ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--algodao);color:var(--indigo);font-family:var(--texto);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:0 72px}
+.doc{max-width:1120px;margin:0 auto;display:grid;gap:0}
+a{color:var(--indigo);text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.topo{padding-block:40px 28px;display:grid;gap:14px;border-bottom:1px solid var(--linha)}
+.rotulo{font-family:var(--display);font-stretch:75%;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--indigo-suave);margin:0}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-stretch:125%;font-weight:900;font-size:clamp(34px,6vw,60px);line-height:1}
+h2{font-stretch:112%;font-weight:800;font-size:clamp(24px,3.4vw,32px);line-height:1.1}
+h3{font-stretch:100%;font-weight:700;font-size:18px;line-height:1.25}
+p{margin:0;max-width:66ch}
+.lede{font-size:18px;color:var(--indigo-suave)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--indigo-suave)}
+.meta b{color:var(--indigo)}
+nav.sumario{display:flex;flex-wrap:wrap;gap:8px}
+nav.sumario a{font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--linha);background:var(--superficie);border-radius:var(--r-pilula);padding:8px 14px;min-height:44px;display:inline-flex;align-items:center}
+section.bloco{padding-block:48px 16px;border-bottom:1px solid var(--linha);display:grid;gap:20px}
+.sub{color:var(--indigo-suave)}
+.grade{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.painel{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-cartao);padding:18px;display:grid;gap:12px;align-content:start}
+.painel .rotulo{font-size:12px}
+.nota{font-size:14px;color:var(--indigo-suave)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;background:var(--superficie-2);border-radius:4px;padding:1px 5px}
+pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.5;background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-controle);padding:14px 16px;overflow-x:auto;margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--linha);border-radius:var(--r-controle);background:var(--superficie)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{font-family:var(--display);font-stretch:75%;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo-suave);font-weight:700;background:var(--superficie-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.amostra{width:44px;height:32px;border-radius:6px;border:1px solid var(--linha)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- identidade ---------- */
+.marca{display:flex;align-items:center;gap:14px}
+.marca svg{flex:none}
+.marca .nome{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:26px;letter-spacing:-.02em;line-height:.95}
+.marca .nome small{display:block;font-stretch:75%;font-weight:700;font-size:11px;letter-spacing:.2em;color:var(--indigo-suave);margin-top:4px}
+.escala{display:grid;gap:10px}
+.escala div{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:baseline;border-top:1px solid var(--linha);padding-top:10px}
+.escala span.tok{font-size:13px;color:var(--indigo-suave)}
+
+/* ==========================================================================
+   COMPONENTES (D2). Mesmos nomes dos componentes React em packages/ui.
+   ========================================================================== */
+.tc-botao{font-family:var(--texto);font-size:16px;font-weight:700;min-height:48px;padding:0 20px;border-radius:var(--r-controle);border:2px solid var(--acao);background:var(--acao);color:var(--no-acao);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:transform var(--dur-rapida)}
+.tc-botao:active{transform:translateY(1px)}
+.tc-botao.secundario{background:transparent;color:var(--indigo);border-color:var(--indigo)}
+.tc-botao.perigo{background:transparent;color:var(--erro);border-color:var(--erro)}
+.tc-botao.texto{background:transparent;border-color:transparent;color:var(--indigo);text-decoration:underline;text-underline-offset:3px;padding:0 8px}
+.tc-botao[disabled]{opacity:.45;cursor:not-allowed}
+.tc-botao.cheio{width:100%}
+.tc-giro{width:16px;height:16px;border:2.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira .9s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+.tc-campo{display:grid;gap:6px}
+.tc-campo label{font-weight:700;font-size:15px}
+.tc-campo input{font:inherit;font-size:16px;min-height:48px;border:1.5px solid var(--borda-campo);border-radius:var(--r-controle);background:var(--superficie);color:var(--indigo);padding:0 14px;width:100%}
+.tc-campo input:focus-visible{outline:3px solid var(--foco);outline-offset:1px;border-color:var(--indigo)}
+.tc-campo .ajuda{font-size:14px;color:var(--indigo-suave);margin:0}
+.tc-campo .erro{font-size:14px;color:var(--erro);font-weight:600;margin:0;display:flex;gap:6px}
+.tc-campo.com-erro input{border-color:var(--erro);border-width:2px}
+.tc-codigo input{font-family:var(--display);font-stretch:100%;font-weight:800;font-size:30px;letter-spacing:.3em;text-align:center;font-variant-numeric:tabular-nums;min-height:64px}
+
+/* etiqueta de preço: a peça de kraft pendurada na camiseta */
+.tc-etiqueta{position:relative;display:inline-grid;gap:0;background:var(--kraft);color:#1E2350;padding:8px 12px 8px 22px;border-radius:var(--r-etiqueta);clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);min-width:92px}
+.tc-etiqueta::before{content:"";position:absolute;left:8px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--algodao);box-shadow:inset 0 0 0 1.5px var(--kraft-escuro)}
+.tc-etiqueta .preco{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:19px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tc-etiqueta .de{font-size:12.5px;text-decoration:line-through}
+.tc-desconto{display:inline-block;background:var(--promo);color:var(--no-promo);font-family:var(--display);font-stretch:75%;font-weight:800;font-size:13px;letter-spacing:.06em;border-radius:4px;padding:2px 6px;text-transform:uppercase}
+
+.tc-selo{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;border-radius:var(--r-pilula);padding:3px 10px;white-space:nowrap;background:var(--superficie-2);color:var(--indigo-suave)}
+.tc-selo svg{width:14px;height:14px;flex:none}
+.tc-selo.ok{background:var(--ok-fundo);color:var(--ok)} .tc-selo.aviso{background:var(--aviso-fundo);color:var(--aviso)}
+.tc-selo.erro{background:var(--erro-fundo);color:var(--erro)} .tc-selo.info{background:var(--info-fundo);color:var(--info)}
+.tc-tam{font-family:var(--display);font-stretch:62%;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;border:1.5px solid currentColor;border-radius:3px;padding:1px 6px;color:var(--indigo-suave)}
+
+.tc-qtd{display:inline-flex;align-items:center;border:1.5px solid var(--borda-campo);border-radius:var(--r-controle);overflow:hidden;background:var(--superficie)}
+.tc-qtd button{width:44px;height:44px;border:0;background:transparent;color:var(--indigo);font-size:22px;font-weight:600;cursor:pointer}
+.tc-qtd button[disabled]{opacity:.35;cursor:not-allowed}
+.tc-qtd output{min-width:32px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+
+.tc-produto{background:var(--superficie);border-radius:var(--r-cartao);overflow:hidden;display:grid;border:1px solid var(--linha)}
+.tc-produto .foto{aspect-ratio:4/5;max-width:100%;background:var(--superficie-2);display:grid;place-items:center;position:relative}
+.tc-produto .foto svg{width:78%;height:auto}
+.tc-produto .foto .tc-selo{position:absolute;left:10px;top:10px}
+.tc-produto .corpo{padding:12px;display:grid;gap:10px}
+.tc-produto .linha1{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.tc-produto h4{margin:0;font-family:var(--display);font-stretch:100%;font-weight:800;font-size:17px;line-height:1.15}
+.tc-produto .colecao{font-size:13px;color:var(--indigo-suave)}
+.tc-produto .linha2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tc-produto.esgotado .foto svg{opacity:.4}
+
+.tc-cronometro{display:grid;gap:6px;background:var(--indigo);color:var(--algodao);border-radius:var(--r-cartao);padding:12px 14px}
+.tc-cronometro .linha{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tc-cronometro .tempo{font-family:var(--display);font-stretch:112%;font-weight:900;font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+.tc-cronometro .ate{font-size:14px;opacity:.85}
+.tc-cronometro .trilho{height:6px;border-radius:3px;background:var(--trilho-cronometro);overflow:hidden}
+.tc-cronometro .trilho i{display:block;height:100%;background:var(--kraft);border-radius:3px}
+.tc-cronometro.atencao .trilho i{background:#FFB199}
+.tc-cronometro.tolerancia{background:var(--aviso-fundo);color:var(--aviso)}
+.tc-cronometro.tolerancia .ate{opacity:1}
+.tc-cronometro.tolerancia .trilho{background:rgba(138,83,0,.18)}
+.tc-cronometro.tolerancia .trilho i{background:var(--aviso)}
+
+.tc-pix{display:grid;gap:12px;background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-cartao);padding:16px}
+.tc-pix .valor{display:flex;justify-content:space-between;align-items:baseline}
+.tc-pix .valor b{font-family:var(--display);font-stretch:112%;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.tc-pix ol{margin:0;padding-left:20px;font-size:15px;color:var(--indigo-suave);display:grid;gap:2px}
+.tc-pix details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:44px;display:flex;align-items:center}
+.tc-pix .copiacola{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;background:var(--superficie-2);border-radius:8px;padding:10px;color:var(--indigo-suave)}
+
+.tc-aviso{display:grid;grid-template-columns:auto 1fr;gap:10px;border-radius:var(--r-controle);padding:12px 14px;font-size:15px;background:var(--info-fundo);color:var(--indigo)}
+.tc-aviso svg{width:20px;height:20px;color:var(--info);margin-top:2px}
+.tc-aviso.ok{background:var(--ok-fundo)} .tc-aviso.ok svg{color:var(--ok)}
+.tc-aviso.atencao{background:var(--aviso-fundo)} .tc-aviso.atencao svg{color:var(--aviso)}
+.tc-aviso.erro{background:var(--erro-fundo)} .tc-aviso.erro svg{color:var(--erro)}
+.tc-aviso b{display:block}
+
+.tc-passos{list-style:none;margin:0;padding:0;display:grid}
+.tc-passos li{display:grid;grid-template-columns:28px 1fr;gap:10px;padding-bottom:14px;position:relative;font-size:15px}
+.tc-passos li::after{content:"";position:absolute;left:13px;top:26px;bottom:2px;width:2px;background:var(--linha)}
+.tc-passos li:last-child::after{display:none}
+.tc-passos .marca-passo{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--linha);background:var(--superficie);font-size:13px;font-weight:800}
+.tc-passos li.feito .marca-passo{background:var(--indigo);border-color:var(--indigo);color:var(--algodao)}
+.tc-passos li.agora .marca-passo{border-color:var(--indigo);box-shadow:0 0 0 3px var(--kraft)}
+.tc-passos li.depois{color:var(--indigo-suave)}
+
+.tc-rodape-acao{position:sticky;bottom:0;background:var(--superficie);border-top:1px solid var(--linha);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px}
+.tc-rodape-acao .resumo{display:flex;justify-content:space-between;font-size:15px}
+.tc-rodape-acao .resumo b{font-variant-numeric:tabular-nums}
+
+.tc-toast{display:inline-flex;align-items:center;gap:10px;background:var(--indigo);color:var(--algodao);border-radius:var(--r-controle);padding:12px 16px;font-size:15px;font-weight:600;box-shadow:var(--sombra)}
+
+.tc-cabecalho{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--algodao);border-bottom:1px solid var(--linha)}
+.tc-sacola{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--indigo);color:var(--indigo);background:transparent}
+.tc-sacola .n{position:absolute;right:-4px;top:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--promo);color:var(--no-promo);font-size:12px;font-weight:800;display:grid;place-items:center;padding:0 5px}
+
+/* painel admin (bloco de número: contrato de stat tile da habilidade dataviz) */
+.tc-numero{background:var(--superficie);border:1px solid var(--linha);border-radius:var(--r-controle);padding:14px;display:grid;gap:2px}
+.tc-numero .valor{font-family:var(--display);font-stretch:100%;font-weight:800;font-size:30px;line-height:1.1}
+.tc-numero .rot{font-size:14px;color:var(--indigo-suave)}
+
+/* ---------- molduras de tela ---------- */
+.telas{display:grid;gap:28px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));align-items:start}
+.tela{display:grid;gap:10px}
+.tela figcaption{display:grid;gap:4px}
+.tela figcaption b{font-family:var(--display);font-weight:800;font-size:17px}
+.tela figcaption span{font-size:13.5px;color:var(--indigo-suave)}
+figure{margin:0}
+.celular{width:100%;max-width:360px;border:8px solid #0E1030;border-radius:32px;overflow:hidden;background:var(--algodao);box-shadow:var(--sombra)}
+.celular .conteudo{display:grid;gap:14px;padding:16px}
+.celular .conteudo h2{font-size:26px}
+.tablet{max-width:100%;border:8px solid #0E1030;border-radius:24px;overflow:hidden;background:var(--algodao)}
+.linha-flex{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lista-itens{display:grid;gap:10px}
+.item-sacola{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center}
+.item-sacola .mini{width:56px;height:70px;border-radius:8px;background:var(--superficie-2);display:grid;place-items:center}
+.item-sacola .mini svg{width:46px;height:auto}
+.soma{display:grid;gap:4px;font-size:15px}
+.soma div{display:flex;justify-content:space-between}
+.soma .total{font-family:var(--display);font-stretch:112%;font-weight:900;font-size:22px}
+.whats{background:#E7F6E2;color:#10301A;border-radius:12px 12px 12px 2px;padding:10px 12px;font-size:14.5px;max-width:92%}
+.whats.eu{background:#D9FDD3;border-radius:12px 12px 2px 12px;justify-self:end}
+.whats b{font-weight:700}
+.duas-colunas{display:grid;gap:20px;grid-template-columns:1fr}
+@media (min-width:860px){.duas-colunas{grid-template-columns:1fr 1fr}}
+.msg-wa{display:grid;gap:8px}
+.msg-wa .whats{max-width:100%}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<!-- Ícones (traço de 1,75, no estilo Lucide, que é o pacote usado no código) e a camiseta das fotos de exemplo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M12 10v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="m9 9 6 6M15 9l-6 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sacola" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.75"/></symbol>
+    <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="1.75"/></symbol>
+    <symbol id="i-whats" viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1L4 20Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M9 9.5c.3 2 2 3.8 4.5 4.5l1-1.2 2 .8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-cadeado" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.75"/></symbol>
+    <symbol id="tee" viewBox="0 0 220 240">
+      <path d="M70 30 92 20h36l22 10 42 24-18 40-24-12v142H70V82L46 94 28 54Z" fill="#FFFFFF" stroke="#1E2350" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M92 21c3 12 10 18 18 18s15-6 18-18" fill="none" stroke="#1E2350" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="110" cy="112" r="32" fill="currentColor"/>
+      <circle cx="96" cy="84" r="11" fill="currentColor"/><circle cx="124" cy="84" r="11" fill="currentColor"/>
+      <circle cx="100" cy="110" r="4" fill="#1E2350"/><circle cx="120" cy="110" r="4" fill="#1E2350"/>
+      <ellipse cx="110" cy="124" rx="9" ry="6" fill="#1E2350"/>
+    </symbol>
+    <symbol id="logo-etiqueta" viewBox="0 0 48 48">
+      <g transform="rotate(-10 24 24)">
+        <path d="M14 8h26a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H14L4 24Z" fill="#D9B98C"/>
+        <circle cx="13" cy="24" r="3" fill="none" stroke="#1E2350" stroke-width="2"/>
+        <text x="30" y="30" text-anchor="middle" font-family="Archivo,Arial Narrow,sans-serif" font-weight="900" font-size="15" fill="#1E2350">TC</text>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="doc">
+<header class="topo">
+  <p class="rotulo">Design do frontend · proposta 1 · aguardando aprovação da loja</p>
+  <h1>Design da Loja T-shirt Club</h1>
+  <p class="lede">Identidade, design system, telas finais e textos da loja e do painel. É a referência visual para o código: o protótipo (telas 00 a 22) continua valendo para fluxo e regras, e este documento vale para a aparência.</p>
+  <div class="meta">
+    <span><b>Data:</b> 25/09/2026</span>
+    <span><b>Arquitetura:</b> <a href="arquitetura-reservas.html#frontend">seção 18, Frontend e design</a></span>
+    <span><b>Acompanhamento:</b> <a href="painel-execucao.html#fase-D">painel, frente D</a></span>
+  </div>
+  <nav class="sumario" aria-label="Seções">
+    <a href="#identidade">D1 Identidade</a><a href="#sistema">D2 Design system</a><a href="#componentes">Componentes</a><a href="#telas">D3 Telas</a><a href="#textos">D4 Textos</a>
+  </nav>
+</header>
+
+<!-- ===================================================================== D1 -->
+<section class="bloco" id="identidade" aria-labelledby="h-id">
+  <p class="rotulo">D1</p>
+  <h2 id="h-id">Identidade: "etiqueta"</h2>
+  <p>A loja não informou logo, cores nem fontes, então esta é uma proposta para aprovar ou trocar. O conceito vem do próprio produto. A etiqueta de papel kraft pendurada na camiseta vira o preço. A etiqueta costurada de "tamanho único" vira o selo de informação. O índigo do jeans é a cor do texto e das ações. As cores da serigrafia ficam nas estampas e nas fotos, não na interface, para as peças aparecerem mais que a tela.</p>
+  <div class="grade">
+    <div class="painel">
+      <p class="rotulo">Logotipo proposto</p>
+      <div class="marca"><svg width="56" height="56" aria-hidden="true"><use href="#logo-etiqueta"/></svg><span class="nome">T-SHIRT<br>CLUB<small>VITÓRIA DA CONQUISTA · BA</small></span></div>
+      <p class="nota">A etiqueta com "TC" funciona sozinha como ícone do app na tela inicial (PWA) e como foto de perfil do WhatsApp da loja.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Tipografia</p>
+      <div class="escala">
+        <div><span class="tok">Display 125%</span><span style="font-family:var(--display);font-stretch:125%;font-weight:900;font-size:28px;line-height:1">Novo drop</span></div>
+        <div><span class="tok">Display 100%</span><span style="font-family:var(--display);font-weight:800;font-size:20px">Teddy Rose</span></div>
+        <div><span class="tok">Etiqueta 62%</span><span class="tc-tam">Tam. único</span></div>
+        <div><span class="tok">Texto</span><span>Suas peças estão guardadas por 15 minutos.</span></div>
+      </div>
+      <p class="nota"><b>Archivo</b> (larga para títulos, estreita para etiquetas) e <b>Instrument Sans</b> para o texto. São 2 famílias, auto-hospedadas com <code>next/font</code> e só com o alfabeto latino, dentro da meta de desempenho (G17).</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Fotos dos produtos</p>
+      <ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>Peça estendida reta, vista de frente, sobre fundo liso cinza-claro.</li>
+        <li>Proporção 4:5, no mínimo 1200 × 1500 px, luz difusa e sem sombra dura.</li>
+        <li>Primeira foto sempre a frente; a segunda, o detalhe da estampa.</li>
+        <li>Arquivo com o código do produto: <code>TED-ROSE-1.jpg</code>.</li>
+        <li>Texto alternativo: nome, cor e estampa ("Camiseta branca com urso rosa").</li>
+      </ul>
+    </div>
+  </div>
+  <div class="painel">
+    <p class="rotulo">Tom de voz</p>
+    <div class="duas-colunas">
+      <ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>Fala com a cliente como a vendedora da loja fala no balcão: direta, simpática, sem gíria forçada.</li>
+        <li>Frases curtas. O que aconteceu, e o que fazer agora.</li>
+        <li>Prazo sempre com horário: "até 14:32", não só "15 minutos".</li>
+        <li>Sem culpa nem susto: "a reserva expirou", nunca "você perdeu".</li>
+      </ul>
+      <div class="msg-wa">
+        <span class="whats"><b>Sim:</b> Suas peças estão guardadas até 14:32. Pague com PIX e pronto.</span>
+        <span class="whats" style="background:var(--erro-fundo);color:var(--indigo)"><b>Não:</b> ATENÇÃO!!! Sua reserva será cancelada caso o pagamento não seja efetuado no prazo estipulado.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== D2 -->
+<section class="bloco" id="sistema" aria-labelledby="h-sis">
+  <p class="rotulo">D2</p>
+  <h2 id="h-sis">Design system</h2>
+  <p>Os tokens abaixo são a única fonte de cores, fontes, raios e tempos. No código eles viram o preset do Tailwind em <code>packages/ui</code>, usado pela loja e pelo painel. Nenhuma tela usa cor solta. Contrastes medidos com o validador da habilidade dataviz (WCAG): texto a partir de 4,5:1, contornos e foco a partir de 3:1.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Token</th><th>Claro</th><th>Escuro</th><th>Uso</th><th>Contraste</th></tr></thead>
+    <tbody id="tabTokens"></tbody>
+  </table></div>
+  <div class="grade">
+    <div class="painel"><p class="rotulo">Espaço e forma</p><ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px"><li>Base de 4 px: 4, 8, 12, 16, 24, 32, 48.</li><li>Margem lateral de 16 px no celular.</li><li>Raios: etiqueta 6, controle 12, cartão 14, pílula.</li><li>Uma sombra só, para o que flutua (aviso, barra fixa).</li></ul></div>
+    <div class="painel"><p class="rotulo">Toque e foco</p><ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px"><li>Alvo mínimo de 44 × 44 px; botão principal com 48 px de altura.</li><li>Foco: anel coral de 3 px, visível nos dois temas.</li><li>Campos com 16 px de fonte (o iPhone não dá zoom).</li></ul></div>
+    <div class="painel"><p class="rotulo">Movimento</p><ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px"><li>150 ms para toque, 250 ms para entrar e sair.</li><li>Sem animação decorativa; nada pisca no cronômetro.</li><li>Com "reduzir movimento" ligado, tudo fica parado.</li></ul></div>
+    <div class="painel"><p class="rotulo">Larguras</p><ul class="nota" style="margin:0;padding-left:18px;display:grid;gap:4px"><li>Projetado a partir de 360 px.</li><li>Loja: 1 coluna até 480, 2 até 900, 3 ou 4 acima.</li><li>Painel: menu lateral a partir de 1024; abaixo, menu no topo.</li></ul></div>
+  </div>
+<pre><code>// packages/ui/tailwind-preset.ts (gerado dos tokens deste documento)
+export default {
+  theme: {
+    colors: { algodao: 'var(--algodao)', superficie: 'var(--superficie)', indigo: 'var(--indigo)',
+      'indigo-suave': 'var(--indigo-suave)', kraft: 'var(--kraft)', promo: 'var(--promo)',
+      ok: 'var(--ok)', aviso: 'var(--aviso)', erro: 'var(--erro)', info: 'var(--info)', /* … */ },
+    fontFamily: { display: 'var(--font-archivo)', texto: 'var(--font-instrument)' },
+    borderRadius: { etiqueta: '6px', controle: '12px', cartao: '14px', pilula: '999px' },
+  },
+}</code></pre>
+</section>
+
+<!-- ===================================================================== componentes -->
+<section class="bloco" id="componentes" aria-labelledby="h-comp">
+  <p class="rotulo">D2 · Componentes</p>
+  <h2 id="h-comp">Componentes</h2>
+  <p>Cada componente abaixo é o que existirá em <code>packages/ui</code>, com o mesmo nome. Estados que precisam aparecer: normal, foco, desabilitado, carregando e erro.</p>
+  <div class="grade">
+    <div class="painel">
+      <p class="rotulo">Botao</p>
+      <button class="tc-botao cheio" type="button">Reservar 3 peças</button>
+      <button class="tc-botao secundario cheio" type="button">Continuar escolhendo</button>
+      <button class="tc-botao cheio" type="button" disabled>Reservar</button>
+      <button class="tc-botao cheio" type="button" aria-busy="true"><span class="tc-giro" aria-hidden="true"></span>Gerando PIX…</button>
+      <button class="tc-botao perigo cheio" type="button">Pedir cancelamento</button>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Campo</p>
+      <div class="tc-campo"><label for="c-nome">Nome</label><input id="c-nome" autocomplete="name" value="Marina Souza"></div>
+      <div class="tc-campo com-erro"><label for="c-tel">WhatsApp</label><input id="c-tel" type="tel" autocomplete="tel-national" value="(77) 9981" aria-invalid="true" aria-describedby="c-tel-e"><p class="erro" id="c-tel-e"><svg width="18" height="18" aria-hidden="true"><use href="#i-alerta"/></svg>Falta número: use DDD + 9 dígitos.</p></div>
+      <div class="tc-campo tc-codigo"><label for="c-cod">Código do WhatsApp</label><input id="c-cod" inputmode="numeric" autocomplete="one-time-code" value="482193" aria-describedby="c-cod-a"><p class="ajuda" id="c-cod-a">Pode colar o código copiado.</p></div>
+    </div>
+    <div class="painel">
+      <p class="rotulo">EtiquetaPreco · SeloEstoque · Tamanho</p>
+      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
+        <span class="tc-etiqueta"><span class="preco">R$ 49,90</span></span>
+        <span class="tc-etiqueta"><span class="de">R$ 49,90</span><span class="preco">R$ 42,42</span></span>
+        <span class="tc-desconto">−15%</span>
+      </div>
+      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
+        <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Disponível</span>
+        <span class="tc-selo aviso"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Últimas 2</span>
+        <span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Esgotado</span>
+        <span class="tc-tam">Tam. único</span>
+      </div>
+      <p class="nota">Sobre o kraft, o preço promocional fica em índigo e o desconto vai num selo vermelho à parte (o vermelho sobre kraft dá 4,3:1, abaixo do mínimo).</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">SeletorQuantidade · Sacola</p>
+      <div class="linha-flex" style="justify-content:flex-start">
+        <div class="tc-qtd" role="group" aria-label="Quantidade de Teddy Rose"><button type="button" aria-label="Tirar uma">−</button><output aria-live="polite">1</output><button type="button" aria-label="Pôr mais uma">+</button></div>
+        <div class="tc-qtd" role="group" aria-label="Quantidade de Dog Club 01"><button type="button" aria-label="Tirar uma">−</button><output>2</output><button type="button" aria-label="Pôr mais uma" disabled>+</button></div>
+        <span class="tc-sacola" role="img" aria-label="Sacola com 3 peças"><svg width="22" height="22" aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">3</span></span>
+      </div>
+      <p class="nota">No limite (2 do mesmo modelo ou 9 peças), o "+" fica desativado e o motivo aparece abaixo do cartão, não só num aviso passageiro.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Cronometro</p>
+      <div class="tc-cronometro" role="timer" aria-label="Tempo da reserva"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="trilho"><i style="width:76%"></i></div></div>
+      <div class="tc-cronometro atencao"><div class="linha"><span class="tempo">04:51</span><span class="ate">termina às 14:32</span></div><div class="trilho"><i style="width:32%"></i></div></div>
+      <div class="tc-cronometro tolerancia"><div class="linha"><span class="tempo" style="font-size:22px">Pagamento em processamento</span></div><span class="ate">Aguardando o banco até 14:37. Não pague de novo.</span></div>
+      <p class="nota">Fica fixo no topo da tela da reserva. O leitor de tela ouve só aos 5 min e no fim.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">BlocoPix</p>
+      <div class="tc-pix">
+        <div class="valor"><span>Total</span><b>R$ 119,76</b></div>
+        <button class="tc-botao cheio" type="button"><svg width="20" height="20" aria-hidden="true"><use href="#i-copiar"/></svg>Copiar código PIX</button>
+        <ol><li>Abra o app do seu banco.</li><li>Escolha Pix › Copia e cola.</li><li>Cole e confirme. A tela atualiza sozinha.</li></ol>
+        <details><summary>Está no computador? Mostrar QR code</summary><p class="nota">O QR vem pronto do Mercado Pago como imagem.</p></details>
+      </div>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Aviso</p>
+      <div class="tc-aviso"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Nada fica guardado ainda.</b>As peças só ficam suas depois do código.</span></div>
+      <div class="tc-aviso ok"><svg aria-hidden="true"><use href="#i-ok"/></svg><span><b>Pagamento confirmado.</b>Pedido #1048 pago no PIX.</span></div>
+      <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-relogio"/></svg><span><b>Faltam 5 minutos.</b>Depois das 14:32 as peças voltam para a loja.</span></div>
+      <div class="tc-aviso erro"><svg aria-hidden="true"><use href="#i-alerta"/></svg><span><b>Teddy Bleu acabou agora.</b>Tire da sacola para continuar; o resto segue separado para você.</span></div>
+    </div>
+    <div class="painel">
+      <p class="rotulo">SeloStatus · Andamento</p>
+      <div class="linha-flex" style="justify-content:flex-start;flex-wrap:wrap">
+        <span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span>
+        <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Pago</span>
+        <span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Entregue</span>
+        <span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span>
+      </div>
+      <ol class="tc-passos">
+        <li class="feito"><span class="marca-passo">✓</span><span>Pagamento confirmado</span></li>
+        <li class="agora"><span class="marca-passo">2</span><span><b>Escolher a entrega</b></span></li>
+        <li class="depois"><span class="marca-passo">3</span><span>Em preparação</span></li>
+        <li class="depois"><span class="marca-passo">4</span><span>Entregue</span></li>
+      </ol>
+      <p class="nota">Os 5 estados oficiais usam sempre ícone + nome. Cor nunca sozinha.</p>
+    </div>
+    <div class="painel">
+      <p class="rotulo">Painel · BlocoNumero · Aviso rápido</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="tc-numero"><span class="valor">12</span><span class="rot">Reservas ativas</span></div>
+        <div class="tc-numero"><span class="valor">2</span><span class="rot">Pagamentos em análise</span></div>
+      </div>
+      <span class="tc-toast"><svg width="18" height="18" aria-hidden="true"><use href="#i-ok"/></svg>Código PIX copiado</span>
+      <p class="nota">Bloco de número no contrato da habilidade dataviz: rótulo curto, valor em fonte proporcional, cor de status só com ícone e texto.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== D3 -->
+<section class="bloco" id="telas" aria-labelledby="h-telas">
+  <p class="rotulo">D3</p>
+  <h2 id="h-telas">Telas finais</h2>
+  <p>As jornadas principais no celular, já com o design system. Cada tela diz a rota no Next.js e a fase em que entra. As demais telas (consulta, painel completo) seguem os mesmos componentes e o fluxo do protótipo.</p>
+  <div class="telas">
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="tc-cabecalho"><span class="marca"><svg width="34" height="34" aria-hidden="true"><use href="#logo-etiqueta"/></svg><span class="nome" style="font-size:17px">T-SHIRT CLUB</span></span><span class="tc-sacola" role="img" aria-label="Sacola com 3 peças"><svg width="22" height="22" aria-hidden="true"><use href="#i-sacola"/></svg><span class="n" aria-hidden="true">3</span></span></div>
+        <div class="conteudo">
+          <div><p class="rotulo">Drop de primavera</p><h2 style="font-stretch:125%;font-weight:900">Novas estampas</h2></div>
+          <div class="tc-aviso"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Leve 3, ganhe 20%.</b>Vale só a promoção mais vantajosa.</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <article class="tc-produto"><div class="foto" style="color:#F4A7B9"><span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Disponível</span><svg role="img" aria-label="Camiseta branca com urso rosa"><use href="#tee"/></svg></div><div class="corpo"><h4>Teddy Rose</h4><div class="linha2"><span class="tc-etiqueta" style="min-width:0"><span class="preco" style="font-size:16px">R$ 49,90</span></span></div><div class="tc-qtd" role="group" aria-label="Quantidade de Teddy Rose"><button type="button" aria-label="Tirar uma">−</button><output>1</output><button type="button" aria-label="Pôr mais uma">+</button></div></div></article>
+            <article class="tc-produto"><div class="foto" style="color:#9CC5E8"><span class="tc-selo aviso"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Últimas 2</span><svg role="img" aria-label="Camiseta branca com cachorro azul"><use href="#tee"/></svg></div><div class="corpo"><h4>Dog Club 01</h4><div class="linha2"><span class="tc-etiqueta" style="min-width:0"><span class="de">R$ 49,90</span><span class="preco" style="font-size:16px">R$ 42,42</span></span><span class="tc-desconto">−15%</span></div><div class="tc-qtd" role="group" aria-label="Quantidade de Dog Club 01"><button type="button" aria-label="Tirar uma">−</button><output>1</output><button type="button" aria-label="Pôr mais uma">+</button></div></div></article>
+          </div>
+        </div>
+        <div class="tc-rodape-acao"><div class="resumo"><span>3 peças · 20% off</span><b>R$ 119,76</b></div><button class="tc-botao cheio" type="button">Reservar 3 peças</button></div>
+      </div>
+      <figcaption><b>1. Loja</b><span>Rota <code>/</code> · F2. Catálogo gerado no servidor; estoque ao vivo; barra de ação fixa com o total.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="conteudo">
+          <p class="rotulo">Passo 1 de 3</p>
+          <h2>Seus dados</h2>
+          <div class="lista-itens">
+            <div class="item-sacola"><span class="mini" style="color:#F4A7B9"><svg aria-hidden="true"><use href="#tee"/></svg></span><span><b>Teddy Rose</b><br><span class="nota">1 × R$ 49,90</span></span><b class="num">R$ 49,90</b></div>
+            <div class="item-sacola"><span class="mini" style="color:#9CC5E8"><svg aria-hidden="true"><use href="#tee"/></svg></span><span><b>Dog Club 01</b><br><span class="nota">2 × R$ 49,90</span></span><b class="num">R$ 99,80</b></div>
+          </div>
+          <div class="soma"><div><span>Subtotal</span><span class="num">R$ 149,70</span></div><div style="color:var(--promo)"><span>Leve 3, ganhe 20%</span><span class="num">− R$ 29,94</span></div><div class="total"><span>Total</span><span class="num">R$ 119,76</span></div></div>
+          <div class="tc-campo"><label for="t2-nome">Nome</label><input id="t2-nome" autocomplete="name" value="Marina Souza"></div>
+          <div class="tc-campo"><label for="t2-tel">WhatsApp</label><input id="t2-tel" type="tel" value="(77) 99812-8809"><p class="ajuda">O código chega neste número.</p></div>
+          <div class="tc-campo"><label for="t2-cup">Cupom (opcional)</label><input id="t2-cup" value="BEMVINDA10" aria-describedby="t2-cup-a"><p class="ajuda" id="t2-cup-a">Você já tem um desconto maior; o cupom fica guardado para outra compra.</p></div>
+          <p class="nota" style="font-size:13px">Usamos seu nome e WhatsApp só para esta reserva. <a href="#">Política de privacidade</a>.</p>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button"><svg width="20" height="20" aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
+      </div>
+      <figcaption><b>2. Dados e sacola</b><span>Rota <code>/reserva</code> · F3. Mostra o cupom que perdeu para a promoção (COUPON_NOT_BEST) sem tom de erro.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="conteudo">
+          <p class="rotulo">Passo 2 de 3</p>
+          <h2>Confirme seu WhatsApp</h2>
+          <div class="msg-wa" aria-label="Conversa no WhatsApp">
+            <span class="whats eu">Quero meu código da reserva (ref. K7Q2)</span>
+            <span class="whats">Seu código da T-shirt Club é <b>482193</b>. Vale por 5 minutos. Não passe para ninguém.</span>
+          </div>
+          <div class="tc-campo tc-codigo"><label for="t3-cod">Código de 6 dígitos</label><input id="t3-cod" inputmode="numeric" autocomplete="one-time-code" value="482193" aria-describedby="t3-a"><p class="ajuda" id="t3-a">Vale até 14:22 · 2 tentativas</p></div>
+          <div class="tc-aviso"><svg aria-hidden="true"><use href="#i-info"/></svg><span><b>Nada fica guardado ainda.</b>Depois do código conferimos o estoque e começa o prazo de 15 minutos.</span></div>
+          <button class="tc-botao texto" type="button">Não chegou? Pedir outro código</button>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button">Confirmar e reservar</button></div>
+      </div>
+      <figcaption><b>3. Código</b><span>Rota <code>/reserva/codigo</code> · F3. O campo aparece sozinho quando o código sai (consulta a cada 2 s, pausada com a aba oculta).</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="conteudo">
+          <div class="tc-cronometro"><div class="linha"><span class="tempo">11:24</span><span class="ate">guardado até 14:32</span></div><div class="trilho"><i style="width:76%"></i></div></div>
+          <div class="linha-flex"><h2>Reserva #1048</h2><span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span></div>
+          <div role="radiogroup" aria-label="Forma de pagamento" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <label class="painel" style="padding:12px;border:2px solid var(--indigo);gap:2px"><span><input type="radio" name="t4f" checked> <b>PIX</b></span><span class="nota" style="font-size:13px">Aprova na hora</span></label>
+            <label class="painel" style="padding:12px;gap:2px"><span><input type="radio" name="t4f"> <b>Cartão</b></span><span class="nota" style="font-size:13px">Crédito à vista</span></label>
+          </div>
+          <div class="tc-pix">
+            <div class="valor"><span>Total</span><b>R$ 119,76</b></div>
+            <button class="tc-botao cheio" type="button"><svg width="20" height="20" aria-hidden="true"><use href="#i-copiar"/></svg>Copiar código PIX</button>
+            <ol><li>Abra o app do seu banco.</li><li>Pix › Copia e cola.</li><li>Cole e confirme. Esta tela atualiza sozinha.</li></ol>
+          </div>
+          <p class="nota" style="font-size:13px">A forma escolhida no primeiro pagamento vale para toda a reserva.</p>
+          <button class="tc-botao texto" type="button" style="justify-self:start">Pedir cancelamento</button>
+        </div>
+      </div>
+      <figcaption><b>4. Reserva ativa e PIX</b><span>Rota <code>/reserva/[numero]</code> · F4 e F6. Cronômetro pelo relógio do servidor; cartão abre o Card Payment Brick só se escolhido.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="conteudo">
+          <div class="tc-aviso ok"><svg aria-hidden="true"><use href="#i-ok"/></svg><span><b>Pagamento confirmado!</b>Pedido #1048 · R$ 119,76 no PIX.</span></div>
+          <h2>Como você quer receber?</h2>
+          <ol class="tc-passos">
+            <li class="feito"><span class="marca-passo">✓</span><span>Pago</span></li>
+            <li class="agora"><span class="marca-passo">2</span><span><b>Escolher a entrega</b></span></li>
+            <li class="depois"><span class="marca-passo">3</span><span>Em preparação</span></li>
+            <li class="depois"><span class="marca-passo">4</span><span>Entregue</span></li>
+          </ol>
+          <div class="tc-aviso"><svg aria-hidden="true"><use href="#i-cadeado"/></svg><span><b>Confirme que é você.</b>Para proteger seu endereço, peça um código pelo WhatsApp do número da reserva.</span></div>
+        </div>
+        <div class="tc-rodape-acao"><button class="tc-botao cheio" type="button"><svg width="20" height="20" aria-hidden="true"><use href="#i-whats"/></svg>Receber código no WhatsApp</button></div>
+      </div>
+      <figcaption><b>5. Meu pedido (pelo link)</b><span>Rota <code>/r</code> e <code>/pedido/[numero]</code> · F8 e F9. Pelo link, a entrega pede o código (D13); depois abre retirada, motoboy ou envio.</span></figcaption>
+    </figure>
+
+    <figure class="tela">
+      <div class="celular">
+        <div class="conteudo">
+          <div class="linha-flex"><h2>Reserva #1048</h2><span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span></div>
+          <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-relogio"/></svg><span><b>A reserva expirou às 14:32.</b>O pagamento não chegou a tempo e as peças voltaram para a loja. Nada foi cobrado.</span></div>
+          <p class="sub">Se ainda quiser, faça uma nova reserva. O estoque pode ter mudado.</p>
+          <button class="tc-botao cheio" type="button">Voltar para a loja</button>
+          <p class="nota" style="font-size:13px">Pagou depois das 14:37? A loja confere e fala com você pelo WhatsApp.</p>
+        </div>
+      </div>
+      <figcaption><b>6. Reserva expirada</b><span>Mesmo endereço da reserva · F5. Sem culpa, com o próximo passo claro.</span></figcaption>
+    </figure>
+
+    <figure class="tela" style="grid-column:1/-1">
+      <div class="tablet">
+        <div class="tc-cabecalho"><span class="marca"><svg width="30" height="30" aria-hidden="true"><use href="#logo-etiqueta"/></svg><span class="nome" style="font-size:15px">PAINEL</span></span><span class="nota">carol@tshirtclub.pt</span></div>
+        <div class="conteudo" style="display:grid;gap:14px;padding:16px">
+          <div class="tc-aviso atencao"><svg aria-hidden="true"><use href="#i-alerta"/></svg><span><b>2 pagamentos em análise e 1 frete vencido.</b><a href="#">Resolver agora</a></span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+            <div class="tc-numero"><span class="valor">12</span><span class="rot">Reservas ativas</span></div>
+            <div class="tc-numero"><span class="valor">8</span><span class="rot">Pagas hoje</span></div>
+            <div class="tc-numero"><span class="valor">4</span><span class="rot">Expiradas hoje</span></div>
+            <div class="tc-numero"><span class="valor">2</span><span class="rot">Cancelamentos pedidos</span></div>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Reserva</th><th>Cliente</th><th>Status</th><th>Tempo</th><th>Entrega</th></tr></thead>
+            <tbody>
+              <tr><td class="num"><a href="#">#1048</a></td><td>Marina S. · (77) •••••-8809</td><td><span class="tc-selo info"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Reservado</span></td><td class="num">11:24</td><td>Retirada</td></tr>
+              <tr><td class="num"><a href="#">#1047</a></td><td>Luana A. · (77) •••••-1221</td><td><span class="tc-selo ok"><svg aria-hidden="true"><use href="#i-ok"/></svg>Pago</span></td><td>—</td><td>Motoboy</td></tr>
+              <tr><td class="num"><a href="#">#1046</a></td><td>Ana C. · (77) •••••-4432</td><td><span class="tc-selo"><svg aria-hidden="true"><use href="#i-x"/></svg>Expirado</span></td><td>—</td><td>Envio</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+      <figcaption><b>7. Painel da loja</b><span>App <code>admin</code>, rota <code>/</code> · F10. O que precisa de ação aparece primeiro; números depois; a tabela por último.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===================================================================== D4 -->
+<section class="bloco" id="textos" aria-labelledby="h-txt">
+  <p class="rotulo">D4</p>
+  <h2 id="h-txt">Textos</h2>
+  <p>Mensagens de erro por código da API e as mensagens do WhatsApp. No código, os textos ficam num arquivo só (<code>packages/domain/textos.ts</code>), e a tela traduz o código de erro que a API devolve.</p>
+
+  <h3>Erros e avisos na tela</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Código</th><th>O que a cliente lê</th><th>Ação oferecida</th></tr></thead>
+    <tbody id="tabErros"></tbody>
+  </table></div>
+
+  <h3>Mensagens do WhatsApp</h3>
+  <p class="sub">As 5 essenciais têm 2 versões, sorteadas pela fila, para variar o texto e reduzir o risco de bloqueio do número (G5). Só o primeiro nome, nunca endereço nem telefone completo. O link é sempre do domínio da loja.</p>
+  <div class="grade" id="gradeWhats"></div>
+</section>
+
+<footer class="sub" style="padding-top:24px;font-size:14px">Proposta 1 do design, derivada do protótipo e do desenho técnico v10. Ao aprovar, os tokens deste arquivo viram o preset do Tailwind e os componentes entram em <code>packages/ui</code> na F1 e na F2.</footer>
+</div>
+
+<script>
+// Tabelas geradas de listas, para o conteúdo ficar num lugar só.
+(function(){
+  const el=(t,a={},...f)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='text')e.textContent=v;else e.setAttribute(k,v);}f.forEach(x=>x!=null&&e.append(x));return e;};
+  // Áreas com rolagem lateral recebem foco para quem usa teclado.
+  document.querySelectorAll('.tbl,pre').forEach(x=>{x.tabIndex=0;x.setAttribute('role','region');x.setAttribute('aria-label',(x.closest('section,figure')?.querySelector('h2,h3,b')?.textContent||'Conteúdo').trim());});
+
+  const TOKENS=[
+    ['--algodao','#F4F4F0','#12142A','Fundo da página',''],
+    ['--superficie','#FFFFFF','#1C1F3D','Cartões e campos',''],
+    ['--indigo','#1E2350','#EDECE6','Texto principal','13,5:1 · 13,5:1'],
+    ['--indigo-suave','#555A73','#A9ABC2','Texto secundário','6,2:1 · 7,1:1'],
+    ['--acao','#1E2350','#AEB6FF','Botão principal (texto em --no-acao)','14,9:1 · 9,4:1'],
+    ['--kraft','#D9B98C','#C9A571','Etiqueta de preço (texto índigo)','8,0:1 · 7,9:1'],
+    ['--promo','#C8102E','#FF7A8A','Preço e selo de promoção','5,9:1 · 6,4:1'],
+    ['--borda-campo','#8A8DA3','#6E7194','Contorno de campo','3,3:1 · 3,4:1'],
+    ['--foco','#E4572E','#FF8A5B','Anel de foco','3,7:1 · 6,9:1'],
+    ['--ok','#16704A','#6FD6A0','Pago, disponível, entregue','5,3:1 · 7,9:1'],
+    ['--aviso','#8A5300','#F2B45A','Últimas unidades, prazo acabando','5,6:1 · 7,9:1'],
+    ['--erro','#B4232C','#FF8A90','Erro, esgotado agora, bloqueio','5,5:1 · 6,9:1'],
+    ['--info','#27408B','#A9B8FF','Reservado, informação','8,0:1 · 7,7:1']
+  ];
+  const tb=document.getElementById('tabTokens');
+  TOKENS.forEach(([n,c,e,u,ct])=>{
+    const a=el('span',{class:'amostra'});a.style.background=c;
+    const b=el('span',{class:'amostra'});b.style.background=e;
+    tb.append(el('tr',{},el('td',{},el('code',{text:n})),el('td',{},el('span',{style:'display:flex;gap:8px;align-items:center'},a,el('code',{text:c}))),el('td',{},el('span',{style:'display:flex;gap:8px;align-items:center'},b,el('code',{text:e}))),el('td',{text:u}),el('td',{class:'num',text:ct||'—'})));
+  });
+
+  const ERROS=[
+    ['STOCK_UNAVAILABLE','Teddy Bleu acabou agora. Tire da sacola para continuar; o resto segue separado para você.','Ajustar a sacola (sem novo código)'],
+    ['PRICE_CHANGED','O preço mudou desde que você escolheu: agora o total é R$ 124,75.','Ver o novo total e confirmar'],
+    ['COUPON_NOT_BEST','Você já tem um desconto maior. O cupom fica guardado para outra compra.','—'],
+    ['OTP_INVALID','Código errado. Resta 1 tentativa com este código.','Digitar de novo'],
+    ['OTP_EXPIRED','Este código venceu. Peça outro pelo WhatsApp.','Pedir outro código'],
+    ['OTP_LOCKED','Muitas tentativas. Você pode pedir um código de novo às 14:52.','Voltar para a loja'],
+    ['PHONE_BLOCKED','Este número está com as reservas pausadas. Fale com a loja pelo WhatsApp (77) 99815-5772.','Abrir conversa'],
+    ['ACTIVE_RESERVATION_EXISTS','Você já tem a reserva #1048 aberta até 14:32. Conclua ou espere ela terminar para fazer outra.','Ir para a reserva #1048'],
+    ['WHATSAPP_OFFLINE','A confirmação pelo WhatsApp está fora do ar agora. Tente de novo em alguns minutos.','Tentar de novo'],
+    ['RATE_LIMITED','Muitas tentativas seguidas. Espere um minuto e tente de novo.','—'],
+    ['MAX_ITEMS','Cabem até 9 peças por reserva.','—'],
+    ['MAX_PER_MODEL','Até 2 peças do mesmo modelo por reserva.','—'],
+    ['DEADLINE_PASSED','O prazo desta reserva acabou; não dá para começar um pagamento novo.','Ver a reserva'],
+    ['METHOD_LOCKED','Esta reserva já começou pelo PIX; continue pelo PIX.','Mostrar o PIX'],
+    ['PAYMENT_IN_PROGRESS','Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro.','—'],
+    ['PHONE_VERIFICATION_REQUIRED','Para mexer na entrega, confirme que é você com um código pelo WhatsApp.','Receber código'],
+    ['QUOTE_EXPIRED','O prazo para pagar o frete venceu. A loja vai falar com você pelo WhatsApp.','Prefiro retirar na loja'],
+    ['NOT_FOUND','Não achamos esta reserva. Confira o link ou consulte pelo seu WhatsApp.','Consultar reservas'],
+    ['(sem internet)','Sem conexão. Sua reserva continua valendo; a tela atualiza quando a internet voltar.','Tentar de novo']
+  ];
+  const te=document.getElementById('tabErros');
+  ERROS.forEach(([c,t,a])=>te.append(el('tr',{},el('td',{},el('code',{text:c})),el('td',{text:t}),el('td',{text:a}))));
+
+  const WHATS=[
+    ['codigo_verificacao','Essencial',['Seu código da T-shirt Club é *482193*. Vale por 5 minutos. Não passe para ninguém.','Código de confirmação: *482193*. Digite no site para garantir suas peças. Ele vence em 5 minutos.']],
+    ['reserva_criada','Essencial',['Oi, Marina! Suas 3 peças estão guardadas até *14:32* (reserva #1048, R$ 119,76). Pague por aqui: tshirtclub.pt/r#k7Qm2xPz…','Reserva #1048 feita, Marina! Guardamos suas peças até *14:32*. Total R$ 119,76. Para pagar: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['reserva_lembrete_5min','Essencial',['Faltam 5 minutos: a reserva #1048 fica guardada até *14:32*. Se já pagou, pode ignorar.','Lembrete: suas peças da reserva #1048 ficam separadas só até *14:32*.']],
+    ['pagamento_confirmado','Essencial',['Pagamento confirmado! Pedido #1048, R$ 119,76 no PIX. Agora escolha como quer receber: tshirtclub.pt/r#k7Qm2xPz…','Recebemos seu pagamento, Marina! Pedido #1048 garantido. Falta só escolher a entrega: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['reserva_expirada','Essencial',['A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.pt','O prazo da reserva #1048 acabou e nada foi cobrado. As peças voltaram para a loja: tshirtclub.pt']],
+    ['numero_diferente','Resposta',['Este número não é o da reserva. Envie a mensagem pelo WhatsApp que você informou no site.']],
+    ['minha_reserva','Resposta',['Reserva #1048: guardada até 14:32 (faltam 11 min). 3 peças, R$ 119,76. Para pagar: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['cancelamento_recebido','Opcional',['Recebemos seu pedido de cancelamento da reserva #1048. A loja responde em breve; o prazo continua correndo até 14:32.']],
+    ['cancelamento_aprovado','Opcional',['Cancelamento aprovado: a reserva #1048 foi encerrada e nada foi cobrado.']],
+    ['cancelamento_recusado','Opcional',['A loja manteve a reserva #1048. Ela segue valendo até 14:32.']],
+    ['pagamento_em_analise','Opcional',['Seu pagamento chegou depois do prazo da reserva #1048. A loja vai conferir e falar com você por aqui.']],
+    ['entrega_confirmada','Opcional',['Entrega confirmada: retirada na loja. Avisamos quando o pedido #1048 estiver pronto.']],
+    ['frete_calculado','Opcional',['O frete do pedido #1048 ficou em R$ 12,00. Pague até *16:40* por aqui: tshirtclub.pt/r#k7Qm2xPz…']],
+    ['pronto_retirada','Opcional',['Pedido #1048 pronto! Retire na loja com seu nome, este WhatsApp e o código *Q4K7MX*.']],
+    ['saiu_entrega','Opcional',['O pedido #1048 saiu para entrega. Tenha alguém para receber.']],
+    ['pedido_enviado','Opcional',['O pedido #1048 foi enviado. Rastreio: AB123456789BR.']],
+    ['pedido_entregue','Opcional',['Pedido #1048 entregue. Obrigada por comprar na T-shirt Club!']],
+    ['telefone_bloqueado','Opcional',['Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a loja por aqui.']],
+    ['telefone_liberado','Opcional',['Tudo certo: você já pode fazer reservas de novo na T-shirt Club.']],
+    ['bloqueio_mantido','Opcional',['Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a loja por aqui se precisar.']]
+  ];
+  const gw=document.getElementById('gradeWhats');
+  WHATS.forEach(([id,tipo,versoes])=>{
+    const p=el('div',{class:'painel'},el('p',{class:'rotulo',text:tipo}),el('code',{text:id}));
+    versoes.forEach((v,i)=>{const s=el('span',{class:'whats'});s.append(...v.split(/\*([^*]+)\*/).map((t,k)=>k%2?el('b',{text:t}):t));p.append(el('div',{class:'msg-wa'},versoes.length>1?el('span',{class:'nota',text:`Versão ${i+1}`}):null,s));});
+    gw.append(p);
+  });
+})();
+</script>
+</body>
+</html>
