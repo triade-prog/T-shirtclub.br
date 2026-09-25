@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auditoria</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="active" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Área administrativa • auditoria</div><h1>Auditoria</h1><p class="muted">Tudo o que o sistema, a loja, as clientes e os provedores fizeram. O registro é permanente: não pode ser editado nem apagado, nem quando um contador é zerado.</p></div></div>
+  <section class="card">
+    <div class="toolbar">
+      <input id="q" style="max-width:260px" placeholder="Reserva, telefone ou texto" aria-label="Buscar">
+      <select id="actor" style="max-width:180px" aria-label="Quem fez"><option value="">Todos os autores</option><option>Sistema</option><option>Admin</option><option>Cliente</option><option>Provedor</option></select>
+      <select id="area" style="max-width:200px" aria-label="Assunto"><option value="">Todos os assuntos</option><option>Reserva</option><option>Pagamento</option><option>Estoque</option><option>Promoção</option><option>Bloqueio</option><option>WhatsApp</option><option>Acesso</option></select>
+      <select id="period" style="max-width:170px" aria-label="Período"><option value="1">Hoje</option><option value="7" selected>Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Quando</th><th>Quem</th><th>Assunto</th><th>O que aconteceu</th><th>Referência</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="hint" id="count"></p>
+  </section>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/21-admin-auditoria.js"></script>
+</body>
+</html>
