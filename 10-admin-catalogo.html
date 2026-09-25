@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catálogo</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="active" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero">
+    <div><div class="kicker">Área administrativa • catálogo</div><h1>Catálogo</h1><p class="muted">Produtos, coleções e preço fixo de cada peça. Todas as peças são de <strong>tamanho único</strong>. Descontos e preços promocionais ficam em <a href="14-admin-promocoes.html"><strong>Promoções</strong></a>; quantidades, em <a href="11-admin-estoque.html"><strong>Estoque</strong></a>.</p></div>
+    <div class="toolbar"><button class="btn" id="newProduct">+ Novo produto</button></div>
+  </div>
+
+  <section class="card">
+    <div class="toolbar">
+      <input id="search" style="max-width:280px" placeholder="Nome ou código" aria-label="Buscar produto">
+      <select id="filterCollection" style="max-width:220px" aria-label="Coleção"><option value="">Todas as coleções</option></select>
+      <select id="filterActive" style="max-width:200px" aria-label="Situação na loja"><option value="">Ativos e inativos</option><option value="1">Só ativos na loja</option><option value="0">Só inativos</option></select>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th><span class="sr-only">Foto</span></th><th>Produto</th><th>Coleção</th><th class="num">Preço</th><th>Promoções ativas</th><th class="num">Disponível</th><th>Na loja</th><th><span class="sr-only">Ações</span></th></tr></thead>
+        <tbody id="productRows"></tbody>
+      </table>
+    </div>
+    <p class="hint">A regra "máximo 2 do mesmo modelo por reserva" vale por produto.</p>
+  </section>
+
+  <section class="card soft" style="margin-top:16px">
+    <h2>Coleções</h2>
+    <div class="toolbar" id="collectionList"></div>
+    <form class="toolbar" id="collectionForm" style="margin-top:12px" novalidate>
+      <input id="newCollectionName" style="max-width:260px" placeholder="Nome da nova coleção" aria-label="Nome da nova coleção">
+      <button class="btn secondary" type="submit">+ Adicionar coleção</button>
+    </form>
+  </section>
+
+  <div class="modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+    <form class="modal-box wide" id="productForm" novalidate>
+      <h2 id="productModalTitle">Novo produto</h2>
+      <div class="grid grid-2">
+        <div class="field"><label for="pNome">Nome</label><input id="pNome" required placeholder="Ex.: Teddy Rose"></div>
+        <div class="field"><label for="pCodigo">Código</label><input id="pCodigo" required placeholder="Ex.: TED-ROSE" style="text-transform:uppercase"></div>
+        <div class="field"><label for="pColecao">Coleção</label><select id="pColecao"></select></div>
+        <div class="field"><label for="pPreco">Preço fixo (R$)</label><input id="pPreco" inputmode="decimal" placeholder="49,90"></div>
+      </div>
+      <div class="toolbar" style="margin-top:14px">
+        <label class="switch"><input type="checkbox" id="pAtivo" checked> Visível na loja</label>
+      </div>
+      <p class="hint">Produto novo começa com 0 unidades. A entrada é lançada na tela Estoque.</p>
+      <div class="field" style="margin-top:10px"><label for="pFotos">Fotos</label><input id="pFotos" type="file" accept="image/*" multiple style="padding-top:10px"></div>
+      <div class="notice warn" id="deactivateWarn" hidden style="margin-top:12px">Ao tirar da loja, o produto some do catálogo. Reservas já criadas com ele continuam válidas até pagar ou expirar.</div>
+      <div class="notice" id="priceNote" hidden style="margin-top:12px">Mudar o preço não altera reservas já criadas: o valor fica congelado na reserva.</div>
+      <div class="toolbar" style="margin-top:16px"><button class="btn" type="submit">Salvar produto</button><button class="btn ghost" type="button" id="closeProduct">Cancelar</button></div>
+    </form>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/10-admin-catalogo.js"></script>
+</body>
+</html>

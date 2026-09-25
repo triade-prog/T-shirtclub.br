@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cálculo de frete</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="active" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero">
+    <div><div class="kicker">Área administrativa • entrega</div><h1>Cálculo de frete</h1><p class="muted">Pedidos já pagos com entrega por motoboy ou envio para outra cidade. O frete é informado aqui e cobrado num segundo pagamento, com prazo de <strong>2 horas</strong>. Retirada não passa por esta tela.</p></div>
+  </div>
+
+  <div class="grid grid-4" id="stats"></div>
+
+  <section class="card" style="margin-top:16px">
+    <div class="toolbar">
+      <select id="filterStatus" style="max-width:260px" aria-label="Situação do frete">
+        <option value="">Todas as situações</option>
+        <option value="AGUARDANDO_CALCULO">Aguardando cálculo</option>
+        <option value="AGUARDANDO_PAGAMENTO">Aguardando pagamento</option>
+        <option value="VENCIDO">Prazo vencido</option>
+        <option value="PAGO">Frete pago</option>
+      </select>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Pedido</th><th>Cliente</th><th>Modalidade</th><th>Destino</th><th class="num">Frete</th><th>Situação</th><th>Prazo para pagar</th><th><span class="sr-only">Ações</span></th></tr></thead>
+        <tbody id="freightRows"></tbody>
+      </table>
+    </div>
+    <p class="hint">Se a cliente trocar a modalidade para retirada antes de pagar, o pedido sai desta fila e a cotação é cancelada.</p>
+  </section>
+
+  <div class="notice" style="margin-top:16px"><strong>Frete não pago em 2 horas (decisão D8):</strong> o pedido continua pago, fica em "Prazo vencido" e aparece como alerta no painel. Nada acontece automaticamente: o administrador recalcula ou combina com a cliente.</div>
+
+  <div class="modal" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
+    <form class="modal-box wide" id="quoteForm" novalidate>
+      <h2 id="quoteTitle">Informar frete</h2>
+      <div class="grid grid-2">
+        <div class="card soft"><h3>Pedido</h3><div id="quoteOrder" class="muted"></div></div>
+        <div class="card soft"><h3>Endereço informado pela cliente</h3><div id="quoteAddress" class="muted"></div></div>
+      </div>
+      <div class="grid grid-2" style="margin-top:14px">
+        <div class="field"><label for="qValor">Valor do frete (R$)</label><input id="qValor" inputmode="decimal" placeholder="Ex.: 12,00"></div>
+        <div class="field" id="qPrazoField"><label for="qPrazo">Prazo estimado de entrega (dias úteis)</label><input id="qPrazo" type="number" min="1" step="1" placeholder="Ex.: 5"></div>
+      </div>
+      <div class="field" style="margin-top:10px"><label for="qObs">Observação para a cliente (opcional)</label><input id="qObs" placeholder="Ex.: entrega no período da tarde"></div>
+      <div class="notice" id="quotePreview" style="margin-top:12px"></div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn" type="submit">Enviar frete para a cliente</button><button class="btn ghost" type="button" id="closeQuote">Cancelar</button></div>
+    </form>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/13-admin-frete.js"></script>
+</body>
+</html>

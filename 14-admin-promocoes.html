@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Promoções</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+<link rel="stylesheet" href="assets/css/promocoes.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="active" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Área administrativa • promoções</div><h1>Promoções</h1><p class="muted">Todas as peças têm preço fixo no catálogo. Aqui a loja cria preços promocionais, descontos progressivos e cupons, cada um com seu período.</p></div></div>
+
+  <div class="grid grid-3">
+    <h2 class="sr-only">Criar promoção</h2>
+    <a class="card citron" href="15-admin-desconto-produto.html"><h3>+ Desconto do produto</h3><p style="margin:0">Porcentagem ou preço fixo em produtos escolhidos.</p></a>
+    <a class="card" href="16-admin-compre-mais.html"><h3>+ Compre e economize mais</h3><p class="muted" style="margin:0">Desconto por quantidade de peças, em níveis.</p></a>
+    <a class="card" href="17-admin-cupom.html"><h3>+ Cupom</h3><p class="muted" style="margin:0">Código com valor ou porcentagem, limite de uso.</p></a>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <div class="toolbar">
+      <select id="filterType" style="max-width:260px" aria-label="Tipo"><option value="">Todos os tipos</option><option value="DESCONTO_PRODUTO">Desconto do produto</option><option value="COMPRE_MAIS">Compre e economize mais</option><option value="CUPOM">Cupom</option></select>
+      <select id="filterStatus" style="max-width:220px" aria-label="Situação"><option value="">Todas as situações</option><option>Ativa</option><option>Agendada</option><option>Encerrada</option></select>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Promoção</th><th>Tipo</th><th>Regra</th><th>Vale para</th><th>Período</th><th>Situação</th><th><span class="sr-only">Ações</span></th></tr></thead>
+        <tbody id="promoRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card soft" style="margin-top:16px">
+    <h2>Como as promoções se combinam numa reserva</h2>
+    <p class="muted">Regra decidida: <strong>vale só a promoção mais vantajosa</strong>, sem somar. O preço é calculado no servidor e fica congelado quando a reserva é criada.</p>
+    <ol class="stack-order">
+      <li><span>O sistema calcula o total da reserva com cada promoção que se aplica: cada desconto do produto, cada "compre e economize mais" e o cupom digitado, se houver.</span></li>
+      <li><span>Aplica só a que deixa o total <strong>menor</strong>. As outras não entram.</span></li>
+      <li><span>Se a cliente digitar um cupom e outra promoção for melhor, o cupom não é usado e não gasta o limite dela. A tela avisa: "Você já tem um desconto maior".</span></li>
+      <li><span>Uso de cupom e orçamento de promoção ficam presos enquanto a reserva está em Reservado e voltam se ela expirar.</span></li>
+    </ol>
+  </section>
+
+  <div class="modal" id="endModal" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="modal-box">
+      <h2 id="endTitle">Encerrar promoção?</h2>
+      <p class="muted" id="endText"></p>
+      <div class="toolbar" style="margin-top:14px"><button class="btn danger" type="button" id="confirmEnd">Encerrar agora</button><button class="btn ghost" type="button" id="closeEnd">Voltar</button></div>
+    </div>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/14-admin-promocoes.js"></script>
+</body>
+</html>

@@ -4,142 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Painel administrativo</title>
-<style>
-:root {
-  --citron:#D7FF3F;
-  --pink:#FF4FA3;
-  --ink:#161616;
-  --paper:#FFFDF8;
-  --muted:#6D6A66;
-  --line:#E7E2D9;
-  --soft:#F6F2EA;
-  --success:#187A45;
-  --warning:#A65A00;
-  --danger:#A62E2E;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;
-  font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:var(--paper);
-  color:var(--ink);
-}
-a{color:inherit;text-decoration:none}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.shell{width:min(1180px,calc(100% - 28px));margin:0 auto}
-.topbar{
-  position:sticky;top:0;z-index:20;
-  border-bottom:1px solid var(--line);
-  background:rgba(255,253,248,.94);
-  backdrop-filter:blur(12px);
-}
-.topbar-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.02em}
-.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--citron);border:2px solid var(--ink);position:relative}
-.brand-mark:after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:var(--pink);right:-4px;top:-4px;border:2px solid var(--ink)}
-.nav{display:flex;gap:8px;flex-wrap:wrap}
-.nav a{padding:9px 12px;border-radius:999px;color:var(--muted);font-size:13px;font-weight:800}
-.nav a.active,.nav a:hover{background:var(--ink);color:#fff}
-main{padding:28px 0 54px}
-.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap}
-.kicker{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--pink)}
-h1{font-size:clamp(30px,4.5vw,56px);line-height:.98;margin:6px 0 10px;letter-spacing:-.045em}
-h2{font-size:22px;line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}
-h3{font-size:16px;margin:0 0 8px}
-p{line-height:1.55}
-.muted{color:var(--muted)}
-.grid{display:grid;gap:16px}
-.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px}
-.card.soft{background:var(--soft)}
-.card.citron{background:var(--citron);border-color:var(--ink)}
-.card.pink{background:var(--pink);color:#fff;border-color:var(--ink)}
-.btn{border:1.5px solid var(--ink);background:var(--ink);color:#fff;min-height:46px;padding:0 16px;border-radius:13px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn.secondary{background:#fff;color:var(--ink)}
-.btn.citron{background:var(--citron);color:var(--ink)}
-.btn.pink{background:var(--pink);color:#fff}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.btn.danger{background:#fff;color:var(--danger);border-color:#E5BABA}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.field{display:grid;gap:7px}
-label{font-size:13px;font-weight:900}
-input,select,textarea{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 13px;color:var(--ink);outline:none}
-textarea{padding:12px;min-height:100px;resize:vertical}
-input:focus,select:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
-.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:900;background:var(--soft);border:1px solid var(--line)}
-.badge.success{color:var(--success);background:#ECF8F1;border-color:#BFE3CE}
-.badge.warning{color:var(--warning);background:#FFF6E7;border-color:#F2D4A5}
-.badge.danger{color:var(--danger);background:#FFF0F0;border-color:#EABBBB}
-.badge.pink{background:#FFEAF4;color:#A81E60;border-color:#F7B9D5}
-.badge.citron{background:var(--citron);border-color:#B7D629}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.sep{height:1px;background:var(--line);margin:16px 0}
-.list{display:grid;gap:10px}
-.row{display:flex;gap:12px;align-items:center;justify-content:space-between;min-width:0}
-.row > *{min-width:0}
-.price{font-size:20px;font-weight:950}
-.strike{text-decoration:line-through;color:var(--muted);font-size:13px}
-.notice{border-left:4px solid var(--citron);background:#FCFFE8;padding:13px 14px;border-radius:10px;font-size:14px}
-.notice.pink{border-left-color:var(--pink);background:#FFF2F8}
-.notice.warn{border-left-color:#F0A000;background:#FFF8EA}
-.notice.danger{border-left-color:var(--danger);background:#FFF1F1}
-.stat{padding:16px;border-radius:16px;background:#fff;border:1px solid var(--line)}
-.stat .value{font-size:28px;font-weight:950;letter-spacing:-.04em}
-.stat .label{font-size:12px;color:var(--muted);font-weight:800}
-table{width:100%;border-collapse:collapse}
-th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
-.steps{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.step{padding:8px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:900}
-.step.current{background:var(--ink);color:#fff;border-color:var(--ink)}
-.step.done{background:var(--citron);border-color:#AFCB30}
-.arrow{color:var(--muted);font-weight:900}
-.footer{border-top:1px solid var(--line);padding:18px 0 34px;color:var(--muted);font-size:12px}
-.product-media{aspect-ratio:4/5;border-radius:16px;background:linear-gradient(145deg,#faf8f2,#ece8df);display:grid;place-items:center;border:1px solid var(--line);overflow:hidden;position:relative}
-.product-media .dot{position:absolute;width:72px;height:72px;border-radius:50%;background:var(--pink);opacity:.16;right:8%;top:8%}
-.product-media svg{width:62%;height:62%}
-.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.qty button{width:36px;height:36px;border:0;background:#fff;font-weight:900}
-.qty span{width:34px;text-align:center;font-weight:900}
-.timer{font-variant-numeric:tabular-nums;font-size:clamp(34px,6vw,64px);font-weight:950;letter-spacing:-.05em}
-.progress{height:9px;border-radius:999px;background:#ECE9E2;overflow:hidden}
-.progress > div{height:100%;background:var(--pink);width:100%;transition:width 1s linear}
-.timeline{display:grid;gap:0}
-.timeline-item{display:grid;grid-template-columns:28px 1fr;gap:12px}
-.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--ink);margin:5px auto 0}
-.timeline-line{width:2px;background:var(--line);min-height:34px;margin:0 auto}
-.timeline-copy{padding-bottom:14px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:60}
-.modal.open{display:flex}
-.modal-box{width:min(520px,100%);background:#fff;border-radius:20px;border:1px solid var(--line);padding:20px}
-.code-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-.code-grid input{text-align:center;font-size:22px;font-weight:900;padding:0;min-width:0}
-.toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;display:none;z-index:80;font-size:13px;font-weight:800}
-.toast.show{display:block}
-.flow{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px;align-items:stretch}
-.flow-node{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fff}
-.flow-node strong{display:block;margin-bottom:6px}
-.flow-node.active{border:2px solid var(--ink);background:var(--citron)}
-@media(max-width:900px){
-  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .flow{grid-template-columns:1fr}
-}
-@media(max-width:640px){
-  .nav{display:none}
-  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
-  .hero{align-items:flex-start}
-  main{padding-top:20px}
-  .card{padding:15px}
-  .row{align-items:flex-start}
-  .code-grid{gap:5px}
-}
-</style>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
 <header class="topbar">
@@ -150,7 +16,8 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 </header>
 
 <main><div class="shell">
-  <div class="hero"><div><div class="kicker">Área administrativa • página 1 de 3</div><h1>Painel de reservas</h1><p class="muted">Todos os usuários administrativos têm as mesmas permissões no MVP. Todas as ações relevantes ficam em auditoria.</p></div><a class="btn secondary" href="08-admin-bloqueados.html">Ver telefones bloqueados</a></div>
+  <nav class="subnav" aria-label="Seções do painel"><a class="active" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Área administrativa • painel</div><h1>Painel de reservas</h1><p class="muted">Todos os usuários administrativos têm as mesmas permissões no MVP. Todas as ações relevantes ficam em auditoria.</p></div><a class="btn secondary" href="08-admin-bloqueados.html">Ver telefones bloqueados</a></div>
   <div class="grid grid-4">
     <div class="stat"><div class="value">12</div><div class="label">reservas ativas</div></div>
     <div class="stat"><div class="value">8</div><div class="label">pagamentos confirmados</div></div>
@@ -160,7 +27,7 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
   <section class="card" style="margin-top:16px">
     <div class="toolbar">
       <input id="search" style="max-width:320px" placeholder="Reserva, cliente ou telefone">
-      <select id="status"><option>Todos os status</option><option>Reservado</option><option>Pagamento confirmado</option><option>Expirado</option><option>Entregue</option></select>
+      <select id="status" aria-label="Filtrar por status"><option>Todos os status</option><option>Reservado</option><option>Pagamento confirmado</option><option>Expirado</option><option>Entregue</option></select>
       <button class="btn secondary" id="filterBtn">Filtrar</button>
     </div>
     <div class="table-wrap" style="margin-top:14px">
@@ -174,21 +41,19 @@ th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
   </section>
   <section class="card soft" style="margin-top:16px">
     <h2>Alertas operacionais</h2>
-    <div class="grid grid-3">
+    <div class="grid grid-2">
       <div class="notice warn"><strong>2 cancelamentos</strong><br>Aguardando decisão administrativa. O cronômetro continua correndo.</div>
-      <div class="notice pink"><strong>1 pagamento fora da tolerância</strong><br>Enviar para análise administrativa antes de confirmar.</div>
-      <div class="notice"><strong>3 fretes aguardando pagamento</strong><br>Prazo máximo de 2 horas após cálculo.</div>
+      <a class="notice pink" href="12-admin-pagamentos-analise.html"><strong>2 pagamentos em análise</strong><br>Aprovados fora do prazo. Estornar ou converter em novo pedido →</a>
+      <a class="notice" href="18-admin-whatsapp.html"><strong>WhatsApp conectado</strong><br>Fila vazia. Veja conexão e notificações →</a>
+      <a class="notice" href="13-admin-frete.html"><strong>3 fretes pendentes</strong><br>1 aguardando cálculo, 1 perto de vencer, 1 vencido →</a>
     </div>
   </section>
 </div></main>
 
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
 <script>
-function toast(msg){
-  const t=document.getElementById('toast'); if(!t)return;
-  t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);
-}
 document.getElementById('filterBtn').addEventListener('click',()=>toast('Filtros aplicados no protótipo.'));
 </script>
 </body>

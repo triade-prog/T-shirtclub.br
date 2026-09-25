@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha conta</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="active" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Área administrativa • conta</div><h1>Minha conta</h1><p class="muted">carol@tshirtclub.pt · administradora</p></div></div>
+  <div class="grid grid-2">
+    <form class="card" id="pwForm" novalidate>
+      <h2>Trocar senha</h2>
+      <div class="field"><label for="cur">Senha atual</label><input id="cur" type="password" autocomplete="current-password"></div>
+      <div class="field" style="margin-top:10px"><label for="nw">Nova senha</label><input id="nw" type="password" autocomplete="new-password" aria-describedby="rules"></div>
+      <ul class="checklist" id="rules"></ul>
+      <div class="field" style="margin-top:10px"><label for="cf">Repita a nova senha</label><input id="cf" type="password" autocomplete="new-password"></div>
+      <button class="btn" type="submit" style="margin-top:14px">Salvar nova senha</button>
+      <p class="hint">Ao salvar, a senha também é conferida numa lista de senhas vazadas. Os outros aparelhos conectados saem da conta, e você recebe um e-mail avisando da troca.</p>
+    </form>
+    <section class="card soft">
+      <h2>Aparelhos conectados</h2>
+      <div class="list" id="sessions"></div>
+      <button class="btn danger" type="button" id="logoutAll" style="margin-top:12px">Sair de todos os outros aparelhos</button>
+      <div class="sep"></div>
+      <h3>Esqueceu a senha?</h3>
+      <p class="muted" style="margin:0">Na tela de login, use "Esqueci minha senha": o link de redefinição chega no e-mail da conta.</p>
+    </section>
+    <section class="card">
+      <h2>Autenticador</h2>
+      <p class="muted" style="margin-top:0">Obrigatório para entrar no painel. Mantenha dois cadastrados: se perder um celular, o outro continua funcionando.</p>
+      <div class="list" id="factors"></div>
+      <button class="btn secondary" type="button" id="addFactor" style="margin-top:12px">Adicionar autenticador</button>
+      <p class="hint">Para remover um autenticador, digite um código de outro que continue cadastrado.</p>
+    </section>
+  </div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/22-admin-conta.js"></script>
+</body>
+</html>

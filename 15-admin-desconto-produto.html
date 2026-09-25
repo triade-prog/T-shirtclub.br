@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Criar desconto do produto</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+<link rel="stylesheet" href="assets/css/promocoes.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="active" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="21-admin-auditoria.html">Auditoria</a><a class="" href="22-admin-conta.html">Minha conta</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Promoções • nova</div><h1>Criar desconto do produto</h1><p class="muted">Preço promocional por produto, por porcentagem ou preço fixo, dentro de um período.</p></div><a class="btn secondary" href="14-admin-promocoes.html">← Promoções</a></div>
+  <form class="promo-form" id="form" novalidate>
+    <section class="psec">
+      <div class="prow"><label class="lbl" for="nome">Nome da promoção <span class="counter" id="nomeCount"></span></label><input type="text" id="nome"></div>
+      <div class="prow"><label class="lbl" for="inicio">Hora de início</label><div class="dt"><input type="datetime-local" id="inicio"></div></div>
+      <div class="prow"><label class="lbl" for="fim">Hora final</label><div class="dt"><input type="datetime-local" id="fim"></div></div>
+      <div class="prow"><span class="lbl">Tipo de desconto</span>
+        <div class="radios" role="radiogroup" aria-label="Tipo de desconto">
+          <label><input type="radio" name="modo" value="PERCENTUAL" checked> Porcentagem de desconto</label>
+          <label><input type="radio" name="modo" value="PRECO_FIXO"> Preço fixo</label>
+        </div></div>
+    </section>
+    <section class="psec">
+      <div class="prow"><button type="button" class="picked link-reset" id="pickBtn" style="background:none;border:0;padding:0;text-align:left;width:100%"><span>Produtos</span><small id="pickSummary">Clique para selecionar ›</small></button></div>
+      <div class="prow" id="valuesRow" hidden><span class="lbl" id="valuesLabel"></span><div class="prod-values" id="values"></div>
+        <p class="hint" style="margin:0">Um produto não pode estar em dois descontos do produto no mesmo período.</p></div>
+    </section>
+  </form>
+  <div class="publish-bar"><button class="btn" type="submit" form="form" id="publish">Publicar</button></div>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/dados-exemplo.js"></script>
+<script src="assets/js/componentes/formulario-promocao.js"></script>
+<script src="assets/js/componentes/seletor-produtos.js"></script>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/15-admin-desconto-produto.js"></script>
+</body>
+</html>
