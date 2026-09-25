@@ -14,7 +14,8 @@
     1. Mude o "status" do item: "pendente" | "andamento" | "feito" | "bloqueado".
        Em "feito", preencha "evidencia" (commit, PR ou teste que comprova).
        Em "bloqueado", preencha "nota" com o motivo.
-    2. Atualize "meta.atualizado_em" e "meta.situacao".
+    2. Atualize "meta.atualizado_em" e "meta.situacao". Quando a loja liberar uma fase,
+       ponha o id dela em "meta.fase_atual" (ex.: "F1"); enquanto for null, o painel mostra a próxima fase.
     3. Acrescente uma linha no topo de "historico".
   Os achados G1–G24 não têm status próprio: o status de cada um é calculado
   a partir de todos os itens (entregas, testes, publicação, dependências) que o citam em "refs".
@@ -25,6 +26,7 @@
     "atualizado_em": "25/09/2026",
     "arquitetura_versao": 9,
     "situacao": "Aguardando liberação da F1",
+    "fase_atual": null,
     "proximo_passo": "A loja libera a F1 (Fundação). Até lá, nenhum código de produção é escrito."
   },
   "fases": [
@@ -125,28 +127,28 @@
     {"id":"T1","texto":"50 confirmações simultâneas para a última unidade: exatamente 1 reserva","fase":"F4","refs":[],"status":"pendente"},
     {"id":"T2","texto":"Carrinho com 1 item sem estoque: nenhuma reserva, nenhum estoque alterado","fase":"F4","refs":[],"status":"pendente"},
     {"id":"T3","texto":"Duas abas do mesmo telefone confirmando juntas: 1 reserva","fase":"F4","refs":[],"status":"pendente"},
-    {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12"],"status":"pendente"},
+    {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12","G18"],"status":"pendente"},
     {"id":"T5","texto":"Transições proibidas direto no SQL: o gatilho rejeita","fase":"F1","refs":[],"status":"pendente"},
-    {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":[],"status":"pendente"},
+    {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":["G18"],"status":"pendente"},
     {"id":"T7","texto":"Senha certa sem código do autenticador: 403 em todo o painel","fase":"F2","refs":["G7"],"status":"pendente"},
-    {"id":"T8","texto":"5 senhas erradas de outro IP: o administrador continua entrando","fase":"F2","refs":["G7"],"status":"pendente"},
+    {"id":"T8","texto":"5 senhas erradas de outro IP: o administrador continua entrando","fase":"F2","refs":["G7","G18"],"status":"pendente"},
     {"id":"T9","texto":"2 erros, 2 reenvios, 2 erros no último código: bloqueio de 30 min","fase":"F3","refs":[],"status":"pendente"},
-    {"id":"T10","texto":"Webhook da Z-API com fromMe, grupo, LID, antigo ou repetido: ignorado","fase":"F3","refs":["G4"],"status":"pendente"},
-    {"id":"T11","texto":"Remetente com e sem o nono dígito: mesmo telefone","fase":"F3","refs":[],"status":"pendente"},
-    {"id":"T12","texto":"Código colado com espaço ou traço: aceito","fase":"F3","refs":["G8"],"status":"pendente"},
-    {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5"],"status":"pendente"},
+    {"id":"T10","texto":"Webhook da Z-API com fromMe, grupo, LID, antigo ou repetido: ignorado","fase":"F3","refs":["G4","G18"],"status":"pendente"},
+    {"id":"T11","texto":"Remetente com e sem o nono dígito: mesmo telefone","fase":"F3","refs":["G18"],"status":"pendente"},
+    {"id":"T12","texto":"Código colado com espaço ou traço: aceito","fase":"F3","refs":["G8","G18"],"status":"pendente"},
+    {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5","G18"],"status":"pendente"},
     {"id":"T14","texto":"3 expirações, liberação, nova expiração: contador recomeça","fase":"F5","refs":[],"status":"pendente"},
     {"id":"T15","texto":"Mesmo webhook de aprovação 10 vezes: vende 1 vez","fase":"F6","refs":[],"status":"pendente"},
     {"id":"T16","texto":"Aprovação e expiração no mesmo instante: resultado consistente","fase":"F6","refs":[],"status":"pendente"},
     {"id":"T17","texto":"PIX criado aos 14min59s e aprovado aos 19min30s: confirma","fase":"F6","refs":[],"status":"pendente"},
     {"id":"T18","texto":"Mesmo PIX aprovado aos 20min01s: expirado e em análise","fase":"F6","refs":[],"status":"pendente"},
-    {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3"],"status":"pendente"},
-    {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3"],"status":"pendente"},
-    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2"],"status":"pendente"},
+    {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"pendente"},
+    {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"pendente"},
+    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"pendente"},
     {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
-    {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6"],"status":"pendente"},
+    {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
     {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
-    {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":[],"status":"pendente"}
+    {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"}
   ],
   "publicacao": [
     {"grupo":"Contas e ambiente","itens":[
@@ -237,7 +239,8 @@
     ["D15","Endereço guardado por 90 dias após a entrega"]
   ],
   "historico": [
-    {"data":"25/09/2026","texto":"Painel de execução criado. F1 aguardando liberação da loja."},
+    {"data":"25/09/2026","texto":"Painel validado com as habilidades code-review, dataviz e simplify; correções aplicadas."},
+    {"data":"25/09/2026","texto":"Painel de execução criado. F1 aguardando liberação da loja.","ref":"a566824"},
     {"data":"25/09/2026","texto":"Decisões D12 a D15 registradas; desenho técnico na versão 9.","ref":"b857477"},
     {"data":"25/09/2026","texto":"Revisão geral: 24 achados (G1 a G24); desenho técnico na versão 8; protótipo corrigido.","ref":"9c204bb"},
     {"data":"25/09/2026","texto":"Desenho técnico v7 e resumo de contexto.","ref":"96dc2da"}
@@ -253,7 +256,7 @@
   --s-and:#8a5208; --s-and-bg:#fbefdc;
   --s-feito:#1d6b42; --s-feito-bg:#e1f2e8;
   --s-bloq:#a52a27; --s-bloq-bg:#fbe4e3;
-  --g-crit:#a52a27; --g-alto:#8a5208; --g-med:#2c5d9e; --g-baixo:#566070;
+  --g-crit:var(--s-bloq); --g-alto:var(--s-and); --g-med:#2c5d9e; --g-baixo:var(--muted);
   --track:#e3e7ec;
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -267,7 +270,7 @@
     --s-and:#e0a04a; --s-and-bg:#33260f;
     --s-feito:#5cc58c; --s-feito-bg:#12291d;
     --s-bloq:#ef7773; --s-bloq-bg:#3a1a19;
-    --g-crit:#ef7773; --g-alto:#e0a04a; --g-med:#79a7e6; --g-baixo:#9aa4b2;
+    --g-med:#79a7e6;
     --track:#262e38;
   }
 }
@@ -279,7 +282,7 @@
   --s-and:#e0a04a; --s-and-bg:#33260f;
   --s-feito:#5cc58c; --s-feito-bg:#12291d;
   --s-bloq:#ef7773; --s-bloq-bg:#3a1a19;
-  --g-crit:#ef7773; --g-alto:#e0a04a; --g-med:#79a7e6; --g-baixo:#9aa4b2;
+  --g-med:#79a7e6;
   --track:#262e38;
 }
 *{box-sizing:border-box}
@@ -315,52 +318,64 @@ code,.mono{font-family:var(--mono);font-size:.88em}
 @media (min-width:760px){.now{grid-template-columns:1.2fr 1fr}}
 .now .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .now .big{font-size:20px;font-weight:600;margin-top:2px}
-.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
 .num{background:var(--surface-2);border-radius:8px;padding:10px}
-.num b{display:block;font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.num b{display:block;font-size:24px;font-weight:600;line-height:1.2}
 .num span{font-size:12px;color:var(--muted)}
-@media (max-width:480px){.nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.num b small{font-size:14px;font-weight:500;color:var(--muted)}
 
-/* barra de progresso */
-.bar{height:8px;border-radius:999px;background:var(--track);overflow:hidden;display:flex}
-.bar i{display:block;height:100%}
-.bar .f{background:var(--s-feito)} .bar .a{background:var(--s-and)} .bar .b{background:var(--s-bloq)}
+/* barra de progresso: segmentos separados por 2px da superfície; bloqueado leva textura,
+   para o status não depender só da cor (âmbar e vermelho se confundem em daltonismo). */
+.bar{height:10px;border-radius:4px;overflow:hidden;display:flex;gap:2px;background:var(--surface)}
+.bar i{display:block;height:100%;min-width:3px;flex-grow:1}
+.bar .feito{background:var(--s-feito)} .bar .andamento{background:var(--s-and)}
+.bar .bloqueado{background:repeating-linear-gradient(135deg,var(--s-bloq) 0 3px,var(--s-bloq-bg) 3px 5px)}
+.bar .pendente{background:var(--track)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin:0;padding:0;list-style:none}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.legend .bar{width:16px}
+.sit-barra{display:grid;gap:6px}
 
 /* status */
 .st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;background:var(--s-pend-bg);color:var(--s-pend)}
-.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st .ic{font-size:11px;line-height:1;width:1em;text-align:center}
 .st.andamento{background:var(--s-and-bg);color:var(--s-and)}
 .st.feito{background:var(--s-feito-bg);color:var(--s-feito)}
 .st.bloqueado{background:var(--s-bloq-bg);color:var(--s-bloq)}
-.st.pendente::before{background:transparent;border:1.5px solid currentColor;width:5px;height:5px}
 
 /* filtros */
 .filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.filters span{font-size:13px;color:var(--muted);margin-right:4px}
-.chip{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;min-height:36px;cursor:pointer}
+.chip{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;min-height:44px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 
 /* fases */
 .phases{display:grid;gap:10px}
 details.phase{background:var(--surface);border:1px solid var(--line);border-radius:10px}
 details.phase[data-atual="1"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-details.phase summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:52px 1fr auto;gap:4px 12px;align-items:center}
+details.phase{--pid-col:52px}
+details.phase summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:var(--pid-col) 1fr auto;gap:4px 12px;align-items:center}
 details.phase summary::-webkit-details-marker{display:none}
 .pid{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:15px}
 .pname{font-weight:600}
 .pcount{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
 details.phase summary .bar{grid-column:2 / 4}
-details.phase summary .obj{grid-column:2 / 4;font-size:13.5px;color:var(--muted)}
+.obj{font-size:13.5px;color:var(--muted);padding:0 16px 10px calc(16px + var(--pid-col) + 12px)}
+@media (max-width:480px){.obj{padding-left:16px}}
+.filtro-info{font-size:13.5px;color:var(--muted)}
+.aviso{border:1px solid var(--s-bloq);background:var(--s-bloq-bg);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:14px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .badge-atual{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-left:8px}
-.items{list-style:none;margin:0;padding:0 16px 14px;display:grid;gap:0}
+.items{list-style:none;margin:0;padding:0 16px 14px;display:grid}
 .item{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
-.item .iid{font-family:var(--mono);font-size:12.5px;color:var(--muted);padding-top:2px;min-width:44px}
+.iid{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.item .iid{padding-top:2px;min-width:44px}
 .item .body{display:grid;gap:4px}
 .item .foot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted)}
 .ref{font-family:var(--mono);font-size:12px;background:var(--surface-2);border-radius:4px;padding:0 5px;color:var(--ink);text-decoration:none}
 a.ref:hover{text-decoration:underline}
 .note{font-size:13px;color:var(--s-bloq)}
 .evid{font-size:12.5px;color:var(--s-feito)}
+.note,.evid{display:block;flex-basis:100%}
 
 /* tabelas */
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
@@ -387,7 +402,7 @@ td.id{font-family:var(--mono);font-size:13px;white-space:nowrap}
 .decs b{font-family:var(--mono);color:var(--accent);font-weight:600}
 
 /* histórico */
-ol.log{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+ol.log{list-style:none;margin:0 0 0 6px;padding:0;display:grid;border-left:2px solid var(--line)}
 ol.log li{position:relative;padding:4px 0 12px 18px;font-size:14px}
 ol.log li::before{content:"";position:absolute;left:-7px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
 ol.log time{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-right:8px}
@@ -413,6 +428,7 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
 </nav>
 
 <main>
+<div class="aviso" id="avisos" role="alert" hidden></div>
 <header class="top">
   <p class="eyebrow">Acompanhamento da execução</p>
   <h1>Painel de Execução T-shirt Club</h1>
@@ -430,7 +446,7 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
     <div style="display:grid;gap:10px;align-content:start">
       <div><div class="label">Agora</div><div class="big" id="sAgora"></div></div>
       <p class="sub" id="sProximo"></p>
-      <div><div class="label" style="margin-bottom:6px">Entregas das 11 fases</div><div class="bar" id="sBar" role="img"></div><p class="sub" style="font-size:13px;margin-top:6px" id="sBarTxt"></p></div>
+      <div class="sit-barra"><div class="label" id="sBarLabel"></div><div id="sBar"></div><p class="sub" style="font-size:13px" id="sBarTxt"></p><ul class="legend" id="legenda1"></ul></div>
     </div>
     <div class="nums" id="sNums"></div>
   </div>
@@ -440,12 +456,14 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
   <h2 id="h-fases">Fases e entregas</h2>
   <p class="sub">Cada fase só termina com testes passando e funcionando de ponta a ponta com os provedores falsos. A fase em execução fica aberta.</p>
   <div class="filters" role="group" aria-label="Filtrar entregas por status" id="filtros"></div>
+  <p class="filtro-info" id="filtroInfo" aria-live="polite"></p>
+  <ul class="legend" id="legenda2"></ul>
   <div class="phases" id="listaFases"></div>
 </section>
 
 <section id="achados" aria-labelledby="h-ach">
   <h2 id="h-ach">Achados da revisão</h2>
-  <p class="sub">Os 24 achados já estão corrigidos nos documentos. Aqui aparece a implementação no sistema: o status sai das entregas, dos testes e dos itens de publicação que citam cada achado.</p>
+  <p class="sub">Os <span id="nAchados"></span> achados já estão corrigidos nos documentos. Aqui aparece a implementação no sistema: o status sai das entregas, dos testes e dos itens de publicação que citam cada achado.</p>
   <div class="tbl"><table>
     <thead><tr><th>Achado</th><th>Gravidade</th><th>Onde entra</th><th>Itens</th><th>Status</th></tr></thead>
     <tbody id="tAchados"></tbody>
@@ -495,112 +513,134 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
 (function(){
   const D=JSON.parse(document.getElementById('dados').textContent);
   const ARQ='arquitetura-reservas.html';
-  const NOMES={pendente:'Pendente',andamento:'Em andamento',feito:'Feito',bloqueado:'Bloqueado'};
+  // Uma tabela só para os status: ordem na barra, nome, rótulo do filtro e ícone (o status nunca depende só da cor).
+  const STATUS={
+    feito:{nome:'Feito',plural:'Feitas',icone:'✓'},
+    andamento:{nome:'Em andamento',plural:'Em andamento',icone:'◐'},
+    bloqueado:{nome:'Bloqueado',plural:'Bloqueadas',icone:'✕'},
+    pendente:{nome:'Pendente',plural:'Pendentes',icone:'○'}
+  };
+  const CHAVES=Object.keys(STATUS);
+  const FILTROS={todos:'Todas',...Object.fromEntries(['pendente','andamento','bloqueado','feito'].map(k=>[k,STATUS[k].plural]))};
   // Rótulo de cada âncora da arquitetura, com o número da seção.
   const SECOES={aprovar:'§0 Decisões','revisao-geral':'§1b Revisão',stack:'§2 Stack',mobile:'§2b Celular',estados:'§3 Estados',dados:'§4 Dados',estoque:'§5 Estoque',promocoes:'§5b Promoções',expiracao:'§6 Expiração',whatsapp:'§7 WhatsApp',pagamento:'§8 Pagamento',bloqueio:'§9 Bloqueio',eventos:'§10 Eventos',api:'§11 Endpoints',jobs:'§12 Jobs',seguranca:'§13 Segurança',codigo:'§14 Código',fases:'§15 Fases',testes:'§16 Testes',publicacao:'§17 Publicação'};
   const $=id=>document.getElementById(id);
   const el=(tag,attrs={},...filhos)=>{const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else e.setAttribute(k,v);}filhos.forEach(f=>f!=null&&e.append(f));return e;};
-  const st=s=>el('span',{class:'st '+s,text:NOMES[s]||s});
+  const pct=(n,t)=>t?Math.round(n/t*100):0;
+  const conta=lista=>lista.reduce((c,i)=>(c[i.status]++,c),Object.fromEntries(CHAVES.map(k=>[k,0])));
+  const linkFase=f=>/^F\d+$/.test(f)?el('a',{href:'#fase-'+f,text:f}):f;
+  const st=k=>el('span',{class:'st '+k},el('span',{class:'ic','aria-hidden':'true',text:STATUS[k].icone}),STATUS[k].nome);
   const refLink=r=>el('a',{class:'ref',href:'#achado-'+r,text:r});
 
-  // Todos os itens com status, para contas e para o status dos achados.
-  const entregas=D.fases.flatMap(f=>f.itens.map(i=>({...i,fase:f.id})));
-  const pub=D.publicacao.flatMap(g=>g.itens);
+  // Uma passada sobre os dados editados à mão: marca a fase de cada item e confere status e ids.
+  // Status fora da lista vira aviso visível e conta como pendente.
+  const entregas=D.fases.flatMap(f=>f.itens.map(i=>Object.assign(i,{fase:f.id})));
+  const pub=D.publicacao.flatMap(g=>g.itens.map(i=>Object.assign(i,{fase:'Publicação'})));
+  D.externos.forEach(i=>i.fase=i.precisa_em);
   const todos=[...entregas,...D.testes,...pub,...D.externos];
-  const conta=lista=>lista.reduce((c,i)=>(c[i.status]=(c[i.status]||0)+1,c),{pendente:0,andamento:0,feito:0,bloqueado:0});
+  const avisos=[], vistos=new Set(), repetidos=new Set();
+  const confere=(i,campo)=>{if(i[campo]!==undefined&&!STATUS[i[campo]]){avisos.push(`${i.id}: status "${i[campo]}" não existe (use ${CHAVES.join(', ')})`);i[campo]='pendente';}};
+  todos.forEach(i=>{if(i.status===undefined)i.status='pendente';confere(i,'status');vistos.has(i.id)?repetidos.add(i.id):vistos.add(i.id);});
+  D.achados.forEach(a=>confere(a,'status_fixo'));
+  repetidos.forEach(x=>avisos.push(`${x}: id repetido`));
+  if(D.meta.fase_atual&&!D.fases.some(f=>f.id===D.meta.fase_atual))avisos.push(`meta.fase_atual "${D.meta.fase_atual}" não é uma fase`);
+  if(avisos.length){$('avisos').hidden=false;$('avisos').append(el('strong',{text:'Dados do painel com erro. '}),avisos.join(' · '));console.warn('Painel:',avisos);}
 
-  function barra(c,total,rotulo){
-    const b=el('div',{class:'bar',role:'img','aria-label':`${rotulo}: ${c.feito} de ${total} feitas, ${c.andamento} em andamento, ${c.bloqueado} bloqueadas`});
-    [['f',c.feito],['a',c.andamento],['b',c.bloqueado]].forEach(([k,n])=>{if(n){const i=el('i',{class:k});i.style.width=(n/total*100)+'%';b.append(i);}});
-    return b;
+  // Barra decorativa: o texto ao lado (ou o resumo da fase) é que diz os números.
+  function barra(c,total){
+    return el('div',{class:'bar','aria-hidden':'true'},...CHAVES.filter(k=>c[k]).map(k=>el('i',{class:k,title:`${STATUS[k].nome}: ${c[k]} de ${total}`,style:`flex-grow:${c[k]}`})));
   }
+  const legenda=ul=>CHAVES.forEach(k=>ul.append(el('li',{},el('span',{class:'bar','aria-hidden':'true'},el('i',{class:k})),`${STATUS[k].icone} ${STATUS[k].nome}`)));
+  // Rodapé comum a todo item: referências, motivo do bloqueio e evidência.
+  const detalhes=i=>[
+    ...(i.refs||[]).flatMap(r=>[' ',refLink(r)]),
+    i.status==='bloqueado'&&i.nota?el('span',{class:'note',text:'Bloqueio: '+i.nota}):null,
+    i.status==='feito'&&i.evidencia?el('span',{class:'evid',text:'Evidência: '+i.evidencia}):null
+  ];
+
+  // Status de cada achado, calculado uma vez a partir dos itens que o citam.
+  const achados=D.achados.map(a=>{
+    const itens=todos.filter(i=>(i.refs||[]).includes(a.id)), c=conta(itens);
+    const status=a.status_fixo||(!itens.length?'pendente':c.bloqueado?'bloqueado':c.feito===itens.length?'feito':c.pendente<itens.length?'andamento':'pendente');
+    return {...a,itens,c,status};
+  });
 
   // Situação
   $('mAtual').textContent=D.meta.atualizado_em;
   $('mVersao').textContent=D.meta.arquitetura_versao;
   $('sAgora').textContent=D.meta.situacao;
   $('sProximo').textContent=D.meta.proximo_passo;
+  $('nAchados').textContent=D.achados.length;
   const ce=conta(entregas);
-  $('sBar').replaceWith(Object.assign(barra(ce,entregas.length,'Entregas'),{id:'sBar'}));
-  $('sBarTxt').textContent=`${ce.feito} de ${entregas.length} entregas feitas (${Math.round(ce.feito/entregas.length*100)}%) · ${ce.andamento} em andamento · ${ce.bloqueado} bloqueadas`;
-  const faseAtual=D.fases.find(f=>f.itens.some(i=>i.status!=='feito'));
-  const achadosFeitos=D.achados.filter(a=>statusAchado(a)==='feito').length;
-  [[`${ce.feito}/${entregas.length}`,'entregas'],[`${conta(D.testes).feito}/${D.testes.length}`,'testes'],[`${achadosFeitos}/${D.achados.length}`,'achados resolvidos'],[`${conta(pub).feito}/${pub.length}`,'publicação']]
-    .forEach(([v,l])=>$('sNums').append(el('div',{class:'num'},el('b',{text:v}),el('span',{text:l}))));
+  $('sBarLabel').textContent=`Entregas das ${D.fases.length} fases`;
+  $('sBar').replaceWith(barra(ce,entregas.length));
+  $('sBarTxt').textContent=`${ce.feito} de ${entregas.length} entregas feitas (${pct(ce.feito,entregas.length)}%) · ${ce.andamento} em andamento · ${ce.bloqueado} bloqueadas`;
+  legenda($('legenda1'));legenda($('legenda2'));
+  [[entregas,'Entregas feitas'],[D.testes,'Testes passando'],[achados,'Achados resolvidos'],[pub,'Itens de publicação prontos']]
+    .forEach(([lista,rotulo])=>$('sNums').append(el('div',{class:'num'},el('b',{},String(conta(lista).feito),el('small',{text:` de ${lista.length}`})),el('span',{text:rotulo}))));
 
-  // Fases
+  // Fases: a atual vem de meta.fase_atual; sem ela, destaca a próxima (primeira não concluída).
+  const proxima=D.fases.find(f=>f.itens.some(i=>i.status!=='feito'));
+  const atual=D.meta.fase_atual?{id:D.meta.fase_atual,rotulo:'fase atual'}:proxima&&{id:proxima.id,rotulo:'próxima fase'};
   let filtro='todos';
-  const FILTROS=[['todos','Todas'],['pendente','Pendentes'],['andamento','Em andamento'],['bloqueado','Bloqueadas'],['feito','Feitas']];
-  FILTROS.forEach(([v,t])=>{const b=el('button',{type:'button',class:'chip','aria-pressed':String(v===filtro),text:t});b.addEventListener('click',()=>{filtro=v;$('filtros').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));renderFases();});$('filtros').append(b);});
+  Object.entries(FILTROS).forEach(([v,t])=>{
+    const b=el('button',{type:'button',class:'chip','aria-pressed':String(v===filtro),text:t});
+    b.addEventListener('click',()=>{filtro=v;$('filtros').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));renderFases();});
+    $('filtros').append(b);
+  });
 
+  const lista=$('listaFases');
   function renderFases(){
-    const abertas=new Set([...$('listaFases').querySelectorAll('details[open]')].map(d=>d.dataset.id));
-    const primeira=!$('listaFases').childElementCount;
-    $('listaFases').replaceChildren();
-    D.fases.forEach(f=>{
+    const rotulo=FILTROS[filtro].toLowerCase();
+    let achou=0,fasesCom=0;
+    lista.replaceChildren(...D.fases.map(f=>{
       const c=conta(f.itens), total=f.itens.length;
-      const atual=faseAtual&&f.id===faseAtual.id;
-      const d=el('details',{class:'phase','data-id':f.id,'data-atual':atual?'1':'0',id:'fase-'+f.id});
-      if(primeira?atual:abertas.has(f.id))d.open=true;
-      const nome=el('span',{class:'pname',text:f.nome});
-      if(atual)nome.append(el('span',{class:'badge-atual',text:'fase atual'}));
-      d.append(el('summary',{},el('span',{class:'pid',text:f.id}),nome,el('span',{class:'pcount',text:`${c.feito}/${total}`}),barra(c,total,f.id),el('span',{class:'obj',text:f.objetivo})));
-      const ul=el('ul',{class:'items'});
       const vis=f.itens.filter(i=>filtro==='todos'||i.status===filtro);
-      vis.forEach(i=>{
-        const foot=el('div',{class:'foot'},st(i.status),el('a',{class:'ref',href:`${ARQ}#${i.sec}`,text:SECOES[i.sec]||i.sec}),...(i.refs||[]).map(refLink));
-        const body=el('div',{class:'body'},el('span',{text:i.texto}),foot);
-        if(i.status==='bloqueado'&&i.nota)body.append(el('span',{class:'note',text:'Bloqueio: '+i.nota}));
-        if(i.status==='feito'&&i.evidencia)body.append(el('span',{class:'evid',text:'Evidência: '+i.evidencia}));
-        ul.append(el('li',{class:'item'},el('span',{class:'iid',text:i.id}),body));
-      });
+      if(filtro!=='todos'&&vis.length){achou+=vis.length;fasesCom++;}
+      const ehAtual=atual&&f.id===atual.id;
+      const d=el('details',{class:'phase','data-atual':ehAtual?'1':'0',id:'fase-'+f.id});
+      // Sem filtro, abre a fase atual; com filtro, abre só as fases que têm itens no status escolhido.
+      d.open=filtro==='todos'?!!ehAtual:vis.length>0;
+      const nome=el('span',{class:'pname',text:f.nome});
+      if(ehAtual)nome.append(el('span',{class:'badge-atual',text:atual.rotulo}));
+      const contagem=filtro==='todos'
+        ?el('span',{class:'pcount'},el('span',{'aria-hidden':'true',text:`${c.feito}/${total}`}),el('span',{class:'sr-only',text:`, ${c.feito} de ${total} feitas`}))
+        :el('span',{class:'pcount',text:`${vis.length} ${rotulo}`});
+      d.append(el('summary',{},el('span',{class:'pid',text:f.id}),nome,contagem,barra(c,total)));
+      d.append(el('p',{class:'obj',text:f.objetivo}));
+      const ul=el('ul',{class:'items'},...vis.map(i=>el('li',{class:'item'},el('span',{class:'iid',text:i.id}),
+        el('div',{class:'body'},el('span',{text:i.texto}),el('div',{class:'foot'},st(i.status),el('a',{class:'ref',href:`${ARQ}#${i.sec}`,text:SECOES[i.sec]||i.sec}),...detalhes(i))))));
       if(!vis.length)ul.append(el('li',{class:'empty',text:'Nenhuma entrega com este status nesta fase.'}));
       d.append(ul);
-      $('listaFases').append(d);
-    });
+      return d;
+    }));
+    $('filtroInfo').textContent=filtro==='todos'?'':`${achou} entrega(s) em ${fasesCom} fase(s) com o filtro "${FILTROS[filtro]}".`;
   }
   renderFases();
 
-  // Achados: status calculado a partir dos itens que os citam
-  function itensDo(g){return todos.filter(i=>(i.refs||[]).includes(g));}
-  function statusAchado(a){
-    if(a.status_fixo)return a.status_fixo;
-    const it=itensDo(a.id); if(!it.length)return 'pendente';
-    if(it.some(i=>i.status==='bloqueado'))return 'bloqueado';
-    if(it.every(i=>i.status==='feito'))return 'feito';
-    if(it.some(i=>i.status!=='pendente'))return 'andamento';
-    return 'pendente';
-  }
-  D.achados.forEach(a=>{
-    const it=itensDo(a.id);
-    const fases=[...new Set(it.map(i=>i.fase||(i.id.startsWith('P')?'Publicação':i.precisa_em||'')).filter(Boolean))];
-    const onde=a.nota?el('span',{class:'sub',text:a.nota}):el('span',{},...fases.flatMap((f,k)=>[k?', ':'',/^F\d+$/.test(f)?el('a',{href:'#fase-'+f,text:f}):f]));
-    const feitos=it.filter(i=>i.status==='feito').length;
-    const tr=el('tr',{id:'achado-'+a.id},
+  // Links para uma fase abrem a fase. O clique cobre o link para o endereço atual, que não dispara hashchange.
+  const abrir=h=>{const d=h&&h.startsWith('#fase-')&&$(h.slice(1));if(d)d.open=true;};
+  document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#fase-"]');if(a)abrir(a.getAttribute('href'));});
+  window.addEventListener('hashchange',()=>abrir(location.hash));abrir(location.hash);
+
+  // Achados
+  achados.forEach(a=>{
+    const fases=[...new Set(a.itens.map(i=>i.fase).filter(Boolean))];
+    const onde=a.nota?el('span',{class:'sub',text:a.nota}):el('span',{},...fases.flatMap((f,k)=>[k?', ':'',linkFase(f)]));
+    $('tAchados').append(el('tr',{id:'achado-'+a.id},
       el('td',{},el('a',{class:'mono',href:`${ARQ}#revisao-geral`,text:a.id}),' ',a.titulo),
       el('td',{},el('span',{class:'grav '+a.grav,text:a.grav})),
       el('td',{},onde),
-      el('td',{class:'mono',text:it.length?`${feitos}/${it.length}`:'—'}),
-      el('td',{},st(statusAchado(a))));
-    $('tAchados').append(tr);
+      el('td',{class:'mono',text:a.itens.length?`${a.c.feito}/${a.itens.length}`:'—'}),
+      el('td',{},st(a.status))));
   });
 
-  // Testes
-  D.testes.forEach(t=>$('tTestes').append(el('tr',{},el('td',{class:'id',text:t.id}),el('td',{},t.texto,...(t.refs||[]).flatMap(r=>[' ',refLink(r)])),el('td',{},el('a',{href:'#fase-'+t.fase,text:t.fase})),el('td',{},st(t.status)))));
-
-  // Publicação
-  D.publicacao.forEach(g=>{
-    const c=conta(g.itens);
-    const ul=el('ul');
-    g.itens.forEach(i=>ul.append(el('li',{},st(i.status),el('span',{},el('span',{class:'mono',style:'color:var(--muted)',text:i.id+' '}),i.texto,...(i.refs||[]).flatMap(r=>[' ',refLink(r)])))));
-    $('gPub').append(el('div',{class:'group'},el('header',{},el('h3',{text:g.grupo}),el('span',{class:'pcount',text:`${c.feito}/${g.itens.length}`})),ul));
-  });
-
-  // Externos
-  D.externos.forEach(e=>{
-    const precisa=/^F\d+$/.test(e.precisa_em)?el('a',{href:'#fase-'+e.precisa_em,text:e.precisa_em}):e.precisa_em;
-    $('tExt').append(el('tr',{},el('td',{class:'id',text:e.id}),el('td',{},e.texto,...(e.refs||[]).flatMap(r=>[' ',refLink(r)])),el('td',{text:e.quem}),el('td',{},precisa),el('td',{},st(e.status))));
-  });
+  // Testes, publicação e dependências externas usam o mesmo rodapé de detalhes.
+  D.testes.forEach(t=>$('tTestes').append(el('tr',{},el('td',{class:'id',text:t.id}),el('td',{},t.texto,...detalhes(t)),el('td',{},linkFase(t.fase)),el('td',{},st(t.status)))));
+  D.publicacao.forEach(g=>$('gPub').append(el('div',{class:'group'},
+    el('header',{},el('h3',{text:g.grupo}),el('span',{class:'pcount',text:`${conta(g.itens).feito}/${g.itens.length}`})),
+    el('ul',{},...g.itens.map(i=>el('li',{},st(i.status),el('span',{},el('span',{class:'iid',text:i.id+' '}),i.texto,...detalhes(i))))))));
+  D.externos.forEach(e=>$('tExt').append(el('tr',{},el('td',{class:'id',text:e.id}),el('td',{},e.texto,...detalhes(e)),el('td',{text:e.quem}),el('td',{},linkFase(e.precisa_em)),el('td',{},st(e.status)))));
 
   // Decisões e histórico
   D.decisoes.forEach(([id,t])=>$('dDec').append(el('div',{},el('b',{text:id}),el('span',{text:t}))));
