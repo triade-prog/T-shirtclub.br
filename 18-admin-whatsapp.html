@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WhatsApp</title>
+<link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="00-mapa.html"><span class="brand-mark"></span><span>SISTEMA DE RESERVA</span></a>
+    <nav class="nav"><a class="" href="00-mapa.html">Mapa</a><a class="" href="01-loja.html">Loja</a><a class="" href="02-reserva.html">Reserva</a><a class="" href="03-validar-whatsapp.html">WhatsApp</a><a class="" href="04-reserva-ativa.html">Reserva ativa</a><a class="" href="05-acompanhar.html">Acompanhar</a><a class="active" href="06-admin-painel.html">Admin</a><a class="" href="07-admin-reserva.html">Detalhe</a><a class="" href="08-admin-bloqueados.html">Bloqueios</a></nav>
+  </div>
+</header>
+
+<main><div class="shell">
+  <nav class="subnav" aria-label="Seções do painel"><a class="" href="06-admin-painel.html">Painel</a><a class="" href="10-admin-catalogo.html">Catálogo</a><a class="" href="11-admin-estoque.html">Estoque</a><a class="" href="14-admin-promocoes.html">Promoções</a><a class="" href="12-admin-pagamentos-analise.html">Pagamentos em análise<span class="count">2</span></a><a class="" href="13-admin-frete.html">Frete<span class="count">3</span></a><a class="" href="08-admin-bloqueados.html">Bloqueios</a><a class="active" href="18-admin-whatsapp.html">WhatsApp</a><a class="" href="09-admin-login.html">Sair</a></nav>
+  <div class="hero"><div><div class="kicker">Área administrativa • WhatsApp</div><h1>WhatsApp</h1><p class="muted">Conexão do número da loja com o sistema (Z-API), fila de envio e quais notificações a cliente recebe.</p></div></div>
+
+  <div class="grid grid-2">
+    <section class="card" id="connCard" aria-live="polite"></section>
+    <section class="card">
+      <h2>Fila de envio</h2>
+      <div class="grid grid-3" id="queueStats"></div>
+      <p class="hint">As mensagens saem uma por vez, com intervalo aleatório, para parecer uso humano e reduzir o risco de bloqueio do número. Se a conexão cair, elas esperam na fila e saem quando voltar.</p>
+      <div class="grid grid-2" style="margin-top:10px">
+        <div class="field"><label for="gapMin">Intervalo entre mensagens (segundos)</label><div class="toolbar" style="flex-wrap:nowrap"><input id="gapMin" type="number" min="2" value="4" aria-label="Mínimo"><span class="muted">a</span><input id="gapMax" type="number" min="3" value="9" aria-label="Máximo"></div></div>
+        <div class="field"><label for="perHour">Máximo por hora</label><input id="perHour" type="number" min="10" value="120"></div>
+      </div>
+      <button class="btn secondary" type="button" id="saveRate" style="margin-top:12px">Salvar ritmo</button>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <div class="row" style="flex-wrap:wrap"><div><h2>Notificações para a cliente</h2><p class="muted" style="margin:0">As essenciais ficam sempre ligadas. As outras podem ser desligadas para enviar menos mensagens.</p></div></div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Mensagem</th><th>Quando sai</th><th>Enviar</th></tr></thead>
+        <tbody id="notifRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card soft" style="margin-top:16px">
+    <h2>Enviar mensagem de teste</h2>
+    <form class="toolbar" id="testForm" novalidate>
+      <input id="testPhone" inputmode="tel" placeholder="(77) 99999-0000" style="max-width:240px" aria-label="Número para teste">
+      <button class="btn secondary" type="submit">Enviar teste</button>
+    </form>
+    <p class="hint">Mande só para números da equipe. Mensagens para quem nunca falou com a loja aumentam o risco de bloqueio.</p>
+  </section>
+</div></main>
+
+<footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
+<div id="toast" class="toast" role="status"></div>
+<script src="assets/js/prototipo.js"></script>
+<script src="assets/js/paginas/18-admin-whatsapp.js"></script>
+</body>
+</html>
