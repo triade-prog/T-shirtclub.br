@@ -13,16 +13,22 @@ Páginas:
 - 07-admin-reserva.html — detalhe / auditoria / cancelamento
 - 08-admin-bloqueados.html — bloqueios e liberação
 - 09-admin-login.html — login administrativo (senha + verificação em duas etapas)
-- 10-admin-catalogo.html — produtos, coleções e tamanhos
-- 11-admin-estoque.html — saldo por SKU, ajustes com motivo e movimentações
+- 10-admin-catalogo.html — produtos, coleções e preço fixo (tamanho único)
+- 11-admin-estoque.html — saldo por produto, ajustes com motivo e movimentações
 - 12-admin-pagamentos-analise.html — pagamentos aprovados fora do prazo
 - 13-admin-frete.html — cálculo de frete e prazo de 2 horas
+- 14-admin-promocoes.html — lista de promoções e regra de combinação
+- 15-admin-desconto-produto.html — desconto do produto (porcentagem ou preço fixo)
+- 16-admin-compre-mais.html — compre e economize mais (níveis por quantidade)
+- 17-admin-cupom.html — cupom com código, gasto mínimo e limite por cliente
 
 Organização:
 - assets/css/prototipo.css — estilos compartilhados de todas as páginas
 - assets/css/admin.css — complementos das telas administrativas
+- assets/css/promocoes.css — formulários de promoção
 - assets/js/prototipo.js — utilitários compartilhados (toast)
-- assets/js/dados-exemplo.js — dados de exemplo do catálogo e estoque
+- assets/js/dados-exemplo.js — dados de exemplo do catálogo, estoque e promoções
+- assets/js/componentes/ — seletor de produtos e utilitários dos formulários de promoção
 - assets/js/paginas/ — script de cada tela nova, um arquivo por página
 
 Regras incorporadas:

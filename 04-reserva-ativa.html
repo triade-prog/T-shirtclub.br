@@ -36,7 +36,7 @@
     <aside class="card soft">
       <h2>Finalizar pagamento</h2>
       <p class="muted">A reserva permanece no estado <strong>Reservado</strong> até o provedor confirmar o pagamento.</p>
-      <div class="field"><label>Forma de pagamento</label><select id="payMethod"><option>PIX</option><option>Cartão</option></select></div>
+      <div class="field"><label for="payMethod">Forma de pagamento</label><select id="payMethod"><option>PIX</option><option>Cartão</option></select><span class="muted" style="font-size:12px">A forma escolhida na primeira cobrança fica fixa para esta reserva. Se o pagamento for recusado, você tenta de novo pela mesma forma.</span></div>
       <button class="btn citron" style="width:100%;margin-top:12px" id="payBtn">Iniciar pagamento</button>
       <button class="btn danger" style="width:100%;margin-top:10px" id="cancelBtn">Solicitar cancelamento</button>
       <div class="notice warn" style="margin-top:12px">Solicitar cancelamento <strong>não pausa o cronômetro</strong>. O painel administrativo aprova ou recusa.</div>
