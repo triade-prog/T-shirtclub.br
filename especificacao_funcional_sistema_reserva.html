@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Especificação Funcional — Sistema de Reserva</title>
+<style>
+:root{
+  --bg:#fffdf8;--surface:#ffffff;--soft:#f7f3eb;--ink:#171717;--muted:#6d6a66;
+  --line:#e6e0d7;--citron:#d7ff3f;--pink:#ff4fa3;--green:#19784a;
+  --amber:#a05a00;--red:#a42f2f;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+a{color:inherit} button,input{font:inherit}
+.header{position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line);background:rgba(255,253,248,.95);backdrop-filter:blur(12px)}
+.header-inner{width:min(1180px,calc(100% - 28px));min-height:70px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:950}.brand-mark{width:32px;height:32px;border:2px solid var(--ink);border-radius:9px;background:var(--citron);position:relative}
+.brand-mark:after{content:"";width:10px;height:10px;border-radius:50%;background:var(--pink);border:2px solid var(--ink);position:absolute;right:-5px;top:-5px}
+.header-actions{display:flex;gap:8px;align-items:center}.btn{min-height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--ink);background:var(--ink);color:white;font-weight:850;cursor:pointer}
+.btn.alt{background:white;color:var(--ink);border-color:var(--line)}
+.layout{width:min(1180px,calc(100% - 28px));margin:28px auto 56px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px}
+.sidebar{position:sticky;top:92px;align-self:start;border:1px solid var(--line);border-radius:18px;background:white;padding:14px}
+.sidebar h3{margin:4px 6px 12px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.sidebar a{display:block;padding:9px 10px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:780;color:var(--muted)}
+.sidebar a:hover{background:var(--soft);color:var(--ink)}.search{margin-top:12px}.search input{width:100%;height:42px;border:1px solid var(--line);border-radius:11px;padding:0 12px;background:white;color:var(--ink);outline:none}
+main{min-width:0}.hero{border:1px solid var(--line);border-radius:24px;padding:26px;background:linear-gradient(135deg,#fff 0%,#fff 63%,#f8ffd8 100%)}
+.kicker{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#aa1d61}
+h1{font-size:clamp(32px,5vw,58px);line-height:.97;letter-spacing:-.045em;margin:8px 0 12px}
+h2{font-size:25px;letter-spacing:-.025em;margin:0 0 14px}h3{font-size:17px;margin:0 0 8px}p{line-height:1.58}.muted{color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.chip{display:inline-flex;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:white;font-size:12px;font-weight:850}
+.chip.citron{background:var(--citron);border-color:#abc72c}.chip.pink{background:#ffe8f3;border-color:#f1b3d1;color:#9b1f5a}
+.section{margin-top:20px}.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px}
+.grid{display:grid;gap:14px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.state{border:1px solid var(--line);border-radius:17px;padding:16px;background:white}.state strong{display:block;font-size:14px;margin-bottom:5px}
+.state .code{font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);margin-bottom:10px}
+.state.selected{background:#fffde6;border-color:#d8ca55}.state.reserved{background:#fff0f7;border-color:#edb5d0}.state.paid{background:#effaf3;border-color:#b9dfc8}.state.delivered{background:#f2f3f4;border-color:#cfd3d6}.state.expired{background:#fff1f1;border-color:#e8bdbd}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:15px;border-radius:15px;background:var(--soft);border:1px solid var(--line)}
+.flow .node{padding:9px 11px;border-radius:999px;background:white;border:1px solid var(--line);font-size:12px;font-weight:900}.flow .arrow{color:var(--muted);font-weight:950}
+.notice{border-left:4px solid var(--citron);background:#fbffe8;padding:13px 14px;border-radius:10px;font-size:14px}.notice.pink{border-left-color:var(--pink);background:#fff2f8}.notice.warn{border-left-color:#e49a00;background:#fff8e9}.notice.red{border-left-color:var(--red);background:#fff1f1}
+.rule-group{margin-top:14px}details{border:1px solid var(--line);border-radius:16px;background:white;overflow:hidden}details+details{margin-top:10px}
+summary{list-style:none;cursor:pointer;padding:16px 18px;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:14px}summary::-webkit-details-marker{display:none}summary:after{content:"+";font-size:20px;color:var(--muted)}details[open] summary:after{content:"−"}
+.details-body{border-top:1px solid var(--line);padding:0 18px 16px}.details-body ul{margin:14px 0 0;padding-left:20px}.details-body li{margin:7px 0;line-height:1.5}
+table{width:100%;border-collapse:collapse}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}.meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.meta{padding:15px;border:1px solid var(--line);background:white;border-radius:15px}.meta .value{font-size:26px;font-weight:950;letter-spacing:-.04em}.meta .label{font-size:12px;color:var(--muted);font-weight:800}
+.pending{background:#fff9ea;border-color:#ead39b}.hidden-by-search{display:none!important}.footer{width:min(1180px,calc(100% - 28px));margin:0 auto 34px;color:var(--muted);font-size:12px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static}.grid-5{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.meta-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.header-actions{display:none}.grid-2,.grid-3,.grid-5,.meta-grid{grid-template-columns:1fr}.hero,.card{padding:17px}}
+@media print{.header,.sidebar,.header-actions,.search{display:none!important}.layout{display:block;width:100%;margin:0}body{background:white}.card,.hero,details{break-inside:avoid}.details-body{display:block!important}summary:after{display:none}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <div class="brand"><span class="brand-mark"></span><span>Sistema de Reserva</span></div>
+    <div class="header-actions">
+      <button class="btn alt" id="expandAll" type="button">Recolher tudo</button>
+      <button class="btn" id="printBtn" type="button">Imprimir / PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h3>Navegação</h3>
+    <a href="#visao-geral">Visão geral</a>
+    <a href="#estados">Estados oficiais</a>
+    <a href="#fluxos">Fluxos</a>
+    <a href="#regras">Regras funcionais</a>
+    <a href="#nao-estados">Etapas que não são estados</a>
+    <a href="#pendencias">Pendências explícitas</a>
+    <div class="search"><input id="searchInput" type="search" placeholder="Buscar regra…"></div>
+  </aside>
+
+  <main>
+    <section id="visao-geral" class="hero searchable">
+      <div class="kicker">Especificação funcional consolidada</div>
+      <h1>Regras de negócio e<br>regras de fluxo</h1>
+      <p class="muted">Documento de referência do Sistema de Reserva: estados, transições, estoque, WhatsApp, pagamento, cancelamento, entrega, bloqueios, administração e auditoria.</p>
+      <div class="chips">
+        <span class="chip citron">5 estados oficiais</span>
+        <span class="chip">15 min de reserva</span>
+        <span class="chip">+5 min de tolerância condicional</span>
+        <span class="chip pink">WhatsApp em todo o fluxo</span>
+        <span class="chip">9 peças / reserva</span>
+        <span class="chip">2 do mesmo modelo</span>
+      </div>
+    </section>
+
+    <section class="section meta-grid searchable">
+      <div class="meta"><div class="value">5 min</div><div class="label">validade do código WhatsApp</div></div>
+      <div class="meta"><div class="value">2 + 2</div><div class="label">tentativas + reenvios</div></div>
+      <div class="meta"><div class="value">30 min</div><div class="label">bloqueio temporário de código</div></div>
+      <div class="meta"><div class="value">3 / 30d</div><div class="label">expirações antes do bloqueio</div></div>
+    </section>
+
+    <section id="estados" class="section card searchable">
+      <div class="kicker">Máquina de estados</div>
+      <h2>Estados oficiais existentes</h2>
+      <div class="grid grid-5">
+        <div class="state selected"><strong>Selecionado</strong><div class="code">SELECIONADO</div><span class="muted">Escolha de itens. Estoque livre.</span></div>
+        <div class="state reserved"><strong>Reservado</strong><div class="code">RESERVADO</div><span class="muted">Estoque bloqueado por 15 min.</span></div>
+        <div class="state paid"><strong>Pagamento confirmado</strong><div class="code">PAGAMENTO_CONFIRMADO</div><span class="muted">Venda efetivada.</span></div>
+        <div class="state delivered"><strong>Entregue</strong><div class="code">ENTREGUE</div><span class="muted">Ciclo concluído.</span></div>
+        <div class="state expired"><strong>Expirado</strong><div class="code">EXPIRADO</div><span class="muted">Reserva encerrada sem venda.</span></div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>Estado</th><th>O que significa</th><th>Estoque</th><th>Prazo</th><th>Próximo estado</th></tr></thead>
+          <tbody><tr><td><strong>Selecionado</strong><br><span class='muted'>SELECIONADO</span></td><td>Cliente escolheu peças; ainda não há reserva.</td><td>Não bloqueado</td><td>Sem prazo</td><td>Reservado</td></tr><tr><td><strong>Reservado</strong><br><span class='muted'>RESERVADO</span></td><td>Telefone validado, estoque conferido e unidades bloqueadas.</td><td>Bloqueado</td><td>15 min (+ tolerância condicional)</td><td>Pagamento confirmado ou Expirado</td></tr><tr><td><strong>Pagamento confirmado</strong><br><span class='muted'>PAGAMENTO_CONFIRMADO</span></td><td>Pagamento aprovado; venda concluída financeiramente.</td><td>Vendido</td><td>Não expira</td><td>Entregue</td></tr><tr><td><strong>Entregue</strong><br><span class='muted'>ENTREGUE</span></td><td>Pedido recebido ou retirado; ciclo concluído.</td><td>Vendido</td><td>Finalizado</td><td>Estado final</td></tr><tr><td><strong>Expirado</strong><br><span class='muted'>EXPIRADO</span></td><td>Prazo terminou sem pagamento confirmado válido.</td><td>Liberado novamente</td><td>Encerrado</td><td>Estado final da reserva</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="notice pink" style="margin-top:14px">
+        <strong>Cancelado não é estado oficial.</strong> É motivo de encerramento quando um cancelamento é aprovado. A solicitação de cancelamento pode existir como sinalização operacional enquanto a reserva continua em Reservado.
+      </div>
+    </section>
+
+    <section id="fluxos" class="section">
+      <div class="card searchable">
+        <div class="kicker">Fluxos completos</div>
+        <h2>Como os estados aparecem em cada caminho</h2>
+        <div class="flow">
+          <span class="node">Selecionado</span><span class="arrow">→</span>
+          <span class="node">Reservado</span><span class="arrow">→</span>
+          <span class="node">Pagamento confirmado</span><span class="arrow">→</span>
+          <span class="node">Entregue</span>
+        </div>
+        <div class="flow" style="margin-top:10px">
+          <span class="node">Reservado</span><span class="arrow">→</span>
+          <span class="node">Expirado</span>
+        </div>
+      </div>
+      <div class="grid grid-2" style="margin-top:14px"><div class="card searchable"><h3>Fluxo principal de sucesso</h3><div class="flow"><span class="node">Selecionado</span><span class="arrow">→</span><span class="node">Validação do WhatsApp</span><span class="arrow">→</span><span class="node">Checagem de estoque</span><span class="arrow">→</span><span class="node">Reservado</span><span class="arrow">→</span><span class="node">Pagamento confirmado</span><span class="arrow">→</span><span class="node">Preparação/Entrega</span><span class="arrow">→</span><span class="node">Entregue</span></div></div><div class="card searchable"><h3>Fluxo de expiração</h3><div class="flow"><span class="node">Reservado</span><span class="arrow">→</span><span class="node">Prazo termina sem pagamento válido</span><span class="arrow">→</span><span class="node">Expirado</span><span class="arrow">→</span><span class="node">Estoque liberado</span></div></div><div class="card searchable"><h3>Fluxo de cancelamento</h3><div class="flow"><span class="node">Reservado</span><span class="arrow">→</span><span class="node">Cliente solicita cancelamento</span><span class="arrow">→</span><span class="node">Admin aprova ou recusa</span><span class="arrow">→</span><span class="node">Relógio continua correndo</span></div></div><div class="card searchable"><h3>Fluxo de pagamento com tolerância</h3><div class="flow"><span class="node">Reservado</span><span class="arrow">→</span><span class="node">Tentativa real antes dos 15 min</span><span class="arrow">→</span><span class="node">Até 5 min de tolerância</span><span class="arrow">→</span><span class="node">Confirmado ou análise/expiração</span></div></div><div class="card searchable"><h3>Recuperação no site</h3><div class="flow"><span class="node">Telefone</span><span class="arrow">→</span><span class="node">Novo código WhatsApp</span><span class="arrow">→</span><span class="node">Validação</span><span class="arrow">→</span><span class="node">Lista de reservas vinculadas</span></div></div><div class="card searchable"><h3>Recuperação no WhatsApp</h3><div class="flow"><span class="node">Cliente envia “Minha reserva”</span><span class="arrow">→</span><span class="node">Identificação pelo número</span><span class="arrow">→</span><span class="node">Status da reserva</span></div></div><div class="card searchable"><h3>Bloqueio por abuso</h3><div class="flow"><span class="node">3 expirações em 30 dias</span><span class="arrow">→</span><span class="node">Telefone bloqueado</span><span class="arrow">→</span><span class="node">Análise administrativa</span><span class="arrow">→</span><span class="node">Liberar ou manter bloqueado</span></div></div><div class="card searchable"><h3>Entrega com frete</h3><div class="flow"><span class="node">Pagamento confirmado</span><span class="arrow">→</span><span class="node">Confirmar modalidade</span><span class="arrow">→</span><span class="node">Calcular frete</span><span class="arrow">→</span><span class="node">Segundo pagamento até 2h</span><span class="arrow">→</span><span class="node">Preparação</span><span class="arrow">→</span><span class="node">Entrega</span></div></div></div>
+    </section>
+
+    <section id="regras" class="section">
+      <div class="card searchable">
+        <div class="kicker">Regras funcionais</div>
+        <h2>Lista completa de regras de negócio e de fluxo</h2>
+        <p class="muted">As regras estão agrupadas por assunto. Use a busca lateral para localizar rapidamente termos como “WhatsApp”, “estoque”, “cancelamento” ou “frete”.</p>
+      </div>
+      <div class="rule-group"><details class="searchable" open><summary>1. Estados oficiais do sistema</summary><div class="details-body"><ul><li>Selecionado: cliente escolheu os produtos, mas ainda não existe reserva e o estoque não está bloqueado.</li><li>Reservado: telefone confirmado, estoque validado e unidades bloqueadas por 15 minutos.</li><li>Pagamento confirmado: pagamento aprovado; as unidades passam de reservadas para vendidas e deixam de expirar.</li><li>Entregue: cliente recebeu ou retirou o pedido; ciclo comercial concluído.</li><li>Expirado: reserva terminou sem confirmação válida de pagamento; estoque é liberado.</li><li>Fluxo de sucesso: Selecionado → Reservado → Pagamento confirmado → Entregue.</li><li>Fluxo sem conclusão: Selecionado → Reservado → Expirado.</li><li>Confirmação de telefone, checagem de estoque, escolha de pagamento e preparação/entrega são etapas ou substatus operacionais, não estados oficiais.</li></ul></div></details><details class="searchable" open><summary>2. Entrada na loja</summary><div class="details-body"><ul><li>A cliente acessa sem criar login ou senha.</li><li>A loja deve exibir apenas produtos aptos à venda/reserva.</li><li>Cada produto deve apresentar imagem, nome/modelo, variação quando houver, preço e indicação de disponibilidade.</li><li>A cliente pode filtrar por coleção, modelo e disponibilidade.</li><li>Produto esgotado não pode ser reservado.</li><li>A disponibilidade deve considerar estoque vendido e estoque temporariamente reservado.</li></ul></div></details><details class="searchable" open><summary>3. Seleção de produtos</summary><div class="details-body"><ul><li>Ao adicionar uma peça, ela entra no estado Selecionado.</li><li>Selecionado não bloqueia estoque.</li><li>Outra cliente pode comprar ou reservar a mesma unidade enquanto ela estiver apenas selecionada.</li><li>A seleção pode ser adicionada, removida ou alterada livremente antes da criação da reserva.</li><li>O sistema deve impedir quantidade superior ao estoque disponível.</li><li>Máximo de 9 peças por reserva.</li><li>Máximo de 2 unidades do mesmo modelo/estampa por cliente/reserva, independentemente da variação.</li><li>Promoção de 3 por R$ 119,90 deve ser aplicada automaticamente a cada grupo completo de 3: 3, 6 ou 9 peças.</li><li>Não é necessário cupom para a promoção automática.</li><li>O resumo deve mostrar preço original, desconto e total quando aplicável.</li></ul></div></details><details class="searchable" open><summary>4. Dados para solicitar a reserva</summary><div class="details-body"><ul><li>Dados mínimos: nome e telefone/WhatsApp.</li><li>A cliente escolhe uma intenção inicial de entrega: retirada, entrega local/motoboy ou envio para outra cidade.</li><li>Não existe conta/senha para a cliente.</li><li>O telefone confirmado é a principal identidade da cliente no fluxo de reserva.</li><li>Os dados digitados ficam associados à tentativa de reserva.</li></ul></div></details><details class="searchable" open><summary>5. Confirmação do WhatsApp</summary><div class="details-body"><ul><li>O telefone deve ser validado antes de qualquer bloqueio de estoque.</li><li>O código de validação fica válido por 5 minutos.</li><li>São permitidas 2 tentativas por código.</li><li>São permitidos 2 reenvios.</li><li>Após esgotar os reenvios, o telefone entra em bloqueio temporário por 30 minutos.</li><li>Código inválido, expirado ou validação incompleta não cria reserva.</li><li>O estoque continua livre enquanto o telefone não estiver validado.</li></ul></div></details><details class="searchable" open><summary>6. Checagem final de estoque</summary><div class="details-body"><ul><li>Depois da validação do telefone e imediatamente antes da criação da reserva, o sistema deve consultar novamente o estoque.</li><li>A reserva só é criada se todos os itens e quantidades continuarem disponíveis.</li><li>Não deve existir reserva parcial silenciosa.</li><li>Se algum item ficou indisponível, a cliente deve ser informada e retornar para ajustar a seleção.</li><li>Criação da reserva e bloqueio de estoque devem ocorrer de forma atômica para impedir dupla reserva da última unidade.</li></ul></div></details><details class="searchable" open><summary>7. Criação da reserva</summary><div class="details-body"><ul><li>Telefone validado + estoque disponível = criação da reserva.</li><li>O estado muda de Selecionado para Reservado.</li><li>O sistema gera identificador único, como #1048.</li><li>Registrar data/hora de criação e data/hora exata de expiração.</li><li>As unidades ficam bloqueadas imediatamente e deixam de integrar o estoque disponível.</li></ul></div></details><details class="searchable" open><summary>8. Prazo da reserva</summary><div class="details-body"><ul><li>Prazo padrão: 15 minutos.</li><li>O prazo começa apenas quando a reserva é efetivamente criada.</li><li>O tempo não começa enquanto a cliente preenche dados ou aguarda o código.</li><li>O sistema deve mostrar horário de expiração e/ou contagem regressiva.</li><li>O relógio deve ser controlado no servidor/backend.</li><li>Fechar, reabrir ou atualizar a página não reinicia nem interrompe o prazo.</li><li>A reserva não é renovada automaticamente.</li></ul></div></details><details class="searchable" open><summary>9. Controle de estoque</summary><div class="details-body"><ul><li>Produto Reservado não pode ser oferecido a outra cliente.</li><li>O sistema deve distinguir quantidade disponível, reservada e vendida.</li><li>Produtos vendidos deixam definitivamente o estoque comercial disponível.</li><li>Não pode existir estoque negativo.</li><li>Concorrência deve ser resolvida no backend/banco: se houver uma única unidade, apenas uma reserva pode vencer.</li></ul></div></details><details class="searchable" open><summary>10. Limite de reservas por telefone</summary><div class="details-body"><ul><li>Um telefone pode ter apenas 1 reserva ativa por vez.</li><li>Enquanto existir uma reserva Reservada ativa, o mesmo telefone não cria outra.</li><li>A cliente deve concluir, deixar expirar ou ter a reserva encerrada antes de criar outra.</li></ul></div></details><details class="searchable" open><summary>11. Alteração de reserva</summary><div class="details-body"><ul><li>Depois que a reserva está Reservada, produtos e quantidades não podem ser editados livremente.</li><li>Não é permitido adicionar ou trocar produtos dentro da mesma reserva.</li><li>Para mudar os itens, a reserva existente deve ser encerrada/cancelada conforme a regra e uma nova reserva deve ser criada.</li></ul></div></details><details class="searchable" open><summary>12. Cancelamento solicitado</summary><div class="details-body"><ul><li>A cliente pode solicitar cancelamento enquanto a reserva está Reservada.</li><li>O cancelamento não acontece automaticamente: o painel administrativo aprova ou recusa.</li><li>A solicitação de cancelamento não pausa o cronômetro de 15 minutos.</li><li>Se o prazo acabar enquanto aguarda análise, a reserva expira normalmente.</li><li>Se aprovado, o estoque é liberado e o encerramento registra o motivo &#x27;cancelamento aprovado&#x27;.</li><li>Se recusado, a reserva continua válida pelo prazo original.</li><li>&#x27;Cancelado&#x27; não é estado oficial; é motivo de encerramento.</li><li>Cancelamento/reembolso depois de Pagamento confirmado pertence a um fluxo separado de pós-venda.</li></ul></div></details><details class="searchable" open><summary>13. Pagamento durante a reserva</summary><div class="details-body"><ul><li>Somente reserva válida pode iniciar pagamento.</li><li>O pagamento deve estar vinculado ao identificador da reserva.</li><li>Antes de iniciar a transação, o sistema verifica se a reserva continua válida.</li><li>Enquanto o provedor não aprovar, o estado principal continua Reservado.</li><li>Abrir checkout, gerar PIX ou digitar cartão não equivale a pagamento confirmado.</li><li>Somente confirmação efetiva do provedor muda o estado para Pagamento confirmado.</li><li>PIX e cartão seguem a mesma regra de reserva e tolerância.</li><li>Se uma tentativa for recusada e ainda houver tempo, a cliente pode tentar novamente.</li></ul></div></details><details class="searchable" open><summary>14. Tolerância de pagamento</summary><div class="details-body"><ul><li>Existe tolerância técnica de até 5 minutos somente quando uma tentativa real de pagamento foi registrada antes do fim dos 15 minutos.</li><li>Somente abrir a tela ou clicar em pagar sem criar transação real não ativa a tolerância.</li><li>Se o provedor confirmar dentro da tolerância, a reserva muda para Pagamento confirmado.</li><li>Se a confirmação chegar depois da tolerância, o caso vai para análise administrativa; não deve ser confirmado automaticamente.</li></ul></div></details><details class="searchable" open><summary>15. Expiração</summary><div class="details-body"><ul><li>Sem pagamento confirmado dentro do prazo aplicável, Reservado muda para Expirado.</li><li>A expiração deve ser automática e independente de atualização da página.</li><li>As unidades voltam imediatamente ao estoque disponível.</li><li>Reserva expirada não pode receber nova tentativa de pagamento.</li><li>Reserva expirada não pode ser reativada.</li><li>Se a cliente ainda quiser os itens, deve criar uma nova reserva sujeita ao estoque atual.</li><li>O identificador da reserva expirada nunca deve ser reutilizado.</li></ul></div></details><details class="searchable" open><summary>16. Pagamento confirmado</summary><div class="details-body"><ul><li>Quando o provedor confirma o pagamento, Reservado muda para Pagamento confirmado.</li><li>O cronômetro deixa de ter efeito e o pedido não pode mais expirar.</li><li>As unidades deixam de ser &#x27;reservadas&#x27; e passam a ser &#x27;vendidas&#x27;.</li><li>Registrar data/hora da confirmação, valor pago, forma de pagamento e identificador da transação.</li><li>A confirmação deve ser idempotente: a mesma transação não pode confirmar ou vender duas vezes.</li><li>Devolução/cancelamento após pagamento é tratado fora do fluxo de reserva.</li></ul></div></details><details class="searchable" open><summary>17. Entrega e frete</summary><div class="details-body"><ul><li>A intenção de entrega é escolhida na criação da reserva.</li><li>Depois do Pagamento confirmado, a cliente confirma ou pode alterar a modalidade antes de pagar o frete ou confirmar a retirada.</li><li>Modalidades: retirada, entrega local/motoboy e envio para outra cidade.</li><li>O frete é calculado somente depois do pagamento dos produtos.</li><li>Quando houver frete, existe um segundo pagamento exclusivo do frete.</li><li>Prazo definido para pagar o frete: 2 horas após o cálculo.</li><li>Para retirada, os dados exigidos são nome + WhatsApp + código da reserva.</li><li>A consequência automática caso o frete não seja pago dentro das 2 horas ainda não foi definida e deve permanecer como regra pendente.</li></ul></div></details><details class="searchable" open><summary>18. Preparação e operação de entrega</summary><div class="details-body"><ul><li>Após Pagamento confirmado, o pedido segue para preparação.</li><li>Podem existir substatus operacionais como: aguardando confirmação de entrega, aguardando pagamento do frete, em preparação, pronto para retirada, saiu para entrega ou enviado.</li><li>Esses substatus não alteram os 5 estados oficiais.</li><li>Somente o administrador marca o pedido como Entregue no MVP.</li><li>Registrar data/hora da entrega e, quando aplicável, quem confirmou.</li></ul></div></details><details class="searchable" open><summary>19. Estado Entregue</summary><div class="details-body"><ul><li>Entregue é o estado final do fluxo comercial normal.</li><li>Pode representar retirada concluída, motoboy concluído ou entrega de transportadora concluída.</li><li>Depois de Entregue, o pedido não pode voltar para Reservado ou Expirado.</li><li>Trocas, devoluções e pós-venda pertencem a fluxos separados.</li></ul></div></details><details class="searchable" open><summary>20. Transições permitidas</summary><div class="details-body"><ul><li>Selecionado → Reservado: somente após telefone confirmado + checagem de estoque + criação atômica da reserva.</li><li>Reservado → Pagamento confirmado: somente após confirmação real do provedor.</li><li>Reservado → Expirado: quando termina o prazo aplicável sem pagamento confirmado.</li><li>Pagamento confirmado → Entregue: após conclusão operacional da entrega/retirada e confirmação administrativa.</li><li>Expirado → Reservado não é permitido.</li><li>Pagamento confirmado → Expirado não é permitido.</li><li>Entregue → Reservado não é permitido.</li></ul></div></details><details class="searchable" open><summary>21. Bloqueio por abuso</summary><div class="details-body"><ul><li>Após 3 reservas expiradas dentro de 30 dias, o telefone é bloqueado para novas reservas.</li><li>O desbloqueio só pode ser feito pelo painel administrativo.</li><li>O administrador registra o motivo da decisão e a cliente é notificada.</li><li>Se o telefone for liberado, o contador operacional de expirações volta para 0.</li><li>O histórico anterior permanece registrado para auditoria.</li><li>A decisão pode ser &#x27;Liberar telefone&#x27; ou &#x27;Manter bloqueado&#x27;.</li></ul></div></details><details class="searchable" open><summary>22. Recuperação e consulta</summary><div class="details-body"><ul><li>Ao criar a reserva, o WhatsApp recebe o código/número da reserva, produtos, total, horário de expiração e link.</li><li>No WhatsApp, a cliente pode enviar &#x27;Minha reserva&#x27;; o sistema identifica pelo próprio número e não exige novo código.</li><li>No site, a cliente informa o telefone, recebe novo código, valida o WhatsApp e então vê as reservas vinculadas.</li><li>O site não deve expor reservas apenas com o número da reserva ou telefone sem validação.</li></ul></div></details><details class="searchable" open><summary>23. Mensagens e WhatsApp</summary><div class="details-body"><ul><li>O WhatsApp acompanha todo o fluxo e também é canal de comunicação com a loja.</li><li>Notificar: código de validação, reserva criada, prazo, lembrete quando faltarem 5 minutos, pagamento confirmado, confirmação da entrega, frete quando aplicável, pronto para retirada, saiu para entrega, entregue, cancelamento solicitado, decisão do cancelamento, expiração e bloqueio/desbloqueio.</li><li>O lembrete de expiração deve ser enviado quando faltarem 5 minutos.</li><li>As mensagens devem evitar dados pessoais desnecessários.</li></ul></div></details><details class="searchable" open><summary>24. Regras administrativas</summary><div class="details-body"><ul><li>O painel deve mostrar reservas ativas, pagamentos confirmados, expiradas, entregues, cancelamentos solicitados e telefones bloqueados.</li><li>Permitir busca por número da reserva, telefone e cliente.</li><li>Mostrar criação, expiração, produtos, quantidades, pagamento, entrega e histórico.</li><li>No MVP, todos os usuários administrativos têm as mesmas permissões.</li><li>Ações manuais relevantes devem deixar rastreabilidade.</li></ul></div></details><details class="searchable" open><summary>25. Histórico e auditoria</summary><div class="details-body"><ul><li>Registrar criação da reserva.</li><li>Registrar expiração.</li><li>Registrar tentativas/confirmação de pagamento quando relevante.</li><li>Registrar solicitação e decisão de cancelamento.</li><li>Registrar bloqueio e desbloqueio de telefone.</li><li>Registrar alterações administrativas.</li><li>Registrar confirmação de entrega.</li><li>Auditoria deve preservar histórico mesmo quando contadores operacionais forem zerados.</li></ul></div></details><details class="searchable" open><summary>26. Identificação, segurança e privacidade</summary><div class="details-body"><ul><li>Cada reserva possui identificador único e vínculo com o telefone confirmado.</li><li>O telefone pode ser mascarado nas telas.</li><li>A cliente não pode consultar arbitrariamente reservas de outro número.</li><li>Deve existir limitação de tentativas e reenvios de código.</li><li>Dados pessoais devem ser coletados apenas quando necessários para a operação.</li></ul></div></details><details class="searchable" open><summary>27. Concorrência de estoque</summary><div class="details-body"><ul><li>Duas clientes podem selecionar a mesma última unidade, porque Selecionado não bloqueia estoque.</li><li>No momento da reserva, apenas uma pode efetivamente bloquear a última unidade.</li><li>A segunda cliente recebe indisponibilidade e deve ajustar a seleção.</li><li>O controle deve acontecer no backend/banco, não apenas na interface.</li></ul></div></details></div>
+    </section>
+
+    <section id="nao-estados" class="section card searchable">
+      <div class="kicker">Modelagem</div>
+      <h2>Etapas, sinalizações e substatus que não são estados oficiais</h2>
+      <div class="grid grid-3">
+        <div class="state"><strong>Confirmação do telefone</strong><span class="muted">Etapa de validação necessária antes de Reservado.</span></div>
+        <div class="state"><strong>Checagem de estoque</strong><span class="muted">Ação transacional antes de criar a reserva.</span></div>
+        <div class="state"><strong>Pagamento em processamento</strong><span class="muted">Sinalização técnica para a tolerância; o estado principal continua Reservado.</span></div>
+        <div class="state"><strong>Cancelamento solicitado</strong><span class="muted">Sinalização operacional; não pausa o relógio.</span></div>
+        <div class="state"><strong>Em preparação</strong><span class="muted">Substatus operacional após pagamento confirmado.</span></div>
+        <div class="state"><strong>Pronto para retirada / saiu para entrega / enviado</strong><span class="muted">Substatus logísticos até a confirmação de Entregue.</span></div>
+      </div>
+    </section>
+
+    <section id="pendencias" class="section card pending searchable">
+      <div class="kicker">Ponto ainda não fechado</div>
+      <h2>Pendência funcional explícita</h2>
+      <p><strong>Frete não pago dentro de 2 horas:</strong> o prazo foi definido, mas ainda não foi definida a consequência automática caso a cliente não pague o segundo pagamento do frete dentro desse período. Esta regra deve permanecer pendente até decisão específica.</p>
+    </section>
+  </main>
+</div>
+
+<div class="footer">Documento HTML de especificação funcional • Sistema de Reserva</div>
+
+<script>
+const input=document.getElementById('searchInput');
+input.addEventListener('input',()=>{
+  const q=input.value.trim().toLowerCase();
+  document.querySelectorAll('.searchable, details').forEach(el=>{
+    const hit=!q || el.textContent.toLowerCase().includes(q);
+    el.classList.toggle('hidden-by-search',!hit);
+  });
+});
+let expanded=true;
+document.getElementById('expandAll').addEventListener('click',()=>{
+  expanded=!expanded;
+  document.querySelectorAll('details').forEach(d=>d.open=expanded);
+  document.getElementById('expandAll').textContent=expanded?'Recolher tudo':'Expandir tudo';
+});
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+</script>
+</body>
+</html>
