@@ -6,19 +6,19 @@
               ['22:48','WhatsApp notificado','Número #1048, produtos, total, horário de expiração e link enviados.']];
   const cenarios={
     RESERVADO:{estado:'RESERVADO',badge:'success',extra:['Cancelamento solicitado','warning'],substatus:null,
-      reserva:'Expira às 23:03<br>3 itens',pag:['Aguardando','R$ 119,76<br>Nenhuma confirmação ainda'],
+      reserva:'Expira às 23:03<br>3 itens',pag:['Aguardando','R$ 119,76 · forma: PIX (fixada na 1ª cobrança)<br>Cobrança PIX gerada às 22:55, aguardando o banco'],
       linha:[['22:53','Cancelamento solicitado','Aguardando decisão administrativa.']]},
     PAGO_PREPARACAO:{estado:'PAGAMENTO CONFIRMADO',badge:'',extra:['Em preparação',''],substatus:'EM_PREPARACAO',
-      reserva:'Cronômetro encerrado<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76<br>Transação TX-88420511'],
+      reserva:'Cronômetro encerrado<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76 · PIX<br>Transação Mercado Pago TX-88420511'],
       linha:[['22:58','Pagamento confirmado','Unidades passaram de reservadas para vendidas.'],['23:05','Retirada confirmada pela cliente','Sem frete.']]},
     PAGO_PRONTO:{estado:'PAGAMENTO CONFIRMADO',badge:'',extra:['Pronto para retirada','citron'],substatus:'PRONTO_PARA_RETIRADA',
-      reserva:'Cronômetro encerrado<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76<br>Transação TX-88420511'],
+      reserva:'Cronômetro encerrado<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76 · PIX<br>Transação Mercado Pago TX-88420511'],
       linha:[['22:58','Pagamento confirmado','Unidades passaram de reservadas para vendidas.'],['23:05','Retirada confirmada pela cliente','Sem frete.'],['09:10','Pronto para retirada','Cliente avisada no WhatsApp.']]},
     ENTREGUE:{estado:'ENTREGUE',badge:'',extra:null,substatus:null,final:['Pedido entregue','Retirado em 25/09 às 10:32. Confirmado por Carol (admin). Estado final.'],
-      reserva:'Encerrada<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76<br>Transação TX-88420511'],
+      reserva:'Encerrada<br>3 itens',pag:['Confirmado às 22:58','R$ 119,76 · PIX<br>Transação Mercado Pago TX-88420511'],
       linha:[['22:58','Pagamento confirmado',''],['09:10','Pronto para retirada',''],['10:32','Entregue','Confirmado por Carol (admin).']]},
     EXPIRADO:{estado:'EXPIRADO',badge:'danger',extra:null,substatus:null,final:['Reserva expirada','Prazo esgotado às 23:03 sem pagamento. Estoque liberado. Estado final: não pode ser reativada.'],
-      reserva:'Expirou às 23:03<br>3 itens',pag:['Não pago','R$ 119,76'],
+      reserva:'Expirou às 23:03<br>3 itens',pag:['Não pago','R$ 119,76 · forma: PIX<br>Cobrança cancelada no Mercado Pago ao expirar'],
       linha:[['22:53','Cancelamento solicitado',''],['23:03','Reserva expirada','Solicitação de cancelamento encerrada como prejudicada. Estoque liberado.']]}
   };
   let atual;
