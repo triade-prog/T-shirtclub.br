@@ -5,7 +5,7 @@
     RESERVA_ENCERRADA:'Reserva já encerrada'
   };
   const casos=[
-    {id:'c1',reserva:'#1044',cliente:'Carla D.',telefone:'(77) •••••-3310',motivo:'APROVADO_APOS_TOLERANCIA',valor:11990,transacao:'TX-88412077',situacao:'ABERTA',
+    {id:'c1',reserva:'#1044',cliente:'Carla D.',telefone:'(77) •••••-3310',motivo:'APROVADO_APOS_TOLERANCIA',valor:11976,transacao:'TX-88412077',situacao:'ABERTA',
       itens:[{produto:'p1',qtd:1},{produto:'p4',qtd:1},{produto:'p5',qtd:1}],
       linha:[['22:00:00','Reserva criada','Expira às 22:15:00.'],['22:14:40','Tentativa de pagamento registrada','Antes do prazo: tolerância até 22:20:00.'],
              ['22:20:00','Reserva expirada','Provedor consultado: ainda pendente. Estoque liberado.'],['22:21:12','Provedor aprovou o pagamento','Fora da tolerância: enviado para análise.']]},
