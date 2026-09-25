@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reserva ativa</title>
 <link rel="stylesheet" href="assets/css/prototipo.css">
+<link rel="stylesheet" href="assets/css/cliente.css">
 </head>
 <body>
 <header class="topbar">
@@ -15,13 +16,57 @@
 </header>
 
 <main><div class="shell">
-  <div class="hero">
-    <div><div class="kicker">Página 4 de 5 • cliente</div><h1>Reserva #1048</h1><div class="toolbar"><span class="badge success">RESERVADO</span><span class="badge" id="piecesBadge">3 peças</span><span class="badge">WhatsApp confirmado</span></div></div>
-    <div style="text-align:right"><div class="muted">Tempo restante</div><div class="timer" id="reserveTimer">15:00</div></div>
+  <div class="hero" style="margin-bottom:10px">
+    <div><div class="kicker">Página 4 de 5 • cliente</div><h1>Reserva #1048</h1><div class="toolbar"><span class="badge success" id="stateBadge">RESERVADO</span><span class="badge" id="piecesBadge">3 peças</span><span class="badge">WhatsApp confirmado</span></div></div>
   </div>
-  <div class="progress"><div id="reserveProgress"></div></div>
-  <div class="notice pink" style="margin:14px 0 18px" id="paymentNotice">Suas peças estão bloqueadas temporariamente. Quando faltarem 5 minutos, você receberá um lembrete no WhatsApp.</div>
+  <div class="timer-bar">
+    <div class="row"><div><div class="muted" id="timerLabel">Tempo restante</div><div class="timer" id="reserveTimer">15:00</div></div><span class="badge" id="expiresAt">expira às 23:03</span></div>
+    <div class="progress" style="margin-top:8px"><div id="reserveProgress"></div></div>
+  </div>
+  <div class="notice pink" style="margin:0 0 16px" id="paymentNotice">Suas peças estão guardadas para você. Quando faltarem 5 minutos, você recebe um lembrete no WhatsApp.</div>
   <div class="grid grid-2">
+    <aside class="card soft" id="payCard">
+      <h2>Pagamento</h2>
+      <p class="muted" style="margin-top:0">Escolha como pagar. A forma escolhida na primeira cobrança fica fixa para esta reserva.</p>
+      <div class="method" role="radiogroup" aria-label="Forma de pagamento">
+        <label><input type="radio" name="method" value="PIX" checked><span>PIX</span><small>Aprovação na hora</small></label>
+        <label><input type="radio" name="method" value="CARTAO"><span>Cartão</span><small>Crédito, à vista</small></label>
+      </div>
+
+      <div id="pixStart"><button class="btn citron full" type="button" id="genPix">Gerar código PIX</button></div>
+      <div id="pixBox" hidden>
+        <div class="row"><strong>Valor</strong><span class="price" id="pixAmount"></span></div>
+        <button class="btn citron full" type="button" id="copyPix" style="margin-top:10px">Copiar código PIX</button>
+        <ol class="steps-list"><li>Abra o app do seu banco.</li><li>Escolha <strong>Pix › Pix copia e cola</strong>.</li><li>Cole o código e confirme.</li></ol>
+        <details style="margin-top:10px"><summary class="muted" style="cursor:pointer">Está no computador? Mostrar QR code</summary><div id="qrBox"></div></details>
+        <div class="pix-code" id="pixCode" style="margin-top:10px"></div>
+      </div>
+
+      <form id="cardBox" hidden novalidate>
+        <div class="field"><label for="cNumber">Número do cartão</label><input id="cNumber" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19"></div>
+        <div class="field" style="margin-top:8px"><label for="cName">Nome impresso no cartão</label><input id="cName" autocomplete="cc-name"></div>
+        <div class="field-row" style="margin-top:8px">
+          <div class="field"><label for="cExp">Validade</label><input id="cExp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5"></div>
+          <div class="field"><label for="cCvv">CVV</label><input id="cCvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"></div>
+        </div>
+        <p class="muted" style="font-size:12px">Os dados do cartão vão direto para o Mercado Pago. A loja não vê nem guarda o número.</p>
+        <button class="btn citron full" type="submit" id="payCardBtn">Pagar <span id="cardAmount"></span></button>
+      </form>
+
+      <div class="status-box" id="payStatus" hidden role="status"></div>
+      <div class="sep"></div>
+      <button class="btn danger full" id="cancelBtn" type="button">Solicitar cancelamento</button>
+      <p class="muted" style="font-size:12px">Solicitar cancelamento <strong>não pausa o cronômetro</strong>. A loja aprova ou recusa.</p>
+
+      <div class="proto-tools">
+        <div class="muted" style="font-size:12px;font-weight:800;margin-bottom:8px">PROTÓTIPO · simular o que o Mercado Pago responde</div>
+        <div class="toolbar">
+          <button class="btn secondary" type="button" id="simApprove">Aprovar pagamento</button>
+          <button class="btn secondary" type="button" id="simRefuse">Recusar pagamento</button>
+          <button class="btn secondary" type="button" id="simJump">Pular para o fim do prazo</button>
+        </div>
+      </div>
+    </aside>
     <section class="card">
       <h2>Produtos reservados</h2>
       <div class="list" id="reservedItems"></div>
@@ -31,28 +76,11 @@
       <div class="row"><strong>Total</strong><span class="price" id="resTotal"></span></div>
       <p class="muted" style="font-size:12px;margin:6px 0 0">Preço e desconto ficaram congelados quando a reserva foi criada.</p>
       <div class="row" style="margin-top:10px"><span class="muted">Intenção de entrega</span><strong id="resDelivery">Retirada</strong></div>
+      <span id="paidTotal" hidden></span>
     </section>
-    <aside class="card soft">
-      <h2>Finalizar pagamento</h2>
-      <p class="muted">A reserva permanece no estado <strong>Reservado</strong> até o provedor confirmar o pagamento.</p>
-      <div class="field"><label for="payMethod">Forma de pagamento</label><select id="payMethod"><option>PIX</option><option>Cartão</option></select><span class="muted" style="font-size:12px">A forma escolhida na primeira cobrança fica fixa para esta reserva. Se o pagamento for recusado, você tenta de novo pela mesma forma.</span></div>
-      <button class="btn citron" style="width:100%;margin-top:12px" id="payBtn">Iniciar pagamento</button>
-      <button class="btn danger" style="width:100%;margin-top:10px" id="cancelBtn">Solicitar cancelamento</button>
-      <div class="notice warn" style="margin-top:12px">Solicitar cancelamento <strong>não pausa o cronômetro</strong>. O painel administrativo aprova ou recusa.</div>
-    </aside>
   </div>
-
-  <section class="card" id="paidSection" style="margin-top:16px;display:none">
-    <div class="row"><div><span class="badge success">PAGAMENTO CONFIRMADO</span><h2 style="margin-top:10px">Pedido confirmado</h2><p class="muted">O cronômetro foi encerrado. Agora confirme a forma de entrega.</p></div><div class="price" id="paidTotal"></div></div>
-    <div class="grid grid-3" style="margin-top:12px">
-      <button class="btn secondary deliveryChoice">Retirada</button>
-      <button class="btn secondary deliveryChoice">Entrega local / motoboy</button>
-      <button class="btn secondary deliveryChoice">Envio para outra cidade</button>
-    </div>
-    <div class="notice" style="margin-top:12px">Quando houver frete, ele será calculado após esta confirmação e cobrado em um <strong>segundo pagamento</strong>, com prazo de <strong>2 horas</strong>.</div>
-  </section>
 </div></main>
-<div class="modal" id="cancelModal"><div class="modal-box"><h2>Solicitar cancelamento?</h2><p class="muted">A reserva continuará ativa até o administrador decidir ou até expirar.</p><div class="toolbar"><button class="btn danger" id="confirmCancel">Enviar solicitação</button><button class="btn secondary" id="closeCancel">Voltar</button></div></div></div>
+<div class="modal" id="cancelModal"><div class="modal-box"><h2>Solicitar cancelamento?</h2><p class="muted">A reserva continuará ativa até o administrador decidir ou até expirar.</p><div class="toolbar"><button class="btn danger" id="confirmCancel" type="button">Enviar solicitação</button><button class="btn secondary" id="closeCancel" type="button">Voltar</button></div></div></div>
 
 <footer class="footer"><div class="shell">Protótipo estrutural • sem backend real • regras do Sistema de Reserva incorporadas</div></footer>
 <div id="toast" class="toast" role="status"></div>
@@ -61,36 +89,6 @@
 <script src="assets/js/motor-preco.js"></script>
 <script src="assets/js/carrinho.js"></script>
 <script src="assets/js/paginas/04-resumo-reserva.js"></script>
-<script>
-
-let remaining=900, paymentStarted=false, paid=false, reminderSent=false;
-const timer=document.getElementById('reserveTimer'), progress=document.getElementById('reserveProgress'), notice=document.getElementById('paymentNotice');
-const int=setInterval(()=>{
-  if(paid)return;
-  remaining=Math.max(0,remaining-1);
-  timer.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
-  progress.style.width=`${(remaining/900)*100}%`;
-  if(remaining<=300&&!reminderSent){reminderSent=true;toast('Lembrete enviado no WhatsApp: faltam 5 minutos.');}
-  if(remaining===0){clearInterval(int);notice.className='notice danger';notice.innerHTML='<strong>Reserva expirada.</strong> As peças voltaram ao estoque. É necessário criar uma nova reserva.';}
-},1000);
-document.getElementById('payBtn').addEventListener('click',()=>{
-  if(remaining<=0)return toast('Reserva expirada.');
-  paymentStarted=true;
-  toast('Tentativa real de pagamento registrada.');
-  // Demonstração: confirma após 1,2s.
-  setTimeout(()=>{
-    paid=true;clearInterval(int);timer.textContent='PAGO';progress.style.width='100%';progress.style.background='var(--success)';
-    document.getElementById('paidSection').style.display='block';
-    document.getElementById('payBtn').disabled=true;
-    toast('Pagamento confirmado.');
-  },1200);
-});
-const modal=document.getElementById('cancelModal');
-document.getElementById('cancelBtn').addEventListener('click',()=>modal.classList.add('open'));
-document.getElementById('closeCancel').addEventListener('click',()=>modal.classList.remove('open'));
-document.getElementById('confirmCancel').addEventListener('click',()=>{modal.classList.remove('open');toast('Solicitação enviada ao painel administrativo.');});
-document.querySelectorAll('.deliveryChoice').forEach(b=>b.addEventListener('click',()=>toast(`Forma confirmada: ${b.textContent}.`)));
-
-</script>
+<script src="assets/js/paginas/04-pagamento.js"></script>
 </body>
 </html>

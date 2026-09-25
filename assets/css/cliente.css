@@ -1,0 +1,36 @@
+/* Telas da cliente: complementos mobile-first (a maioria do acesso vem do celular). */
+[hidden]{display:none!important}
+.timer-bar{position:sticky;top:68px;z-index:15;background:var(--paper);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:14px}
+.timer-bar .row{align-items:center}
+.timer-bar .timer{font-size:clamp(30px,8vw,52px)}
+.method{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.method label{position:relative;display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;min-height:64px;font-weight:900;background:#fff}
+.method label small{font-weight:600;color:var(--muted);font-size:12px}
+.method input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;min-height:0;inset:0}
+.method label:has(input:checked){border-color:var(--ink);background:#FCFFE8}
+.method label:has(input:disabled){opacity:.45;cursor:not-allowed}
+.method label:focus-within{outline:2px solid var(--ink);outline-offset:2px}
+.pix-code{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;background:var(--soft);border:1px dashed var(--line);border-radius:10px;padding:10px;max-height:72px;overflow:auto}
+.btn.full{width:100%}
+.steps-list{margin:10px 0 0;padding-left:20px;font-size:14px;color:var(--muted)}
+.status-box{border-radius:14px;padding:14px;margin-top:12px;border:1px solid var(--line);background:#fff}
+.status-box.wait{border-color:#F2D4A5;background:#FFF8EA}
+.status-box.bad{border-color:#EABBBB;background:#FFF1F1}
+.status-box.ok{border-color:#BFE3CE;background:#ECF8F1}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+.proto-tools{border:1.5px dashed var(--muted);border-radius:14px;padding:12px;margin-top:16px}
+.proto-tools .toolbar .btn{min-height:38px;font-size:13px}
+.qr{display:grid;grid-template-columns:repeat(25,1fr);width:200px;height:200px;border:10px solid #fff;outline:1px solid var(--line);margin:10px auto}
+.qr span{display:block}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.order-steps{display:grid;gap:0}
+.order-step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding-bottom:12px}
+.order-step .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);background:#fff;margin-top:2px}
+.order-step.done .dot{background:var(--ink);border-color:var(--ink)}
+.order-step.now .dot{background:var(--citron);border-color:var(--ink)}
+.order-step.later{color:var(--muted)}
+.bottom-cta{position:sticky;bottom:0;background:var(--paper);padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);margin-top:16px;z-index:10}
+@media(min-width:900px){.bottom-cta{position:static;border-top:0;padding:0}}
+#resDiscount,#discountValue{white-space:nowrap}
