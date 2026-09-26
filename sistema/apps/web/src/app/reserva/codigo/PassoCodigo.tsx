@@ -70,10 +70,14 @@ export function PassoCodigo({ tentativaId, numeroLoja }: { tentativaId: string; 
     setEnviando(true);
     setErro(null);
     setErroCodigo(undefined);
-    const r = await chamarApi<{ reserva: { numero: number } }>(`v1/reservation-attempts/${tentativaId}/confirm`, codigo ? { codigo } : {});
+    const r = await chamarApi<{ reserva: { id: string; numero: number } }>(`v1/reservation-attempts/${tentativaId}/confirm`, codigo ? { codigo } : {});
     if (r.ok) {
       await esvaziarSacola();
-      try { sessionStorage.removeItem(`tc-tentativa-${tentativaId}`); } catch { /* nada a limpar */ }
+      try {
+        sessionStorage.removeItem(`tc-tentativa-${tentativaId}`);
+        // A página da reserva é por número; a API, por id (sem isto, ela procura nas reservas do telefone).
+        sessionStorage.setItem(`tc-reserva-${r.dados.reserva.numero}`, r.dados.reserva.id);
+      } catch { /* sem armazenamento: a página procura pelo número */ }
       router.replace(`/reserva/${r.dados.reserva.numero}`);
       return;
     }

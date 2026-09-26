@@ -50,3 +50,12 @@ test("reserva: tela do código acessível", async ({ page }) => {
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations).toEqual([]);
 });
+
+// Reserva ativa (fatia 5): número inválido é 404; sem a api-public, a tela explica e não quebra.
+test("reserva ativa: 404 e tela sem conexão com a api acessível", async ({ page }) => {
+  expect((await page.goto(`${LOJA}/reserva/abc`))!.status()).toBe(404);
+  await page.goto(`${LOJA}/reserva/1042`);
+  await expect(page.getByText("Não conseguimos abrir sua reserva agora.")).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});

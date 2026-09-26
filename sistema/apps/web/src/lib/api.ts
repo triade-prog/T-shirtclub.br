@@ -6,11 +6,16 @@ export type RespostaApi<T> =
   | { ok: true; dados: T }
   | { ok: false; codigo: CodigoErro; detalhes: Record<string, unknown> };
 
-export async function chamarApi<T>(caminho: string, corpo?: unknown, metodo: "GET" | "POST" | "PUT" = corpo === undefined ? "GET" : "POST"): Promise<RespostaApi<T>> {
+export async function chamarApi<T>(
+  caminho: string,
+  corpo?: unknown,
+  metodo: "GET" | "POST" | "PUT" = corpo === undefined ? "GET" : "POST",
+  extras: Record<string, string> = {},
+): Promise<RespostaApi<T>> {
   try {
     const r = await fetch(`/api/${caminho}`, {
       method: metodo,
-      headers: corpo === undefined ? { accept: "application/json" } : { accept: "application/json", "content-type": "application/json" },
+      headers: { accept: "application/json", ...(corpo === undefined ? {} : { "content-type": "application/json" }), ...extras },
       body: corpo === undefined ? undefined : JSON.stringify(corpo),
       cache: "no-store",
     });
