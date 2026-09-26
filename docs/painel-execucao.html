@@ -16,7 +16,8 @@
        Em "bloqueado", preencha "nota" com o motivo ("nota" também serve para qualquer status).
     2. Atualize "meta.atualizado_em" e "meta.situacao". Quando a loja liberar uma fase,
        ponha o id dela em "meta.fase_atual" (ex.: "F1"); enquanto for null, o painel mostra a próxima fase.
-    3. Acrescente uma linha no topo de "historico".
+    3. Acrescente uma linha no topo de "historico", com "data" (dd/mm/aaaa), "inicio" e "fim"
+       (hh:mm, horário de Brasília): do pedido da loja até o commit que entregou.
   Os achados G1–G24 não têm status próprio: o status de cada um é calculado
   a partir de todos os itens (entregas, testes, publicação, dependências) que o citam em "refs".
 -->
@@ -279,29 +280,31 @@
     ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
-    {"data":"26/09/2026","texto":"F11: teste de carga com 100 clientes, verificador de invariantes, prazos de guarda, alertas e saúde dos jobs, erros sem dados pessoais, ensaio de restauração, runbook e PWA (service worker, sem conexão, aviso no iPhone); desenho técnico v24.","ref":""},
-    {"data":"26/09/2026","texto":"F10 no servidor: dashboard com o que pede ação, busca e detalhe da reserva com linha do tempo, auditoria com filtros, WhatsApp no painel (QR, fila, ritmo, notificações, teste) e Minha conta (senha, aparelhos, autenticadores); desenho técnico v23.","ref":""},
-    {"data":"26/09/2026","texto":"F9 no servidor: consulta pelo site com código, link da reserva com sessão limitada, código pelo link antes de mexer na entrega e resposta a Minha reserva no WhatsApp; desenho técnico v22.","ref":""},
-    {"data":"26/09/2026","texto":"F8 no servidor: entrega com código de retirada aleatório, modalidade e endereço, frete informado pelo painel e pago em até 2 h, substatus e Entregue sem disputa aberta; desenho técnico v21.","ref":""},
-    {"data":"26/09/2026","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},
-    {"data":"26/09/2026","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},
-    {"data":"26/09/2026","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},
-    {"data":"26/09/2026","texto":"F3 e F4 no servidor: código pelo WhatsApp (webhook, bloqueio de 30 min, fila) e criação atômica da reserva; teste de concorrência e integração no CI; desenho técnico v17.","ref":""},
-    {"data":"26/09/2026","texto":"Rotas do catálogo: loja (página inicial, coleções, produtos, looks, cotação da sacola) e painel (cadastros, fotos, página inicial, promoções); desenho técnico v16.","ref":""},
-    {"data":"26/09/2026","texto":"F2 sem telas: catálogo, promoções, motor de preço, ajuste de estoque e login do painel com autenticador; desenho técnico v15.","ref":""},
-    {"data":"25/09/2026","texto":"CI bloqueado pela conta do GitHub (pendência de cobrança); F1.2 marcado como bloqueado.","ref":""},
-    {"data":"25/09/2026","texto":"F1 liberada e implementada em sistema/: monorepo, 6 migrations com 46 testes pgTAP, domain (39 testes, roda no Deno), repasse /api e CSP com nonce (16 testes), design system e apps Next.js 16 (18 testes ponta a ponta com axe, Lighthouse 98/100), CI, gitleaks e Dependabot. Logo oficial aplicado. Falta: contas Supabase/Vercel (F1.4) e a primeira execução do CI."},
-    {"data":"25/09/2026","texto":"Referência Coucou Suzette lida do HTML da página inicial (paleta, Hammer + Lora, botões de 4 px, faixas de cor sem espaço, menu com emoji). Aplicado na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, história e garantias."},
-    {"data":"25/09/2026","texto":"42 fotos de produto lidas pelo conector do Google Drive e aplicadas no design (catálogo real com coleções sugeridas, capas por recorte de estampa, campanha provisória). Pasta do site de referência analisada: só apps de terceiros."},
-    {"data":"25/09/2026","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21)."},
-    {"data":"25/09/2026","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18)."},
-    {"data":"25/09/2026","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11."},
-    {"data":"25/09/2026","texto":"Frontend e design entram no plano (arquitetura v10, seção 18). Proposta de design criada: identidade, design system, 7 telas e textos."},
-    {"data":"25/09/2026","texto":"Painel validado com as habilidades code-review, dataviz e simplify; correções aplicadas."},
-    {"data":"25/09/2026","texto":"Painel de execução criado. F1 aguardando liberação da loja.","ref":"a566824"},
-    {"data":"25/09/2026","texto":"Decisões D12 a D15 registradas; desenho técnico na versão 9.","ref":"b857477"},
-    {"data":"25/09/2026","texto":"Revisão geral: 24 achados (G1 a G24); desenho técnico na versão 8; protótipo corrigido.","ref":"9c204bb"},
-    {"data":"25/09/2026","texto":"Desenho técnico v7 e resumo de contexto.","ref":"96dc2da"}
+    {"data":"26/09/2026","inicio":"11:39","fim":"11:41","texto":"Histórico com horário de início e de fim de cada entrega (horário de Brasília); datas conferidas no mesmo fuso.","ref":""},
+    {"data":"26/09/2026","inicio":"11:15","fim":"11:37","texto":"F11: teste de carga com 100 clientes, verificador de invariantes, prazos de guarda, alertas e saúde dos jobs, erros sem dados pessoais, ensaio de restauração, runbook e PWA (service worker, sem conexão, aviso no iPhone); desenho técnico v24.","ref":""},
+    {"data":"26/09/2026","inicio":"11:01","fim":"11:12","texto":"F10 no servidor: dashboard com o que pede ação, busca e detalhe da reserva com linha do tempo, auditoria com filtros, WhatsApp no painel (QR, fila, ritmo, notificações, teste) e Minha conta (senha, aparelhos, autenticadores); desenho técnico v23.","ref":""},
+    {"data":"26/09/2026","inicio":"10:47","fim":"10:58","texto":"F9 no servidor: consulta pelo site com código, link da reserva com sessão limitada, código pelo link antes de mexer na entrega e resposta a Minha reserva no WhatsApp; desenho técnico v22.","ref":""},
+    {"data":"26/09/2026","inicio":"10:42","fim":"10:46","texto":"Verificação do GitHub e do painel: branch em dia; o CI passou a iniciar, mas os jobs falham sem máquina (conta do GitHub); notas de F6.8, T4 e T24 atualizadas.","ref":""},
+    {"data":"26/09/2026","inicio":"10:17","fim":"10:30","texto":"F8 no servidor: entrega com código de retirada aleatório, modalidade e endereço, frete informado pelo painel e pago em até 2 h, substatus e Entregue sem disputa aberta; desenho técnico v21.","ref":""},
+    {"data":"26/09/2026","inicio":"10:07","fim":"10:16","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},
+    {"data":"26/09/2026","inicio":"09:51","fim":"10:04","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},
+    {"data":"26/09/2026","inicio":"09:39","fim":"09:48","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},
+    {"data":"26/09/2026","inicio":"00:40","fim":"01:02","texto":"F3 e F4 no servidor: código pelo WhatsApp (webhook, bloqueio de 30 min, fila) e criação atômica da reserva; teste de concorrência e integração no CI; desenho técnico v17.","ref":""},
+    {"data":"26/09/2026","inicio":"00:21","fim":"00:34","texto":"Rotas do catálogo: loja (página inicial, coleções, produtos, looks, cotação da sacola) e painel (cadastros, fotos, página inicial, promoções); desenho técnico v16.","ref":""},
+    {"data":"25/09/2026","inicio":"23:33","fim":"23:53","texto":"F2 sem telas: catálogo, promoções, motor de preço, ajuste de estoque e login do painel com autenticador; desenho técnico v15.","ref":""},
+    {"data":"25/09/2026","inicio":"17:03","fim":"23:32","texto":"CI bloqueado pela conta do GitHub (pendência de cobrança); F1.2 marcado como bloqueado.","ref":""},
+    {"data":"25/09/2026","inicio":"16:37","fim":"17:02","texto":"F1 liberada e implementada em sistema/: monorepo, 6 migrations com 46 testes pgTAP, domain (39 testes, roda no Deno), repasse /api e CSP com nonce (16 testes), design system e apps Next.js 16 (18 testes ponta a ponta com axe, Lighthouse 98/100), CI, gitleaks e Dependabot. Logo oficial aplicado. Falta: contas Supabase/Vercel (F1.4) e a primeira execução do CI.","ref":""},
+    {"data":"25/09/2026","inicio":"16:14","fim":"16:35","texto":"Referência Coucou Suzette lida do HTML da página inicial (paleta, Hammer + Lora, botões de 4 px, faixas de cor sem espaço, menu com emoji). Aplicado na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, história e garantias.","ref":""},
+    {"data":"25/09/2026","inicio":"16:00","fim":"16:12","texto":"42 fotos de produto lidas pelo conector do Google Drive e aplicadas no design (catálogo real com coleções sugeridas, capas por recorte de estampa, campanha provisória). Pasta do site de referência analisada: só apps de terceiros.","ref":""},
+    {"data":"25/09/2026","inicio":"13:07","fim":"13:36","texto":"Proposta 4 do design (descoberta editorial, página de produto, Monte seu Club); oferta 3 por R$ 119,99 a cada 3 no motor de preço; até 10 fotos por produto no catálogo; loja só no claro; arquitetura v13 (D19 a D21).","ref":""},
+    {"data":"25/09/2026","inicio":"12:35","fim":"12:49","texto":"Design refeito como proposta 3, clube de stickers: página leve, rosa e verde como tempero, cores de coleção validadas (contraste e daltonismo); prancha 2 oficial; arquitetura v12 (D18).","ref":""},
+    {"data":"25/09/2026","inicio":"12:14","fim":"12:28","texto":"Marca T-shirt Club.br recebida e validada (dataviz, artifact-design, code-review); design refeito como proposta 2; arquitetura v11.","ref":""},
+    {"data":"25/09/2026","inicio":"11:53","fim":"12:10","texto":"Frontend e design entram no plano (arquitetura v10, seção 18). Proposta de design criada: identidade, design system, 7 telas e textos.","ref":""},
+    {"data":"25/09/2026","inicio":"11:40","fim":"11:48","texto":"Painel validado com as habilidades code-review, dataviz e simplify; correções aplicadas.","ref":""},
+    {"data":"25/09/2026","inicio":"11:35","fim":"11:39","texto":"Painel de execução criado. F1 aguardando liberação da loja.","ref":"a566824"},
+    {"data":"25/09/2026","inicio":"11:06","fim":"11:19","texto":"Decisões D12 a D15 registradas; desenho técnico na versão 9.","ref":"b857477"},
+    {"data":"25/09/2026","inicio":"10:40","fim":"10:57","texto":"Revisão geral: 24 achados (G1 a G24); desenho técnico na versão 8; protótipo corrigido.","ref":"9c204bb"},
+    {"data":"25/09/2026","fim":"10:35","texto":"Desenho técnico v7 e resumo de contexto.","ref":"96dc2da"}
   ]
 }
 </script>
@@ -704,7 +707,8 @@ footer{color:var(--muted);font-size:13px;padding-top:24px}
 
   // Decisões e histórico
   D.decisoes.forEach(([id,t])=>$('dDec').append(el('div',{},el('b',{text:id}),el('span',{text:t}))));
-  D.historico.forEach(h=>{const li=el('li',{},el('time',{text:h.data}),h.texto);if(h.ref)li.append(' ',el('code',{text:h.ref}));$('hLog').append(li);});
+  const horario=h=>h.inicio&&h.fim?` · das ${h.inicio} às ${h.fim}`:h.fim?` · até ${h.fim}`:'';
+  D.historico.forEach(h=>{const li=el('li',{},el('time',{text:h.data+horario(h)}),h.texto);if(h.ref)li.append(' ',el('code',{text:h.ref}));$('hLog').append(li);});
 })();
 </script>
 </body>
