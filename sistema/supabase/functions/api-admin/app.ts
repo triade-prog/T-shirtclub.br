@@ -3,8 +3,11 @@
 import { criarApp } from "../_shared/app.ts";
 import { exigirAdmin, rotasAuthAdmin, type DepsAuthAdmin, type VarsAdmin } from "./auth.ts";
 import { rotasEstoque } from "./estoque.ts";
+import { rotasCatalogoAdmin, type DepsCatalogo } from "./catalogo.ts";
 
-export function criarApiAdmin(segredo: string | undefined, deps: DepsAuthAdmin) {
+export type DepsAdmin = DepsAuthAdmin & DepsCatalogo;
+
+export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   const app = criarApp<VarsAdmin>("api-admin", segredo);
 
   app.get("/v1/health", (c) => c.json({ ok: true, servico: "api-admin" }));
@@ -17,6 +20,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAuthAdmin) 
   });
   app.get("/v1/admin/me", (c) => c.json({ userId: c.get("admin").userId }));
   rotasEstoque(app, deps.banco);
+  rotasCatalogoAdmin(app, deps);
 
   return app;
 }

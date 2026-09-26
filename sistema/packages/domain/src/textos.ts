@@ -121,6 +121,16 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
           ? "O estoque não pode ficar abaixo das peças já reservadas ou vendidas."
           : `O estoque não pode ficar abaixo de ${c.comprometido}, que são as peças já reservadas ou vendidas.`,
       };
+    case "ALREADY_EXISTS":
+      return { mensagem: "Já existe um cadastro com este endereço ou código. Escolha outro." };
+    case "PRODUCT_NEEDS_IMAGE":
+      return { mensagem: "Para publicar, o produto precisa de pelo menos 1 foto. Um produto publicado não fica sem foto." };
+    case "IMAGE_LIMIT":
+      return { mensagem: "Cada produto tem no máximo 10 fotos. Apague uma para enviar outra." };
+    case "PROMOTION_OVERLAP":
+      return { mensagem: "Um destes produtos já está em outro desconto no mesmo período. Mude as datas ou tire o produto." };
+    case "PROMOTION_ENDED":
+      return { mensagem: "Esta promoção já terminou. Para repetir, crie uma nova." };
     default:
       return { mensagem: "Algo não saiu como esperado. Tente de novo em instantes.", acao: "Tentar de novo" };
   }

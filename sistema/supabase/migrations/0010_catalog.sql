@@ -200,14 +200,21 @@ create trigger stock_movements_sem_truncate before truncate on stock_movements
   for each statement execute function somente_insercao();
 
 -- Disponibilidade para a vitrine. É informativa: a verdade é decidida com o produto travado.
+create function availability_label(p_available integer) returns text
+language sql stable
+set search_path = public
+as $$
+  select case
+    when p_available <= 0 then 'ESGOTADO'
+    when p_available <= setting_int('ultimas_unidades') then 'ULTIMAS_UNIDADES'
+    else 'DISPONIVEL'
+  end
+$$;
+
 create view v_product_availability with (security_invoker = true) as
 select p.id as product_id,
        greatest(p.qty_total - p.qty_reserved - p.qty_sold, 0) as available,
-       case
-         when p.qty_total - p.qty_reserved - p.qty_sold <= 0 then 'ESGOTADO'
-         when p.qty_total - p.qty_reserved - p.qty_sold <= setting_int('ultimas_unidades') then 'ULTIMAS_UNIDADES'
-         else 'DISPONIVEL'
-       end as label
+       availability_label(p.qty_total - p.qty_reserved - p.qty_sold) as label
 from products p;
 
 alter table collections enable row level security;

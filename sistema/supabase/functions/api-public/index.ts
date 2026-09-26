@@ -1,10 +1,17 @@
-// API pública da loja. Nesta fase só a rota de saúde; as rotas de catálogo, tentativas,
-// OTP, reservas, pagamentos e consulta chegam nas fases seguintes (seção 11).
+// API pública da loja (seção 11). Catálogo e cotação da sacola (F2); tentativas, OTP,
+// reservas, pagamentos e consulta chegam nas fases seguintes.
 
-import { criarApp } from "../_shared/app.ts";
+import { bancoPostgrest } from "../_shared/banco.ts";
+import { criarApiPublica } from "./app.ts";
 
-const app = criarApp("api-public", Deno.env.get("REPASSE_SEGREDO"));
+function exigir(nome: string): string {
+  const v = Deno.env.get(nome);
+  if (!v) throw new Error(`Falta a variável ${nome}`);
+  return v;
+}
 
-app.get("/v1/health", (c) => c.json({ ok: true, servico: "api-public" }));
+const app = criarApiPublica(Deno.env.get("REPASSE_SEGREDO"), {
+  banco: bancoPostgrest(exigir("SUPABASE_URL"), exigir("SUPABASE_SERVICE_ROLE_KEY")),
+});
 
 Deno.serve(app.fetch);

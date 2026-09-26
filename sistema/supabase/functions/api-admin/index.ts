@@ -2,6 +2,7 @@
 // a sessão de dois fatores.
 
 import { authGoTrue } from "../_shared/auth-admin.ts";
+import { storageSupabase } from "../_shared/armazenamento.ts";
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
 import { criarApiAdmin } from "./app.ts";
@@ -13,8 +14,10 @@ function exigir(nome: string): string {
 }
 
 const url = exigir("SUPABASE_URL");
+const chaveServico = exigir("SUPABASE_SERVICE_ROLE_KEY");
 const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
-  banco: bancoPostgrest(url, exigir("SUPABASE_SERVICE_ROLE_KEY")),
+  banco: bancoPostgrest(url, chaveServico),
+  armazenamento: storageSupabase(url, chaveServico),
   auth: authGoTrue(url, exigir("SUPABASE_ANON_KEY")),
   turnstile: turnstileCloudflare(exigir("TURNSTILE_SECRET")),
   // O provedor de e-mail entra junto com o SMTP do projeto; até lá o aviso fica no log.

@@ -24,8 +24,8 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 15,
-    "situacao": "F2 em andamento: parte sem telas pronta (F2.1 a F2.4); telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "arquitetura_versao": 16,
+    "situacao": "F2 em andamento: banco, motor de preço, login e todas as rotas do catálogo prontos; telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
     "fase_atual": "F2",
     "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas da F2 (F2.5 a F2.10); pede ao suporte do GitHub o desbloqueio da conta (F1.2); cria os projetos Supabase em sa-east-1 e Vercel em gru1 (F1.4)."
   },
@@ -61,8 +61,8 @@
       {"id":"F2.2","texto":"Motor de preço (vale só a mais vantajosa), com compre e economize mais em níveis ou preço por grupo (\"3 por R$ 119,99\", D19), com testes unitários","sec":"promocoes","refs":[],"status":"feito","evidencia":"sistema/packages/domain/src/preco.ts; preco.test.ts cobre Monte seu Club de 1 a 9 peças, níveis, cupom (8 motivos de recusa), preço promocional, orçamento e 300 sacolas aleatórias"},
       {"id":"F2.3","texto":"Migration 0180: ajuste de estoque sob o mesmo lock, sempre com motivo","sec":"estoque","refs":[],"status":"feito","evidencia":"sistema/supabase/migrations/0180_fn_stock_admin.sql (adjust_stock com lock e motivo) e rota POST /v1/admin/products/:id/stock-adjustments; pgTAP 008"},
       {"id":"F2.4","texto":"Login do painel: senha de 12+ caracteres, autenticador obrigatório (AAL2), bloqueio por e-mail + IP, Turnstile","sec":"seguranca","refs":["G7","G24"],"status":"feito","evidencia":"sistema/supabase/migrations/0090_admin.sql e functions/api-admin/auth.ts: senha, autenticador (aal2), bloqueio por e-mail + IP, Turnstile a partir do 3º erro; pgTAP 007 e auth_test.ts (Deno). A tela de login fica na F2.10"},
-      {"id":"F2.5","texto":"Painel: catálogo com 1 a 10 fotos por produto, coleções com cor aprovada, looks, blocos da página inicial, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"pendente"},
-      {"id":"F2.6","texto":"Loja: início editorial, coleção, página de produto e sacola gerados no servidor, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"pendente"},
+      {"id":"F2.5","texto":"Painel: catálogo com 1 a 10 fotos por produto, coleções com cor aprovada, looks, blocos da página inicial, estoque e as 3 telas de promoção (telas 10 a 17)","sec":"api","refs":[],"status":"andamento","nota":"Rotas prontas na api-admin (coleções, produtos, fotos por URL assinada, looks, página inicial, promoções e estoque), com testes pgTAP 009 e Deno catalogo_test.ts. Faltam as telas, que esperam a aprovação do design"},
+      {"id":"F2.6","texto":"Loja: início editorial, coleção, página de produto e sacola gerados no servidor, dentro das metas de desempenho no celular","sec":"mobile","refs":["G17"],"status":"andamento","nota":"Rotas prontas na api-public: /v1/catalog/home, collections, products, products/:slug, looks e POST /v1/cart/quote (preço promocional e Monte seu Club pelo motor); pgTAP 010 e Deno. Faltam as telas"},
       {"id":"F2.7","texto":"Telas da loja com contraste, foco, alvos de 44 px e erros junto do campo","sec":"mobile","refs":["G19"],"status":"pendente"},
       {"id":"F2.8","texto":"Componentes da loja: Botao, Campo, CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao, SeloEstoque, Aviso, Toast","sec":"frontend","refs":[],"status":"pendente"},
       {"id":"F2.9","texto":"Telas da descoberta (telas 1 a 4 do design): início, coleção, produto com galeria e sacola \"Monte seu Club\"","sec":"frontend","refs":[],"status":"pendente"},
@@ -278,6 +278,7 @@
     ["D22","Descontos do produto ativos valem juntos como preço promocional (nunca dois no mesmo produto)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"Rotas do catálogo: loja (página inicial, coleções, produtos, looks, cotação da sacola) e painel (cadastros, fotos, página inicial, promoções); desenho técnico v16.","ref":""},
     {"data":"26/09/2026","texto":"F2 sem telas: catálogo, promoções, motor de preço, ajuste de estoque e login do painel com autenticador; desenho técnico v15.","ref":""},
     {"data":"25/09/2026","texto":"CI bloqueado pela conta do GitHub (pendência de cobrança); F1.2 marcado como bloqueado.","ref":""},
     {"data":"25/09/2026","texto":"F1 liberada e implementada em sistema/: monorepo, 6 migrations com 46 testes pgTAP, domain (39 testes, roda no Deno), repasse /api e CSP com nonce (16 testes), design system e apps Next.js 16 (18 testes ponta a ponta com axe, Lighthouse 98/100), CI, gitleaks e Dependabot. Logo oficial aplicado. Falta: contas Supabase/Vercel (F1.4) e a primeira execução do CI."},

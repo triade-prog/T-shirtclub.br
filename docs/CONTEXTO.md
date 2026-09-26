@@ -81,7 +81,9 @@ Pendências da F1:
 - **Login do painel** na `api-admin`: senha de 12+, autenticador obrigatório (aal2), 5 erros bloqueiam a rede por 15 min, Turnstile a partir do 3º erro, cookie `__Host-painel`. O aviso de bloqueio por e-mail fica no log até escolhermos o provedor de e-mail.
 - **Correção:** o script `pnpm build` da raiz não rodava (o shell expandia o filtro); o CI falharia nesse passo.
 
-As telas da F2 (F2.5 a F2.10) esperam a aprovação do design (D1 e D2).
+**Rotas do catálogo (26/09, antes das telas):** a `api-public` serve página inicial, coleções, produtos, página do produto, looks e a cotação da sacola (`POST /v1/cart/quote`), com o preço promocional e o Monte seu Club calculados pelo motor. A `api-admin` cadastra coleções, produtos, fotos (envio direto ao Storage por URL assinada, só WebP), looks, a ordem da página inicial e as promoções. Funções SQL em 0185 e 0190; 140 testes pgTAP, 38 Deno e 110 de regras.
+
+As telas da F2 (F2.5 a F2.10) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

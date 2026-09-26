@@ -33,7 +33,8 @@ export function montarCsp({ app, nonce, dev = false, origemImagens }: OpcoesCsp)
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": img,
     "font-src": ["'self'"],
-    "connect-src": ["'self'", ...(loja ? MERCADO_PAGO : []), ...(dev ? ["ws:"] : [])],
+    // O painel envia as fotos direto ao Storage, pela URL assinada (não passam pela Vercel).
+    "connect-src": ["'self'", ...(loja ? MERCADO_PAGO : origemImagens ? [origemImagens] : []), ...(dev ? ["ws:"] : [])],
     "frame-src": loja ? [...MERCADO_PAGO, ...TURNSTILE] : TURNSTILE,
     "worker-src": ["'self'", "blob:"],
     "manifest-src": ["'self'"],

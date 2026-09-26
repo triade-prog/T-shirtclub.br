@@ -22,6 +22,12 @@ describe("CSP", () => {
     expect(csp).toContain("frame-ancestors 'none'");
   });
 
+  it("painel envia fotos direto ao Storage; a loja não", () => {
+    const origem = "https://xyz.supabase.co";
+    expect(montarCsp({ app: "painel", nonce: "abc", origemImagens: origem })).toContain(`connect-src 'self' ${origem};`);
+    expect(montarCsp({ app: "loja", nonce: "abc", origemImagens: origem })).not.toMatch(/connect-src[^;]*supabase/);
+  });
+
   it("desenvolvimento libera o eval do React e o recarregamento", () => {
     const csp = montarCsp({ app: "loja", nonce: "abc", dev: true });
     expect(csp).toContain("'unsafe-eval'");

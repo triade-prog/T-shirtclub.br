@@ -43,3 +43,10 @@ timebox = "12h"
 
 # Segredos das funções (supabase secrets set ...): REPASSE_SEGREDO e TURNSTILE_SECRET.
 # SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY o Supabase já entrega.
+
+# Fotos do catálogo: leitura pública (vitrine e next/image); envio só por URL assinada
+# gerada na api-admin, sempre em WebP (o painel converte no navegador).
+[storage.buckets.catalogo]
+public = true
+file_size_limit = "15MiB"
+allowed_mime_types = ["image/webp"]
