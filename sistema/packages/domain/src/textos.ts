@@ -178,3 +178,35 @@ export const TEXTO_SEM_CONEXAO: TextoErro = {
   mensagem: "Sem conexão. Sua reserva continua valendo; a tela atualiza quando a internet voltar.",
   acao: "Tentar de novo",
 };
+
+/**
+ * Cartão recusado (status_detail do Mercado Pago, binary_mode). Sem culpa e com o que dá
+ * para fazer: outro cartão, falar com o banco ou pagar com PIX (se a reserva ainda não
+ * travou a forma). Motivo desconhecido cai no texto geral.
+ */
+export function textoRecusaCartao(detalhe: string | undefined): string {
+  switch (detalhe) {
+    case "cc_rejected_insufficient_amount":
+      return "O cartão não tem limite para este valor. Tente outro cartão.";
+    case "cc_rejected_bad_filled_security_code":
+      return "O código de segurança (CVV) não confere. Confira e tente de novo.";
+    case "cc_rejected_bad_filled_date":
+      return "A validade do cartão não confere. Confira e tente de novo.";
+    case "cc_rejected_bad_filled_card_number":
+    case "cc_rejected_bad_filled_other":
+      return "Algum dado do cartão não confere. Confira e tente de novo.";
+    case "cc_rejected_call_for_authorize":
+      return "O banco pediu para autorizar este pagamento. Fale com o seu banco e tente de novo.";
+    case "cc_rejected_card_disabled":
+      return "Este cartão está bloqueado para compras. Fale com o seu banco ou use outro cartão.";
+    case "cc_rejected_duplicated_payment":
+      return "Parece um pagamento repetido. Se já pagou, espere esta tela atualizar.";
+    case "cc_rejected_high_risk":
+    case "cc_rejected_blacklist":
+      return "O pagamento não foi aprovado pela análise de segurança. Tente outro cartão.";
+    case "cc_rejected_max_attempts":
+      return "Muitas tentativas com este cartão. Use outro cartão.";
+    default:
+      return "O pagamento não foi aprovado. Tente outro cartão ou fale com o seu banco.";
+  }
+}

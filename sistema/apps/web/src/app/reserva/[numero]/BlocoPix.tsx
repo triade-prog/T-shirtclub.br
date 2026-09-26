@@ -13,13 +13,17 @@ import { guardado, guardar, useRepetir, type Pagamento } from "./util";
 
 const ESPERA_PAGAMENTO_MS = 3000;
 
-export function BlocoPix({ reservaId, finalidade, titulo, valorCentavos, podeGerar, aoAprovar }: {
+export function BlocoPix({ reservaId, finalidade, titulo, valorCentavos, podeGerar, aoAprovar, aoGerar, aoTravarCartao }: {
   reservaId: string;
   finalidade: "PRODUTOS" | "FRETE";
   titulo: string;
   valorCentavos: number;
   podeGerar: boolean;
   aoAprovar: () => void;
+  /** Um PIX foi gerado ou encontrado: a forma da reserva fica fixa. */
+  aoGerar?: () => void;
+  /** A reserva foi paga com cartão (METHOD_LOCKED): a tela troca para ele. */
+  aoTravarCartao?: () => void;
 }) {
   const chave = `tc-pix-${reservaId}${finalidade === "FRETE" ? "-frete" : ""}`;
   const [pagamento, setPagamento] = useState<Pagamento | null>(null);
@@ -31,8 +35,9 @@ export function BlocoPix({ reservaId, finalidade, titulo, valorCentavos, podeGer
     const r = await chamarApi<Pagamento>(`v1/reservations/${reservaId}/payments/${pid}`);
     if (!r.ok) return;
     setPagamento(r.dados);
+    aoGerar?.();
     if (r.dados.status === "APROVADO") aoAprovar();
-  }, [reservaId, aoAprovar]);
+  }, [reservaId, aoAprovar, aoGerar]);
 
   // Se este navegador já gerou um PIX, ele volta (depois do await, como as consultas seguintes).
   useEffect(() => {
@@ -51,9 +56,14 @@ export function BlocoPix({ reservaId, finalidade, titulo, valorCentavos, podeGer
     setGerando(false);
     if (r.ok) {
       setPagamento(r.dados.pagamento);
+      aoGerar?.();
       return guardar(chave, r.dados.pagamento.id);
     }
-    if (r.codigo === "PAYMENT_IN_PROGRESS" && typeof r.detalhes.pagamentoId === "string") {
+    if (r.codigo === "METHOD_LOCKED") {
+      if (aoTravarCartao) return aoTravarCartao();
+      setErro("Esta reserva começou pelo cartão; continue por ele.");
+    }
+    else if (r.codigo === "PAYMENT_IN_PROGRESS" && typeof r.detalhes.pagamentoId === "string") {
       guardar(chave, r.detalhes.pagamentoId);
       return void ler(r.detalhes.pagamentoId);
     }

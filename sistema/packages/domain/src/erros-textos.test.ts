@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CODIGOS_ERRO, ErroDominio, ehCodigoErro, type CodigoErro } from "./erros.ts";
-import { textoCupom, textoErro } from "./textos.ts";
+import { textoCupom, textoErro, textoRecusaCartao } from "./textos.ts";
 import { formatarReais } from "./dinheiro.ts";
 
 describe("códigos de erro", () => {
@@ -52,5 +52,13 @@ describe("formatarReais", () => {
   });
   it("recusa valor quebrado", () => {
     expect(() => formatarReais(10.5)).toThrow();
+  });
+});
+
+describe("recusa do cartão", () => {
+  it("traduz os motivos do Mercado Pago e cai no geral", () => {
+    expect(textoRecusaCartao("cc_rejected_insufficient_amount")).toMatch(/limite/);
+    expect(textoRecusaCartao("cc_rejected_bad_filled_security_code")).toMatch(/CVV/);
+    expect(textoRecusaCartao("qualquer_outro")).toBe(textoRecusaCartao(undefined));
   });
 });

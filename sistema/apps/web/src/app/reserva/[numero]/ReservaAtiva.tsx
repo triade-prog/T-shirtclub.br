@@ -6,6 +6,7 @@ import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, Botao, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
 import { calcularRelogio, formatarTempo } from "@/lib/reserva";
+import { BlocoCartao } from "./BlocoCartao";
 import { BlocoPix } from "./BlocoPix";
 import { Entrega } from "./Entrega";
 import { ENTREGA, guardado, guardar, useRepetir, type Reserva } from "./util";
@@ -72,19 +73,52 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
             <p className="m-0 mt-1 text-sm">Se você já pagou, espere nesta tela: a confirmação pode levar alguns minutos. Não dá para gerar um PIX novo.</p>
           </Aviso>}
 
-      {/* PIX (tela 7): "Copiar código PIX" é a ação principal no celular */}
-      <BlocoPix
-        reservaId={reserva.id}
-        finalidade="PRODUTOS"
-        titulo="Pagar com PIX"
-        valorCentavos={reserva.totalCentavos}
-        podeGerar={relogio.fase === "PRAZO"}
-        aoAprovar={() => void lerReserva()}
-      />
+      <Pagar reserva={reserva} podePagar={relogio.fase === "PRAZO"} aoAprovar={() => void lerReserva()} />
 
       <Pedido reserva={reserva} />
       <Cancelamento reserva={reserva} aoPedir={lerReserva} />
     </Moldura>
+  );
+}
+
+type Forma = "PIX" | "CARTAO";
+
+/**
+ * Escolha da forma (protótipo 04): PIX ou cartão, e a primeira cobrança fixa a forma para a
+ * reserva. Este navegador lembra a forma já usada; noutro, o servidor avisa (METHOD_LOCKED).
+ */
+function Pagar({ reserva, podePagar, aoAprovar }: { reserva: Reserva; podePagar: boolean; aoAprovar: () => void }) {
+  const [fixa, setFixa] = useState<Forma | null>(() =>
+    guardado(`tc-forma-${reserva.id}`) === "CARTAO" ? "CARTAO" : guardado(`tc-pix-${reserva.id}`) ? "PIX" : null);
+  const [escolhida, setEscolhida] = useState<Forma>(fixa ?? "PIX");
+  const forma = fixa ?? escolhida;
+  const fixarPix = useCallback(() => setFixa("PIX"), []);
+
+  return (
+    <>
+      {!fixa && podePagar && (
+        <fieldset className="m-0 grid grid-cols-2 gap-2 border-0 p-0">
+          <legend className="mb-2 p-0 text-[15px] font-semibold">Como você quer pagar?</legend>
+          {([["PIX", "PIX", "Aprovação na hora"], ["CARTAO", "Cartão", "Crédito, à vista"]] as const).map(([valor, rotulo, ajuda]) => (
+            <label key={valor} className="grid min-h-12 cursor-pointer gap-0.5 rounded-campo border-2 border-tinta bg-branco px-4 py-2.5 shadow-adesivo-sm has-checked:bg-rosa-bruma">
+              <span className="flex items-center gap-2.5">
+                <input type="radio" name="forma" value={valor} checked={escolhida === valor} onChange={() => setEscolhida(valor)} className="size-5 accent-rosa" />
+                <span className="text-[15px] font-bold">{rotulo}</span>
+              </span>
+              <span className="text-xs text-tinta-suave">{ajuda}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {forma === "PIX" ? (
+        /* PIX (tela 7): "Copiar código PIX" é a ação principal no celular */
+        <BlocoPix reservaId={reserva.id} finalidade="PRODUTOS" titulo="Pagar com PIX" valorCentavos={reserva.totalCentavos}
+          podeGerar={podePagar} aoAprovar={aoAprovar} aoGerar={fixarPix} />
+      ) : (
+        <BlocoCartao reservaId={reserva.id} valorCentavos={reserva.totalCentavos} podePagar={podePagar} aoAprovar={aoAprovar}
+          aoTravarPix={() => { setFixa("PIX"); setEscolhida("PIX"); }} />
+      )}
+    </>
   );
 }
 

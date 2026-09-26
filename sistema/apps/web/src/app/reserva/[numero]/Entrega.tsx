@@ -6,9 +6,10 @@ import { MessageCircle } from "lucide-react";
 import { formatarReais, linkWhatsApp, type CodigoErro } from "@tshirtclub/domain";
 import { Aviso, Botao, Campo, cx } from "@tshirtclub/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
+import { BlocoCartao } from "./BlocoCartao";
 import { BlocoPix } from "./BlocoPix";
 import { VerificarWhatsApp } from "./VerificarWhatsApp";
-import { ENTREGA, type Logistica, type Modalidade, type Reserva } from "./util";
+import { ENTREGA, guardado, type Logistica, type Modalidade, type Reserva } from "./util";
 
 // Depois do pagamento (regra 17, F8; tela 8 do design e protótipo 19): escolher retirada,
 // motoboy ou envio, frete calculado pela loja e pago em até 2 h, e o andamento até a entrega.
@@ -211,12 +212,10 @@ function Situacao({ reserva, log, numeroLoja, aoMudar }: { reserva: Reserva; log
             {log.frete.observacao && <p className="m-0 text-sm text-tinta-suave">{log.frete.observacao}</p>}
             {log.frete.pagarAte && <p className="m-0 text-sm font-bold">Pague até {horario(log.frete.pagarAte)}.</p>}
           </Caixa>
-          <BlocoPix
+          <PagarFrete
             reservaId={reserva.id}
-            finalidade="FRETE"
-            titulo="Pagar o frete"
             valorCentavos={log.frete.valorCentavos}
-            podeGerar={!log.frete.pagarAte || Date.parse(log.frete.pagarAte) > Date.parse(reserva.agora)}
+            podePagar={!log.frete.pagarAte || Date.parse(log.frete.pagarAte) > Date.parse(reserva.agora)}
             aoAprovar={aoMudar}
           />
         </>
@@ -259,4 +258,16 @@ function Situacao({ reserva, log, numeroLoja, aoMudar }: { reserva: Reserva; log
         </Caixa>
       );
   }
+}
+
+/** O frete vai pela mesma forma dos produtos: a lembrada neste navegador ou a que o servidor indicar. */
+function PagarFrete({ reservaId, valorCentavos, podePagar, aoAprovar }: { reservaId: string; valorCentavos: number; podePagar: boolean; aoAprovar: () => void }) {
+  const [cartao, setCartao] = useState(() => guardado(`tc-forma-${reservaId}`) === "CARTAO");
+  return cartao ? (
+    <BlocoCartao reservaId={reservaId} finalidade="FRETE" titulo="Pagar o frete" valorCentavos={valorCentavos} podePagar={podePagar}
+      aoAprovar={aoAprovar} aoTravarPix={() => setCartao(false)} />
+  ) : (
+    <BlocoPix reservaId={reservaId} finalidade="FRETE" titulo="Pagar o frete" valorCentavos={valorCentavos} podeGerar={podePagar}
+      aoAprovar={aoAprovar} aoTravarCartao={() => setCartao(true)} />
+  );
 }
