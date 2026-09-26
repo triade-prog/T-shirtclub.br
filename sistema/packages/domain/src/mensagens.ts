@@ -98,6 +98,7 @@ export interface ParametrosMensagem {
   pedido_enviado: { numero: number; rastreio?: string };
   pedido_entregue: { numero: number };
   minhas_reservas: { reservas: ResumoReserva[] };
+  mensagem_teste: Record<string, never>;
 }
 
 /** Uma linha da resposta a "Minha reserva" (whatsapp_my_reservations, 0155). */
@@ -227,7 +228,38 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
         ? `Não achamos reservas recentes neste número. Para reservar ou consultar: ${SITE}`
         : [p.reservas.length === 1 ? "Sua reserva:" : "Suas reservas:", ...p.reservas.map(linhaReserva), `Detalhes e pagamento no site: ${SITE}`].join("\n"),
   ],
+  mensagem_teste: [() => "Mensagem de teste da T-shirt Club.br: o envio pelo sistema está funcionando."],
 };
+
+// ─── Notificações no painel (tela 18, G5) ────────────────────────────────────────────
+// As essenciais ficam sempre ligadas; as outras a loja liga e desliga. Cada linha da tela
+// pode cobrir mais de um modelo (ex.: aprovado e recusado).
+
+export interface Notificacao {
+  id: string;
+  nome: string;
+  quando: string;
+  essencial: boolean;
+  modelos: Modelo[];
+}
+
+export const NOTIFICACOES: Notificacao[] = [
+  { id: "codigo", nome: "Código de verificação", quando: "Quando a cliente pede o código pelo WhatsApp", essencial: true, modelos: ["codigo_verificacao"] },
+  { id: "reserva_criada", nome: "Reserva criada", quando: "Ao criar a reserva, com itens, total, horário de expiração e link", essencial: true, modelos: ["reserva_criada"] },
+  { id: "lembrete", nome: "Lembrete de 5 minutos", quando: "Quando faltam 5 minutos para expirar", essencial: true, modelos: ["reserva_lembrete_5min"] },
+  { id: "pagamento_confirmado", nome: "Pagamento confirmado", quando: "Quando o provedor confirma o pagamento", essencial: true, modelos: ["pagamento_confirmado"] },
+  { id: "reserva_expirada", nome: "Reserva expirada", quando: "Quando o prazo termina sem pagamento", essencial: true, modelos: ["reserva_expirada"] },
+  { id: "cancelamento_recebido", nome: "Cancelamento recebido", quando: "Quando a cliente pede cancelamento", essencial: false, modelos: ["cancelamento_recebido"] },
+  { id: "cancelamento_decisao", nome: "Decisão do cancelamento", quando: "Quando a loja aprova ou recusa", essencial: false, modelos: ["cancelamento_aprovado", "cancelamento_recusado"] },
+  { id: "pagamento_em_analise", nome: "Pagamento em análise", quando: "Quando o pagamento chega fora do prazo ou com valor diferente", essencial: false, modelos: ["pagamento_em_analise"] },
+  { id: "entrega_confirmada", nome: "Modalidade de entrega confirmada", quando: "Depois que a cliente confirma retirada, motoboy ou envio", essencial: false, modelos: ["entrega_confirmada"] },
+  { id: "frete_calculado", nome: "Frete calculado", quando: "Com o valor e o prazo de 2 horas para pagar", essencial: false, modelos: ["frete_calculado"] },
+  { id: "frete_confirmado", nome: "Frete pago", quando: "Quando o pagamento do frete é confirmado", essencial: false, modelos: ["frete_confirmado"] },
+  { id: "pronto_retirada", nome: "Pronto para retirada", quando: "Quando a loja marca o pedido como pronto, com o código de retirada", essencial: false, modelos: ["pronto_retirada"] },
+  { id: "saida", nome: "Saiu para entrega / enviado", quando: "Quando a loja marca a saída", essencial: false, modelos: ["saiu_entrega", "pedido_enviado"] },
+  { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, modelos: ["pedido_entregue"] },
+  { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
+];
 
 /** Texto da mensagem; `sorteio` escolhe a versão (0 a 1). */
 export function mensagemWhatsApp<M extends Modelo>(modelo: M, parametros: ParametrosMensagem[M], sorteio: number = Math.random()): string {

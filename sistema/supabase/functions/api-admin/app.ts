@@ -8,8 +8,11 @@ import { rotasBloqueios } from "./bloqueios.ts";
 import { rotasCancelamentos } from "./cancelamentos.ts";
 import { rotasEntregas } from "./entregas.ts";
 import { rotasPagamentosAdmin, type DepsPagamentosAdmin } from "./pagamentos.ts";
+import { rotasPainel, type DepsPainel } from "./painel.ts";
+import { rotasWhatsappAdmin } from "./whatsapp.ts";
+import { rotasConta } from "./conta.ts";
 
-export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin;
+export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel;
 
 export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   const app = criarApp<VarsAdmin>("api-admin", segredo);
@@ -29,6 +32,9 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasCancelamentos(app, deps.banco);
   rotasEntregas(app, deps.banco);
   rotasPagamentosAdmin(app, deps);
+  rotasPainel(app, deps);
+  rotasWhatsappAdmin(app, deps);
+  rotasConta(app, deps);
 
   return app;
 }

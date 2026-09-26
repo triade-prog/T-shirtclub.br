@@ -6,6 +6,7 @@ import {
   lerPedidoDeCodigo,
   linkWhatsApp,
   mensagemWhatsApp,
+  NOTIFICACOES,
   textoPedidoCodigo,
 } from "./mensagens.ts";
 
@@ -108,6 +109,13 @@ describe("o que a loja manda", () => {
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELAMENTO_APROVADO", totalCentavos: 4999 }] }))
       .toContain("• #1047: encerrada (cancelamento aprovado)");
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe("Não achamos reservas recentes neste número. Para reservar ou consultar: tshirtclub.pt");
+  });
+
+  it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {
+    const cobertos = new Set(NOTIFICACOES.flatMap((n) => n.modelos));
+    for (const m of ["reserva_criada", "cancelamento_aprovado", "saiu_entrega", "bloqueio_mantido", "frete_confirmado"]) expect(cobertos.has(m as never)).toBe(true);
+    expect(new Set(NOTIFICACOES.map((n) => n.id)).size).toBe(NOTIFICACOES.length);
+    expect(NOTIFICACOES.filter((n) => n.essencial).map((n) => n.id)).toEqual(["codigo", "reserva_criada", "lembrete", "pagamento_confirmado", "reserva_expirada"]);
   });
 
   it("hora sempre no fuso da loja", () => {

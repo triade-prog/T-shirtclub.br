@@ -194,3 +194,52 @@ export const substatusSchema = z.object({
 
 /** POST /v1/admin/reservations/:id/deliver */
 export const entregarSchema = z.object({ observacao: z.string().trim().max(500, "VALIDATION_ERROR").optional() });
+
+// ─── Painel completo (F10) ───────────────────────────────────────────────────────────
+
+/** GET /v1/admin/reservations?status=&q=&page= */
+export const buscaReservasSchema = z.object({
+  status: z.enum(["RESERVADO", "PAGAMENTO_CONFIRMADO", "ENTREGUE", "EXPIRADO"]).optional(),
+  q: z.string().trim().max(60, "VALIDATION_ERROR").optional().transform((v) => v || undefined),
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+});
+
+/** GET /v1/admin/audit (tela 21) */
+export const buscaAuditoriaSchema = z.object({
+  autor: z.enum(["SISTEMA", "ADMIN", "CLIENTE", "PROVEDOR"]).optional(),
+  assunto: z.enum(["RESERVA", "PAGAMENTO", "ESTOQUE", "CATALOGO", "PROMOCAO", "BLOQUEIO", "WHATSAPP", "ACESSO"]).optional(),
+  periodo: z.enum(["HOJE", "7_DIAS", "30_DIAS"]).optional(),
+  entidade: z.string().regex(/^[a-z][a-z0-9_]{1,39}$/, "VALIDATION_ERROR").optional(),
+  id: z.string().max(100).optional(),
+  pagina: z.coerce.number().int().min(1).max(1000).default(1),
+});
+
+const ritmoSchema = z
+  .object({
+    intervaloMinS: z.number().int().min(2, "VALIDATION_ERROR").max(59, "VALIDATION_ERROR"),
+    intervaloMaxS: z.number().int().max(60, "VALIDATION_ERROR"),
+    tetoHora: z.number().int().min(10, "VALIDATION_ERROR").max(1000, "VALIDATION_ERROR"),
+  })
+  .refine((r) => r.intervaloMaxS > r.intervaloMinS, "VALIDATION_ERROR");
+
+/** PUT /v1/admin/settings/whatsapp: notificacoes é { id da linha da tela: ligada }. */
+export const configWhatsappSchema = z.object({
+  modoLancamento: z.boolean().optional(),
+  ritmo: ritmoSchema.optional(),
+  ritmoLancamento: ritmoSchema.optional(),
+  notificacoes: z.record(z.string().max(40), z.boolean()).optional(),
+});
+
+/** POST /v1/admin/whatsapp/test: só para números da equipe. */
+export const mensagemTesteSchema = z.object({ telefone: telefoneSchema });
+
+/** PUT /v1/admin/account/password (tela 22) */
+export const trocarSenhaSchema = z
+  .object({ atual: z.string().min(1).max(128), nova: senhaAdminSchema })
+  .refine((s) => s.atual !== s.nova, "VALIDATION_ERROR");
+
+/** POST /v1/admin/mfa/factors/:id/verify */
+export const confirmarAutenticadorSchema = z.object({ codigo: codigoAutenticadorSchema });
+
+/** DELETE /v1/admin/mfa/factors/:id: o código vem de outro autenticador que continua (D12). */
+export const removerAutenticadorSchema = z.object({ codigo: codigoAutenticadorSchema, fatorDoCodigo: z.string().min(1).max(100) });

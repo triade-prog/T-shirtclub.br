@@ -11,6 +11,8 @@ export interface WhatsAppProvider {
   /** Código com o botão "Copiar código" quando a ferramenta tiver; senão, só o texto. */
   enviarCodigo(telefone: string, texto: string, codigo: string): Promise<EnvioWhatsApp>;
   conectado(): Promise<boolean>;
+  /** QR code para reconectar o número (imagem em data URI); null quando já está conectado. */
+  qrCode(): Promise<string | null>;
 }
 
 /** Evento do webhook, já sem os detalhes de cada ferramenta. */
@@ -67,6 +69,13 @@ export function whatsappZapi(cfg: ConfigZapi, buscar: typeof fetch = fetch): Wha
       } catch {
         return false;
       }
+    },
+    // A imagem da Z-API expira em poucos segundos: a tela pede de novo enquanto espera.
+    async qrCode() {
+      const r = await buscar(`${base}/qr-code/image`, { headers, signal: AbortSignal.timeout(10_000) });
+      if (!r.ok) throw new Error(`Z-API respondeu ${r.status}`);
+      const j = (await r.json()) as { value?: string; connected?: boolean };
+      return j.connected || !j.value ? null : j.value;
     },
   };
 }
@@ -126,6 +135,7 @@ export function whatsappFalso(): WhatsAppFalso {
       return Promise.resolve({ id: `falso-${++n}` });
     },
     conectado: () => Promise.resolve(falso.online),
+    qrCode: () => Promise.resolve(falso.online ? null : "data:image/png;base64,UVJGQUxTTw=="),
   };
   return falso;
 }

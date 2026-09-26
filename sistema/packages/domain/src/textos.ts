@@ -98,6 +98,8 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "O frete já foi pago, então a entrega não muda mais por aqui. Fale com a gente pelo WhatsApp." };
     case "DELIVERY_LOCKED":
       return { mensagem: "Esta etapa da entrega não está disponível agora. Atualize a página para ver o andamento." };
+    case "PASSWORD_WEAK":
+      return { mensagem: "Esta senha é fraca ou já apareceu em vazamentos. Use uma frase longa, que você não usa em outro lugar." };
     case "NOT_READY":
       return { mensagem: "Para marcar como entregue, o pedido precisa estar pronto para retirada, ter saído para entrega ou ter sido enviado." };
     case "DISPUTE_OPEN":

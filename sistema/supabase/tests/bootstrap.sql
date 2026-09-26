@@ -20,3 +20,8 @@ alter database postgres set search_path = public, extensions;
 -- O Supabase Auth cria auth.users; aqui só o mínimo para as chaves estrangeiras.
 create schema if not exists auth;
 create table if not exists auth.users (id uuid primary key, email text);
+-- Sessões do Auth (Minha conta lista os aparelhos conectados), com as colunas usadas.
+create table if not exists auth.sessions (
+  id uuid primary key, user_id uuid not null, created_at timestamptz, updated_at timestamptz, refreshed_at timestamp,
+  user_agent text, ip inet, aal text, not_after timestamptz
+);

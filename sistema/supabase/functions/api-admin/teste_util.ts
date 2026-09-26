@@ -3,6 +3,7 @@
 import type { ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
 import { ErroBanco, type Banco } from "../_shared/banco.ts";
 import { pagamentosFalso } from "../_shared/pagamentos.ts";
+import { whatsappFalso } from "../_shared/whatsapp.ts";
 import { criarApiAdmin } from "./app.ts";
 
 const SEGREDO = "s3gredo";
@@ -17,6 +18,8 @@ export interface Cenario {
   limiteMfaOk?: boolean;
   tokensVencidos?: Set<string>;
   erroAjuste?: ErroBanco;
+  /** Autenticadores além do f1 (Minha conta). */
+  outrosFatores?: { id: string; verificado: boolean; nome?: string }[];
   /** Outras funções SQL (catálogo); undefined = rpc inesperada. */
   rpcExtra?: (funcao: string, args: Record<string, unknown>) => unknown;
 }
@@ -26,7 +29,7 @@ export function montar(cen: Cenario = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const avisos: string[] = [];
   const auditoria: string[] = [];
-  const fatores = [{ id: "f1", verificado: cen.fatorVerificado ?? true }];
+  const fatores: { id: string; verificado: boolean; nome?: string }[] = [{ id: "f1", verificado: cen.fatorVerificado ?? true }, ...(cen.outrosFatores ?? [])];
   const vencidos = cen.tokensVencidos ?? new Set<string>();
 
   const banco: Banco = {
@@ -68,14 +71,33 @@ export function montar(cen: Cenario = {}) {
     entrarComSenha: (email, senha) => Promise.resolve(email === "loja@tshirtclub.pt" && senha === "senha certa 123" ? sessao("aal1") : null),
     fatores: () => Promise.resolve(fatores),
     cadastrarTotp: () => Promise.resolve({ factorId: "f1", qrCode: "data:image/svg+xml;utf8,<svg/>", segredo: "ABC" }),
-    verificarTotp: (_t, id, codigo) => Promise.resolve(id === "f1" && codigo === "482193" ? sessao("aal2") : null),
-    portador: (t) => Promise.resolve(vencidos.has(t) ? null : { userId: ADMIN, aal: t.includes("aal2") ? "aal2" : "aal1" }),
+    verificarTotp: (_t, id, codigo) =>
+      Promise.resolve((id === "f1" && codigo === "482193") || (id === "f2" && codigo === "135790") ? sessao("aal2") : null),
+    portador: (t) =>
+      Promise.resolve(vencidos.has(t) ? null : { userId: ADMIN, aal: t.includes("aal2") ? "aal2" : "aal1", email: "loja@tshirtclub.pt", sessaoId: "s-atual" }),
     renovar: (r) => Promise.resolve(r.startsWith("r-aal2") ? sessao("aal2", "-novo") : null),
-    sair: () => Promise.resolve(),
+    sair: () => {
+      chamadas.push("auth.sair");
+      return Promise.resolve();
+    },
+    sairDosOutros: () => {
+      chamadas.push("auth.sairDosOutros");
+      return Promise.resolve();
+    },
+    trocarSenha: (_t, nova) => {
+      chamadas.push("auth.trocarSenha");
+      return Promise.resolve(nova.includes("123456") ? "FRACA" : "OK");
+    },
+    removerFator: (_t, id) => {
+      const i = fatores.findIndex((f) => f.id === id);
+      if (i >= 0) fatores.splice(i, 1);
+      return Promise.resolve();
+    },
   };
 
   const arquivosApagados: string[] = [];
   const pagamentos = pagamentosFalso();
+  const whatsapp = whatsappFalso();
   const app = criarApiAdmin(SEGREDO, {
     banco,
     pagamentos,
@@ -92,6 +114,11 @@ export function montar(cen: Cenario = {}) {
       avisos.push(email);
       return Promise.resolve();
     },
+    avisarSenhaTrocada: (email) => {
+      avisos.push(`senha:${email}`);
+      return Promise.resolve();
+    },
+    whatsapp,
   });
 
   function pedir(caminho: string, corpo?: unknown, cookie?: string, metodo?: string) {
@@ -105,7 +132,7 @@ export function montar(cen: Cenario = {}) {
     });
   }
 
-  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados, pagamentos };
+  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados, pagamentos, whatsapp, fatores };
 }
 
 export function cookieDe(r: Response): string {

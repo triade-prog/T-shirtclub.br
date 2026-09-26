@@ -6,7 +6,7 @@
 
 import type { Context, Hono, MiddlewareHandler } from "hono";
 import { ErroDominio, loginAdminSchema, verificarAutenticadorSchema } from "@tshirtclub/domain";
-import type { ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
+import type { Portador, ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
 import type { Banco } from "../_shared/banco.ts";
 import type { VerificadorTurnstile } from "../_shared/turnstile.ts";
 import { apagarCookie, gravarCookie, lerCookie } from "../_shared/cookies.ts";
@@ -24,10 +24,16 @@ export interface DepsAuthAdmin {
   turnstile: VerificadorTurnstile;
   /** Aviso por e-mail a cada bloqueio (G7). */
   avisarBloqueio(email: string, ate: string): Promise<void>;
+  /** Aviso por e-mail quando a senha do painel é trocada (tela 22). */
+  avisarSenhaTrocada(email: string): Promise<void>;
 }
 
 export interface Admin {
   userId: string;
+  /** Token da sessão aal2 (Minha conta fala com o Auth em nome dela). */
+  accessToken: string;
+  email?: string;
+  sessaoId?: string;
 }
 
 export type VarsAdmin = { Variables: { admin: Admin } };
@@ -53,7 +59,7 @@ function desempacotar(valor: string | null): { a: string; r: string } | null {
   }
 }
 
-function gravarSessao(c: Context, s: SessaoAuth): void {
+export function gravarSessao(c: Context, s: SessaoAuth): void {
   c.header("set-cookie", gravarCookie(COOKIE_PAINEL, empacotar(s), SESSAO_SEGUNDOS), { append: true });
 }
 
@@ -69,7 +75,7 @@ async function auditar(banco: Banco, acao: string, actorId: string | null, entid
 }
 
 /** Sessão do cookie, renovada se o token venceu. Não exige aal2. */
-async function sessaoDoCookie(c: Context, deps: DepsAuthAdmin): Promise<{ userId: string; aal: "aal1" | "aal2"; accessToken: string } | null> {
+async function sessaoDoCookie(c: Context, deps: DepsAuthAdmin): Promise<(Portador & { accessToken: string }) | null> {
   const s = desempacotar(lerCookie(c.req.raw.headers, COOKIE_PAINEL));
   if (!s) return null;
   const p = await deps.auth.portador(s.a);
@@ -89,7 +95,7 @@ export function exigirAdmin(deps: DepsAuthAdmin): MiddlewareHandler<VarsAdmin> {
     if (!s) throw new ErroDominio("UNAUTHORIZED");
     if (s.aal !== "aal2") throw new ErroDominio("MFA_REQUIRED");
     if (!(await deps.banco.rpc<boolean>("admin_is_active", { p_user_id: s.userId }))) throw new ErroDominio("FORBIDDEN");
-    c.set("admin", { userId: s.userId });
+    c.set("admin", { userId: s.userId, accessToken: s.accessToken, email: s.email, sessaoId: s.sessaoId });
     await next();
   };
 }

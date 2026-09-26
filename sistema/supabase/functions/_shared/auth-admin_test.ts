@@ -44,6 +44,26 @@ Deno.test("GoTrue: código do autenticador passa por desafio e verificação", a
   assertEquals(await errado.verificarTotp("t", "f1", "000000"), null);
 });
 
+Deno.test("GoTrue: Minha conta (e-mail e sessão do token, senha, sair dos outros, remover autenticador)", async () => {
+  const pedidos: { url: string; init?: RequestInit }[] = [];
+  const token = jwt({ aal: "aal2", session_id: "s1" });
+  const auth = authGoTrue("https://p.supabase.co", "anon", fetchFalso({
+    "/user": { status: 200, corpo: { id: "u1", email: "loja@tshirtclub.pt", factors: [{ id: "f1", factor_type: "totp", status: "verified", friendly_name: "Celular" }] } },
+    "/logout?scope=others": { status: 204 },
+    "/factors/f2": { status: 200, corpo: { id: "f2" } },
+  }, pedidos));
+  assertEquals(await auth.portador(token), { userId: "u1", aal: "aal2", email: "loja@tshirtclub.pt", sessaoId: "s1" });
+  assertEquals((await auth.fatores(token))[0]!.nome, "Celular");
+  assertEquals(await auth.trocarSenha(token, "uma frase bem longa"), "OK");
+  assertEquals(pedidos.at(-1)!.init?.method, "PUT");
+  await auth.sairDosOutros(token);
+  assertEquals(pedidos.at(-1)!.url, "https://p.supabase.co/auth/v1/logout?scope=others");
+  await auth.removerFator(token, "f2");
+  assertEquals([pedidos.at(-1)!.url, pedidos.at(-1)!.init?.method], ["https://p.supabase.co/auth/v1/factors/f2", "DELETE"]);
+  const fraca = authGoTrue("https://p.supabase.co", "anon", fetchFalso({ "/user": { status: 422, corpo: { error_code: "weak_password" } } }));
+  assertEquals(await fraca.trocarSenha(token, "123456789012"), "FRACA");
+});
+
 Deno.test("banco: erro da função SQL chega com o código", async () => {
   const banco = bancoPostgrest("https://p.supabase.co", "srv", fetchFalso({
     "/rest/v1/rpc/adjust_stock": { status: 400, corpo: { code: "TS124", message: "abaixo (3)" } },

@@ -14,6 +14,8 @@ export interface SessaoAuth {
 export interface Fator {
   id: string;
   verificado: boolean;
+  nome?: string;
+  criadoEm?: string;
 }
 
 export interface CadastroTotp {
@@ -27,6 +29,9 @@ export interface Portador {
   userId: string;
   /** "aal1" depois da senha; "aal2" depois do autenticador. */
   aal: "aal1" | "aal2";
+  email?: string;
+  /** Sessão do Auth (claim session_id): marca o aparelho atual em Minha conta. */
+  sessaoId?: string;
 }
 
 export interface ProvedorAuth {
@@ -41,6 +46,12 @@ export interface ProvedorAuth {
   portador(accessToken: string): Promise<Portador | null>;
   renovar(refreshToken: string): Promise<SessaoAuth | null>;
   sair(accessToken: string): Promise<void>;
+  /** Encerra as outras sessões da conta (Minha conta, e depois de trocar a senha). */
+  sairDosOutros(accessToken: string): Promise<void>;
+  /** FRACA quando o Auth recusa a senha (curta, comum ou vazada). */
+  trocarSenha(accessToken: string, novaSenha: string): Promise<"OK" | "FRACA">;
+  /** Remove um autenticador; o Auth exige a sessão aal2. */
+  removerFator(accessToken: string, factorId: string): Promise<void>;
 }
 
 interface TokenGoTrue {
@@ -88,8 +99,15 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
     },
 
     async fatores(token) {
-      const u = (await exigirOk(await chamar("/user", { token }))) as { factors?: { id: string; factor_type: string; status: string }[] };
-      return (u.factors ?? []).filter((f) => f.factor_type === "totp").map((f) => ({ id: f.id, verificado: f.status === "verified" }));
+      const u = (await exigirOk(await chamar("/user", { token }))) as {
+        factors?: { id: string; factor_type: string; status: string; friendly_name?: string; created_at?: string }[];
+      };
+      return (u.factors ?? []).filter((f) => f.factor_type === "totp").map((f) => ({
+        id: f.id,
+        verificado: f.status === "verified",
+        ...(f.friendly_name ? { nome: f.friendly_name } : {}),
+        ...(f.created_at ? { criadoEm: f.created_at } : {}),
+      }));
     },
 
     async cadastrarTotp(token) {
@@ -111,9 +129,14 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
     async portador(token) {
       const r = await chamar("/user", { token });
       if (r.status === 401 || r.status === 403) return null;
-      const u = (await exigirOk(r)) as { id: string };
-      const aal = claimsJwt(token).aal;
-      return { userId: u.id, aal: aal === "aal2" ? "aal2" : "aal1" };
+      const u = (await exigirOk(r)) as { id: string; email?: string };
+      const claims = claimsJwt(token);
+      return {
+        userId: u.id,
+        aal: claims.aal === "aal2" ? "aal2" : "aal1",
+        ...(u.email ? { email: u.email } : {}),
+        ...(typeof claims.session_id === "string" ? { sessaoId: claims.session_id } : {}),
+      };
     },
 
     async renovar(refreshToken) {
@@ -124,6 +147,22 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
 
     async sair(token) {
       await chamar("/logout?scope=local", { token, corpo: {} });
+    },
+
+    async sairDosOutros(token) {
+      const r = await chamar("/logout?scope=others", { token, corpo: {} });
+      if (!r.ok && r.status !== 204) throw new Error(`Auth respondeu ${r.status}`);
+    },
+
+    async trocarSenha(token, novaSenha) {
+      const r = await chamar("/user", { method: "PUT", token, corpo: { password: novaSenha } });
+      if (r.status === 422 || r.status === 400) return "FRACA"; // weak_password (inclui senha vazada) ou same_password
+      await exigirOk(r);
+      return "OK";
+    },
+
+    async removerFator(token, factorId) {
+      await exigirOk(await chamar(`/factors/${encodeURIComponent(factorId)}`, { method: "DELETE", token }));
     },
   };
 }

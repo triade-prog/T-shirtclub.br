@@ -65,7 +65,7 @@ set search_path = public
 as $$
 declare v_id uuid;
 begin
-  if p_optional and setting('notificacoes_opcionais') = 'false'::jsonb then
+  if p_optional and (setting('notificacoes_opcionais') = 'false'::jsonb or setting('notificacoes_desligadas') ? p_template) then
     return null;
   end if;
   insert into outbox_messages (dedupe_key, phone_e164, template, params, priority, valid_until, reservation_id, requires_status)

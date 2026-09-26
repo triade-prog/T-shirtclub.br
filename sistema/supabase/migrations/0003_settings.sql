@@ -30,6 +30,7 @@ insert into app_settings (key, value, description) values
   ('tentativa_verificada_minutos',  '10',   'Depois do código, a tentativa pode ser confirmada ou ajustada sem outro código (R8)'),
   ('sessao_cliente_horas',          '12',   'Duração da sessão da cliente depois do código'),
   ('notificacoes_opcionais',        'true', 'Mensagens opcionais do WhatsApp ligadas'),
+  ('notificacoes_desligadas',       '[]',   'Modelos opcionais que a loja desligou no painel (tela 18)'),
   ('fila_intervalo_min_s',          '4',    'Intervalo mínimo entre mensagens da fila (G5)'),
   ('fila_intervalo_max_s',          '9',    'Intervalo máximo entre mensagens da fila'),
   ('fila_teto_hora',                '120',  'Mensagens por hora, fora do modo lançamento'),

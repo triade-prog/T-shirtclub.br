@@ -24,9 +24,9 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 22,
-    "situacao": "Servidor das fases F2 a F9 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete, consulta e link da reserva); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F9",
+    "arquitetura_versao": 23,
+    "situacao": "Servidor das fases F2 a F10 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete, consulta e link da reserva, painel completo); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F10",
     "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
   },
   "fases": [
@@ -130,11 +130,11 @@
      ]},
     {"id":"F10","nome":"Painel admin completo","sec":"api","objetivo":"Tudo o que a loja precisa operar num lançamento, com rastro na auditoria.",
      "itens":[
-      {"id":"F10.1","texto":"Dashboard, busca e detalhe da reserva com linha do tempo","sec":"api","refs":[],"status":"pendente"},
-      {"id":"F10.2","texto":"Telas de bloqueados, pagamentos em análise, disputas e auditoria","sec":"api","refs":["G2"],"status":"pendente"},
-      {"id":"F10.3","texto":"Tela do WhatsApp: conexão com QR, fila, modo lançamento e notificações","sec":"whatsapp","refs":["G5"],"status":"pendente"},
-      {"id":"F10.4","texto":"Minha conta: troca de senha, autenticadores e aparelhos conectados","sec":"seguranca","refs":["G7","G24"],"status":"pendente"},
-      {"id":"F10.5","texto":"Dashboard do painel (tela 7) com o que pede ação primeiro, BlocoNumero e tabela","sec":"frontend","refs":[],"status":"pendente"}
+      {"id":"F10.1","texto":"Dashboard, busca e detalhe da reserva com linha do tempo","sec":"api","refs":[],"status":"feito","evidencia":"sistema/supabase/migrations/0195_fn_admin_panel.sql: admin_dashboard, admin_search_reservations e admin_reservation_detail (transições, pagamentos, entrega, cancelamentos, cliente e auditoria); rotas /v1/admin/dashboard e /v1/admin/reservations; pgTAP 019 e painel_test.ts"},
+      {"id":"F10.2","texto":"Telas de bloqueados, pagamentos em análise, disputas e auditoria","sec":"api","refs":["G2"],"status":"feito","evidencia":"Bloqueados, análises e disputas já tinham rotas (F5 e F6); auditoria com filtro por autor, assunto e período em GET /v1/admin/audit (admin_list_audit); pgTAP 019"},
+      {"id":"F10.3","texto":"Tela do WhatsApp: conexão com QR, fila, modo lançamento e notificações","sec":"whatsapp","refs":["G5"],"status":"feito","evidencia":"GET /v1/admin/whatsapp e /qr (QR code da Z-API), PUT /v1/admin/settings/whatsapp (ritmo, modo lançamento, notificações; essenciais sempre ligadas), POST /whatsapp/test; auditoria de cada mudança; pgTAP 019 e painel_test.ts"},
+      {"id":"F10.4","texto":"Minha conta: troca de senha, autenticadores e aparelhos conectados","sec":"seguranca","refs":["G7","G24"],"status":"feito","evidencia":"GET /v1/admin/account, PUT /account/password (confere a atual, recusa senha fraca, derruba os outros aparelhos, avisa por e-mail), aparelhos conectados (auth.sessions, IP em parte) e autenticadores (remover só com o código de outro); painel_test.ts e auth-admin_test.ts"},
+      {"id":"F10.5","texto":"Dashboard do painel (tela 7) com o que pede ação primeiro, BlocoNumero e tabela","sec":"frontend","refs":[],"status":"andamento","nota":"Rotas prontas (dashboard com o que pede ação, busca, detalhe, auditoria, WhatsApp e Minha conta); faltam as telas, que esperam o design"}
      ]},
     {"id":"F11","nome":"Endurecimento","sec":"fases","objetivo":"Provar que aguenta um lançamento e que dá para operar e recuperar.",
      "itens":[
@@ -279,6 +279,7 @@
     ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F10 no servidor: dashboard com o que pede ação, busca e detalhe da reserva com linha do tempo, auditoria com filtros, WhatsApp no painel (QR, fila, ritmo, notificações, teste) e Minha conta (senha, aparelhos, autenticadores); desenho técnico v23.","ref":""},
     {"data":"26/09/2026","texto":"F9 no servidor: consulta pelo site com código, link da reserva com sessão limitada, código pelo link antes de mexer na entrega e resposta a Minha reserva no WhatsApp; desenho técnico v22.","ref":""},
     {"data":"26/09/2026","texto":"F8 no servidor: entrega com código de retirada aleatório, modalidade e endereço, frete informado pelo painel e pago em até 2 h, substatus e Entregue sem disputa aberta; desenho técnico v21.","ref":""},
     {"data":"26/09/2026","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},

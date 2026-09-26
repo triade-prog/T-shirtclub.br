@@ -6,6 +6,7 @@ import { storageSupabase } from "../_shared/armazenamento.ts";
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
+import { whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarApiAdmin } from "./app.ts";
 
 function exigir(nome: string): string {
@@ -27,6 +28,11 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
     console.warn(JSON.stringify({ funcao: "api-admin", aviso: "login do painel bloqueado", ate }));
     return Promise.resolve();
   },
+  avisarSenhaTrocada: () => {
+    console.warn(JSON.stringify({ funcao: "api-admin", aviso: "senha do painel trocada" }));
+    return Promise.resolve();
+  },
+  whatsapp: whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
 });
 
 Deno.serve(app.fetch);
