@@ -71,7 +71,7 @@ Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleç�
 - **Logo:** aplicado sem fundo, com favicon e ícones do app.
 
 Pendências da F1:
-- **F1.4 (conta da loja):** criar o projeto Supabase em sa-east-1 e o projeto Vercel na região gru1.
+- **F1.4 (conta da loja):** o projeto Supabase já existe (`woetzyiutwrpxgeiecsu`, sa-east-1), e a Vercel está pronta (projetos web e admin no time triade-ai, sem `ENABLE_EXPERIMENTAL_COREPACK`). Falta publicar o Supabase (ver "Publicação do Supabase").
 - **CI no GitHub:** a conta triade-prog está travada por cobrança ("account is locked due to a billing issue"); mesmo depois do pagamento, os jobs não iniciam. Depende do suporte do GitHub.
 - **Referências visuais:** gerar no container do CI (workflow "Atualizar telas de referência").
 
@@ -124,6 +124,30 @@ Com a F11, todas as fases de servidor do plano estão feitas. O que falta para a
 **Jornada e dependências (26/09):** `tests/e2e/jornada.spec.ts` percorre a loja inteira no celular (início, produto, sacola, Seus dados, código do WhatsApp, PIX, pago e retirada), com o axe em cada tela, contra a api-public falsa guardada em `tests/e2e/api-falsa/api-publica.mjs`. O `playwright.config` sobe a api falsa (porta 4010) e uma loja ligada a ela (porta 3003), também localmente; o build precisa de `ORIGEM_IMAGENS=http://127.0.0.1:4010`, já posto nos workflows. Dependências: produção sem vulnerabilidade; no Lighthouse CI, `tmp` e `uuid` vão por override (`pnpm-workspace.yaml`), e o `extract-zip` segue sem versão corrigida (só baixa o Chrome no CI).
 
 **Acessibilidade da loja (26/09, F2.7):** as 14 telas foram auditadas no celular e em 320 px (contraste, foco, alvos de toque, reflow, títulos, erros ligados aos campos, avisos ao vivo). Para os alvos de 44 px sem mexer no desenho da V4 existe a classe `tc-alvo` em `packages/ui/src/tema.css` (área invisível centrada; o elemento precisa estar `relative` ou `absolute`); o nome no cartão de produto usa padding com margem negativa, porque o título corta o que passa dele. A loja ganhou `app/error.tsx` e `app/not-found.tsx` em português. `jornada.spec.ts` tem um teste permanente de alvos de toque. Falta o teste com leitor de tela em aparelhos reais (P20).
+
+**Publicação do Supabase (26/09, não concluída):** o projeto de produção é `woetzyiutwrpxgeiecsu` (sa-east-1). A loja pediu para aplicar as migrations, criar o bucket `catalogo`, publicar as 5 Edge Functions, cadastrar os segredos internos, `LOJA_WHATSAPP` e `LOJA_URL`, e pôr o worker no Vault. **Nada foi publicado ainda**, por dois motivos no ambiente da sessão:
+- `SUPABASE_ACCESS_TOKEN` e `SUPABASE_DB_PASSWORD` não estavam nas variáveis da sessão.
+- A rede do ambiente recusa `api.supabase.com` e `woetzyiutwrpxgeiecsu.supabase.co` (403 do proxy) e também `github.com/supabase/cli/releases`, de onde a CLI baixa o programa.
+
+O conector da Vercel também não tem acesso ao time `triade-ai` (403), então o domínio da loja não foi conferido por ele.
+
+O que ficou pronto para publicar numa sessão com as variáveis e a rede liberadas:
+- **Migration 0310:** cria o bucket `catalogo` (público, 15 MiB, só `image/webp`) sem política de escrita, porque o envio é só por URL assinada. No banco de testes, sem o esquema `storage`, ela é pulada. Conferida num Postgres limpo.
+- **Script `sistema/scripts/publicar-supabase.sh`:** faz tudo do pedido e pode rodar de novo.
+  - Aplica as migrations e publica as 5 funções.
+  - Confere pelo nome, sem ler valores, `REPASSE_SEGREDO`, `WEBHOOK_WHATSAPP_SEGREDO`, `ZAPI_TOKEN` e `ZAPI_CLIENT_TOKEN`.
+  - Cria `OTP_PEPPER` e `IP_SAL` só se faltarem. O `WORKER_SEGREDO` é gerado junto com o `worker_segredo` do Vault quando um dos dois falta.
+  - Grava `ZAPI_INSTANCIA`, `LOJA_WHATSAPP` (5577998155772) e `LOJA_URL`. O padrão é `https://tshirtclub.pt`; como o endereço do site ainda está em aberto (E10), dá para trocar pela variável `LOJA_URL`.
+  - Põe o `worker_url` e muda `ambiente` para `producao`, o que trava o relógio de teste.
+  - No fim, confere o `/worker/saude`.
+
+Atenção: `api-public`, `api-admin`, `webhook-payments` e `worker` exigem `MP_ACCESS_TOKEN` e `MP_EMAIL_PIX` já na subida, e a loja e o painel exigem também `TURNSTILE_SECRET`. Enquanto esses segredos não forem cadastrados, só o `webhook-whatsapp` responde, e o worker chamado pela varredura dá erro. O script avisa quais faltam.
+
+Depois da publicação ainda faltam:
+- `MP_WEBHOOK_SECRET` e `app_settings.mp_collector_id`.
+- A configuração do Auth: cadastro desligado, autenticador, proteção contra senhas vazadas e SMTP. O `config.toml` não é enviado ao projeto pelo script.
+- O primeiro administrador.
+- O monitor de fora apontando para o `/worker/saude`.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

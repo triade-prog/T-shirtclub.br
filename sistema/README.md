@@ -67,6 +67,17 @@ update app_settings set value = '"https://<projeto>.supabase.co/functions/v1/wor
 select vault.create_secret('<WORKER_SEGREDO>', 'worker_segredo');
 ```
 
+## Publicação do Supabase
+
+`bash scripts/publicar-supabase.sh` (com `SUPABASE_ACCESS_TOKEN` e `SUPABASE_DB_PASSWORD` no
+ambiente) publica o projeto de produção `woetzyiutwrpxgeiecsu` (sa-east-1): aplica as migrations
+(a 0310 cria o bucket `catalogo`, público e só WebP), publica as 5 Edge Functions, confere pelo nome
+os segredos que a loja já cadastrou, cria `OTP_PEPPER`, `IP_SAL` e `WORKER_SEGREDO` se faltarem,
+grava `ZAPI_INSTANCIA`, `LOJA_WHATSAPP` e `LOJA_URL` (padrão `https://tshirtclub.pt`), põe o
+`worker_url` e o `worker_segredo` do Vault e muda `ambiente` para `producao`. Pode rodar de novo sem
+trocar os segredos que já existem. Precisa de rede para `api.supabase.com`, `*.supabase.co` e
+`github.com` (download da CLI).
+
 ## Primeiro administrador do painel
 
 1. No painel do Supabase, em Authentication, crie o usuário com e-mail e senha de 12+ caracteres
