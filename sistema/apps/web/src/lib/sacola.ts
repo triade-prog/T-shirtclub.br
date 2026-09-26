@@ -38,6 +38,8 @@ export function removerDaSacola(itens: readonly ItemCarrinho[], slug: string): I
 
 // Sem httpOnly: o contador do cabeçalho lê no navegador (só slugs e quantidades, nada pessoal).
 export const opcoesCookieSacola = { httpOnly: false, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 } as const;
+/** Para apagar: __Host- só é aceito com Secure e Path=/, então não dá para usar cookies().delete. */
+export const opcoesApagarSacola = { ...opcoesCookieSacola, maxAge: 0 } as const;
 
 const AVISOS: Partial<Record<CodigoErro, string>> = {
   MAX_ITEMS: "A sacola aceita até 9 peças por reserva.",

@@ -33,3 +33,20 @@ test("sacola: adicionar pela URL, limite por modelo, remover e axe", async ({ pa
   await page.getByRole("button", { name: "Remover peça que saiu da loja" }).click();
   await expect(page.getByRole("heading", { name: "Sua sacola está vazia." })).toBeVisible();
 });
+
+// Reserva (fatia 4): sem nada para reservar, "Seus dados" volta para a sacola; a tela do
+// código só abre com o id da tentativa e, sem a api-public, espera sem quebrar.
+test("reserva: sem sacola volta para a sacola", async ({ page }) => {
+  await page.goto(`${LOJA}/reserva`);
+  await expect(page).toHaveURL(`${LOJA}/sacola`);
+  await page.goto(`${LOJA}/reserva/codigo?t=nao-e-id`);
+  await expect(page).toHaveURL(`${LOJA}/sacola`);
+});
+
+test("reserva: tela do código acessível", async ({ page }) => {
+  await page.goto(`${LOJA}/reserva/codigo?t=11111111-2222-3333-4444-555555555555`);
+  await expect(page.getByRole("heading", { name: /Confirme seu/ })).toBeVisible();
+  await expect(page.getByLabel("Código de 6 dígitos")).toHaveAttribute("autocomplete", "one-time-code");
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});

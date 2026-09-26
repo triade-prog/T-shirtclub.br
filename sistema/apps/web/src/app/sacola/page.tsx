@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies, headers } from "next/headers";
 import { ArrowRight } from "lucide-react";
-import { formatarReais, type ItemCarrinho } from "@tshirtclub/domain";
+import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
-import { buscarCatalogo, buscarOfertaClub, cotarSacola, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
-import { COOKIE_SACOLA, lerSacola, ordinalClub, textoAviso } from "@/lib/sacola";
+import { urlFoto } from "@/lib/catalogo";
+import { ordinalClub, textoAviso } from "@/lib/sacola";
+import { montarSacola } from "@/lib/sacola-servidor";
 import { removerPeca } from "./acoes";
 
 // Sacola "Monte seu Club" (F2.9; V4 em docs/design/v4/sacola.html), gerada no servidor.
@@ -18,29 +18,8 @@ export const metadata: Metadata = { title: "Sua sacola", robots: { index: false 
 const ESPECIE = "Tamanho único · 100% algodão";
 
 export default async function PaginaSacola({ searchParams }: PageProps<"/sacola">) {
-  const itens = lerSacola((await cookies()).get(COOKIE_SACOLA)?.value);
+  const { itens, produtos, validos, cotacao, club, avisos } = await montarSacola();
   const aviso = textoAviso((await searchParams).aviso);
-
-  const [produtos, club] = await Promise.all([
-    Promise.all(itens.map((i) => buscarCatalogo<ProdutoDetalhe>(`v1/catalog/products/${i.produtoId}`))),
-    buscarOfertaClub(),
-  ]);
-
-  // Peça que saiu da vitrine ou esgotou sai da conta; com menos estoque, a quantidade baixa.
-  const avisos: string[] = [];
-  const validos: { produto: ProdutoDetalhe; qtd: number }[] = [];
-  itens.forEach((item, i) => {
-    const p = produtos[i];
-    if (!p) return void avisos.push("Uma peça da sua sacola não está mais na loja e foi deixada de fora.");
-    const qtd = Math.min(item.qtd, p.disponivel);
-    if (qtd < item.qtd) avisos.push(qtd === 0 ? `${p.nome} esgotou e ficou fora da conta.` : `Só resta ${qtd} de ${p.nome}.`);
-    if (qtd > 0) validos.push({ produto: p, qtd });
-  });
-
-  const pedido: ItemCarrinho[] = validos.map((v) => ({ produtoId: v.produto.id, qtd: v.qtd }));
-  const resultado = pedido.length > 0 ? await cotarSacola(pedido, await headers()) : null;
-  const cotacao = resultado?.ok ? resultado.cotacao : null;
-  if (pedido.length > 0 && !cotacao) avisos.push("Não conseguimos calcular o total agora. Tente de novo em instantes.");
 
   const qtdClub = club?.qtd ?? 3;
   const total = cotacao?.pecas ?? 0;
