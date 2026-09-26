@@ -36,7 +36,7 @@ export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2
           const feito = i < noTrio;
           const atual = i === noTrio;
           return (
-            <li key={rotulo} className="relative z-10 grid justify-items-center gap-1.5 text-center">
+            <li key={i} className="relative z-10 grid justify-items-center gap-1.5 text-center">
               <span
                 aria-hidden="true"
                 className={cx(

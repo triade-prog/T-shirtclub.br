@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { BotaoVoltar } from "./BotaoVoltar";
+import { ContadorSacola } from "./ContadorSacola";
 
 // Cabeçalho V4 (D24): faixa rosa da oferta, logo no centro, sacola em pílula de adesivo e
 // a faixa de três cores embaixo.
@@ -23,6 +24,7 @@ export function Cabecalho() {
           >
             <ShoppingBag aria-hidden="true" className="size-5" strokeWidth={1.8} />
             <span className="max-sm:sr-only">Sacola</span>
+            <ContadorSacola />
           </Link>
         </div>
       </div>
