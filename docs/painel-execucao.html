@@ -26,9 +26,9 @@
   "meta": {
     "atualizado_em": "26/09/2026",
     "arquitetura_versao": 24,
-    "situacao": "Servidor das fases F2 a F11 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete, consulta e link da reserva, painel completo, endurecimento); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "situacao": "Servidor das fases F2 a F11 pronto. Telas (26/09, branch claude/eager-gauss-3btjsd): loja completa no design V4 (início, coleção, produto, sacola, reserva com código do WhatsApp, PIX e cartão, entrega e frete, link /r e consulta) e painel da operação (login com autenticador, início, reservas, cancelamentos, entregas e frete), testados com APIs falsas. Faltam as telas de catálogo, estoque e promoções e as de pagamentos em análise, bloqueados, WhatsApp, auditoria e conta. F1 aguarda o CI e as contas",
     "fase_atual": "F11",
-    "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
+    "proximo_passo": "Painel: fatia 10 (catálogo, fotos, looks, blocos da página inicial, estoque e promoções) e fatia 11 (pagamentos em análise, contestações, bloqueados, WhatsApp, auditoria e Minha conta). Loja: criar os projetos Supabase e Vercel (F1.4), mandar as credenciais de teste do Mercado Pago (E1) para validar o cartão (F6.4) e o PIX de 30 min (E4), e a conta da Z-API (E2) para testar o WhatsApp de verdade"
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
