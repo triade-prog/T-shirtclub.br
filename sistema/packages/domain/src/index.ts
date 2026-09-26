@@ -4,3 +4,4 @@ export * from "./carrinho.ts";
 export * from "./dinheiro.ts";
 export * from "./textos.ts";
 export * from "./schemas.ts";
+export * from "./preco.ts";

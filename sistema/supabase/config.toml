@@ -17,3 +17,29 @@ import_map = "./functions/deno.json"
 [functions.api-admin]
 verify_jwt = false
 import_map = "./functions/deno.json"
+
+# Login do painel (G7, D12). Só administradores: ninguém se cadastra sozinho; a loja cria o
+# usuário no painel do Supabase e o inclui em admin_users.
+[auth]
+enable_signup = false
+minimum_password_length = 12
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+[auth.email]
+enable_signup = false
+
+# Autenticador (TOTP) obrigatório: a api-admin só aceita sessão aal2.
+[auth.mfa]
+max_enrolled_factors = 4
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+# Sessão do painel de até 12 h (plano Pro do Supabase).
+[auth.sessions]
+timebox = "12h"
+
+# Segredos das funções (supabase secrets set ...): REPASSE_SEGREDO e TURNSTILE_SECRET.
+# SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY o Supabase já entrega.

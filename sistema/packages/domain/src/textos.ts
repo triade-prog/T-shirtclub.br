@@ -3,6 +3,7 @@
 
 import type { CodigoErro } from "./erros.ts";
 import { formatarReais } from "./dinheiro.ts";
+import type { MotivoCupom } from "./preco.ts";
 
 export interface ContextoErro {
   produtos?: string[];
@@ -13,6 +14,9 @@ export interface ContextoErro {
   maxPecas?: number;
   maxPorProduto?: number;
   whatsappLoja?: string;
+  motivoCupom?: MotivoCupom;
+  gastoMinimoCentavos?: number;
+  comprometido?: number;
 }
 
 export interface TextoErro {
@@ -44,6 +48,8 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       };
     case "COUPON_NOT_BEST":
       return { mensagem: "Você já tem um desconto maior. O cupom fica guardado para outra compra." };
+    case "COUPON_INVALID":
+      return { mensagem: textoCupom(c.motivoCupom, c), acao: "Continuar sem cupom" };
     case "OTP_INVALID": {
       const r = c.tentativasRestantes ?? 0;
       return {
@@ -96,8 +102,52 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "Este número não tem WhatsApp. Use um número com WhatsApp para receber o código." };
     case "UPSTREAM_UNAVAILABLE":
       return { mensagem: "Sem conexão com a loja agora. Sua reserva continua valendo; tente de novo em instantes.", acao: "Tentar de novo" };
+    case "INVALID_CREDENTIALS":
+      return { mensagem: "E-mail ou senha não conferem." };
+    case "MFA_REQUIRED":
+      return { mensagem: "Falta o código do aplicativo autenticador para entrar no painel.", acao: "Digitar o código" };
+    case "MFA_INVALID":
+      return { mensagem: "Código do autenticador errado ou vencido. Use o código que está aparecendo agora no aplicativo." };
+    case "LOGIN_BLOCKED":
+      return {
+        mensagem: c.horario ? `Muitas senhas erradas desta rede. Tente de novo às ${c.horario}.` : "Muitas senhas erradas desta rede. Tente de novo em 15 minutos.",
+      };
+    case "TURNSTILE_REQUIRED":
+    case "TURNSTILE_INVALID":
+      return { mensagem: "Confirme que você não é um robô para continuar.", acao: "Confirmar" };
+    case "STOCK_BELOW_COMMITTED":
+      return {
+        mensagem: c.comprometido === undefined
+          ? "O estoque não pode ficar abaixo das peças já reservadas ou vendidas."
+          : `O estoque não pode ficar abaixo de ${c.comprometido}, que são as peças já reservadas ou vendidas.`,
+      };
     default:
       return { mensagem: "Algo não saiu como esperado. Tente de novo em instantes.", acao: "Tentar de novo" };
+  }
+}
+
+/** Por que o cupom digitado não vale (regra 28). */
+export function textoCupom(motivo: MotivoCupom | undefined, c: ContextoErro = {}): string {
+  switch (motivo) {
+    case "NAO_ENCONTRADO":
+      return "Não achamos este cupom. Confira o código.";
+    case "AGENDADO":
+      return c.horario ? `Este cupom começa a valer em ${c.horario}.` : "Este cupom ainda não começou a valer.";
+    case "ENCERRADO":
+    case "VENCIDO":
+      return "Este cupom não está mais valendo.";
+    case "ESGOTADO":
+      return "Este cupom esgotou.";
+    case "GASTO_MINIMO":
+      return c.gastoMinimoCentavos
+        ? `Este cupom vale para compras a partir de ${formatarReais(c.gastoMinimoCentavos)}.`
+        : "Esta compra ainda não chegou ao valor mínimo do cupom.";
+    case "SEM_PRODUTOS":
+      return "Este cupom não vale para as peças da sacola.";
+    case "LIMITE_CLIENTE":
+      return "Você já usou este cupom o máximo de vezes.";
+    default:
+      return "Este cupom não pode ser usado agora.";
   }
 }
 

@@ -40,7 +40,7 @@ export const cupomSchema = z
   .string()
   .trim()
   .toUpperCase()
-  .regex(/^[A-Z0-9]{3,20}$/, "VALIDATION_ERROR");
+  .regex(/^[A-Z0-9]{4,20}$/, "VALIDATION_ERROR");
 
 export const codigoOtpSchema = z.string().trim().regex(/^\d{6}$/, "OTP_INVALID");
 
@@ -56,3 +56,37 @@ export const criarTentativaSchema = z.object({
 });
 
 export type CriarTentativa = z.infer<typeof criarTentativaSchema>;
+
+// Painel (F2.4): login com e-mail e senha, depois o código do autenticador (D12).
+
+/** Senha do painel: de 12 a 128 caracteres (a checagem de vazamento fica no Supabase Auth). */
+export const senhaAdminSchema = z.string().min(12, "VALIDATION_ERROR").max(128, "VALIDATION_ERROR");
+
+/** POST /v1/admin/auth/login */
+export const loginAdminSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email("VALIDATION_ERROR")).pipe(z.string().max(254)),
+  senha: senhaAdminSchema,
+  turnstileToken: z.string().min(1).max(2048).optional(),
+});
+
+export type LoginAdmin = z.infer<typeof loginAdminSchema>;
+
+/** Código de 6 dígitos do aplicativo autenticador; aceita espaço ("482 193"). */
+export const codigoAutenticadorSchema = z
+  .string()
+  .transform((v) => v.replace(/[\s-]/g, ""))
+  .pipe(z.string().regex(/^\d{6}$/, "MFA_INVALID"));
+
+/** POST /v1/admin/auth/mfa/verify */
+export const verificarAutenticadorSchema = z.object({
+  codigo: codigoAutenticadorSchema,
+  /** Só no cadastro do primeiro autenticador; no login vale o já verificado. */
+  factorId: z.string().min(1).max(64).optional(),
+});
+
+/** POST /v1/admin/products/:id/stock-adjustments */
+export const ajusteEstoqueSchema = z.object({
+  delta: z.number().int().refine((v) => v !== 0 && Math.abs(v) <= 100_000, "VALIDATION_ERROR"),
+  motivo: z.string().trim().min(3, "VALIDATION_ERROR").max(200, "VALIDATION_ERROR"),
+  tipo: z.enum(["ENTRADA", "AJUSTE"]).default("AJUSTE"),
+});

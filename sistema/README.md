@@ -48,4 +48,13 @@ mudar um componente de propósito, rode o workflow **Atualizar telas de referên
 
 ## Variáveis
 
-Ver [`.env.example`](.env.example). Nas Edge Functions: `REPASSE_SEGREDO` (o mesmo valor dos apps).
+Ver [`.env.example`](.env.example). Nas Edge Functions: `REPASSE_SEGREDO` (o mesmo valor dos apps)
+e `TURNSTILE_SECRET`; `SUPABASE_URL` e as chaves o Supabase já entrega.
+
+## Primeiro administrador do painel
+
+1. No painel do Supabase, em Authentication, crie o usuário com e-mail e senha de 12+ caracteres
+   (o cadastro público fica desligado).
+2. No SQL Editor: `insert into admin_users (id, name) values ('<id do usuário>', 'Loja');`
+3. No primeiro login, o painel pede para cadastrar o aplicativo autenticador (QR code). Cadastre
+   também um segundo aparelho, de reserva, em Minha conta.

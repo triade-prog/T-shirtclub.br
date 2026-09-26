@@ -72,10 +72,16 @@ Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleç�
 
 Pendências da F1:
 - **F1.4 (conta da loja):** criar o projeto Supabase em sa-east-1 e o projeto Vercel na região gru1.
-- **Primeira execução do CI no GitHub.**
+- **CI no GitHub:** a conta triade-prog está travada por cobrança ("account is locked due to a billing issue"); mesmo depois do pagamento, os jobs não iniciam. Depende do suporte do GitHub.
 - **Referências visuais:** gerar no container do CI (workflow "Atualizar telas de referência").
 
-A F2 começa depois disso e da aprovação do design (D1 e D2).
+**F2, parte sem telas (liberada em 26/09 enquanto o design é revisado):**
+- **Banco:** 0010 (coleções, produtos, fotos de 1 a 10, looks, blocos da página inicial, movimentos de estoque, view de disponibilidade), 0015 (promoções nos 3 formatos, níveis, cupons e usos; um produto nunca em dois descontos ao mesmo tempo), 0090 (administradores e bloqueio do login por e-mail + IP) e 0180 (ajuste de estoque com lock e motivo). 102 testes pgTAP.
+- **Motor de preço** em `packages/domain/src/preco.ts`: só a mais vantajosa, Monte seu Club a cada 3, níveis, cupom com os motivos de recusa e preço promocional da vitrine. Descontos do produto ativos valem juntos como preço promocional (D22).
+- **Login do painel** na `api-admin`: senha de 12+, autenticador obrigatório (aal2), 5 erros bloqueiam a rede por 15 min, Turnstile a partir do 3º erro, cookie `__Host-painel`. O aviso de bloqueio por e-mail fica no log até escolhermos o provedor de e-mail.
+- **Correção:** o script `pnpm build` da raiz não rodava (o shell expandia o filtro); o CI falharia nesse passo.
+
+As telas da F2 (F2.5 a F2.10) esperam a aprovação do design (D1 e D2).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

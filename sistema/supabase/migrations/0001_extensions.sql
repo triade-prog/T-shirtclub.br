@@ -1,10 +1,12 @@
 -- 0001 · Extensões
--- pgcrypto: hashes (OTP com HMAC, chave do link, IP). pg_cron e pg_net: jobs e chamada do
--- worker (0300). No Supabase as três existem; no banco local de testes, pg_cron e pg_net
+-- pgcrypto: hashes (OTP com HMAC, chave do link, IP). btree_gist: impede o mesmo produto
+-- em dois descontos do produto no mesmo período (0015). pg_cron e pg_net: jobs e chamada do
+-- worker (0300). No Supabase todas existem; no banco local de testes, pg_cron e pg_net
 -- podem faltar e são puladas.
 
 create schema if not exists extensions;
 create extension if not exists pgcrypto with schema extensions;
+create extension if not exists btree_gist with schema extensions;
 
 do $$
 begin

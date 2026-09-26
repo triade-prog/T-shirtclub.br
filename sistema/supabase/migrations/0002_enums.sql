@@ -25,3 +25,7 @@ create type home_block_kind as enum ('CAMPANHA', 'NOVIDADES', 'COLECOES', 'LOOKS
 -- Promoções (seção 05b, D19).
 create type promotion_type as enum ('DESCONTO_PRODUTO', 'COMPRE_MAIS', 'CUPOM');
 create type buy_more_mode as enum ('NIVEIS', 'PRECO_POR_GRUPO');
+create type promotion_scope as enum ('TODOS', 'ESPECIFICOS');
+create type product_discount_kind as enum ('PERCENTUAL', 'PRECO_FIXO');
+create type coupon_kind as enum ('VALOR', 'PERCENTUAL');
+create type coupon_use_status as enum ('PRESO', 'USADO', 'DEVOLVIDO');

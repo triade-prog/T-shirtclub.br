@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { criarTentativaSchema, codigoOtpSchema, cupomSchema, nomeClienteSchema, telefoneSchema } from "./schemas.ts";
+import {
+  ajusteEstoqueSchema,
+  codigoAutenticadorSchema,
+  criarTentativaSchema,
+  codigoOtpSchema,
+  cupomSchema,
+  loginAdminSchema,
+  nomeClienteSchema,
+  telefoneSchema,
+} from "./schemas.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-00000000000${n}`;
 const valido = {
@@ -40,5 +49,30 @@ describe("schemas", () => {
     expect(cupomSchema.parse(" bemvinda10 ")).toBe("BEMVINDA10");
     expect(codigoOtpSchema.safeParse("12345").success).toBe(false);
     expect(codigoOtpSchema.parse("482193")).toBe("482193");
+  });
+});
+
+describe("painel", () => {
+  it("login: e-mail normalizado e senha de 12+ caracteres", () => {
+    expect(loginAdminSchema.parse({ email: " Loja@TshirtClub.pt ", senha: "uma senha boa" }).email).toBe("loja@tshirtclub.pt");
+    expect(loginAdminSchema.safeParse({ email: "loja@tshirtclub.pt", senha: "curta" }).success).toBe(false);
+    expect(loginAdminSchema.safeParse({ email: "sem-arroba", senha: "uma senha boa" }).success).toBe(false);
+  });
+
+  it("código do autenticador aceita espaço ou traço", () => {
+    expect(codigoAutenticadorSchema.parse("482 193")).toBe("482193");
+    expect(codigoAutenticadorSchema.parse("482-193")).toBe("482193");
+    expect(codigoAutenticadorSchema.safeParse("48219").success).toBe(false);
+  });
+
+  it("ajuste de estoque com motivo e sem zero", () => {
+    expect(ajusteEstoqueSchema.parse({ delta: -2, motivo: " Peça com defeito " })).toEqual({ delta: -2, motivo: "Peça com defeito", tipo: "AJUSTE" });
+    expect(ajusteEstoqueSchema.safeParse({ delta: 0, motivo: "Nada" }).success).toBe(false);
+    expect(ajusteEstoqueSchema.safeParse({ delta: 1, motivo: "  " }).success).toBe(false);
+  });
+
+  it("cupom tem de 4 a 20 letras e números", () => {
+    expect(cupomSchema.safeParse("ABC").success).toBe(false);
+    expect(cupomSchema.parse("club")).toBe("CLUB");
   });
 });

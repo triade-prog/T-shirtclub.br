@@ -17,3 +17,6 @@ create schema if not exists extensions;
 grant usage on schema extensions to anon, authenticated, service_role;
 create extension if not exists pgtap with schema extensions;
 alter database postgres set search_path = public, extensions;
+-- O Supabase Auth cria auth.users; aqui só o mínimo para as chaves estrangeiras.
+create schema if not exists auth;
+create table if not exists auth.users (id uuid primary key, email text);
