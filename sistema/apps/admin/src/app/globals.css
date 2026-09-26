@@ -1,3 +1,4 @@
 @import "tailwindcss";
 @import "@tshirtclub/ui/tema.css";
 @source "../../../../packages/ui/src";
+@import "./painel-v4.css";

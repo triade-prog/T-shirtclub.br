@@ -1,13 +1,15 @@
 // Monta o app Hono de uma função com as regras comuns: segredo de repasse, erros no
 // formato padrão e nada em cache.
 
-import { Hono } from "hono";
+import { Hono, type Env } from "hono";
 import { ErroDominio } from "@tshirtclub/domain";
 import { CABECALHO_SEGREDO, segredoConfere } from "./repasse.ts";
 import { respostaErro } from "./http.ts";
+import { relatarErro } from "./monitor.ts";
 
-export function criarApp(nome: string, segredo: string | undefined): Hono {
-  const app = new Hono().basePath(`/${nome}`);
+// deno-lint-ignore ban-types
+export function criarApp<E extends Env = {}>(nome: string, segredo: string | undefined): Hono<E> {
+  const app = new Hono<E>().basePath(`/${nome}`);
 
   app.use("*", async (c, next) => {
     if (!segredo || !segredoConfere(c.req.header(CABECALHO_SEGREDO) ?? null, segredo)) {
@@ -17,9 +19,9 @@ export function criarApp(nome: string, segredo: string | undefined): Hono {
     c.header("cache-control", "no-store");
   });
 
-  app.onError((err) => {
+  app.onError(async (err, c) => {
     if (err instanceof ErroDominio) return respostaErro(err.codigo, err.detalhes);
-    console.error(JSON.stringify({ funcao: nome, erro: String(err) }));
+    await relatarErro(err, { rota: c.req.routePath, metodo: c.req.method });
     return respostaErro("INTERNAL_ERROR");
   });
 

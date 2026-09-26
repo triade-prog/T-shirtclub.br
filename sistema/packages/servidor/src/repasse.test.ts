@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { criarRepasse, filtrarSetCookie, ipReal } from "./repasse.ts";
+import { criarRepasse, filtrarSetCookie, ipReal, opcoesLoja, opcoesPainel } from "./repasse.ts";
 
 const op = { destino: "https://fn.exemplo/functions/v1/api-public", segredo: "s3gredo", cookies: ["__Host-sessao", "__Host-tentativa"] };
 const ctx = (path: string[]) => ({ params: Promise.resolve({ path }) });
@@ -33,6 +33,25 @@ describe("repasse /api", () => {
     expect(h.get("x-repasse-segredo")).toBe("s3gredo");
     expect(h.get("x-cliente-ip")).toBe("200.1.2.3");
     expect(h.get("cookie")).toBe("__Host-sessao=abc; __Host-tentativa=def");
+  });
+
+  it("passa o Idempotency-Key do pagamento, e só num formato simples", async () => {
+    const f = mockFetch(new Response("{}", { status: 201 }));
+    const pagar = (chave: string) => repassar(new Request("https://tshirtclub.pt/api/v1/reservations/x/payments", {
+      method: "POST", body: '{"forma":"PIX"}', headers: { "content-type": "application/json", "idempotency-key": chave },
+    }), ctx(["v1", "reservations", "x", "payments"]));
+    await pagar("0b7c3f0e-5d1a-4c2b-9e8f-1a2b3c4d5e6f");
+    expect(new Headers(f.mock.calls[0]![1].headers).get("idempotency-key")).toBe("0b7c3f0e-5d1a-4c2b-9e8f-1a2b3c4d5e6f");
+    await pagar("x\r\nset-cookie: a=1".replace(/[\r\n]/g, " "));
+    expect(new Headers(f.mock.calls[1]![1].headers).has("idempotency-key")).toBe(false);
+  });
+
+  it("cada app deixa passar os cookies que a sua função grava", () => {
+    const env = { SUPABASE_FUNCTIONS_URL: "https://fn.exemplo/functions/v1", REPASSE_SEGREDO: "s" };
+    expect(opcoesLoja(env)).toEqual({
+      destino: "https://fn.exemplo/functions/v1/api-public", segredo: "s", cookies: ["__Host-sessao", "__Host-tentativa", "__Host-consulta"],
+    });
+    expect(opcoesPainel(env)).toEqual({ destino: "https://fn.exemplo/functions/v1/api-admin", segredo: "s", cookies: ["__Host-painel"] });
   });
 
   it("recusa caminhos fora de /v1 e tentativas de subir de pasta", async () => {

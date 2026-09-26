@@ -25,7 +25,7 @@ export default defineConfig([
     languageOptions: { sourceType: "commonjs", globals: { module: "writable", require: "readonly" } },
   },
   {
-    files: ["scripts/**/*.mjs"],
-    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+    files: ["scripts/**/*.mjs", "tests/**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly" } },
   },
 ]);

@@ -8,7 +8,7 @@
   "scripts": {
     "dev:web": "pnpm --filter @tshirtclub/web dev",
     "dev:admin": "pnpm --filter @tshirtclub/admin dev",
-    "build": "pnpm -r --filter ./apps/* build",
+    "build": "pnpm -r --filter \"./apps/*\" build",
     "lint": "eslint .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",

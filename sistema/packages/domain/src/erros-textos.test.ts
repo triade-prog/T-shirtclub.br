@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CODIGOS_ERRO, ErroDominio, ehCodigoErro, type CodigoErro } from "./erros.ts";
-import { textoErro } from "./textos.ts";
+import { textoCupom, textoErro, textoRecusaCartao } from "./textos.ts";
 import { formatarReais } from "./dinheiro.ts";
 
 describe("códigos de erro", () => {
@@ -33,6 +33,14 @@ describe("textos com contexto", () => {
     expect(textoErro("PRICE_CHANGED", { totalCentavos: 12499 }).mensagem).toContain("R$ 124,99");
     expect(textoErro("OTP_INVALID", { tentativasRestantes: 1 }).mensagem).toContain("Resta 1 tentativa");
     expect(textoErro("ACTIVE_RESERVATION_EXISTS", { numeroReserva: 1048, horario: "14:32" }).mensagem).toContain("#1048 aberta até 14:32");
+    expect(textoErro("COUPON_INVALID", { motivoCupom: "GASTO_MINIMO", gastoMinimoCentavos: 8990 }).mensagem).toContain("R$ 89,90");
+    expect(textoErro("STOCK_BELOW_COMMITTED", { comprometido: 3 }).mensagem).toContain("abaixo de 3");
+  });
+
+  it("todo motivo de cupom tem texto", () => {
+    for (const m of ["NAO_ENCONTRADO", "AGENDADO", "ENCERRADO", "ESGOTADO", "GASTO_MINIMO", "SEM_PRODUTOS", "LIMITE_CLIENTE", "VENCIDO"] as const) {
+      expect(textoCupom(m).length).toBeGreaterThan(10);
+    }
   });
 });
 
@@ -44,5 +52,13 @@ describe("formatarReais", () => {
   });
   it("recusa valor quebrado", () => {
     expect(() => formatarReais(10.5)).toThrow();
+  });
+});
+
+describe("recusa do cartão", () => {
+  it("traduz os motivos do Mercado Pago e cai no geral", () => {
+    expect(textoRecusaCartao("cc_rejected_insufficient_amount")).toMatch(/limite/);
+    expect(textoRecusaCartao("cc_rejected_bad_filled_security_code")).toMatch(/CVV/);
+    expect(textoRecusaCartao("qualquer_outro")).toBe(textoRecusaCartao(undefined));
   });
 });

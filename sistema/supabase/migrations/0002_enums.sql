@@ -11,7 +11,7 @@ create type fulfillment_substatus as enum (
 create type payment_purpose as enum ('PRODUTOS', 'FRETE');
 create type payment_method as enum ('PIX', 'CARTAO');
 create type payment_status as enum ('CRIADO', 'PENDENTE', 'APROVADO', 'RECUSADO', 'CANCELADO', 'FALHOU', 'EM_ANALISE', 'ESTORNADO');
-create type review_reason as enum ('APROVADO_APOS_TOLERANCIA', 'RESERVA_ENCERRADA', 'VALOR_DIVERGENTE');
+create type review_reason as enum ('APROVADO_APOS_TOLERANCIA', 'RESERVA_ENCERRADA', 'VALOR_DIVERGENTE', 'FRETE_ENCERRADO');
 create type cancel_status as enum ('PENDENTE', 'APROVADA', 'RECUSADA', 'PREJUDICADA');
 create type otp_purpose as enum ('RESERVA', 'CONSULTA');
 create type stock_movement_kind as enum ('ENTRADA', 'AJUSTE', 'RESERVA', 'LIBERACAO', 'VENDA');
@@ -25,3 +25,29 @@ create type home_block_kind as enum ('CAMPANHA', 'NOVIDADES', 'COLECOES', 'LOOKS
 -- Promoções (seção 05b, D19).
 create type promotion_type as enum ('DESCONTO_PRODUTO', 'COMPRE_MAIS', 'CUPOM');
 create type buy_more_mode as enum ('NIVEIS', 'PRECO_POR_GRUPO');
+create type promotion_scope as enum ('TODOS', 'ESPECIFICOS');
+create type product_discount_kind as enum ('PERCENTUAL', 'PRECO_FIXO');
+create type coupon_kind as enum ('VALOR', 'PERCENTUAL');
+create type coupon_use_status as enum ('PRESO', 'USADO', 'DEVOLVIDO');
+
+-- Clientes, código do WhatsApp e tentativas (seção 04, F3).
+create type otp_session_status as enum ('ABERTA', 'VERIFICADA', 'BLOQUEADA', 'ENCERRADA');
+create type otp_code_status as enum ('ATIVO', 'USADO', 'ESGOTADO', 'VENCIDO', 'SUBSTITUIDO');
+create type attempt_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'CONVERTIDA', 'FALHOU_ESTOQUE', 'ABANDONADA');
+
+-- Consulta com código (F9): ver as reservas do telefone, ou liberar a entrega aberta pelo link (D13).
+create type lookup_reason as enum ('CONSULTA', 'ENTREGA');
+create type lookup_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'ABANDONADA');
+
+-- Bloqueio de telefone por abuso (seção 09) e fila de mensagens (seção 10).
+create type phone_block_status as enum ('ATIVO', 'LIBERADO');
+create type phone_block_decision as enum ('LIBERAR', 'MANTER');
+create type outbox_status as enum ('PENDENTE', 'ENVIANDO', 'ENVIADA', 'ENTREGUE', 'LIDA', 'FALHOU', 'DESCARTADA');
+
+-- Pagamentos (seção 08, F6).
+create type review_status as enum ('ABERTA', 'RESOLVIDA');
+create type review_resolution as enum ('ESTORNAR', 'CONVERTER_EM_PEDIDO');
+create type dispute_kind as enum ('ESTORNO', 'CONTESTACAO', 'CANCELAMENTO');
+
+-- Entrega e frete (seção 04, regra 17, F8).
+create type shipping_quote_status as enum ('AGUARDANDO_PAGAMENTO', 'PAGO', 'VENCIDO', 'SUBSTITUIDO');

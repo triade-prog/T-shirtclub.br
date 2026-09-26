@@ -24,7 +24,7 @@ export function Aviso({ tipo = "info", titulo, children, anunciar }: AvisoProps)
   const e = ESTILO[tipo];
   const urgente = tipo === "erro" || tipo === "atencao";
   return (
-    <div role={anunciar ? (urgente ? "alert" : "status") : undefined} className={cx("grid grid-cols-[auto_1fr] gap-2.5 rounded-[14px] px-3.5 py-3 text-[15px] text-tinta", e.caixa)}>
+    <div role={anunciar ? (urgente ? "alert" : "status") : undefined} className={cx("grid grid-cols-[auto_1fr] gap-2.5 rounded-campo border-2 border-tinta px-3.5 py-3 text-[15px] text-tinta shadow-adesivo-sm", e.caixa)}>
       <span aria-hidden="true" className={cx("mt-0.5 grid size-5 place-items-center rounded-full border-2 border-current text-xs font-bold", e.icone)}>{e.simbolo}</span>
       <div>
         <strong className="block font-semibold">{titulo}</strong>

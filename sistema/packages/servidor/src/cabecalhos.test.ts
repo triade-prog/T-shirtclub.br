@@ -15,11 +15,17 @@ describe("CSP", () => {
     expect(csp.replace("style-src-attr 'unsafe-inline'", "")).not.toContain("unsafe");
   });
 
-  it("painel: sem terceiros e sem frames", () => {
+  it("painel: só o Turnstile do login, e ninguém carrega o painel em frame", () => {
     const csp = montarCsp({ app: "painel", nonce: "abc" });
     expect(csp).not.toContain("mercadopago");
-    expect(csp).not.toContain("cloudflare");
-    expect(csp).toContain("frame-src 'none'");
+    expect(csp).toContain("frame-src https://challenges.cloudflare.com;");
+    expect(csp).toContain("frame-ancestors 'none'");
+  });
+
+  it("painel envia fotos direto ao Storage; a loja não", () => {
+    const origem = "https://xyz.supabase.co";
+    expect(montarCsp({ app: "painel", nonce: "abc", origemImagens: origem })).toContain(`connect-src 'self' ${origem};`);
+    expect(montarCsp({ app: "loja", nonce: "abc", origemImagens: origem })).not.toMatch(/connect-src[^;]*supabase/);
   });
 
   it("desenvolvimento libera o eval do React e o recarregamento", () => {

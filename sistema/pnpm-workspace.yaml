@@ -5,3 +5,8 @@ onlyBuiltDependencies:
   - sharp
   - esbuild
   - unrs-resolver
+# Vulnerabilidades altas e médias só no @lhci/cli (Lighthouse CI, desenvolvimento), sem versão
+# nova que as corrija (P14). O extract-zip não tem versão corrigida publicada.
+overrides:
+  tmp: ^0.2.6
+  uuid: ^11.1.1

@@ -6,13 +6,23 @@ cd "$(dirname "$0")/.."
 PIDS=/tmp/tshirtclub-apps.pids
 
 parar() {
-  [ -f "$PIDS" ] || return 0
-  while read -r pid; do kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true; done < "$PIDS"
-  rm -f "$PIDS"; sleep 1
+  if [ -f "$PIDS" ]; then
+    while read -r pid; do kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true; done < "$PIDS"
+    rm -f "$PIDS"
+  fi
+  # Servidor que ficou de uma rodada anterior (sem o arquivo de pids) também sai
+  pkill -f "next start --port 300[01]" 2>/dev/null || true
+  pkill -f "next-serve[r]" 2>/dev/null || true
+  sleep 1
 }
 
 parar
 [ "${1:-}" = "parar" ] && exit 0
+
+# Porta ocupada faria o teste rodar contra um build antigo: melhor falhar aqui
+for porta in 3000 3001; do
+  if curl -s -o /dev/null "http://localhost:$porta/"; then echo "Porta $porta ocupada por outro servidor"; exit 1; fi
+done
 
 for app in web admin; do
   porta=$([ "$app" = web ] && echo 3000 || echo 3001)

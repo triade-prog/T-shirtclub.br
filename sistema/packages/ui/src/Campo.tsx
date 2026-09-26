@@ -22,8 +22,8 @@ export function Campo({ rotulo, ajuda, erro, id, className, ...resto }: CampoPro
         aria-invalid={erro ? true : undefined}
         aria-describedby={[idErro, idAjuda].filter(Boolean).join(" ") || undefined}
         className={cx(
-          "min-h-13 w-full rounded-campo border-[1.5px] border-borda-campo bg-branco px-4 text-base text-tinta",
-          erro && "border-2 border-erro",
+          "min-h-13 w-full rounded-campo border-2 border-tinta bg-branco px-4 text-base text-tinta shadow-adesivo-sm",
+          erro && "border-erro shadow-[2px_2px_0_var(--tc-erro)]",
           className,
         )}
         {...resto}

@@ -4,7 +4,6 @@
 -- de estado, e qualquer mudança do número da reserva, é recusada.
 -- Quem muda o estado são as funções de domínio: elas informam o evento e o ator com
 -- set_transition_context() na mesma transação; UPDATE direto sem contexto é recusado.
--- O gatilho é ligado à tabela reservations na migration 0030 (F4).
 
 create function reservation_transition_allowed(p_from reservation_status, p_to reservation_status) returns boolean
 language sql immutable
@@ -71,3 +70,6 @@ begin
   );
   return new;
 end $$;
+
+create trigger trg_reservation_transition_guard before insert or update on reservations
+  for each row execute function trg_reservation_transition_guard();
