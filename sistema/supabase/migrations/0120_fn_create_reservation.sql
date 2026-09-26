@@ -79,6 +79,10 @@ as $$
                 from reservation_items i where i.reservation_id = r.id),
     'descontos', coalesce((select jsonb_agg(jsonb_build_object('tipo', d.type, 'valorCentavos', d.amount_cents, 'rotulo', d.detail ->> 'rotulo'))
                              from reservation_discounts d where d.reservation_id = r.id), '[]'),
+    -- O pedido de cancelamento mais recente (a tela mostra "aguardando a loja" ou a decisão)
+    'cancelamento', (select jsonb_strip_nulls(jsonb_build_object('status', c.status, 'solicitadoEm', c.requested_at,
+                                                                 'decididoEm', c.decided_at, 'motivoDecisao', c.decision_reason))
+                       from cancellation_requests c where c.reservation_id = r.id order by c.status = 'PENDENTE' desc, c.requested_at desc limit 1),
     'agora', app_now())
 $$;
 

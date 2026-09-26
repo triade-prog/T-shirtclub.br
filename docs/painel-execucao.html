@@ -24,9 +24,9 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 19,
-    "situacao": "Servidor das fases F2 a F6 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio e pagamento pelo Mercado Pago); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F6",
+    "arquitetura_versao": 20,
+    "situacao": "Servidor das fases F2 a F7 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago e cancelamento); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F7",
     "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
   },
   "fases": [
@@ -109,8 +109,8 @@
      ]},
     {"id":"F7","nome":"Cancelamento","sec":"estados","objetivo":"A cliente pede, o painel decide, e o relógio não para.",
      "itens":[
-      {"id":"F7.1","texto":"Migration 0150: solicitação, aprovar ou recusar com motivo, PREJUDICADA automática","sec":"estados","refs":[],"status":"pendente"},
-      {"id":"F7.2","texto":"Pedido de cancelamento com confirmação na tela e decisão no detalhe do painel","sec":"frontend","refs":[],"status":"pendente"}
+      {"id":"F7.1","texto":"Migration 0150: solicitação, aprovar ou recusar com motivo, PREJUDICADA automática","sec":"estados","refs":[],"status":"feito","evidencia":"sistema/supabase/migrations/0150_fn_cancellation.sql: pedido pela cliente, aprovar (T4, estoque de volta, sem contar para o bloqueio) ou recusar com motivo, PREJUDICADA ao expirar ou pagar; pgTAP 016; rotas na api-public e api-admin; integração cancelamento_test.ts"},
+      {"id":"F7.2","texto":"Pedido de cancelamento com confirmação na tela e decisão no detalhe do painel","sec":"frontend","refs":[],"status":"andamento","nota":"Rotas prontas (pedido da cliente, lista e decisão no painel) e mensagens de WhatsApp; faltam as telas, que esperam o design"}
      ]},
     {"id":"F8","nome":"Pós-pagamento","sec":"estados","objetivo":"Entrega, frete manual com 2 h para pagar, substatus e Entregue.",
      "itens":[
@@ -279,6 +279,7 @@
     ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},
     {"data":"26/09/2026","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},
     {"data":"26/09/2026","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},
     {"data":"26/09/2026","texto":"F3 e F4 no servidor: código pelo WhatsApp (webhook, bloqueio de 30 min, fila) e criação atômica da reserva; teste de concorrência e integração no CI; desenho técnico v17.","ref":""},

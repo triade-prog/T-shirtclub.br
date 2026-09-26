@@ -11,6 +11,7 @@ import {
   ErroDominio,
   ajustarItensSchema,
   pagamentoSchema,
+  pedidoCancelamentoSchema,
   confirmarTentativaSchema,
   criarTentativaSchema,
   ehCodigoErro,
@@ -243,6 +244,19 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     });
     if (!reserva) throw new ErroDominio("NOT_FOUND");
     return c.json(comTelefoneMascarado(reserva));
+  });
+
+  // Pedido de cancelamento (regra 12): só enquanto RESERVADO, um pendente por vez. O
+  // relógio continua; a loja aprova ou recusa pelo painel.
+  app.post("/v1/reservations/:id/cancellation-request", async (c) => {
+    const id = idDaRota(c);
+    const telefone = await telefoneDaSessao(c, id);
+    const { observacao } = await lerCorpo(c, pedidoCancelamentoSchema);
+    const r = await chamar<ErroJson & { cancelamento: unknown }>(deps.banco, "request_cancellation", {
+      p_reservation_id: id, p_phone: telefone, p_note: observacao ?? null,
+    });
+    falhou(r);
+    return c.json({ cancelamento: r.cancelamento }, 201);
   });
 
   // Pagamento (seção 08, F6): PIX ou cartão, uma forma por reserva. O Idempotency-Key (um

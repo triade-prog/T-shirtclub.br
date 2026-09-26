@@ -133,4 +133,10 @@ export const resolverAnaliseSchema = z.object({
 });
 
 /** POST /v1/admin/payment-disputes/:id/resolve (G2) */
+/** POST /v1/reservations/:id/cancellation-request (regra 12). */
+export const pedidoCancelamentoSchema = z.object({ observacao: z.string().trim().max(500, "VALIDATION_ERROR").optional() });
+
+/** POST /v1/admin/cancellation-requests/:id/approve e /reject: sempre com motivo. */
+export const decisaoCancelamentoSchema = decisaoBloqueioSchema;
+
 export const resolverDisputaSchema = z.object({ nota: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR") });

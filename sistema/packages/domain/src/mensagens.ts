@@ -84,6 +84,9 @@ export interface ParametrosMensagem {
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
   bloqueio_mantido: Record<string, never>;
+  cancelamento_recebido: { numero: number; expiraEm: Date };
+  cancelamento_aprovado: { numero: number };
+  cancelamento_recusado: { numero: number; expiraEm: Date };
 }
 
 export type Modelo = keyof ParametrosMensagem;
@@ -135,6 +138,12 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   bloqueio_mantido: [
     () => "Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a gente por aqui se precisar.",
   ],
+  // O pedido não pausa o relógio (regra 12): as mensagens lembram até quando a reserva vale.
+  cancelamento_recebido: [
+    (p) => `Recebemos seu pedido de cancelamento da reserva #${p.numero}. A loja responde em breve; o prazo continua correndo até *${formatarHora(p.expiraEm)}*.`,
+  ],
+  cancelamento_aprovado: [(p) => `Cancelamento aprovado: a reserva #${p.numero} foi encerrada e nada foi cobrado.`],
+  cancelamento_recusado: [(p) => `A loja manteve a reserva #${p.numero}. Ela segue valendo até *${formatarHora(p.expiraEm)}*.`],
 };
 
 /** Texto da mensagem; `sorteio` escolhe a versão (0 a 1). */

@@ -70,6 +70,15 @@ describe("o que a loja manda", () => {
     );
   });
 
+  it("cancelamento: recebido, aprovado e recusado", () => {
+    const expira = new Date("2026-10-10T17:32:00Z");
+    expect(mensagemWhatsApp("cancelamento_recebido", { numero: 1048, expiraEm: expira })).toBe(
+      "Recebemos seu pedido de cancelamento da reserva #1048. A loja responde em breve; o prazo continua correndo até *14:32*.",
+    );
+    expect(mensagemWhatsApp("cancelamento_aprovado", { numero: 1048 })).toBe("Cancelamento aprovado: a reserva #1048 foi encerrada e nada foi cobrado.");
+    expect(mensagemWhatsApp("cancelamento_recusado", { numero: 1048, expiraEm: expira })).toBe("A loja manteve a reserva #1048. Ela segue valendo até *14:32*.");
+  });
+
   it("hora sempre no fuso da loja", () => {
     expect(formatarHora(new Date("2026-10-10T03:05:00Z"))).toBe("00:05");
   });

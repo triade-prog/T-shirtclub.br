@@ -5,6 +5,7 @@ import { exigirAdmin, rotasAuthAdmin, type DepsAuthAdmin, type VarsAdmin } from 
 import { rotasEstoque } from "./estoque.ts";
 import { rotasCatalogoAdmin, type DepsCatalogo } from "./catalogo.ts";
 import { rotasBloqueios } from "./bloqueios.ts";
+import { rotasCancelamentos } from "./cancelamentos.ts";
 import { rotasPagamentosAdmin, type DepsPagamentosAdmin } from "./pagamentos.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin;
@@ -24,6 +25,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasEstoque(app, deps.banco);
   rotasCatalogoAdmin(app, deps);
   rotasBloqueios(app, deps.banco);
+  rotasCancelamentos(app, deps.banco);
   rotasPagamentosAdmin(app, deps);
 
   return app;

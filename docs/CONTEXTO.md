@@ -94,7 +94,9 @@ As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design 
 
 **F6 no servidor (26/09):** pagamento pelo Mercado Pago atrás do `PaymentProvider` (e uma versão falsa para testes). PIX nasce com 30 min e é cancelado no fim da tolerância; cartão em `binary_mode` (aprova ou recusa na hora), só à vista, recebendo só o token. Idempotência em 5 camadas (Idempotency-Key, chave no provedor, inbox do webhook, `applied` e a constraint final). O webhook confere o x-signature e a janela de 5 min, grava na inbox e responde 200; o worker consulta o provedor e aplica. Referência, moeda ou conta diferentes: descartado. Valor diferente, reserva encerrada ou aprovado depois da tolerância: análise, onde a loja estorna ou converte em pedido novo. Estorno ou contestação depois de pago: disputa, que vai travar o Entregue na F8. Decisão D23: a mensagem "pagamento confirmado" leva o endereço do site, não o link com a chave; cartão só à vista. 273 testes de banco, 58 Deno, 118 de regras e dois testes de integração (fluxo da reserva e pagamento).
 
-O próximo servidor é a F7 (cancelamento), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+**F7 no servidor (26/09):** a cliente pede o cancelamento na reserva (só enquanto está reservada, um pedido por vez) e a loja aprova ou recusa no painel, sempre com motivo. O prazo continua correndo. Aprovado: a reserva é encerrada com motivo "cancelamento aprovado", as peças voltam, não conta para o bloqueio e um PIX em aberto é cancelado no Mercado Pago. Recusado: a reserva segue valendo até o horário original. Se ela expira ou é paga antes da decisão, o pedido fica prejudicado. A cliente recebe no WhatsApp "pedido recebido", "aprovado" ou "recusado". 293 testes de banco, 59 Deno, 120 de regras e três testes de integração (fluxo da reserva, pagamento e cancelamento).
+
+O próximo servidor é a F8 (pós-pagamento: entrega, frete e Entregue), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

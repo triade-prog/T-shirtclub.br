@@ -5,8 +5,10 @@ import {
   criarTentativaSchema,
   codigoOtpSchema,
   cupomSchema,
+  decisaoCancelamentoSchema,
   loginAdminSchema,
   nomeClienteSchema,
+  pedidoCancelamentoSchema,
   telefoneSchema,
 } from "./schemas.ts";
 
@@ -76,5 +78,12 @@ describe("painel", () => {
   it("cupom tem de 4 a 20 letras e números", () => {
     expect(cupomSchema.safeParse("ABC").success).toBe(false);
     expect(cupomSchema.parse("club")).toBe("CLUB");
+  });
+
+  it("cancelamento: observação opcional e decisão sempre com motivo", () => {
+    expect(pedidoCancelamentoSchema.parse({})).toEqual({});
+    expect(pedidoCancelamentoSchema.safeParse({ observacao: "x".repeat(501) }).success).toBe(false);
+    expect(decisaoCancelamentoSchema.safeParse({ motivo: " " }).success).toBe(false);
+    expect(decisaoCancelamentoSchema.parse({ motivo: " Pedido da cliente " }).motivo).toBe("Pedido da cliente");
   });
 });

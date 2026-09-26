@@ -123,3 +123,24 @@ Deno.test("bloqueios: listar, liberar e manter sempre com motivo", async () => {
   assertEquals(rpcs.find((r) => r.funcao === "release_phone_block")!.args, { p_block_id: PRODUTO, p_admin: ADMIN, p_reason: "Cliente antiga" });
   assertEquals((await erro(await pedir(`/v1/admin/phone-blocks/${PRODUTO}/keep`, { motivo: "Sem resposta" }))).codigo, "ALREADY_APPLIED");
 });
+
+Deno.test("cancelamentos: listar, aprovar e recusar sempre com motivo", async () => {
+  const { pedir, rpcs } = await logado({
+    rpcExtra: (f) => ({
+      admin_list_cancellation_requests: [{ id: "c1", status: "PENDENTE" }],
+      approve_cancellation: { id: PRODUTO, status: "APROVADA" },
+      reject_cancellation: new ErroBanco("TS161", "já decidido"),
+    } as Record<string, unknown>)[f],
+  });
+  assertEquals((await (await pedir("/v1/admin/cancellation-requests")).json())[0].id, "c1");
+  assertEquals(rpcs.find((r) => r.funcao === "admin_list_cancellation_requests")!.args, { p_status: "PENDENTE" });
+  await pedir("/v1/admin/cancellation-requests?status=TODOS");
+  assertEquals(rpcs.findLast((r) => r.funcao === "admin_list_cancellation_requests")!.args, { p_status: null });
+  assertEquals((await pedir("/v1/admin/cancellation-requests?status=OUTRO")).status, 400);
+  assertEquals((await pedir("/v1/admin/cancellation-requests/x/approve", { motivo: "Pedido da cliente" })).status, 404);
+  assertEquals((await pedir(`/v1/admin/cancellation-requests/${PRODUTO}/approve`, { motivo: "" })).status, 400);
+  const aprovado = await pedir(`/v1/admin/cancellation-requests/${PRODUTO}/approve`, { motivo: "Pedido da cliente" });
+  assertEquals([aprovado.status, (await aprovado.json()).status], [200, "APROVADA"]);
+  assertEquals(rpcs.find((r) => r.funcao === "approve_cancellation")!.args, { p_request_id: PRODUTO, p_admin: ADMIN, p_reason: "Pedido da cliente" });
+  assertEquals((await erro(await pedir(`/v1/admin/cancellation-requests/${PRODUTO}/reject`, { motivo: "Troca na loja" }))).codigo, "ALREADY_APPLIED");
+});

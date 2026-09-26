@@ -218,7 +218,8 @@ export interface PagamentosFalso extends PaymentProvider {
   conta: string;
 }
 
-export function pagamentosFalso(): PagamentosFalso {
+/** `prefixo` separa os ids quando dois testes dividem o mesmo banco. */
+export function pagamentosFalso(prefixo = "mp-falso"): PagamentosFalso {
   let n = 0;
   const falso: PagamentosFalso = {
     pagamentos: new Map(),
@@ -234,7 +235,7 @@ export function pagamentosFalso(): PagamentosFalso {
         falso.falharProximo = false;
         return Promise.reject(new Error("falha simulada"));
       }
-      const id = `mp-falso-${++n}`;
+      const id = `${prefixo}-${++n}`;
       const r: ResultadoProvedor = {
         providerPaymentId: id, status: "PENDENTE", statusProvedor: "pending", aprovadoEm: null, valorCentavos: p.valorCentavos,
         moeda: "BRL", referencia: p.pagamentoId, conta: falso.conta,
@@ -244,7 +245,7 @@ export function pagamentosFalso(): PagamentosFalso {
       return Promise.resolve(r);
     },
     criarCartao(p) {
-      const id = `mp-falso-${++n}`;
+      const id = `${prefixo}-${++n}`;
       const aprovado = falso.proximoCartao === "APROVADO";
       const r: ResultadoProvedor = {
         providerPaymentId: id, status: falso.proximoCartao, statusProvedor: aprovado ? "approved" : "rejected",
