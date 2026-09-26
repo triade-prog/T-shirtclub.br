@@ -114,6 +114,8 @@ Falta para a F11 fechar de vez: rodar o roteiro k6 e ensaiar a restauração com
 
 **Design aprovado (26/09, D24):** a loja mandou a V4 tipografia (início, coleção, produto e sacola, em `docs/design/v4/`) como o design de todo o sistema, com o logo oficial e o monograma TC. D1 e D2 estão feitos: `packages/ui` tem a paleta nova com contrastes medidos, Fraunces + Poppins + Baloo 2, o estilo adesivo e os componentes Selo, Sobretítulo e ProgressoClub; cabeçalho, rodapé, painel e ícones já seguem a V4. As telas podem começar.
 
+**Telas da F2, em fatias (26/09):** fatia 1 pronta, o início editorial com os blocos do painel e o cartão de produto, gerado no servidor (`apps/web/src/lib/catalogo.ts` lê a api-public com o segredo de repasse). Próximas: coleção, produto com galeria e sacola.
+
 Com a F11, todas as fases de servidor do plano estão feitas. O que falta para abrir a loja: as telas (design aprovado em 26/09, D24), o CI rodando (F1.2), as contas (Supabase, Vercel, Z-API, Mercado Pago), os dados da loja (produtos, domínio, endereço de retirada) e o checklist de publicação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
