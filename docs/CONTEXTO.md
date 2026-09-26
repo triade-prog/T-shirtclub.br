@@ -83,7 +83,12 @@ Pendências da F1:
 
 **Rotas do catálogo (26/09, antes das telas):** a `api-public` serve página inicial, coleções, produtos, página do produto, looks e a cotação da sacola (`POST /v1/cart/quote`), com o preço promocional e o Monte seu Club calculados pelo motor. A `api-admin` cadastra coleções, produtos, fotos (envio direto ao Storage por URL assinada, só WebP), looks, a ordem da página inicial e as promoções. Funções SQL em 0185 e 0190; 140 testes pgTAP, 38 Deno e 110 de regras.
 
-As telas da F2 (F2.5 a F2.10) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas.
+**F3 e F4 no servidor (26/09, antes das telas):**
+- **Código pelo WhatsApp (F3):** a loja cria a tentativa com a referência curta e o cookie `__Host-tentativa`; a cliente manda "Quero meu código (ref. K7Q2)"; o `webhook-whatsapp` confere o remetente (com e sem o nono dígito), descarta mensagens da loja, de grupos, antigas e repetidas, e responde com o código. HMAC com o pepper na Edge Function (o banco só vê o hash). 5 min, 2 tentativas, 2 reenvios e bloqueio de 30 min. Fila (`worker`) com prioridade, validade e modo lançamento. Z-API atrás de uma interface, com versão falsa para testes; remetente LID fica sem resposta até conferirmos com a conta (E3).
+- **Reserva (F4):** `create_reservation` trava cliente, produtos (em ordem de id) e promoção/cupom; nada parcial; chave do link só em hash. Teste de concorrência no `test-db.sh` e no CI: 50 clientes pela última unidade → 1 reserva. Teste de integração passa pelo fluxo inteiro com o banco de verdade.
+- Números: 117 testes de regras, 48 Deno, 199 pgTAP, concorrência e integração.
+
+As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas. O próximo servidor é a F5 (expiração, lembrete, bloqueio por 3 expirações), que precisa de liberação.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

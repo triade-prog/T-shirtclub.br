@@ -1,34 +1,24 @@
 begin;
 select plan(13);
 
--- Tabelas mínimas só para o teste (as de verdade chegam na migration 0030, F4).
-create table reservations (
-  id uuid primary key default gen_random_uuid(),
-  number integer not null,
-  status reservation_status not null
-);
-create table reservation_transitions (
-  id bigserial primary key,
-  reservation_id uuid not null,
-  from_status reservation_status not null,
-  to_status reservation_status not null,
-  event text not null,
-  actor_type actor_type not null,
-  actor_id uuid,
-  reason text,
-  created_at timestamptz not null
-);
-create trigger trg_reservation_transition_guard before insert or update on reservations
-  for each row execute function trg_reservation_transition_guard();
+-- Uma cliente e um jeito curto de inserir a reserva (as demais colunas não importam aqui).
+insert into customers (id, phone_e164) values ('00000000-0000-4000-8000-0000000000c1', '+5577998128809');
+create function pg_temp.inserir_reserva(p_number int, p_status reservation_status) returns void language sql as $f$
+  insert into reservations (id, number, access_key_hash, customer_id, phone_e164, customer_name, status, delivery_intent,
+                            subtotal_cents, total_cents, expires_at)
+  values (case when p_number = 1001 then '00000000-0000-4000-8000-000000000001'::uuid else gen_random_uuid() end,
+          p_number, encode(extensions.digest(p_number::text, 'sha256'), 'hex'), '00000000-0000-4000-8000-0000000000c1',
+          '+5577998128809', 'Marina', p_status, 'RETIRADA', 4999, 4999, app_now() + interval '15 minutes')
+$f$;
 
 select ok(reservation_transition_allowed('RESERVADO', 'PAGAMENTO_CONFIRMADO'), 'T2 permitida');
 select ok(reservation_transition_allowed('RESERVADO', 'EXPIRADO'), 'T3/T4 permitida');
 select ok(reservation_transition_allowed('PAGAMENTO_CONFIRMADO', 'ENTREGUE'), 'T5 permitida');
 
-select throws_ok($$ insert into reservations (number, status) values (1001, 'RESERVADO') $$, 'TS024', null, 'sem contexto não cria');
+select throws_ok($$ select pg_temp.inserir_reserva(1001, 'RESERVADO') $$, 'TS024', null, 'sem contexto não cria');
 select set_transition_context('T1', 'CLIENTE');
-select throws_ok($$ insert into reservations (number, status) values (1001, 'PAGAMENTO_CONFIRMADO') $$, 'TS021', null, 'reserva nasce em RESERVADO');
-insert into reservations (id, number, status) values ('00000000-0000-4000-8000-000000000001', 1001, 'RESERVADO');
+select throws_ok($$ select pg_temp.inserir_reserva(1001, 'PAGAMENTO_CONFIRMADO') $$, 'TS021', null, 'reserva nasce em RESERVADO');
+select pg_temp.inserir_reserva(1001, 'RESERVADO');
 select is((select count(*)::int from reservation_transitions where event = 'T1' and from_status = 'SELECIONADO'), 1, 'T1 registrada na linha do tempo');
 
 select set_transition_context('T2', 'PROVEDOR');

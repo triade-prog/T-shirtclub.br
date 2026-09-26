@@ -36,7 +36,7 @@ pnpm dev:admin        # painel em http://localhost:3001
 ```bash
 pnpm lint && pnpm typecheck && pnpm test   # ESLint, TypeScript e Vitest
 pnpm test:deno                             # Edge Functions no Deno
-pnpm test:db                               # migrations + pgTAP num Postgres temporário
+pnpm test:db                               # migrations, pgTAP, concorrência e integração num Postgres temporário
 pnpm build && bash scripts/subir-apps.sh   # apps em modo produção (3000 e 3001)
 pnpm e2e                                   # Playwright (use PW_CHROMIUM_PATH para outro Chromium)
 npx lhci autorun --config=lighthouserc.cjs # metas de desempenho no celular
@@ -48,8 +48,11 @@ mudar um componente de propósito, rode o workflow **Atualizar telas de referên
 
 ## Variáveis
 
-Ver [`.env.example`](.env.example). Nas Edge Functions: `REPASSE_SEGREDO` (o mesmo valor dos apps)
-e `TURNSTILE_SECRET`; `SUPABASE_URL` e as chaves o Supabase já entrega.
+Ver [`.env.example`](.env.example). Nas Edge Functions (`supabase secrets set`): `REPASSE_SEGREDO`
+(o mesmo valor dos apps), `TURNSTILE_SECRET`, `OTP_PEPPER` e `WEBHOOK_WHATSAPP_SEGREDO` (32+
+caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTANCIA`, `ZAPI_TOKEN`,
+`ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP` e `LOJA_URL`. `SUPABASE_URL` e as chaves o Supabase já entrega.
+O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>`.
 
 ## Primeiro administrador do painel
 

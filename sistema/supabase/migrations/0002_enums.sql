@@ -29,3 +29,13 @@ create type promotion_scope as enum ('TODOS', 'ESPECIFICOS');
 create type product_discount_kind as enum ('PERCENTUAL', 'PRECO_FIXO');
 create type coupon_kind as enum ('VALOR', 'PERCENTUAL');
 create type coupon_use_status as enum ('PRESO', 'USADO', 'DEVOLVIDO');
+
+-- Clientes, código do WhatsApp e tentativas (seção 04, F3).
+create type otp_session_status as enum ('ABERTA', 'VERIFICADA', 'BLOQUEADA', 'ENCERRADA');
+create type otp_code_status as enum ('ATIVO', 'USADO', 'ESGOTADO', 'VENCIDO', 'SUBSTITUIDO');
+create type attempt_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'CONVERTIDA', 'FALHOU_ESTOQUE', 'ABANDONADA');
+
+-- Bloqueio de telefone por abuso (seção 09) e fila de mensagens (seção 10).
+create type phone_block_status as enum ('ATIVO', 'LIBERADO');
+create type phone_block_decision as enum ('LIBERAR', 'MANTER');
+create type outbox_status as enum ('PENDENTE', 'ENVIANDO', 'ENVIADA', 'ENTREGUE', 'LIDA', 'FALHOU', 'DESCARTADA');

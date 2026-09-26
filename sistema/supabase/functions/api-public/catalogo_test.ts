@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import type { Banco } from "../_shared/banco.ts";
+import { whatsappFalso } from "../_shared/whatsapp.ts";
 import { criarApiPublica } from "./app.ts";
 
 const SEGREDO = "s3gredo";
@@ -60,7 +61,15 @@ function montar(opcoes: { promocoes?: unknown[]; disponivel?: number; limite?: b
       return Promise.resolve(r as T);
     },
   };
-  const app = criarApiPublica(SEGREDO, { banco, agora: () => new Date("2026-10-10T12:00:00Z") });
+  const app = criarApiPublica(SEGREDO, {
+    banco,
+    agora: () => new Date("2026-10-10T12:00:00Z"),
+    whatsapp: whatsappFalso(),
+    turnstile: { verificar: () => Promise.resolve(true) },
+    pepper: "p".repeat(32),
+    numeroLoja: "5577998155772",
+    urlLoja: "https://tshirtclub.pt",
+  });
   const pedir = (caminho: string, corpo?: unknown) =>
     app.request(`/api-public${caminho}`, {
       method: corpo === undefined ? "GET" : "POST",

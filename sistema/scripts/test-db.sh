@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Sobe um Postgres temporário, aplica as migrations em ordem e roda os testes pgTAP.
+# Depois roda o teste de concorrência da reserva.
 # Uso: bash scripts/test-db.sh   (precisa de PostgreSQL 15+ com pgTAP e pg_prove)
 set -euo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,7 +15,7 @@ limpar() { como_pg "$PGBIN/pg_ctl" -D "$DADOS" -m immediate stop >/dev/null 2>&1
 trap limpar EXIT
 
 como_pg "$PGBIN/initdb" -D "$DADOS" -U postgres --auth=trust -E UTF8 --locale=C.UTF-8 >/dev/null
-como_pg "$PGBIN/pg_ctl" -D "$DADOS" -o "-p $PORTA -k /tmp -c listen_addresses=''" -w start >/dev/null
+como_pg "$PGBIN/pg_ctl" -D "$DADOS" -o "-p $PORTA -k /tmp -c listen_addresses=127.0.0.1 -c max_connections=200" -w start >/dev/null
 
 export PGHOST=/tmp PGPORT="$PORTA" PGUSER=postgres PGDATABASE=postgres
 PSQL=("$PGBIN/psql" -v ON_ERROR_STOP=1 -q -X)
@@ -26,3 +27,15 @@ for f in "$RAIZ"/supabase/migrations/*.sql; do
 done
 
 pg_prove --ext .sql -r "$RAIZ/supabase/tests/pgtap"
+
+# Concorrência da criação da reserva: 50 clientes pela última unidade e duas abas (F4.4).
+PGBIN="$PGBIN" bash "$RAIZ/supabase/tests/concorrencia/ultima-unidade.sh"
+
+# Integração das Edge Functions com o banco de verdade (fluxo da reserva, F3 + F4).
+DENO="${DENO:-$(command -v deno || echo "$RAIZ/node_modules/.bin/deno")}"
+if [ -x "$DENO" ]; then
+  (cd "$RAIZ/supabase/functions" && PGURL_TESTE="postgres://postgres@127.0.0.1:$PORTA/postgres" \
+    "$DENO" test --allow-env --allow-read --allow-net=127.0.0.1 integracao/)
+else
+  echo "Deno não encontrado: integração das Edge Functions pulada (rode pnpm install)"
+fi

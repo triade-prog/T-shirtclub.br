@@ -42,7 +42,11 @@ export const cupomSchema = z
   .toUpperCase()
   .regex(/^[A-Z0-9]{4,20}$/, "VALIDATION_ERROR");
 
-export const codigoOtpSchema = z.string().trim().regex(/^\d{6}$/, "OTP_INVALID");
+/** Código do WhatsApp: 6 dígitos; aceita colar com espaço ou traço ("482 193", G8). */
+export const codigoOtpSchema = z
+  .string()
+  .transform((v) => v.replace(/[\s.-]/g, ""))
+  .pipe(z.string().regex(/^\d{6}$/, "OTP_INVALID"));
 
 /** POST /v1/reservation-attempts */
 export const criarTentativaSchema = z.object({
@@ -56,6 +60,16 @@ export const criarTentativaSchema = z.object({
 });
 
 export type CriarTentativa = z.infer<typeof criarTentativaSchema>;
+
+/** POST /v1/reservation-attempts/:id/confirm — sem código quando já verificada (R8). */
+export const confirmarTentativaSchema = z.object({ codigo: codigoOtpSchema.optional() });
+
+/** PUT /v1/reservation-attempts/:id/items — depois de STOCK_UNAVAILABLE ou PRICE_CHANGED. */
+export const ajustarItensSchema = z.object({
+  itens: itensCarrinhoSchema,
+  totalEsperadoCentavos: z.number().int().nonnegative(),
+  cupom: cupomSchema.optional(),
+});
 
 // Painel (F2.4): login com e-mail e senha, depois o código do autenticador (D12).
 

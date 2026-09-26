@@ -4,6 +4,8 @@
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:hono@^4.9.0": "4.13.9",
+    "npm:postgres@3.4.7": "3.4.7",
+    "npm:postgres@^3.4.7": "3.4.7",
     "npm:zod@^4.1.0": "4.6.5"
   },
   "jsr": {
@@ -21,6 +23,9 @@
     "hono@4.13.9": {
       "integrity": "sha512-7dMkQmZoC4E6F7AtaQSPhlWAdnBti+j7rreMZl8QB4jFiEhP9TWbGWUMi8WYzBCgmgulxuvLQupKqo+Co6Omyg=="
     },
+    "postgres@3.4.7": {
+      "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
+    },
     "zod@4.6.5": {
       "integrity": "sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q=="
     }
@@ -29,6 +34,7 @@
     "dependencies": [
       "jsr:@std/assert@1",
       "npm:hono@^4.9.0",
+      "npm:postgres@^3.4.7",
       "npm:zod@^4.1.0"
     ],
     "links": {

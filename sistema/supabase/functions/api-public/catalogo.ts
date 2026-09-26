@@ -10,8 +10,11 @@ import {
   precoPromocional,
   promocaoDoBancoSchema,
   validarCarrinho,
+  type Cliente,
   type CompreMaisGrupo,
+  type ItemCarrinho,
   type Promocao,
+  type ResultadoPreco,
 } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { chamar } from "../_shared/erros-banco.ts";
@@ -47,6 +50,50 @@ function comPrecos(valor: unknown, promocoes: readonly Promocao[], agora: Date):
     return o;
   };
   return visitar(valor);
+}
+
+interface ProdutoSacola {
+  id: string;
+  nome: string;
+  precoCentavos: number;
+  disponivel: number;
+}
+
+/**
+ * Cotação da sacola: limites de app_settings, disponibilidade aproximada (a verdade é
+ * decidida em create_reservation) e o motor de preço. Usada pela cotação e pela reserva.
+ */
+export async function cotar(
+  banco: Banco,
+  itens: ItemCarrinho[],
+  cupomDigitado: string | undefined,
+  agora: Date,
+  opcoes: { cliente?: Cliente; conferirEstoque?: boolean } = {},
+): Promise<ResultadoPreco> {
+  const cupom = cupomDigitado?.trim().toUpperCase() || undefined;
+  const dados = await chamar<{ produtos: ProdutoSacola[]; limites: { maxPecas: number; maxPorProduto: number } }>(
+    banco, "cart_products", { p_ids: itens.map((i) => i.produtoId) });
+
+  const erro = validarCarrinho(itens, dados.limites)[0];
+  if (erro) throw new ErroDominio(erro, erro === "MAX_ITEMS" ? { maxPecas: dados.limites.maxPecas } : { maxPorProduto: dados.limites.maxPorProduto });
+
+  const porId = new Map(dados.produtos.map((p) => [p.id, p]));
+  const faltando = opcoes.conferirEstoque === false ? [] : itens.filter((i) => (porId.get(i.produtoId)?.disponivel ?? 0) < i.qtd);
+  if (faltando.length > 0) {
+    throw new ErroDominio("INSUFFICIENT_STOCK", {
+      produtos: faltando.map((i) => porId.get(i.produtoId)?.nome).filter(Boolean),
+      itens: faltando.map((i) => ({ produtoId: i.produtoId, disponivel: porId.get(i.produtoId)?.disponivel ?? 0 })),
+    });
+  }
+
+  return calcularPreco({
+    // Produto que saiu da vitrine entra com preço 0: a reserva recusa com STOCK_UNAVAILABLE.
+    itens: itens.map((i) => ({ produto: { id: i.produtoId, precoCentavos: porId.get(i.produtoId)?.precoCentavos ?? 0 }, qtd: i.qtd })),
+    promocoes: await promocoesVigentes(banco, cupom),
+    agora,
+    codigoCupom: cupom,
+    cliente: opcoes.cliente,
+  });
 }
 
 export function rotasCatalogo(app: Hono, deps: DepsLoja): void {
@@ -96,8 +143,7 @@ export function rotasCatalogo(app: Hono, deps: DepsLoja): void {
   // Cotação: confere as regras de 9 peças e 2 por produto, a disponibilidade mostrada na
   // vitrine e calcula promoções e cupom. Não reserva nada.
   app.post("/v1/cart/quote", async (c) => {
-    const { itens, cupom: digitado } = await lerCorpo(c, cotacaoSchema);
-    const cupom = digitado?.toUpperCase() || undefined;
+    const { itens, cupom } = await lerCorpo(c, cotacaoSchema);
     const ip = ipDaCliente(c.req.raw.headers) ?? "sem-ip";
     const dentro = await chamar<boolean>(deps.banco, "hit_rate_limit", {
       p_key: `cotacao:${await sha256Hex(ip)}`,
@@ -105,31 +151,6 @@ export function rotasCatalogo(app: Hono, deps: DepsLoja): void {
       p_max: 60,
     });
     if (!dentro) throw new ErroDominio("RATE_LIMITED");
-
-    const dados = await chamar<{
-      produtos: { id: string; nome: string; precoCentavos: number; disponivel: number }[];
-      limites: { maxPecas: number; maxPorProduto: number };
-    }>(deps.banco, "cart_products", { p_ids: itens.map((i) => i.produtoId) });
-
-    const erro = validarCarrinho(itens, dados.limites)[0];
-    if (erro) throw new ErroDominio(erro, erro === "MAX_ITEMS" ? { maxPecas: dados.limites.maxPecas } : { maxPorProduto: dados.limites.maxPorProduto });
-
-    const porId = new Map(dados.produtos.map((p) => [p.id, p]));
-    const faltando = itens.filter((i) => (porId.get(i.produtoId)?.disponivel ?? 0) < i.qtd);
-    if (faltando.length > 0) {
-      throw new ErroDominio("INSUFFICIENT_STOCK", {
-        produtos: faltando.map((i) => porId.get(i.produtoId)?.nome).filter(Boolean),
-        itens: faltando.map((i) => ({ produtoId: i.produtoId, disponivel: porId.get(i.produtoId)?.disponivel ?? 0 })),
-      });
-    }
-
-    const promocoes = await promocoesVigentes(deps.banco, cupom);
-    const resultado = calcularPreco({
-      itens: itens.map((i) => ({ produto: { id: i.produtoId, precoCentavos: porId.get(i.produtoId)!.precoCentavos }, qtd: i.qtd })),
-      promocoes,
-      agora: agora(),
-      codigoCupom: cupom,
-    });
-    return c.json(resultado);
+    return c.json(await cotar(deps.banco, itens, cupom, agora()));
   });
 }

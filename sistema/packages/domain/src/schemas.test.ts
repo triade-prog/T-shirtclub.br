@@ -49,6 +49,8 @@ describe("schemas", () => {
     expect(cupomSchema.parse(" bemvinda10 ")).toBe("BEMVINDA10");
     expect(codigoOtpSchema.safeParse("12345").success).toBe(false);
     expect(codigoOtpSchema.parse("482193")).toBe("482193");
+    expect(codigoOtpSchema.parse(" 482 193 ")).toBe("482193");
+    expect(codigoOtpSchema.parse("482-193")).toBe("482193");
   });
 });
 

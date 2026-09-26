@@ -18,6 +18,16 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Webhook da Z-API: autenticado pelo segmento secreto da URL (G4), não por JWT.
+[functions.webhook-whatsapp]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Worker: chamado pela varredura (pg_net) com o segredo do worker no cabeçalho.
+[functions.worker]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 # Login do painel (G7, D12). Só administradores: ninguém se cadastra sozinho; a loja cria o
 # usuário no painel do Supabase e o inclui em admin_users.
 [auth]
@@ -41,7 +51,9 @@ verify_enabled = true
 [auth.sessions]
 timebox = "12h"
 
-# Segredos das funções (supabase secrets set ...): REPASSE_SEGREDO e TURNSTILE_SECRET.
+# Segredos das funções (supabase secrets set ...): REPASSE_SEGREDO, TURNSTILE_SECRET,
+# OTP_PEPPER (32+), WEBHOOK_WHATSAPP_SEGREDO (32+), WORKER_SEGREDO, IP_SAL, ZAPI_INSTANCIA,
+# ZAPI_TOKEN, ZAPI_CLIENT_TOKEN, LOJA_WHATSAPP (5577998155772) e LOJA_URL.
 # SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY o Supabase já entrega.
 
 # Fotos do catálogo: leitura pública (vitrine e next/image); envio só por URL assinada
