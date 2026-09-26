@@ -110,3 +110,16 @@ Deno.test("looks e página inicial", async () => {
   assertEquals((await m.pedir(`/v1/admin/looks/${PRODUTO}`, undefined, "DELETE")).status, 200);
   assertEquals(m.arquivosApagados, ["looks/v.webp"]);
 });
+
+Deno.test("bloqueios: listar, liberar e manter sempre com motivo", async () => {
+  const { pedir, rpcs } = await logado({
+    rpcExtra: (f) => ({ admin_list_phone_blocks: [{ id: "b1", status: "ATIVO" }], release_phone_block: null, keep_phone_block: new ErroBanco("TS161", "já liberado") } as Record<string, unknown>)[f],
+  });
+  assertEquals((await (await pedir("/v1/admin/phone-blocks")).json())[0].id, "b1");
+  assertEquals(rpcs.find((r) => r.funcao === "admin_list_phone_blocks")!.args, { p_status: "ATIVO" });
+  assertEquals((await pedir("/v1/admin/phone-blocks?status=OUTRO")).status, 400);
+  assertEquals((await pedir(`/v1/admin/phone-blocks/${PRODUTO}/release`, { motivo: "" })).status, 400);
+  assertEquals((await pedir(`/v1/admin/phone-blocks/${PRODUTO}/release`, { motivo: "Cliente antiga" })).status, 200);
+  assertEquals(rpcs.find((r) => r.funcao === "release_phone_block")!.args, { p_block_id: PRODUTO, p_admin: ADMIN, p_reason: "Cliente antiga" });
+  assertEquals((await erro(await pedir(`/v1/admin/phone-blocks/${PRODUTO}/keep`, { motivo: "Sem resposta" }))).codigo, "ALREADY_APPLIED");
+});

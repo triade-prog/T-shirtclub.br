@@ -54,6 +54,13 @@ caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTAN
 `ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP` e `LOJA_URL`. `SUPABASE_URL` e as chaves o Supabase já entrega.
 O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>`.
 
+Para a varredura chamar o worker (0300), no SQL Editor do projeto:
+
+```sql
+update app_settings set value = '"https://<projeto>.supabase.co/functions/v1/worker"' where key = 'worker_url';
+select vault.create_secret('<WORKER_SEGREDO>', 'worker_segredo');
+```
+
 ## Primeiro administrador do painel
 
 1. No painel do Supabase, em Authentication, crie o usuário com e-mail e senha de 12+ caracteres

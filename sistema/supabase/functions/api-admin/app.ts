@@ -4,6 +4,7 @@ import { criarApp } from "../_shared/app.ts";
 import { exigirAdmin, rotasAuthAdmin, type DepsAuthAdmin, type VarsAdmin } from "./auth.ts";
 import { rotasEstoque } from "./estoque.ts";
 import { rotasCatalogoAdmin, type DepsCatalogo } from "./catalogo.ts";
+import { rotasBloqueios } from "./bloqueios.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo;
 
@@ -21,6 +22,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   app.get("/v1/admin/me", (c) => c.json({ userId: c.get("admin").userId }));
   rotasEstoque(app, deps.banco);
   rotasCatalogoAdmin(app, deps);
+  rotasBloqueios(app, deps.banco);
 
   return app;
 }

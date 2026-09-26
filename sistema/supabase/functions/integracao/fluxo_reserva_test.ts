@@ -1,6 +1,6 @@
-// Fluxo da reserva de ponta a ponta no servidor (F3 + F4), com o banco de verdade e o
+// Fluxo da reserva de ponta a ponta no servidor (F3 a F5), com o banco de verdade e o
 // WhatsApp falso: sacola → tentativa → a cliente pede o código pelo WhatsApp → código
-// errado e certo → reserva → mensagem "reserva criada" sai da fila.
+// errado e certo → reserva → mensagem "reserva criada" sai da fila → expira aos 15 min.
 // Roda dentro do scripts/test-db.sh (PGURL_TESTE aponta para o Postgres temporário).
 
 import { assert, assertEquals, assertMatch } from "@std/assert";
@@ -17,7 +17,7 @@ const PRODUTO = "6f1c2d3e-4b5a-4c6d-8e7f-000000000001";
 const TELEFONE = "+5577998120001";
 
 Deno.test({
-  name: "da sacola à reserva criada, com o código pelo WhatsApp",
+  name: "da sacola à reserva criada (código pelo WhatsApp) e expirada pela varredura",
   ignore: !url,
   sanitizeResources: false,
   sanitizeOps: false,
@@ -116,7 +116,20 @@ Deno.test({
       assertEquals(fila!.status, "ENVIADA");
       assertEquals(fila!.params.link, undefined, "o link com a chave saiu da fila depois do envio");
 
-      // A última unidade já está reservada: outra cliente é avisada antes de pedir código
+      // Sem pagamento, aos 15 min a varredura expira: o estoque volta e a mensagem sai (F5)
+      await banco.sql`select set_app_clock(interval '16 minutes')`;
+      const varredura = await banco.rpc<{ expiradas: number }>("run_sweep");
+      assertEquals(varredura.expiradas >= 1, true);
+      assertEquals((await (await pedir(`/v1/reservations/${reserva.id}`)).json()).status, "EXPIRADO");
+      await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and reservation_id <> ${reserva.id}`;
+      await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
+      assertEquals((await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 })).enviadas, 1);
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^A reserva #${reserva.numero} terminou às \\d{2}:\\d{2} sem pagamento`));
+      const disponivel = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, qtd: 1 }] })).json();
+      assertEquals(disponivel.totalCentavos, 4999, "a peça voltou para a loja");
+
+      // Com a unidade de novo presa numa reserva, outra cliente é avisada antes de pedir código
+      await banco.sql`update products set qty_reserved = 1 where code = 'INT-01'`;
       cookies = "";
       const outra = await pedir("/v1/reservation-attempts", {
         nome: "Joana", telefone: "(77) 99812-0002", entrega: "RETIRADA",
@@ -124,6 +137,7 @@ Deno.test({
       });
       assertEquals((await outra.json()).erro.codigo, "INSUFFICIENT_STOCK");
     } finally {
+      await banco.sql`select set_app_clock(interval '0')`;
       await banco.fechar();
     }
   },

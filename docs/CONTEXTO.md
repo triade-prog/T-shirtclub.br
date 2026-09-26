@@ -88,7 +88,11 @@ Pendências da F1:
 - **Reserva (F4):** `create_reservation` trava cliente, produtos (em ordem de id) e promoção/cupom; nada parcial; chave do link só em hash. Teste de concorrência no `test-db.sh` e no CI: 50 clientes pela última unidade → 1 reserva. Teste de integração passa pelo fluxo inteiro com o banco de verdade.
 - Números: 117 testes de regras, 48 Deno, 199 pgTAP, concorrência e integração.
 
-As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas. O próximo servidor é a F5 (expiração, lembrete, bloqueio por 3 expirações), que precisa de liberação.
+As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas. 
+
+**F5 no servidor (26/09):** a varredura roda a cada 10 s no banco (pg_cron): lembrete de 5 min (só se ainda falta mais de 1 min), expiração que devolve estoque, cupom e orçamento, e bloqueio do telefone na 3ª expiração em 30 dias (liberar ou manter no painel, com motivo; liberar zera o contador). A reserva vencida é liberada na hora em que outra cliente precisa da peça. O worker da fila só é chamado quando há mensagem. Tolerância e rede de segurança já estão na varredura e passam a valer com os pagamentos (F6). Teste de vazão: 50 reservas em 5 min, toda "reserva criada" sai em até 2 min. Correção de segurança: funções novas também ficam fechadas para anon.
+
+O próximo servidor é a F6 (pagamento, Mercado Pago), que precisa de liberação e das credenciais de teste (E1).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

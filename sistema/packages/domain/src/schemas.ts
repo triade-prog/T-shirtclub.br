@@ -104,3 +104,8 @@ export const ajusteEstoqueSchema = z.object({
   motivo: z.string().trim().min(3, "VALIDATION_ERROR").max(200, "VALIDATION_ERROR"),
   tipo: z.enum(["ENTRADA", "AJUSTE"]).default("AJUSTE"),
 });
+
+/** POST /v1/admin/phone-blocks/:id/release e /keep — a decisão sempre tem motivo (regra 21). */
+export const decisaoBloqueioSchema = z.object({
+  motivo: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR"),
+});

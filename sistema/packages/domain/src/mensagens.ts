@@ -5,6 +5,8 @@
 import { formatarReais } from "./dinheiro.ts";
 
 const FUSO = "America/Bahia";
+/** Endereço da loja nas mensagens sem link de reserva (E10 ainda decide .pt ou .com.br). */
+const SITE = "tshirtclub.pt";
 const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, hour: "2-digit", minute: "2-digit" });
 
 /** 14:32, no horário da loja. */
@@ -75,6 +77,11 @@ export interface ParametrosMensagem {
   referencia_invalida: Record<string, never>;
   codigo_bloqueado: { ate: Date };
   reserva_criada: { nome: string; pecas: number; numero: number; totalCentavos: number; expiraEm: Date; link: string };
+  reserva_lembrete_5min: { numero: number; expiraEm: Date };
+  reserva_expirada: { numero: number; expiradaEm: Date };
+  telefone_bloqueado: Record<string, never>;
+  telefone_liberado: Record<string, never>;
+  bloqueio_mantido: Record<string, never>;
 }
 
 export type Modelo = keyof ParametrosMensagem;
@@ -99,6 +106,22 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
       `Oi, ${primeiroNome(p.nome)}! ${p.pecas === 1 ? "Sua peça está guardada" : `Suas ${p.pecas} peças estão guardadas`} até *${formatarHora(p.expiraEm)}* (reserva #${p.numero}, ${formatarReais(p.totalCentavos)}). Pague por aqui: ${p.link} 💖`,
     (p) =>
       `Reserva #${p.numero} feita, ${primeiroNome(p.nome)}! Guardamos ${p.pecas === 1 ? "sua peça" : "suas peças"} até *${formatarHora(p.expiraEm)}*. Total ${formatarReais(p.totalCentavos)}. Para pagar: ${p.link}`,
+  ],
+  reserva_lembrete_5min: [
+    (p) => `Faltam 5 minutos: a reserva #${p.numero} fica guardada até *${formatarHora(p.expiraEm)}*. Se já pagou, pode ignorar.`,
+    (p) => `Lembrete: suas peças da reserva #${p.numero} ficam separadas só até *${formatarHora(p.expiraEm)}*.`,
+  ],
+  reserva_expirada: [
+    (p) =>
+      `A reserva #${p.numero} terminou às ${formatarHora(p.expiradaEm)} sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: ${SITE}`,
+    (p) => `O prazo da reserva #${p.numero} acabou e nada foi cobrado. As peças voltaram para a loja: ${SITE}`,
+  ],
+  telefone_bloqueado: [
+    () => "Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.",
+  ],
+  telefone_liberado: [() => "Tudo certo: você já pode fazer reservas de novo na T-shirt Club.br."],
+  bloqueio_mantido: [
+    () => "Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a gente por aqui se precisar.",
   ],
 };
 

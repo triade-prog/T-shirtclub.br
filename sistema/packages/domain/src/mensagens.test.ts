@@ -56,6 +56,17 @@ describe("o que a loja manda", () => {
     expect(texto).not.toContain("Souza");
   });
 
+  it("lembrete e expiração nas versões aprovadas", () => {
+    const expira = new Date("2026-10-10T17:32:00Z");
+    expect(mensagemWhatsApp("reserva_lembrete_5min", { numero: 1048, expiraEm: expira }, 0)).toBe(
+      "Faltam 5 minutos: a reserva #1048 fica guardada até *14:32*. Se já pagou, pode ignorar.",
+    );
+    expect(mensagemWhatsApp("reserva_expirada", { numero: 1048, expiradaEm: expira }, 0)).toBe(
+      "A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.pt",
+    );
+    expect(mensagemWhatsApp("telefone_bloqueado", {})).toContain("3 terminaram sem pagamento em 30 dias");
+  });
+
   it("hora sempre no fuso da loja", () => {
     expect(formatarHora(new Date("2026-10-10T03:05:00Z"))).toBe("00:05");
   });

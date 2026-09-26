@@ -11,6 +11,7 @@ const MAPA: Record<string, CodigoErro> = {
   TS122: "FORBIDDEN",
   TS123: "NOT_FOUND",
   TS130: "NOT_FOUND",
+  TS161: "ALREADY_APPLIED",
   "23505": "ALREADY_EXISTS",
   "23P01": "PROMOTION_OVERLAP",
 };

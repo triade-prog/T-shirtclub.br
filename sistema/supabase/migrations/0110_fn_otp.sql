@@ -86,7 +86,7 @@ begin
     return jsonb_build_object('erro', 'PHONE_BLOCKED');
   end if;
   select r.number, r.expires_at into v_ativa
-    from reservations r where r.phone_e164 = v_phone and r.status = 'RESERVADO' limit 1;
+    from reservations r where r.phone_e164 = v_phone and r.status = 'RESERVADO' and reservation_is_live(r) limit 1;
   if found then
     return jsonb_build_object('erro', 'ACTIVE_RESERVATION_EXISTS',
                               'detalhes', jsonb_build_object('numeroReserva', v_ativa.number, 'expiraEm', v_ativa.expires_at));

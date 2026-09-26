@@ -132,8 +132,9 @@ begin
   if phone_is_blocked(a.phone_e164) then
     return jsonb_build_object('erro', 'PHONE_BLOCKED');
   end if;
+  -- Reserva vencida (sem pagamento em andamento) não conta como ativa: expira aqui mesmo.
   select * into v_ativa from reservations where customer_id = v_customer and status = 'RESERVADO';
-  if found then
+  if found and not expire_if_overdue(v_ativa.id) then
     return jsonb_build_object('erro', 'ACTIVE_RESERVATION_EXISTS',
                               'detalhes', jsonb_build_object('numeroReserva', v_ativa.number, 'expiraEm', v_ativa.expires_at));
   end if;
@@ -144,8 +145,10 @@ begin
     return jsonb_build_object('erro', 'MAX_PER_MODEL', 'detalhes', jsonb_build_object('maxPorProduto', setting_int('max_por_produto')));
   end if;
 
-  -- 3. Trava os produtos sempre em ordem crescente de id (sem deadlock)
+  -- 3. Libera as reservas vencidas que ainda seguram estes produtos (o estoque não espera a
+  --    próxima varredura) e trava os produtos sempre em ordem crescente de id (sem deadlock)
   select array_agg((x ->> 'produtoId')::uuid order by (x ->> 'produtoId')::uuid) into v_ids from jsonb_array_elements(v_linhas) x;
+  perform expire_overdue_holding(v_ids);
   for v_prod in select * from products where id = any(v_ids) order by id for update loop
     null;
   end loop;

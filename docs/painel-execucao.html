@@ -24,10 +24,10 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 17,
-    "situacao": "Servidor das fases F2 a F4 pronto (catálogo, promoções, login do painel, código pelo WhatsApp e criação da reserva, com teste de concorrência); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F4",
-    "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas das fases F2 a F4; cria a conta da Z-API (E2) para conferirmos o remetente LID (E3); pede ao suporte do GitHub o desbloqueio da conta (F1.2); cria os projetos Supabase e Vercel (F1.4). Sem telas, o próximo servidor é a F5 (expiração e mensagens), que precisa de liberação."
+    "arquitetura_versao": 18,
+    "situacao": "Servidor das fases F2 a F5 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva com teste de concorrência, expiração, lembrete e bloqueio); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F5",
+    "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas das fases F2 a F5; cria a conta da Z-API (E2) e as credenciais de teste do Mercado Pago (E1); pede ao suporte do GitHub o desbloqueio da conta (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F6 (pagamento), que precisa de liberação."
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
@@ -89,10 +89,10 @@
      ]},
     {"id":"F5","nome":"Expiração e mensagens","sec":"expiracao","objetivo":"Reservas vencem sozinhas, o lembrete chega a tempo e o bloqueio por abuso funciona.",
      "itens":[
-      {"id":"F5.1","texto":"Migration 0140: varredura a cada 10 s, lembrete de 5 min e rede de segurança","sec":"jobs","refs":[],"status":"pendente"},
-      {"id":"F5.2","texto":"Migration 0070 e worker da outbox, chamado só quando há fila","sec":"jobs","refs":["G5","G21"],"status":"pendente"},
-      {"id":"F5.3","texto":"Migration 0160: bloqueio por 3 expirações em 30 dias; liberar e manter com motivo","sec":"bloqueio","refs":[],"status":"pendente"},
-      {"id":"F5.4","texto":"Telas de reserva expirada (tela 6), aviso de 5 min e telefone bloqueado","sec":"frontend","refs":[],"status":"pendente"}
+      {"id":"F5.1","texto":"Migration 0140: varredura a cada 10 s, lembrete de 5 min e rede de segurança","sec":"jobs","refs":[],"status":"feito","evidencia":"0140_fn_expiration.sql: sweep_reservations (lembrete, tolerância, expiração, rede de segurança), expire_reservation (estoque, cupom, orçamento, cancelamento prejudicado, mensagem), reserva vencida liberada na hora da próxima; pgTAP 013"},
+      {"id":"F5.2","texto":"Migration 0070 e worker da outbox, chamado só quando há fila","sec":"jobs","refs":["G5","G21"],"status":"feito","evidencia":"0300_cron.sql: varredura a cada 10 s (pg_cron) e worker chamado por pg_net só quando há fila, com o segredo no Vault; teste de vazão no pgTAP 014"},
+      {"id":"F5.3","texto":"Migration 0160: bloqueio por 3 expirações em 30 dias; liberar e manter com motivo","sec":"bloqueio","refs":[],"status":"feito","evidencia":"0160_fn_blocks.sql: bloqueio na 3ª expiração em 30 dias; liberar zera o contador e manter registra a decisão, sempre com motivo; rotas /v1/admin/phone-blocks; pgTAP 013"},
+      {"id":"F5.4","texto":"Telas de reserva expirada (tela 6), aviso de 5 min e telefone bloqueado","sec":"frontend","refs":[],"status":"andamento","nota":"Rotas prontas (GET da reserva com status EXPIRADO, PHONE_BLOCKED na tentativa); faltam as telas, que esperam o design"}
      ]},
     {"id":"F6","nome":"Pagamento","sec":"pagamento","objetivo":"PIX ou cartão pelo Mercado Pago, com tolerância, idempotência em 5 camadas e nenhum pagamento aplicado duas vezes.",
      "itens":[
@@ -159,8 +159,8 @@
     {"id":"T10","texto":"Webhook da Z-API com fromMe, grupo, LID, antigo ou repetido: ignorado","fase":"F3","refs":["G4","G18"],"status":"feito","evidencia":"webhook-whatsapp/webhook_test.ts: fromMe, grupo, canal, LID, antiga e repetida não geram código"},
     {"id":"T11","texto":"Remetente com e sem o nono dígito: mesmo telefone","fase":"F3","refs":["G18"],"status":"feito","evidencia":"mensagens.test.ts, pgTAP 011 e integração: remetente sem o nono dígito recebe o código"},
     {"id":"T12","texto":"Código colado com espaço ou traço: aceito","fase":"F3","refs":["G8","G18"],"status":"feito","evidencia":"schemas.test.ts e integração: \"482 193\" e \"482-193\" são aceitos"},
-    {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5","G18"],"status":"pendente"},
-    {"id":"T14","texto":"3 expirações, liberação, nova expiração: contador recomeça","fase":"F5","refs":[],"status":"pendente"},
+    {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5","G18"],"status":"feito","evidencia":"pgTAP 014: 50 reservas em 5 min (30 no 1º minuto), modo lançamento, worker a cada 4 s → toda \"reserva criada\" em até 2 min e nenhum lembrete atrasado"},
+    {"id":"T14","texto":"3 expirações, liberação, nova expiração: contador recomeça","fase":"F5","refs":[],"status":"feito","evidencia":"pgTAP 013: 3 expirações bloqueiam; depois da liberação, a nova expiração conta como a 1ª"},
     {"id":"T15","texto":"Mesmo webhook de aprovação 10 vezes: vende 1 vez","fase":"F6","refs":[],"status":"pendente"},
     {"id":"T16","texto":"Aprovação e expiração no mesmo instante: resultado consistente","fase":"F6","refs":[],"status":"pendente"},
     {"id":"T17","texto":"PIX criado aos 14min59s e aprovado aos 19min30s: confirma","fase":"F6","refs":[],"status":"pendente"},
@@ -278,6 +278,7 @@
     ["D22","Descontos do produto ativos valem juntos como preço promocional (nunca dois no mesmo produto)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},
     {"data":"26/09/2026","texto":"F3 e F4 no servidor: código pelo WhatsApp (webhook, bloqueio de 30 min, fila) e criação atômica da reserva; teste de concorrência e integração no CI; desenho técnico v17.","ref":""},
     {"data":"26/09/2026","texto":"Rotas do catálogo: loja (página inicial, coleções, produtos, looks, cotação da sacola) e painel (cadastros, fotos, página inicial, promoções); desenho técnico v16.","ref":""},
     {"data":"26/09/2026","texto":"F2 sem telas: catálogo, promoções, motor de preço, ajuste de estoque e login do painel com autenticador; desenho técnico v15.","ref":""},
