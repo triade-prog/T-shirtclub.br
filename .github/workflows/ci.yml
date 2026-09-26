@@ -69,7 +69,8 @@ jobs:
         run: corepack enable && corepack install
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-        env: { MOSTRAR_COMPONENTES: "1" }
+        # A jornada da cliente usa a api-public falsa (tests/e2e/api-falsa), que serve as fotos
+        env: { MOSTRAR_COMPONENTES: "1", ORIGEM_IMAGENS: "http://127.0.0.1:4010" }
       - run: pnpm e2e
       - if: failure()
         uses: actions/upload-artifact@v4

@@ -45,7 +45,7 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 **Painel de execução:** `docs/painel-execucao.html` acompanha tudo o que a arquitetura planejou. Os dados ficam num bloco JSON no início do arquivo. A cada entrega, no mesmo commit: mudar o status do item (com evidência quando "feito"), atualizar `meta` e acrescentar uma linha no histórico.
 
-**Design:** proposta 4 (`docs/design-frontend.html`), aguardando aprovação. Ela separa "vender desejo" de "processar a venda". A descoberta é nova e editorial, com cerca de 80% de foto e produto: início com campanha, coleção, página de produto com galeria e sacola "Monte seu Club". O fluxo de reserva da proposta 3 foi mantido. Baloo 2 aparece só em títulos de marca e há poucos stickers. A loja pública tem só o tema claro. Coleções reais: Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy e Dog Club. A cor de cada coleção é escolhida no painel entre 5 aprovadas: Tomate, Limão, Mediterrâneo, Lavanda e Menta. As fotos entram sozinhas no documento quando forem colocadas em `docs/design/fotos/` (lista de nomes na seção "Fotos").
+**Design:** a proposta 4 (`docs/design-frontend.html`) deu origem à V4, aprovada em 26/09 (D24, ver abaixo). Ela separa "vender desejo" de "processar a venda". A descoberta é nova e editorial, com cerca de 80% de foto e produto: início com campanha, coleção, página de produto com galeria e sacola "Monte seu Club". O fluxo de reserva da proposta 3 foi mantido. Baloo 2 aparece só em títulos de marca e há poucos stickers. A loja pública tem só o tema claro. Coleções reais: Pomodoro, Limone, Dolce Vita, La Vie Est Belle, Teddy e Dog Club. A cor de cada coleção é escolhida no painel entre 5 aprovadas: Tomate, Limão, Mediterrâneo, Lavanda e Menta. As fotos entram sozinhas no documento quando forem colocadas em `docs/design/fotos/` (lista de nomes na seção "Fotos").
 
 **Oferta (D19):** "Monte seu Club". Cada peça custa R$ 49,99 e cada grupo de 3 sai por R$ 119,99; as que sobram pagam o preço normal (4 peças = R$ 169,98; 6 = R$ 239,98). No motor de preço, é compre e economize mais no modo preço por grupo. Já estão atualizados a especificação (regras 3 e 28), o desenho técnico (seção 5b) e o protótipo (motor, loja e telas 14 e 16).
 
@@ -60,7 +60,7 @@ As decisões da loja sobre a revisão (D12 a D15) foram registradas no desenho t
 
 Já entrou na proposta 4: barra de oferta, abas de favoritos, emoji nas coleções, adicionar no card, faixas de cor, bloco "Quem faz o Club" e garantias. Ficam para a loja decidir: botões menos arredondados, texto em serifada, grupo VIP no WhatsApp e programa de fidelidade.
 
-Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; decidir os pontos da referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. A F2 só começa com D1 e D2 aprovados.
+Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleções das 42 peças; decidir os pontos da referência; dados das peças (composição, medidas, cuidados), logo em SVG, endereço do site (.pt ou .com.br) e liberar coucousuzette.com. (D1 e D2 foram aprovados em 26/09.)
 
 **F1 (Fundação): liberada pela loja em 25/09, junto com o logo oficial, e implementada em `sistema/`** (ver `sistema/README.md` e `sistema/docs/adr/0001-decisoes-da-fundacao.md`):
 - **Estrutura:** monorepo pnpm com `apps/web` (loja), `apps/admin` (painel), `packages/domain`, `packages/ui`, `packages/servidor` e `supabase/`.
@@ -88,7 +88,7 @@ Pendências da F1:
 - **Reserva (F4):** `create_reservation` trava cliente, produtos (em ordem de id) e promoção/cupom; nada parcial; chave do link só em hash. Teste de concorrência no `test-db.sh` e no CI: 50 clientes pela última unidade → 1 reserva. Teste de integração passa pelo fluxo inteiro com o banco de verdade.
 - Números: 117 testes de regras, 48 Deno, 199 pgTAP, concorrência e integração.
 
-As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design (D1 e D2); quando vierem, só se ligam a essas rotas. 
+As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) foram feitas depois, ligadas a essas rotas (ver "Telas da F2, em fatias"). 
 
 **F5 no servidor (26/09):** a varredura roda a cada 10 s no banco (pg_cron): lembrete de 5 min (só se ainda falta mais de 1 min), expiração que devolve estoque, cupom e orçamento, e bloqueio do telefone na 3ª expiração em 30 dias (liberar ou manter no painel, com motivo; liberar zera o contador). A reserva vencida é liberada na hora em que outra cliente precisa da peça. O worker da fila só é chamado quando há mensagem. Tolerância e rede de segurança já estão na varredura e passam a valer com os pagamentos (F6). Teste de vazão: 50 reservas em 5 min, toda "reserva criada" sai em até 2 min. Correção de segurança: funções novas também ficam fechadas para anon.
 
@@ -119,6 +119,9 @@ Falta para a F11 fechar de vez: rodar o roteiro k6 e ensaiar a restauração com
 **Revisão das telas (26/09):** segurança e código da loja e do painel. Nenhum problema alto ou médio de segurança: sem HTML injetado, redirecionamento do login só para caminhos do painel, chave do link `/r` apagada da barra logo ao ler, links externos com `noopener`, o repasse `/api` só com JSON e cookies filtrados, e toda autorização na API. Corrigidos: o Safari não gera WebP no navegador (a foto subiria como PNG com nome .webp; agora avisa para usar Chrome, Edge ou Firefox); foto de peça registrada sem arquivo quando o envio ao Storage falha (agora é apagada); respostas fora de ordem ao trocar filtros no painel (`useDados` ignora a antiga); "15.5" virava R$ 155 no frete e nos preços (`paraCentavos`); o pedido novo da conversão aparece em cima da lista; e um cookie da sacola malformado não derruba mais o cabeçalho. Ficam como estão, por escolha: "Adicionar" por `GET /sacola?adicionar=` (um link de fora pode pôr uma peça na sacola, sem outro efeito) e a página `/offline` estática, sem scripts.
 
 Com a F11, todas as fases de servidor do plano estão feitas. O que falta para abrir a loja: as telas (design aprovado em 26/09, D24), o CI rodando (F1.2), as contas (Supabase, Vercel, Z-API, Mercado Pago), os dados da loja (produtos, domínio, endereço de retirada) e o checklist de publicação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+
+
+**Jornada e dependências (26/09):** `tests/e2e/jornada.spec.ts` percorre a loja inteira no celular (início, produto, sacola, Seus dados, código do WhatsApp, PIX, pago e retirada), com o axe em cada tela, contra a api-public falsa guardada em `tests/e2e/api-falsa/api-publica.mjs`. O `playwright.config` sobe a api falsa (porta 4010) e uma loja ligada a ela (porta 3003), também localmente; o build precisa de `ORIGEM_IMAGENS=http://127.0.0.1:4010`, já posto nos workflows. Dependências: produção sem vulnerabilidade; no Lighthouse CI, `tmp` e `uuid` vão por override (`pnpm-workspace.yaml`), e o `extract-zip` segue sem versão corrigida (só baixa o Chrome no CI).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 
