@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
 import { ProgressoClub, Selo, Sobretitulo } from "@tshirtclub/ui";
 import { buscarCatalogo, urlFoto, type BlocoInicio, type Colecao, type Look, type OfertaClub } from "@/lib/catalogo";
+import { textoOferta } from "@/lib/vitrine";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
 
@@ -13,7 +14,7 @@ export default async function Inicio() {
   await connection();
   const blocos = (await buscarCatalogo<BlocoInicio[]>("v1/catalog/home")) ?? [];
   const club = blocos.find((b) => b.tipo === "MONTE_SEU_CLUB")?.conteudo as OfertaClub | undefined;
-  const oferta = club ? `${club.qtd} por ${formatarReais(club.precoCentavos)}` : undefined;
+  const oferta = textoOferta(club);
   const temCampanha = blocos.some((b) => b.tipo === "CAMPANHA" && b.conteudo);
   const primeiraVitrine = blocos.findIndex((b) => (b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS") && b.conteudo.length > 0);
 

@@ -4,7 +4,7 @@
 import { opcoesLoja } from "@tshirtclub/servidor/repasse";
 
 export type Selo = "DISPONIVEL" | "ULTIMAS_UNIDADES" | "ESGOTADO";
-export interface Foto { caminho: string; alt: string | null; largura?: number; altura?: number }
+export interface Foto { caminho: string; alt: string | null; tipo?: string; largura?: number; altura?: number }
 export interface CartaoProduto {
   id: string;
   slug: string;
@@ -19,6 +19,17 @@ export interface CartaoProduto {
 }
 export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: Foto | null }
 export interface Look { id: string; titulo: string; foto: Foto; produtos: CartaoProduto[] }
+/** Página do produto (/v1/catalog/products/:slug): o cartão mais fotos, textos e looks. */
+export interface ProdutoDetalhe extends Omit<CartaoProduto, "colecao"> {
+  descricao: string | null;
+  composicao: string | null;
+  modelagem: string | null;
+  medidas: string | null;
+  cuidados: string | null;
+  colecao: Omit<Colecao, "id"> | null;
+  fotos: Foto[];
+  looks: Omit<Look, "produtos">[];
+}
 export interface OfertaClub { nome: string; qtd: number; precoCentavos: number; fim: string }
 
 export type BlocoInicio =
@@ -42,6 +53,13 @@ export async function buscarCatalogo<T>(caminho: string): Promise<T | null> {
   } catch {
     return null;
   }
+}
+
+/** Oferta "Monte seu Club" vigente, lida do bloco da página inicial (mesmo cache de 60 s). */
+export async function buscarOfertaClub(): Promise<OfertaClub | null> {
+  const blocos = await buscarCatalogo<BlocoInicio[]>("v1/catalog/home");
+  const bloco = blocos?.find((b) => b.tipo === "MONTE_SEU_CLUB");
+  return (bloco?.conteudo as OfertaClub | undefined) ?? null;
 }
 
 /** URL pública da foto no bucket catalogo (leitura pública, envio só por URL assinada). */
