@@ -1,5 +1,5 @@
 /*
- * Design system da T-shirt Club (D2, proposta 4 de docs/design-frontend.html).
+ * Design system da T-shirt Club (D2 e D24: V4 "tipografia", referência em docs/design/v4).
  * Única fonte de cores, fontes e raios dos dois apps. O @theme do Tailwind v4 cumpre o
  * papel do "preset": cada token vira utilitário (bg-rosa, text-tinta, font-display…).
  * A loja pública só tem o tema claro (D21); o painel tem claro e escuro.
@@ -19,9 +19,13 @@
   --color-rosa-press: var(--tc-rosa-press);
   --color-rosa-bruma: var(--tc-rosa-bruma);
   --color-no-rosa: var(--tc-no-rosa);
+  --color-citrino: var(--tc-citrino);
+  --color-no-citrino: var(--tc-no-citrino);
+  --color-limao-bruma: var(--tc-limao-bruma);
   --color-verde: var(--tc-verde);
   --color-verde-broto: var(--tc-verde-broto);
   --color-verde-escuro: var(--tc-verde-escuro);
+  --color-no-verde: var(--tc-no-verde);
   --color-ok: var(--tc-ok);
   --color-ok-fundo: var(--tc-ok-fundo);
   --color-aviso: var(--tc-aviso);
@@ -37,32 +41,52 @@
   --color-colecao-tinta: var(--c-tinta);
   --color-transparent: transparent;
 
-  --font-display: var(--font-baloo), "Arial Rounded MT Bold", system-ui, sans-serif;
+  /* Três vozes (D24): Fraunces editorial nos títulos, Poppins no sistema, Baloo 2 nos
+     momentos pop do Club (preço, contador, passos). */
+  --font-editorial: var(--font-fraunces), Georgia, serif;
   --font-texto: var(--font-poppins), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-baloo), "Arial Rounded MT Bold", system-ui, sans-serif;
 
   --radius-pilula: 999px;
-  --radius-cartao: 16px;
-  --radius-campo: 12px;
-  --radius-foto: 4px;
+  --radius-cartao: 20px;
+  --radius-campo: 14px;
+  --radius-foto: 16px;
+  --radius-selo: 9px;
+
+  /* Sombra dura de adesivo: sempre deslocada, sem desfoque */
+  --shadow-adesivo-sm: 2px 2px 0 var(--tc-tinta);
+  --shadow-adesivo: 3px 3px 0 var(--tc-tinta);
+  --shadow-adesivo-lg: 5px 5px 0 var(--tc-tinta);
 }
 
+/*
+ * Paleta V4 (D24, docs/design/v4). Ajustes de contraste sobre a referência:
+ * - rosa (#E8478A) como texto só em título grande (3,5:1); texto rosa pequeno usa rosa-press (5,7:1);
+ * - verde (#5E7820) é de enfeite (faixas, contornos, sombras); texto verde e o fundo do rodapé
+ *   usam verde-escuro (#4F6A18), que passa 4,5:1 com papel, citrino e rosa-bruma;
+ * - sobre citrino, o destaque é rosa-press (o rosa fica em 2,9:1).
+ */
 :root {
-  --tc-papel: #fffcfa;
+  --tc-papel: #fff9f5;
   --tc-branco: #ffffff;
   --tc-algodao: #f6efec;
   --tc-tinta: #26191e;
   --tc-tinta-suave: #6b5d62;
-  --tc-linha: #ece2de;
+  --tc-linha: #e9d8d0;
   --tc-borda-campo: #928181;
   --tc-rosa: #e8478a;
-  --tc-rosa-press: #c73576;
-  --tc-rosa-bruma: #fde7ef;
+  --tc-rosa-press: #b8286a;
+  --tc-rosa-bruma: #fcdde8;
   --tc-no-rosa: #26191e;
-  --tc-verde: #6b8b1f;
-  --tc-verde-broto: #eef3dc;
-  --tc-verde-escuro: #3f5a10;
+  --tc-citrino: #dff04a;
+  --tc-no-citrino: #26191e;
+  --tc-limao-bruma: #fff9c9;
+  --tc-verde: #5e7820;
+  --tc-verde-broto: #eef4d4;
+  --tc-verde-escuro: #4f6a18;
+  --tc-no-verde: #fff9f5;
   --tc-ok: #3f5a10;
-  --tc-ok-fundo: #eef3dc;
+  --tc-ok-fundo: #eef4d4;
   --tc-aviso: #7a4a00;
   --tc-aviso-fundo: #fff1d6;
   --tc-erro: #b3261e;
@@ -84,12 +108,16 @@
     --tc-linha: #3a2e32;
     --tc-borda-campo: #7c6a70;
     --tc-rosa: #ff7fb2;
-    --tc-rosa-press: #e86a9c;
+    --tc-rosa-press: #ff9cc4;
     --tc-rosa-bruma: #3a1f2a;
     --tc-no-rosa: #181114;
+    --tc-citrino: #dff04a;
+    --tc-no-citrino: #181114;
+    --tc-limao-bruma: #302d12;
     --tc-verde: #a9c24a;
     --tc-verde-broto: #263019;
     --tc-verde-escuro: #c8dc8a;
+    --tc-no-verde: #181114;
     --tc-ok: #c8dc8a;
     --tc-ok-fundo: #263019;
     --tc-aviso: #f2b45a;
@@ -119,7 +147,63 @@
     line-height: 1.6;
   }
   :focus-visible { outline: 3px solid var(--tc-foco); outline-offset: 3px; }
+  ::selection { background: var(--tc-citrino); color: var(--tc-no-citrino); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+}
+
+/* Peças da identidade que o Tailwind não expressa bem: título editorial com a palavra de
+   marca em itálico rosa, sobretítulo com a fita citrino e o brilho do selo. */
+@layer components {
+  .tc-titulo {
+    font-family: var(--font-editorial);
+    font-optical-sizing: auto;
+    font-weight: 760;
+    letter-spacing: -0.052em;
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+  /* Rosa como texto só em título grande (a partir de 24px): 3,5:1 no papel */
+  .tc-titulo em { font-style: italic; font-weight: 680; color: var(--tc-rosa); }
+  .tc-titulo em.tc-marca {
+    display: inline-block;
+    padding: 0 0.11em 0.06em;
+    border: 2px solid var(--tc-verde);
+    border-radius: 16px;
+    background: var(--tc-citrino);
+    color: var(--tc-rosa-press);
+    box-shadow: 5px 5px 0 var(--tc-verde);
+  }
+  .tc-sobretitulo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+  }
+  .tc-sobretitulo::before {
+    content: "";
+    width: 30px;
+    height: 8px;
+    border: 1.5px solid var(--tc-tinta);
+    border-radius: 2px;
+    background: var(--tc-citrino);
+    transform: rotate(-3deg);
+    flex: none;
+  }
+  .tc-brilho {
+    width: 10px;
+    height: 10px;
+    background: var(--tc-rosa);
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    flex: none;
+  }
+  /* Faixa de três cores sob o cabeçalho */
+  .tc-faixa {
+    height: 5px;
+    background: linear-gradient(90deg, var(--tc-rosa) 0 36%, var(--tc-citrino) 36% 70%, var(--tc-verde) 70%);
   }
 }

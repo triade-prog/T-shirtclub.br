@@ -3,6 +3,7 @@
 
 import type { CodigoErro } from "./erros.ts";
 import { formatarReais } from "./dinheiro.ts";
+import type { MotivoCupom } from "./preco.ts";
 
 export interface ContextoErro {
   produtos?: string[];
@@ -13,6 +14,9 @@ export interface ContextoErro {
   maxPecas?: number;
   maxPorProduto?: number;
   whatsappLoja?: string;
+  motivoCupom?: MotivoCupom;
+  gastoMinimoCentavos?: number;
+  comprometido?: number;
 }
 
 export interface TextoErro {
@@ -44,6 +48,8 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       };
     case "COUPON_NOT_BEST":
       return { mensagem: "Você já tem um desconto maior. O cupom fica guardado para outra compra." };
+    case "COUPON_INVALID":
+      return { mensagem: textoCupom(c.motivoCupom, c), acao: "Continuar sem cupom" };
     case "OTP_INVALID": {
       const r = c.tentativasRestantes ?? 0;
       return {
@@ -86,6 +92,18 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro." };
     case "PHONE_VERIFICATION_REQUIRED":
       return { mensagem: "Para mexer na entrega, confirme que é você com um código pelo WhatsApp.", acao: "Receber código" };
+    case "NOT_PAID":
+      return { mensagem: "A entrega é combinada depois do pagamento confirmado.", acao: "Ir para o pagamento" };
+    case "SHIPPING_ALREADY_PAID":
+      return { mensagem: "O frete já foi pago, então a entrega não muda mais por aqui. Fale com a gente pelo WhatsApp." };
+    case "DELIVERY_LOCKED":
+      return { mensagem: "Esta etapa da entrega não está disponível agora. Atualize a página para ver o andamento." };
+    case "PASSWORD_WEAK":
+      return { mensagem: "Esta senha é fraca ou já apareceu em vazamentos. Use uma frase longa, que você não usa em outro lugar." };
+    case "NOT_READY":
+      return { mensagem: "Para marcar como entregue, o pedido precisa estar pronto para retirada, ter saído para entrega ou ter sido enviado." };
+    case "DISPUTE_OPEN":
+      return { mensagem: "Há um estorno ou contestação aberto neste pagamento. Resolva a disputa antes de marcar como entregue.", acao: "Ver disputas" };
     case "QUOTE_EXPIRED":
       return { mensagem: "O prazo para pagar o frete venceu. A gente fala com você pelo WhatsApp.", acao: "Prefiro retirar na loja" };
     case "NOT_FOUND":
@@ -96,8 +114,62 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "Este número não tem WhatsApp. Use um número com WhatsApp para receber o código." };
     case "UPSTREAM_UNAVAILABLE":
       return { mensagem: "Sem conexão com a loja agora. Sua reserva continua valendo; tente de novo em instantes.", acao: "Tentar de novo" };
+    case "INVALID_CREDENTIALS":
+      return { mensagem: "E-mail ou senha não conferem." };
+    case "MFA_REQUIRED":
+      return { mensagem: "Falta o código do aplicativo autenticador para entrar no painel.", acao: "Digitar o código" };
+    case "MFA_INVALID":
+      return { mensagem: "Código do autenticador errado ou vencido. Use o código que está aparecendo agora no aplicativo." };
+    case "LOGIN_BLOCKED":
+      return {
+        mensagem: c.horario ? `Muitas senhas erradas desta rede. Tente de novo às ${c.horario}.` : "Muitas senhas erradas desta rede. Tente de novo em 15 minutos.",
+      };
+    case "TURNSTILE_REQUIRED":
+    case "TURNSTILE_INVALID":
+      return { mensagem: "Confirme que você não é um robô para continuar.", acao: "Confirmar" };
+    case "STOCK_BELOW_COMMITTED":
+      return {
+        mensagem: c.comprometido === undefined
+          ? "O estoque não pode ficar abaixo das peças já reservadas ou vendidas."
+          : `O estoque não pode ficar abaixo de ${c.comprometido}, que são as peças já reservadas ou vendidas.`,
+      };
+    case "ALREADY_EXISTS":
+      return { mensagem: "Já existe um cadastro com este endereço ou código. Escolha outro." };
+    case "PRODUCT_NEEDS_IMAGE":
+      return { mensagem: "Para publicar, o produto precisa de pelo menos 1 foto. Um produto publicado não fica sem foto." };
+    case "IMAGE_LIMIT":
+      return { mensagem: "Cada produto tem no máximo 10 fotos. Apague uma para enviar outra." };
+    case "PROMOTION_OVERLAP":
+      return { mensagem: "Um destes produtos já está em outro desconto no mesmo período. Mude as datas ou tire o produto." };
+    case "PROMOTION_ENDED":
+      return { mensagem: "Esta promoção já terminou. Para repetir, crie uma nova." };
     default:
       return { mensagem: "Algo não saiu como esperado. Tente de novo em instantes.", acao: "Tentar de novo" };
+  }
+}
+
+/** Por que o cupom digitado não vale (regra 28). */
+export function textoCupom(motivo: MotivoCupom | undefined, c: ContextoErro = {}): string {
+  switch (motivo) {
+    case "NAO_ENCONTRADO":
+      return "Não achamos este cupom. Confira o código.";
+    case "AGENDADO":
+      return c.horario ? `Este cupom começa a valer em ${c.horario}.` : "Este cupom ainda não começou a valer.";
+    case "ENCERRADO":
+    case "VENCIDO":
+      return "Este cupom não está mais valendo.";
+    case "ESGOTADO":
+      return "Este cupom esgotou.";
+    case "GASTO_MINIMO":
+      return c.gastoMinimoCentavos
+        ? `Este cupom vale para compras a partir de ${formatarReais(c.gastoMinimoCentavos)}.`
+        : "Esta compra ainda não chegou ao valor mínimo do cupom.";
+    case "SEM_PRODUTOS":
+      return "Este cupom não vale para as peças da sacola.";
+    case "LIMITE_CLIENTE":
+      return "Você já usou este cupom o máximo de vezes.";
+    default:
+      return "Este cupom não pode ser usado agora.";
   }
 }
 
@@ -106,3 +178,35 @@ export const TEXTO_SEM_CONEXAO: TextoErro = {
   mensagem: "Sem conexão. Sua reserva continua valendo; a tela atualiza quando a internet voltar.",
   acao: "Tentar de novo",
 };
+
+/**
+ * Cartão recusado (status_detail do Mercado Pago, binary_mode). Sem culpa e com o que dá
+ * para fazer: outro cartão, falar com o banco ou pagar com PIX (se a reserva ainda não
+ * travou a forma). Motivo desconhecido cai no texto geral.
+ */
+export function textoRecusaCartao(detalhe: string | undefined): string {
+  switch (detalhe) {
+    case "cc_rejected_insufficient_amount":
+      return "O cartão não tem limite para este valor. Tente outro cartão.";
+    case "cc_rejected_bad_filled_security_code":
+      return "O código de segurança (CVV) não confere. Confira e tente de novo.";
+    case "cc_rejected_bad_filled_date":
+      return "A validade do cartão não confere. Confira e tente de novo.";
+    case "cc_rejected_bad_filled_card_number":
+    case "cc_rejected_bad_filled_other":
+      return "Algum dado do cartão não confere. Confira e tente de novo.";
+    case "cc_rejected_call_for_authorize":
+      return "O banco pediu para autorizar este pagamento. Fale com o seu banco e tente de novo.";
+    case "cc_rejected_card_disabled":
+      return "Este cartão está bloqueado para compras. Fale com o seu banco ou use outro cartão.";
+    case "cc_rejected_duplicated_payment":
+      return "Parece um pagamento repetido. Se já pagou, espere esta tela atualizar.";
+    case "cc_rejected_high_risk":
+    case "cc_rejected_blacklist":
+      return "O pagamento não foi aprovado pela análise de segurança. Tente outro cartão.";
+    case "cc_rejected_max_attempts":
+      return "Muitas tentativas com este cartão. Use outro cartão.";
+    default:
+      return "O pagamento não foi aprovado. Tente outro cartão ou fale com o seu banco.";
+  }
+}

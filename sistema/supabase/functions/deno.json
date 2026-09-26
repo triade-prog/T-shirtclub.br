@@ -3,7 +3,10 @@
     "hono": "npm:hono@^4.9.0",
     "@std/assert": "jsr:@std/assert@^1",
     "zod": "npm:zod@^4.1.0",
-    "@tshirtclub/domain": "../../packages/domain/src/index.ts"
+    "@tshirtclub/domain": "../../packages/domain/src/index.ts",
+    "postgres": "npm:postgres@^3.4.7"
   },
-  "compilerOptions": { "strict": true }
+  "compilerOptions": {
+    "strict": true
+  }
 }

@@ -38,10 +38,16 @@ jobs:
         run: pnpm audit --prod --audit-level high
 
   banco:
-    name: Banco (pgTAP)
+    name: Banco (pgTAP, concorrência e integração)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      # Node e pnpm só para o Deno do pacote npm, que roda a integração das Edge Functions.
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: pnpm (versão do package.json, via corepack)
+        run: corepack enable && corepack install
+      - run: pnpm install --frozen-lockfile
       - name: pgTAP
         run: |
           sudo apt-get update -qq

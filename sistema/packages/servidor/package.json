@@ -5,8 +5,13 @@
   "type": "module",
   "exports": {
     "./cabecalhos": "./src/cabecalhos.ts",
-    "./repasse": "./src/repasse.ts"
+    "./repasse": "./src/repasse.ts",
+    "./monitor": "./src/monitor.ts"
   },
-  "scripts": { "typecheck": "tsc -p tsconfig.json" },
-  "dependencies": { "@tshirtclub/domain": "workspace:*" }
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tshirtclub/domain": "workspace:*"
+  }
 }

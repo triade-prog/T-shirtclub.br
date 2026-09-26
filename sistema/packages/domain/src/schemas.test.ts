@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { criarTentativaSchema, codigoOtpSchema, cupomSchema, nomeClienteSchema, telefoneSchema } from "./schemas.ts";
+import {
+  ajusteEstoqueSchema,
+  codigoAutenticadorSchema,
+  criarTentativaSchema,
+  codigoOtpSchema,
+  cupomSchema,
+  consultaSchema,
+  decisaoCancelamentoSchema,
+  linkReservaSchema,
+  entregaSchema,
+  freteSchema,
+  substatusSchema,
+  loginAdminSchema,
+  nomeClienteSchema,
+  pedidoCancelamentoSchema,
+  telefoneSchema,
+} from "./schemas.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-00000000000${n}`;
 const valido = {
@@ -40,5 +56,64 @@ describe("schemas", () => {
     expect(cupomSchema.parse(" bemvinda10 ")).toBe("BEMVINDA10");
     expect(codigoOtpSchema.safeParse("12345").success).toBe(false);
     expect(codigoOtpSchema.parse("482193")).toBe("482193");
+    expect(codigoOtpSchema.parse(" 482 193 ")).toBe("482193");
+    expect(codigoOtpSchema.parse("482-193")).toBe("482193");
+  });
+});
+
+describe("painel", () => {
+  it("login: e-mail normalizado e senha de 12+ caracteres", () => {
+    expect(loginAdminSchema.parse({ email: " Loja@TshirtClub.pt ", senha: "uma senha boa" }).email).toBe("loja@tshirtclub.pt");
+    expect(loginAdminSchema.safeParse({ email: "loja@tshirtclub.pt", senha: "curta" }).success).toBe(false);
+    expect(loginAdminSchema.safeParse({ email: "sem-arroba", senha: "uma senha boa" }).success).toBe(false);
+  });
+
+  it("código do autenticador aceita espaço ou traço", () => {
+    expect(codigoAutenticadorSchema.parse("482 193")).toBe("482193");
+    expect(codigoAutenticadorSchema.parse("482-193")).toBe("482193");
+    expect(codigoAutenticadorSchema.safeParse("48219").success).toBe(false);
+  });
+
+  it("ajuste de estoque com motivo e sem zero", () => {
+    expect(ajusteEstoqueSchema.parse({ delta: -2, motivo: " Peça com defeito " })).toEqual({ delta: -2, motivo: "Peça com defeito", tipo: "AJUSTE" });
+    expect(ajusteEstoqueSchema.safeParse({ delta: 0, motivo: "Nada" }).success).toBe(false);
+    expect(ajusteEstoqueSchema.safeParse({ delta: 1, motivo: "  " }).success).toBe(false);
+  });
+
+  it("cupom tem de 4 a 20 letras e números", () => {
+    expect(cupomSchema.safeParse("ABC").success).toBe(false);
+    expect(cupomSchema.parse("club")).toBe("CLUB");
+  });
+
+  it("cancelamento: observação opcional e decisão sempre com motivo", () => {
+    expect(pedidoCancelamentoSchema.parse({})).toEqual({});
+    expect(pedidoCancelamentoSchema.safeParse({ observacao: "x".repeat(501) }).success).toBe(false);
+    expect(decisaoCancelamentoSchema.safeParse({ motivo: " " }).success).toBe(false);
+    expect(decisaoCancelamentoSchema.parse({ motivo: " Pedido da cliente " }).motivo).toBe("Pedido da cliente");
+  });
+
+  it("entrega: retirada sem endereço; motoboy e envio com endereço completo", () => {
+    expect(entregaSchema.parse({ modalidade: "RETIRADA", endereco: { cep: "x" } })).toEqual({ modalidade: "RETIRADA" });
+    expect(entregaSchema.safeParse({ modalidade: "MOTOBOY" }).success).toBe(false);
+    const e = entregaSchema.parse({
+      modalidade: "ENVIO",
+      endereco: { cep: "45000-000", rua: " Rua das Flores ", numero: "12", complemento: "", bairro: "Centro", cidade: "Vitória da Conquista", uf: "ba" },
+    });
+    expect(e).toEqual({
+      modalidade: "ENVIO",
+      endereco: { cep: "45000000", rua: "Rua das Flores", numero: "12", bairro: "Centro", cidade: "Vitória da Conquista", uf: "BA" },
+    });
+    expect(freteSchema.safeParse({ valorCentavos: 0 }).success).toBe(false);
+    expect(substatusSchema.parse({ substatus: "ENVIADO", rastreio: "ab123456789br" }).rastreio).toBe("AB123456789BR");
+  });
+
+  it("consulta: pelo telefone com Turnstile, ou pela reserva do link", () => {
+    expect(consultaSchema.parse({ motivo: "CONSULTA", telefone: "(77) 99812-8809", turnstileToken: "t" })).toEqual({
+      motivo: "CONSULTA", telefone: "+5577998128809", turnstileToken: "t",
+    });
+    expect(consultaSchema.safeParse({ motivo: "CONSULTA", telefone: "(77) 99812-8809" }).success).toBe(false);
+    expect(consultaSchema.safeParse({ motivo: "ENTREGA", reservaId: "x" }).success).toBe(false);
+    expect(linkReservaSchema.safeParse({ chave: "a".repeat(22) }).success).toBe(true);
+    expect(linkReservaSchema.safeParse({ chave: "a/".repeat(11) }).success).toBe(false);
   });
 });

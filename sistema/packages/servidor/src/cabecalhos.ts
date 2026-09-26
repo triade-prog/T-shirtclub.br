@@ -1,6 +1,6 @@
 // Cabeçalhos de segurança e CSP com nonce (G16), iguais nos dois apps, com as diferenças
 // de cada um: a loja libera só Mercado Pago (SDK e campos do cartão) e Turnstile; o painel
-// não pode ser carregado em frame por ninguém.
+// libera só o Turnstile (login a partir do 3º erro, G7) e não pode ser carregado em frame.
 
 export type App = "loja" | "painel";
 
@@ -26,15 +26,16 @@ export function montarCsp({ app, nonce, dev = false, origemImagens }: OpcoesCsp)
   const img = ["'self'", "data:", "blob:", ...(origemImagens ? [origemImagens] : []), ...(loja ? MERCADO_PAGO : [])];
   const diretivas: Record<string, string[]> = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(loja ? [...MERCADO_PAGO, ...TURNSTILE] : []), ...(dev ? ["'unsafe-eval'"] : [])],
+    "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(loja ? MERCADO_PAGO : []), ...TURNSTILE, ...(dev ? ["'unsafe-eval'"] : [])],
     "style-src": ["'self'", `'nonce-${nonce}'`, ...(dev ? ["'unsafe-inline'"] : [])],
     // Atributos style (next/image, cores de coleção) não executam código; <style> e scripts
     // continuam presos ao nonce.
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": img,
     "font-src": ["'self'"],
-    "connect-src": ["'self'", ...(loja ? MERCADO_PAGO : []), ...(dev ? ["ws:"] : [])],
-    "frame-src": loja ? [...MERCADO_PAGO, ...TURNSTILE] : ["'none'"],
+    // O painel envia as fotos direto ao Storage, pela URL assinada (não passam pela Vercel).
+    "connect-src": ["'self'", ...(loja ? MERCADO_PAGO : origemImagens ? [origemImagens] : []), ...(dev ? ["ws:"] : [])],
+    "frame-src": loja ? [...MERCADO_PAGO, ...TURNSTILE] : TURNSTILE,
     "worker-src": ["'self'", "blob:"],
     "manifest-src": ["'self'"],
     "object-src": ["'none'"],

@@ -8,6 +8,7 @@ export function proxy(request: NextRequest) {
   const csp = montarCsp({
     app: "painel",
     nonce,
+    origemImagens: process.env.ORIGEM_IMAGENS,
     dev: process.env.NODE_ENV === "development",
   });
 

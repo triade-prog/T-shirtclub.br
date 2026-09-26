@@ -17,3 +17,54 @@ import_map = "./functions/deno.json"
 [functions.api-admin]
 verify_jwt = false
 import_map = "./functions/deno.json"
+
+# Webhook da Z-API: autenticado pelo segmento secreto da URL (G4), não por JWT.
+[functions.webhook-whatsapp]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Webhook do Mercado Pago: autenticado pelo x-signature (G3), não por JWT.
+[functions.webhook-payments]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Worker: chamado pela varredura (pg_net) com o segredo do worker no cabeçalho.
+[functions.worker]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Login do painel (G7, D12). Só administradores: ninguém se cadastra sozinho; a loja cria o
+# usuário no painel do Supabase e o inclui em admin_users.
+[auth]
+enable_signup = false
+minimum_password_length = 12
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+[auth.email]
+enable_signup = false
+
+# Autenticador (TOTP) obrigatório: a api-admin só aceita sessão aal2.
+[auth.mfa]
+max_enrolled_factors = 4
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+# Sessão do painel de até 12 h (plano Pro do Supabase).
+[auth.sessions]
+timebox = "12h"
+
+# Segredos das funções (supabase secrets set ...): REPASSE_SEGREDO, TURNSTILE_SECRET,
+# OTP_PEPPER (32+), WEBHOOK_WHATSAPP_SEGREDO (32+), WORKER_SEGREDO, IP_SAL, ZAPI_INSTANCIA,
+# ZAPI_TOKEN, ZAPI_CLIENT_TOKEN, LOJA_WHATSAPP (5577998155772), LOJA_URL, MP_ACCESS_TOKEN,
+# MP_WEBHOOK_SECRET e MP_EMAIL_PIX (e-mail do pagador no PIX, exigido pelo Mercado Pago).
+# SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY o Supabase já entrega.
+
+# Fotos do catálogo: leitura pública (vitrine e next/image); envio só por URL assinada
+# gerada na api-admin, sempre em WebP (o painel converte no navegador).
+[storage.buckets.catalogo]
+public = true
+file_size_limit = "15MiB"
+allowed_mime_types = ["image/webp"]

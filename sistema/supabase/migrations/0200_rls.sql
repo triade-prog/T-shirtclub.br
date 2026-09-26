@@ -33,6 +33,31 @@ $$;
 
 revoke execute on all functions in schema public from public;
 alter default privileges in schema public revoke execute on functions from public;
+-- O EXECUTE para PUBLIC vem do padrão global do Postgres, que o padrão por esquema não tira.
+alter default privileges revoke execute on functions from public;
+
+-- Para as migrations que vêm depois desta (0300 em diante): fecha de novo o que criaram.
+create procedure lock_down_public()
+language plpgsql
+as $proc$
+declare papel text;
+begin
+  revoke execute on all functions in schema public from public;
+  foreach papel in array array['anon', 'authenticated'] loop
+    if exists (select 1 from pg_roles where rolname = papel) then
+      execute format('revoke all on all tables in schema public from %I', papel);
+      execute format('revoke all on all sequences in schema public from %I', papel);
+      execute format('revoke all on all functions in schema public from %I', papel);
+    end if;
+  end loop;
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on all functions in schema public to service_role;
+    grant all on all tables in schema public to service_role;
+    grant all on all sequences in schema public to service_role;
+  end if;
+end
+$proc$;
+revoke execute on procedure lock_down_public() from public;
 
 do $$
 begin

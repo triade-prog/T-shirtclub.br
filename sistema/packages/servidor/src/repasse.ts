@@ -3,7 +3,7 @@
 // a resposta. Os cookies de sessão viram de primeira parte (__Host-). Nenhuma regra de
 // negócio aqui.
 
-import { ErroDominio, type CodigoErro } from "@tshirtclub/domain";
+import { COOKIES_LOJA, COOKIES_PAINEL, ErroDominio, type CodigoErro } from "@tshirtclub/domain";
 
 export interface OpcoesRepasse {
   /** URL da função, ex.: https://<projeto>.supabase.co/functions/v1/api-public */
@@ -13,6 +13,22 @@ export interface OpcoesRepasse {
   cookies: readonly string[];
   tempoLimiteMs?: number;
   maxCorpoBytes?: number;
+  /** fetch da plataforma; os testes passam o da função, sem rede. */
+  buscar?: (url: URL, init: RequestInit) => Promise<Response>;
+}
+
+type Ambiente = Record<string, string | undefined>;
+const COOKIES_DA_LOJA = Object.values(COOKIES_LOJA);
+const COOKIES_DO_PAINEL = Object.values(COOKIES_PAINEL);
+
+/** Repasse da loja → api-public, com os cookies que a api-public grava. */
+export function opcoesLoja(env: Ambiente): OpcoesRepasse {
+  return { destino: `${env.SUPABASE_FUNCTIONS_URL ?? ""}/api-public`, segredo: env.REPASSE_SEGREDO ?? "", cookies: COOKIES_DA_LOJA };
+}
+
+/** Repasse do painel → api-admin. */
+export function opcoesPainel(env: Ambiente): OpcoesRepasse {
+  return { destino: `${env.SUPABASE_FUNCTIONS_URL ?? ""}/api-admin`, segredo: env.REPASSE_SEGREDO ?? "", cookies: COOKIES_DO_PAINEL };
 }
 
 const METODOS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
@@ -76,6 +92,9 @@ export function criarRepasse(obterOpcoes: () => OpcoesRepasse) {
     if (ip) headers.set("x-cliente-ip", ip);
     const cookie = cookiesPermitidos(req.headers.get("cookie"), op.cookies);
     if (cookie) headers.set("cookie", cookie);
+    // Um por clique no pagamento (seção 08); a função confere o formato
+    const chave = req.headers.get("idempotency-key");
+    if (chave && /^[0-9A-Za-z-]{1,64}$/.test(chave)) headers.set("idempotency-key", chave);
 
     let corpo: ArrayBuffer | undefined;
     if (req.method !== "GET" && req.method !== "DELETE") {
@@ -91,7 +110,7 @@ export function criarRepasse(obterOpcoes: () => OpcoesRepasse) {
 
     let resposta: Response;
     try {
-      resposta = await fetch(url, {
+      resposta = await (op.buscar ?? fetch)(url, {
         method: req.method,
         headers,
         body: corpo,

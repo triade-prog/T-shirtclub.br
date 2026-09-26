@@ -1,0 +1,83 @@
+import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+const LOJA = "http://localhost:3000";
+
+// Sem catálogo (CI sem Supabase) ou com slug inexistente, coleção e produto respondem 404
+// com a página da loja, nunca 500.
+for (const caminho of ["/colecao/nao-existe", "/produto/nao-existe", "/produto/..%2Fetc", "/colecao/Maiuscula"]) {
+  test(`${caminho} responde 404`, async ({ page }) => {
+    const r = await page.goto(`${LOJA}${caminho}`);
+    expect(r!.status()).toBe(404);
+    await expect(page.getByRole("link", { name: "T-shirt Club.br, página inicial" })).toBeVisible();
+  });
+}
+
+// Sacola (fatia 3): o "Adicionar" é um GET que grava o cookie e volta para /sacola; sem
+// catálogo, a peça aparece como fora da loja e o Remover (ação do servidor) esvazia a sacola.
+test("sacola: adicionar pela URL, limite por modelo, remover e axe", async ({ page }) => {
+  await page.goto(`${LOJA}/sacola`);
+  await expect(page.getByRole("heading", { name: "Sua sacola está vazia." })).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
+  await expect(page).toHaveURL(`${LOJA}/sacola`);
+  await expect(page.getByRole("link", { name: /Sacola\s*1\s*peça/ })).toBeVisible();
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
+  await expect(page).toHaveURL(/aviso=MAX_PER_MODEL/);
+  await expect(page.getByText("Cada estampa pode entrar no máximo 2 vezes.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Remover peça que saiu da loja" }).click();
+  await page.getByRole("button", { name: "Remover peça que saiu da loja" }).click();
+  await expect(page.getByRole("heading", { name: "Sua sacola está vazia." })).toBeVisible();
+});
+
+// Reserva (fatia 4): sem nada para reservar, "Seus dados" volta para a sacola; a tela do
+// código só abre com o id da tentativa e, sem a api-public, espera sem quebrar.
+test("reserva: sem sacola volta para a sacola", async ({ page }) => {
+  await page.goto(`${LOJA}/reserva`);
+  await expect(page).toHaveURL(`${LOJA}/sacola`);
+  await page.goto(`${LOJA}/reserva/codigo?t=nao-e-id`);
+  await expect(page).toHaveURL(`${LOJA}/sacola`);
+});
+
+test("reserva: tela do código acessível", async ({ page }) => {
+  await page.goto(`${LOJA}/reserva/codigo?t=11111111-2222-3333-4444-555555555555`);
+  await expect(page.getByRole("heading", { name: /Confirme seu/ })).toBeVisible();
+  await expect(page.getByLabel("Código de 6 dígitos")).toHaveAttribute("autocomplete", "one-time-code");
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
+// Reserva ativa (fatia 5): número inválido é 404; sem a api-public, a tela explica e não quebra.
+test("reserva ativa: 404 e tela sem conexão com a api acessível", async ({ page }) => {
+  expect((await page.goto(`${LOJA}/reserva/abc`))!.status()).toBe(404);
+  await page.goto(`${LOJA}/reserva/1042`);
+  await expect(page.getByText("Não conseguimos abrir sua reserva agora.")).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
+// Link da reserva (fatia 6): a chave do fragmento sai da barra de endereço; link incompleto
+// avisa; sem a api-public, a página explica sem quebrar.
+test("link /r: tira a chave do endereço e avisa sem quebrar", async ({ page }) => {
+  await page.goto(`${LOJA}/r`);
+  await expect(page.getByText(/não está completo/)).toBeVisible();
+  await page.goto(`${LOJA}/`);
+  await page.goto(`${LOJA}/r#AbCdEfGhIjKlMnOpQrStUv`);
+  await expect(page.getByRole("alert")).toBeVisible();
+  expect(new URL(page.url()).hash).toBe("");
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
+
+// Consulta (fatia 7): sem sessão e sem a api-public, mostra o pedido do WhatsApp e não lista nada.
+test("consulta: pede o WhatsApp, acessível", async ({ page }) => {
+  await page.goto(`${LOJA}/consulta`);
+  await expect(page.getByLabel("Seu WhatsApp")).toHaveAttribute("autocomplete", "tel-national");
+  await expect(page.getByRole("button", { name: "Receber código no WhatsApp" })).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
