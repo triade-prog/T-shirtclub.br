@@ -79,6 +79,8 @@ export interface ParametrosMensagem {
   reserva_criada: { nome: string; pecas: number; numero: number; totalCentavos: number; expiraEm: Date; link: string };
   reserva_lembrete_5min: { numero: number; expiraEm: Date };
   reserva_expirada: { numero: number; expiradaEm: Date };
+  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: "PIX" | "CARTAO" };
+  pagamento_em_analise: { numero: number };
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
   bloqueio_mantido: Record<string, never>;
@@ -115,6 +117,16 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
     (p) =>
       `A reserva #${p.numero} terminou às ${formatarHora(p.expiradaEm)} sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: ${SITE}`,
     (p) => `O prazo da reserva #${p.numero} acabou e nada foi cobrado. As peças voltaram para a loja: ${SITE}`,
+  ],
+  // A mensagem não leva o link com a chave: o banco guarda só o hash dela (G6). A cliente
+  // vê o pedido no site, com a sessão do celular em que pagou ou pela consulta com código.
+  pagamento_confirmado: [
+    (p) =>
+      `Pagamento confirmado! Pedido #${p.numero}, ${formatarReais(p.totalCentavos)} ${p.forma === "PIX" ? "no PIX" : "no cartão"}. Agora escolha como quer receber, no site: ${SITE} ✨`,
+    (p) => `Recebemos seu pagamento, ${primeiroNome(p.nome)}! Pedido #${p.numero} garantido. Falta só escolher a entrega, no site: ${SITE}`,
+  ],
+  pagamento_em_analise: [
+    (p) => `Seu pagamento chegou depois do prazo da reserva #${p.numero}. A loja vai conferir e falar com você por aqui.`,
   ],
   telefone_bloqueado: [
     () => "Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.",

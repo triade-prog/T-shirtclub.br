@@ -51,8 +51,10 @@ mudar um componente de propósito, rode o workflow **Atualizar telas de referên
 Ver [`.env.example`](.env.example). Nas Edge Functions (`supabase secrets set`): `REPASSE_SEGREDO`
 (o mesmo valor dos apps), `TURNSTILE_SECRET`, `OTP_PEPPER` e `WEBHOOK_WHATSAPP_SEGREDO` (32+
 caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTANCIA`, `ZAPI_TOKEN`,
-`ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP` e `LOJA_URL`. `SUPABASE_URL` e as chaves o Supabase já entrega.
-O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>`.
+`ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP`, `LOJA_URL`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` e `MP_EMAIL_PIX`. `SUPABASE_URL` e as chaves o Supabase já entrega.
+O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>`; o do
+Mercado Pago (só o tópico payment), para `…/functions/v1/webhook-payments`. A conta recebedora vai em
+`app_settings.mp_collector_id`: pagamento de outra conta nunca é aplicado.
 
 Para a varredura chamar o worker (0300), no SQL Editor do projeto:
 

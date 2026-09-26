@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import type { Banco } from "../_shared/banco.ts";
 import { whatsappFalso } from "../_shared/whatsapp.ts";
+import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { criarApiPublica } from "./app.ts";
 
 const SEGREDO = "s3gredo";
@@ -65,6 +66,7 @@ function montar(opcoes: { promocoes?: unknown[]; disponivel?: number; limite?: b
     banco,
     agora: () => new Date("2026-10-10T12:00:00Z"),
     whatsapp: whatsappFalso(),
+    pagamentos: pagamentosFalso(),
     turnstile: { verificar: () => Promise.resolve(true) },
     pepper: "p".repeat(32),
     numeroLoja: "5577998155772",

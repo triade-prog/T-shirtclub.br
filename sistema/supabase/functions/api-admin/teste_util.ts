@@ -2,6 +2,7 @@
 
 import type { ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
 import { ErroBanco, type Banco } from "../_shared/banco.ts";
+import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { criarApiAdmin } from "./app.ts";
 
 const SEGREDO = "s3gredo";
@@ -74,8 +75,10 @@ export function montar(cen: Cenario = {}) {
   };
 
   const arquivosApagados: string[] = [];
+  const pagamentos = pagamentosFalso();
   const app = criarApiAdmin(SEGREDO, {
     banco,
+    pagamentos,
     armazenamento: {
       urlDeEnvio: (caminho) => Promise.resolve({ url: `https://p.supabase.co/storage/v1/object/upload/sign/catalogo/${caminho}?token=t`, token: "t" }),
       apagar: (caminhos) => {
@@ -102,7 +105,7 @@ export function montar(cen: Cenario = {}) {
     });
   }
 
-  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados };
+  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados, pagamentos };
 }
 
 export function cookieDe(r: Response): string {

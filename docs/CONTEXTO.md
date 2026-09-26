@@ -92,7 +92,9 @@ As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design 
 
 **F5 no servidor (26/09):** a varredura roda a cada 10 s no banco (pg_cron): lembrete de 5 min (só se ainda falta mais de 1 min), expiração que devolve estoque, cupom e orçamento, e bloqueio do telefone na 3ª expiração em 30 dias (liberar ou manter no painel, com motivo; liberar zera o contador). A reserva vencida é liberada na hora em que outra cliente precisa da peça. O worker da fila só é chamado quando há mensagem. Tolerância e rede de segurança já estão na varredura e passam a valer com os pagamentos (F6). Teste de vazão: 50 reservas em 5 min, toda "reserva criada" sai em até 2 min. Correção de segurança: funções novas também ficam fechadas para anon.
 
-O próximo servidor é a F6 (pagamento, Mercado Pago), que precisa de liberação e das credenciais de teste (E1).
+**F6 no servidor (26/09):** pagamento pelo Mercado Pago atrás do `PaymentProvider` (e uma versão falsa para testes). PIX nasce com 30 min e é cancelado no fim da tolerância; cartão em `binary_mode` (aprova ou recusa na hora), só à vista, recebendo só o token. Idempotência em 5 camadas (Idempotency-Key, chave no provedor, inbox do webhook, `applied` e a constraint final). O webhook confere o x-signature e a janela de 5 min, grava na inbox e responde 200; o worker consulta o provedor e aplica. Referência, moeda ou conta diferentes: descartado. Valor diferente, reserva encerrada ou aprovado depois da tolerância: análise, onde a loja estorna ou converte em pedido novo. Estorno ou contestação depois de pago: disputa, que vai travar o Entregue na F8. Decisão D23: a mensagem "pagamento confirmado" leva o endereço do site, não o link com a chave; cartão só à vista. 273 testes de banco, 58 Deno, 118 de regras e dois testes de integração (fluxo da reserva e pagamento).
+
+O próximo servidor é a F7 (cancelamento), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

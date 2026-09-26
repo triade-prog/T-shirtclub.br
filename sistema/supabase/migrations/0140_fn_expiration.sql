@@ -3,13 +3,7 @@
 -- sem pagamento em andamento, expira e o estoque volta na hora.
 -- Ordem de locks (seção 05): customers → reservations → products → promotions/coupons.
 -- A expiração não trava a cliente: o bloqueio por abuso (0160) usa o índice único do
--- bloqueio ativo, sem precisar da trava.
-
--- Pagamento em andamento (PIX pendente criado dentro do prazo). Os pagamentos chegam na
--- F6 (0040/0130), que substitui esta função; até lá, nenhuma reserva tem pagamento.
-create function has_pending_payment(p_reservation_id uuid) returns boolean
-language sql stable
-as $$ select false $$;
+-- bloqueio ativo, sem precisar da trava. Pagamento em andamento: has_pending_payment (0130).
 
 -- Prazo efetivo, o mesmo para todos (seção 06).
 create function effective_deadline(r reservations) returns timestamptz
@@ -134,7 +128,7 @@ end $$;
 --  2. tolerância: prazo vencido com pagamento em andamento ganha +5 min (D5)
 --  3. expira o que venceu sem pagamento em andamento
 --  4. rede de segurança: tolerância vencida há 2 min expira mesmo com pagamento pendente
---     (o pagamento que chegar depois vai para análise, F6)
+--     (o worker cancela a cobrança; o pagamento que chegar depois vai para análise)
 create function sweep_reservations() returns jsonb
 language plpgsql
 security definer

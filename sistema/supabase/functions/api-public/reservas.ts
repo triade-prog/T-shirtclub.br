@@ -10,6 +10,7 @@ import type { Context, Hono } from "hono";
 import {
   ErroDominio,
   ajustarItensSchema,
+  pagamentoSchema,
   confirmarTentativaSchema,
   criarTentativaSchema,
   ehCodigoErro,
@@ -28,6 +29,8 @@ import { ipDaCliente } from "../_shared/repasse.ts";
 import type { VerificadorTurnstile } from "../_shared/turnstile.ts";
 import { lerCorpo } from "../_shared/validar.ts";
 import type { WhatsAppProvider } from "../_shared/whatsapp.ts";
+import type { PaymentProvider } from "../_shared/pagamentos.ts";
+import { aplicar } from "../worker/pagamentos.ts";
 import { cotar, type DepsLoja } from "./catalogo.ts";
 
 export const COOKIE_TENTATIVA = "__Host-tentativa";
@@ -44,6 +47,7 @@ export interface DepsReserva extends DepsLoja {
   urlLoja: string;
   /** Sal do hash do IP (G9). */
   salIp?: string;
+  pagamentos: PaymentProvider;
 }
 
 type ErroJson = { erro?: string; detalhes?: Record<string, unknown> };
@@ -218,18 +222,90 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     return c.json(r);
   });
 
-  // Reserva da cliente: só do telefone da sessão (ou a do link, F9). De outro telefone, 404.
-  app.get("/v1/reservations/:id", async (c) => {
-    const id = idDaRota(c);
+  /** Telefone da sessão da cliente, se ela pode ver esta reserva (TELEFONE ou o link dela). */
+  async function telefoneDaSessao(c: Context, reservaId: string): Promise<string> {
     const token = lerCookie(c.req.raw.headers, COOKIE_SESSAO);
     if (!token || token.length > 100) throw new ErroDominio("UNAUTHORIZED");
     const sessao = await chamar<{ telefone: string; escopo: string } | null>(deps.banco, "customer_session_get", {
       p_token_hash: await sha256Hex(token),
     });
     if (!sessao) throw new ErroDominio("UNAUTHORIZED");
-    if (sessao.escopo !== "TELEFONE" && sessao.escopo !== `RESERVA:${id}`) throw new ErroDominio("NOT_FOUND");
-    const reserva = await chamar<{ telefone: string } | null>(deps.banco, "reservation_for_customer", { p_id: id, p_phone: sessao.telefone });
+    if (sessao.escopo !== "TELEFONE" && sessao.escopo !== `RESERVA:${reservaId}`) throw new ErroDominio("NOT_FOUND");
+    return sessao.telefone;
+  }
+
+  // Reserva da cliente: só do telefone da sessão (ou a do link, F9). De outro telefone, 404.
+  app.get("/v1/reservations/:id", async (c) => {
+    const id = idDaRota(c);
+    const reserva = await chamar<{ telefone: string } | null>(deps.banco, "reservation_for_customer", {
+      p_id: id,
+      p_phone: await telefoneDaSessao(c, id),
+    });
     if (!reserva) throw new ErroDominio("NOT_FOUND");
     return c.json(comTelefoneMascarado(reserva));
+  });
+
+  // Pagamento (seção 08, F6): PIX ou cartão, uma forma por reserva. O Idempotency-Key (um
+  // por clique) devolve a mesma tentativa; a chave no provedor é o id do pagamento.
+  app.post("/v1/reservations/:id/payments", async (c): Promise<Response> => {
+    const id = idDaRota(c);
+    const telefone = await telefoneDaSessao(c, id);
+    const chave = idSchema.safeParse(c.req.header("idempotency-key"));
+    if (!chave.success) throw new ErroDominio("VALIDATION_ERROR", { campo: "Idempotency-Key" });
+    const dados = await lerCorpo(c, pagamentoSchema);
+
+    const r = await chamar<ErroJson & { pagamento: { id: string; status: string; valorCentavos: number }; repetido?: boolean }>(
+      deps.banco, "register_payment_attempt", { p_reservation_id: id, p_phone: telefone, p_method: dados.forma, p_idempotency_key: chave.data });
+    falhou(r);
+    const pagamento = r.pagamento;
+    if (r.repetido || pagamento.status !== "CRIADO") {
+      return c.json({ pagamento: await chamar(deps.banco, "payment_for_customer", { p_reservation_id: id, p_payment_id: pagamento.id, p_phone: telefone }) });
+    }
+
+    const reserva = await chamar<{ numero: number }>(deps.banco, "reservation_for_customer", { p_id: id, p_phone: telefone });
+    const descricao = `T-shirt Club.br, reserva #${reserva.numero}`;
+    let resultado;
+    try {
+      resultado = dados.forma === "PIX"
+        ? await deps.pagamentos.criarPix({
+          pagamentoId: pagamento.id, valorCentavos: pagamento.valorCentavos, descricao,
+          expiraEm: new Date(agora().getTime() + 30 * 60_000), // mínimo do Mercado Pago; cancelado no fim da tolerância (G14)
+        })
+        : await deps.pagamentos.criarCartao({
+          pagamentoId: pagamento.id, valorCentavos: pagamento.valorCentavos, descricao,
+          token: dados.cartao!.token, metodo: dados.cartao!.paymentMethodId, emissor: dados.cartao!.issuerId, email: dados.cartao!.email,
+        });
+    } catch (e) {
+      await chamar(deps.banco, "payment_failed", { p_payment_id: pagamento.id, p_error: String(e) });
+      throw new ErroDominio("UPSTREAM_UNAVAILABLE");
+    }
+
+    await chamar(deps.banco, "payment_created", {
+      p_payment_id: pagamento.id,
+      p: {
+        providerPaymentId: resultado.providerPaymentId,
+        statusProvedor: resultado.statusProvedor,
+        pixCopiaECola: resultado.pix?.copiaECola ?? null,
+        pixQrBase64: resultado.pix?.qrBase64 ?? null,
+        pixExpiraEm: resultado.pix?.expiraEm ?? null,
+      },
+    });
+    // Cartão em binary_mode já volta aprovado ou recusado
+    if (resultado.status !== "PENDENTE") await aplicar(deps.banco, resultado);
+
+    return c.json({
+      pagamento: await chamar(deps.banco, "payment_for_customer", { p_reservation_id: id, p_payment_id: pagamento.id, p_phone: telefone }),
+      ...(resultado.status === "RECUSADO" && resultado.detalhe ? { recusa: resultado.detalhe } : {}),
+    }, 201);
+  });
+
+  // A tela consulta a cada 3 s enquanto o pagamento está pendente.
+  app.get("/v1/reservations/:id/payments/:pid", async (c) => {
+    const id = idDaRota(c);
+    const pid = idSchema.safeParse(c.req.param("pid"));
+    if (!pid.success) throw new ErroDominio("NOT_FOUND");
+    const pagamento = await chamar(deps.banco, "payment_for_customer", { p_reservation_id: id, p_payment_id: pid.data, p_phone: await telefoneDaSessao(c, id) });
+    if (!pagamento) throw new ErroDominio("NOT_FOUND");
+    return c.json(pagamento);
   });
 }

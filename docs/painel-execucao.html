@@ -24,10 +24,10 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 18,
-    "situacao": "Servidor das fases F2 a F5 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva com teste de concorrência, expiração, lembrete e bloqueio); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F5",
-    "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas das fases F2 a F5; cria a conta da Z-API (E2) e as credenciais de teste do Mercado Pago (E1); pede ao suporte do GitHub o desbloqueio da conta (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F6 (pagamento), que precisa de liberação."
+    "arquitetura_versao": 19,
+    "situacao": "Servidor das fases F2 a F6 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio e pagamento pelo Mercado Pago); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F6",
+    "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
@@ -96,15 +96,15 @@
      ]},
     {"id":"F6","nome":"Pagamento","sec":"pagamento","objetivo":"PIX ou cartão pelo Mercado Pago, com tolerância, idempotência em 5 camadas e nenhum pagamento aplicado duas vezes.",
      "itens":[
-      {"id":"F6.1","texto":"Migration 0040: pagamentos, eventos, análises e disputas","sec":"dados","refs":["G2"],"status":"pendente"},
-      {"id":"F6.2","texto":"PaymentProvider com mercadopago.ts e fake.ts","sec":"codigo","refs":[],"status":"pendente"},
-      {"id":"F6.3","texto":"PIX criado com 30 min e cancelado em grace_until; Copiar código PIX como ação principal","sec":"expiracao","refs":["G14"],"status":"pendente"},
-      {"id":"F6.4","texto":"Cartão pelo Card Payment Brick, binary_mode, SDK só quando a cliente escolhe cartão","sec":"pagamento","refs":["G16","G17"],"status":"pendente"},
-      {"id":"F6.5","texto":"Webhook: x-signature, janela de 5 min, inbox, resposta 200 e processamento fora da requisição","sec":"pagamento","refs":["G3"],"status":"pendente"},
-      {"id":"F6.6","texto":"apply_payment_result: confere referência, valor, moeda e conta; VALOR_DIVERGENTE vai para análise","sec":"pagamento","refs":["G3"],"status":"pendente"},
-      {"id":"F6.7","texto":"Tolerância de 15 + 5 min, grace-expirations e reconciliação","sec":"expiracao","refs":[],"status":"pendente"},
-      {"id":"F6.8","texto":"Estorno ou contestação depois de pago abre disputa e trava o Entregue","sec":"pagamento","refs":["G2"],"status":"pendente"},
-      {"id":"F6.9","texto":"Fila de pagamentos em análise: estornar ou converter em novo pedido (tela 12)","sec":"pagamento","refs":[],"status":"pendente"},
+      {"id":"F6.1","texto":"Migration 0040: pagamentos, eventos, análises e disputas","sec":"dados","refs":["G2"],"status":"feito","evidencia":"sistema/supabase/migrations/0040_payments.sql: pagamentos (um aplicado e uma cobrança em curso por reserva), inbox de eventos, análises e disputas; pgTAP 015"},
+      {"id":"F6.2","texto":"PaymentProvider com mercadopago.ts e fake.ts","sec":"codigo","refs":[],"status":"feito","evidencia":"functions/_shared/pagamentos.ts: Mercado Pago (PIX, cartão, consulta, cancelamento, estorno) e versão falsa; pagamentos_test.ts"},
+      {"id":"F6.3","texto":"PIX criado com 30 min e cancelado em grace_until; Copiar código PIX como ação principal","sec":"expiracao","refs":["G14"],"status":"andamento","nota":"Servidor pronto: PIX nasce com 30 min e é cancelado no fim da tolerância (integração); falta a tela com \"Copiar código PIX\", que espera o design. Confirmar o mínimo de 30 min no ambiente de teste (E4)"},
+      {"id":"F6.4","texto":"Cartão pelo Card Payment Brick, binary_mode, SDK só quando a cliente escolhe cartão","sec":"pagamento","refs":["G16","G17"],"status":"andamento","nota":"Servidor pronto: cartão em binary_mode, só à vista, recebendo só o token; falta a tela com o Card Payment Brick, que espera o design"},
+      {"id":"F6.5","texto":"Webhook: x-signature, janela de 5 min, inbox, resposta 200 e processamento fora da requisição","sec":"pagamento","refs":["G3"],"status":"feito","evidencia":"functions/webhook-payments: x-signature com janela de 5 min, só o tópico payment, inbox, 200 e processamento fora da requisição; webhook_test.ts"},
+      {"id":"F6.6","texto":"apply_payment_result: confere referência, valor, moeda e conta; VALOR_DIVERGENTE vai para análise","sec":"pagamento","refs":["G3"],"status":"feito","evidencia":"0130_fn_payments.sql: apply_payment_result confere referência, moeda, conta e valor; divergente vai para análise; pgTAP 015"},
+      {"id":"F6.7","texto":"Tolerância de 15 + 5 min, grace-expirations e reconciliação","sec":"expiracao","refs":[],"status":"feito","evidencia":"Tolerância na varredura (0140) e worker (worker/pagamentos.ts): consulta no fim da tolerância, cancela no provedor e expira; reconciliação de pendentes sem webhook; integração pagamento_test.ts"},
+      {"id":"F6.8","texto":"Estorno ou contestação depois de pago abre disputa e trava o Entregue","sec":"pagamento","refs":["G2"],"status":"feito","evidencia":"Estorno, contestação ou cancelamento depois de pago abre payment_disputes; has_open_dispute pronta para travar o Entregue (F8); rotas /v1/admin/payment-disputes"},
+      {"id":"F6.9","texto":"Fila de pagamentos em análise: estornar ou converter em novo pedido (tela 12)","sec":"pagamento","refs":[],"status":"andamento","nota":"Rotas prontas (estornar no provedor ou converter em novo pedido, com estoque); falta a tela 12"},
       {"id":"F6.10","texto":"Tela de pagamento: escolha da forma, BlocoPix, cartão, em processamento e recusado (tela 4)","sec":"frontend","refs":["G17"],"status":"pendente"}
      ]},
     {"id":"F7","nome":"Cancelamento","sec":"estados","objetivo":"A cliente pede, o painel decide, e o relógio não para.",
@@ -161,13 +161,13 @@
     {"id":"T12","texto":"Código colado com espaço ou traço: aceito","fase":"F3","refs":["G8","G18"],"status":"feito","evidencia":"schemas.test.ts e integração: \"482 193\" e \"482-193\" são aceitos"},
     {"id":"T13","texto":"Pico: 50 reservas em 5 min no modo lançamento; nenhum lembrete atrasado","fase":"F5","refs":["G5","G18"],"status":"feito","evidencia":"pgTAP 014: 50 reservas em 5 min (30 no 1º minuto), modo lançamento, worker a cada 4 s → toda \"reserva criada\" em até 2 min e nenhum lembrete atrasado"},
     {"id":"T14","texto":"3 expirações, liberação, nova expiração: contador recomeça","fase":"F5","refs":[],"status":"feito","evidencia":"pgTAP 013: 3 expirações bloqueiam; depois da liberação, a nova expiração conta como a 1ª"},
-    {"id":"T15","texto":"Mesmo webhook de aprovação 10 vezes: vende 1 vez","fase":"F6","refs":[],"status":"pendente"},
-    {"id":"T16","texto":"Aprovação e expiração no mesmo instante: resultado consistente","fase":"F6","refs":[],"status":"pendente"},
-    {"id":"T17","texto":"PIX criado aos 14min59s e aprovado aos 19min30s: confirma","fase":"F6","refs":[],"status":"pendente"},
-    {"id":"T18","texto":"Mesmo PIX aprovado aos 20min01s: expirado e em análise","fase":"F6","refs":[],"status":"pendente"},
-    {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"pendente"},
-    {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"pendente"},
-    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"pendente"},
+    {"id":"T15","texto":"Mesmo webhook de aprovação 10 vezes: vende 1 vez","fase":"F6","refs":[],"status":"feito","evidencia":"pgTAP 015: o mesmo aprovado 10 vezes vende 1 vez; o mesmo evento do webhook 10 vezes vira 1 linha"},
+    {"id":"T16","texto":"Aprovação e expiração no mesmo instante: resultado consistente","fase":"F6","refs":[],"status":"andamento","nota":"Serializado pela trava da reserva: aprovação depois da expiração vai para análise (pgTAP 015); falta o teste com as duas chamadas de fato simultâneas"},
+    {"id":"T17","texto":"PIX criado aos 14min59s e aprovado aos 19min30s: confirma","fase":"F6","refs":[],"status":"feito","evidencia":"pgTAP 015: PIX criado aos 14min59s, aprovado aos 19min30s com o webhook depois → confirma"},
+    {"id":"T18","texto":"Mesmo PIX aprovado aos 20min01s: expirado e em análise","fase":"F6","refs":[],"status":"feito","evidencia":"pgTAP 015: aprovado aos 20min01s → reserva expirada e pagamento em análise"},
+    {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"webhook-payments/webhook_test.ts: sem assinatura, errada, de outro pagamento ou com 6 min → 401 e nada gravado"},
+    {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"pgTAP 015: valor diferente vai para análise; referência, moeda ou conta diferentes são descartadas"},
+    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"andamento","nota":"Contestação abre disputa e has_open_dispute fica verdadeira (pgTAP 015); a recusa do Entregue chega na F8"},
     {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
     {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
     {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
@@ -275,9 +275,11 @@
     ["D19","Monte seu Club: 3 por R$ 119,99 a cada 3; peça a R$ 49,99"],
     ["D20","Produto com página própria e 1 a 10 fotos; coleções com cor aprovada; looks"],
     ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"],
-    ["D22","Descontos do produto ativos valem juntos como preço promocional (nunca dois no mesmo produto)"]
+    ["D22","Descontos do produto ativos valem juntos como preço promocional (nunca dois no mesmo produto)"],
+    ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},
     {"data":"26/09/2026","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},
     {"data":"26/09/2026","texto":"F3 e F4 no servidor: código pelo WhatsApp (webhook, bloqueio de 30 min, fila) e criação atômica da reserva; teste de concorrência e integração no CI; desenho técnico v17.","ref":""},
     {"data":"26/09/2026","texto":"Rotas do catálogo: loja (página inicial, coleções, produtos, looks, cotação da sacola) e painel (cadastros, fotos, página inicial, promoções); desenho técnico v16.","ref":""},

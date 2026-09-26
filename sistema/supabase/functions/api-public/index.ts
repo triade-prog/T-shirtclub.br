@@ -4,6 +4,7 @@
 
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
+import { mercadoPago } from "../_shared/pagamentos.ts";
 import { whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarApiPublica } from "./app.ts";
 
@@ -13,8 +14,10 @@ function exigir(nome: string): string {
   return v;
 }
 
+const url = exigir("SUPABASE_URL");
 const app = criarApiPublica(Deno.env.get("REPASSE_SEGREDO"), {
-  banco: bancoPostgrest(exigir("SUPABASE_URL"), exigir("SUPABASE_SERVICE_ROLE_KEY")),
+  banco: bancoPostgrest(url, exigir("SUPABASE_SERVICE_ROLE_KEY")),
+  pagamentos: mercadoPago({ accessToken: exigir("MP_ACCESS_TOKEN"), urlWebhook: `${url}/functions/v1/webhook-payments`, emailPix: exigir("MP_EMAIL_PIX") }),
   whatsapp: whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
   turnstile: turnstileCloudflare(exigir("TURNSTILE_SECRET")),
   pepper: exigir("OTP_PEPPER"),

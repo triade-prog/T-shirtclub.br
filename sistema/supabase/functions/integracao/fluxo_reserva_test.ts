@@ -8,6 +8,7 @@ import { criarApiPublica } from "../api-public/app.ts";
 import { criarWebhookWhatsApp } from "../webhook-whatsapp/app.ts";
 import { despacharOutbox } from "../worker/outbox.ts";
 import { whatsappFalso } from "../_shared/whatsapp.ts";
+import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { bancoPg } from "./banco_pg.ts";
 
 const url = Deno.env.get("PGURL_TESTE");
@@ -35,7 +36,7 @@ Deno.test({
       `);
 
       const api = criarApiPublica(SEGREDO, {
-        banco, whatsapp, turnstile: { verificar: () => Promise.resolve(true) },
+        banco, whatsapp, turnstile: { verificar: () => Promise.resolve(true) }, pagamentos: pagamentosFalso(),
         pepper: "p".repeat(40), numeroLoja: "5577998155772", urlLoja: "https://tshirtclub.pt",
       });
       const webhook = criarWebhookWhatsApp({ banco, whatsapp, pepper: "p".repeat(40), segredo: WEBHOOK, sorteio: () => 0 });

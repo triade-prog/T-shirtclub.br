@@ -109,3 +109,28 @@ export const ajusteEstoqueSchema = z.object({
 export const decisaoBloqueioSchema = z.object({
   motivo: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR"),
 });
+
+/** POST /v1/reservations/:id/payments — o header Idempotency-Key vem à parte (seção 08). */
+export const pagamentoSchema = z
+  .object({
+    forma: z.enum(["PIX", "CARTAO"]),
+    /** Dados do Card Payment Brick: só o token, nunca o número do cartão. */
+    cartao: z
+      .object({
+        token: z.string().min(8).max(200),
+        paymentMethodId: z.string().regex(/^[a-z_]{2,30}$/),
+        issuerId: z.union([z.string().max(20), z.number().int()]).nullish().transform((v) => (v === null || v === undefined ? null : String(v))),
+        email: z.email().max(254),
+      })
+      .optional(),
+  })
+  .refine((p) => (p.forma === "CARTAO") === Boolean(p.cartao), "VALIDATION_ERROR");
+
+/** POST /v1/admin/payment-reviews/:id/resolve (D6) */
+export const resolverAnaliseSchema = z.object({
+  resolucao: z.enum(["ESTORNAR", "CONVERTER_EM_PEDIDO"]),
+  nota: z.string().trim().max(500).optional(),
+});
+
+/** POST /v1/admin/payment-disputes/:id/resolve (G2) */
+export const resolverDisputaSchema = z.object({ nota: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR") });

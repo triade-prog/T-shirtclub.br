@@ -65,6 +65,9 @@ describe("o que a loja manda", () => {
       "A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.pt",
     );
     expect(mensagemWhatsApp("telefone_bloqueado", {})).toContain("3 terminaram sem pagamento em 30 dias");
+    expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1048, totalCentavos: 11999, forma: "PIX" }, 0)).toBe(
+      "Pagamento confirmado! Pedido #1048, R$ 119,99 no PIX. Agora escolha como quer receber, no site: tshirtclub.pt ✨",
+    );
   });
 
   it("hora sempre no fuso da loja", () => {

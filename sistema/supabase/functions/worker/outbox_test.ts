@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import type { Banco } from "../_shared/banco.ts";
 import { whatsappFalso } from "../_shared/whatsapp.ts";
+import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { criarWorker } from "./app.ts";
 import { despacharOutbox } from "./outbox.ts";
 
@@ -49,7 +50,7 @@ Deno.test("modelo desconhecido não trava a fila", async () => {
 });
 
 Deno.test("worker só atende com o segredo", async () => {
-  const app = criarWorker("w".repeat(40), { banco: fila([]).banco, whatsapp: whatsappFalso() });
+  const app = criarWorker("w".repeat(40), { banco: fila([]).banco, whatsapp: whatsappFalso(), pagamentos: pagamentosFalso() });
   assertEquals((await app.request("/worker/outbox", { method: "POST" })).status, 403);
   const r = await app.request("/worker/outbox", { method: "POST", headers: { "x-worker-segredo": "w".repeat(40) } });
   assertEquals(await r.json(), { enviadas: 0, falhas: 0 });

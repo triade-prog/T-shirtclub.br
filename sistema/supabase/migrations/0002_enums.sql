@@ -39,3 +39,8 @@ create type attempt_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'CONVE
 create type phone_block_status as enum ('ATIVO', 'LIBERADO');
 create type phone_block_decision as enum ('LIBERAR', 'MANTER');
 create type outbox_status as enum ('PENDENTE', 'ENVIANDO', 'ENVIADA', 'ENTREGUE', 'LIDA', 'FALHOU', 'DESCARTADA');
+
+-- Pagamentos (seção 08, F6).
+create type review_status as enum ('ABERTA', 'RESOLVIDA');
+create type review_resolution as enum ('ESTORNAR', 'CONVERTER_EM_PEDIDO');
+create type dispute_kind as enum ('ESTORNO', 'CONTESTACAO', 'CANCELAMENTO');
