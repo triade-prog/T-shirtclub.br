@@ -1,9 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-// Tipos da reserva como a api-public devolve (reservation_json, payment_json) e utilidades
-// das telas da reserva.
+// Tipos da reserva como a api-public devolve (reservation_json, payment_json).
 
 export type StatusReserva = "RESERVADO" | "PAGAMENTO_CONFIRMADO" | "ENTREGUE" | "EXPIRADO";
 export type Modalidade = "RETIRADA" | "MOTOBOY" | "ENVIO";
@@ -53,22 +48,4 @@ export interface Pagamento {
 
 export const ENTREGA: Record<Modalidade, string> = { RETIRADA: "Retirar na loja", MOTOBOY: "Entrega local (motoboy)", ENVIO: "Envio para outra cidade" };
 
-export function guardado(chave: string): string | null {
-  try { return sessionStorage.getItem(chave); } catch { return null; }
-}
-export function guardar(chave: string, valor: string) {
-  try { sessionStorage.setItem(chave, valor); } catch { /* sem armazenamento: a tela refaz a busca */ }
-}
-
-/** Repete `fn` a cada `ms` com a aba visível (e na volta para a aba). */
-export function useRepetir(fn: () => void, ms: number, ligado: boolean) {
-  const ref = useRef(fn);
-  useEffect(() => { ref.current = fn; });
-  useEffect(() => {
-    if (!ligado) return;
-    const passo = () => { if (document.visibilityState === "visible") ref.current(); };
-    const id = setInterval(passo, ms);
-    document.addEventListener("visibilitychange", passo);
-    return () => { clearInterval(id); document.removeEventListener("visibilitychange", passo); };
-  }, [ms, ligado]);
-}
+export { guardado, guardar, useRepetir } from "@/lib/navegador";

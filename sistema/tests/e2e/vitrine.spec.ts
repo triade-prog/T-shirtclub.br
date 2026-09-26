@@ -72,3 +72,12 @@ test("link /r: tira a chave do endereço e avisa sem quebrar", async ({ page }) 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations).toEqual([]);
 });
+
+// Consulta (fatia 7): sem sessão e sem a api-public, mostra o pedido do WhatsApp e não lista nada.
+test("consulta: pede o WhatsApp, acessível", async ({ page }) => {
+  await page.goto(`${LOJA}/consulta`);
+  await expect(page.getByLabel("Seu WhatsApp")).toHaveAttribute("autocomplete", "tel-national");
+  await expect(page.getByRole("button", { name: "Receber código no WhatsApp" })).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});
