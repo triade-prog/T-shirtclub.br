@@ -26,7 +26,8 @@ export function Campo({ rotulo, ajuda, erro, multilinha, id, className, ...resto
     <div className="field">
       <label htmlFor={idCampo}>{rotulo}</label>
       {multilinha
-        ? <textarea className={`textarea${className ? ` ${className}` : ""}`} {...comum} name={resto.name} maxLength={resto.maxLength} placeholder={resto.placeholder} />
+        ? <textarea className={`textarea${className ? ` ${className}` : ""}`} {...comum} name={resto.name} maxLength={resto.maxLength} placeholder={resto.placeholder}
+            defaultValue={resto.defaultValue as string | undefined} />
         : <input className={`input${className ? ` ${className}` : ""}`} {...comum} {...resto} />}
       {erro && <p className="field-error" id={`${idCampo}-erro`}>{erro}</p>}
       {ajuda && <span className="field-help" id={`${idCampo}-ajuda`}>{ajuda}</span>}
@@ -55,4 +56,23 @@ export function tomDoStatus(status: string): "reserved" | "paid" | "issue" | "sh
 
 export function Carregando({ erro }: { erro?: string | null }) {
   return erro ? <Aviso tipo="error" titulo={erro} /> : <p role="status" className="loading">Carregando…</p>;
+}
+
+export function Escolha({ rotulo, opcoes, ajuda, id, ...resto }:
+  React.SelectHTMLAttributes<HTMLSelectElement> & { rotulo: string; opcoes: readonly (readonly [string, string])[]; ajuda?: string }) {
+  const auto = useId();
+  const idCampo = id ?? auto;
+  return (
+    <div className="field">
+      <label htmlFor={idCampo}>{rotulo}</label>
+      <select className="select" id={idCampo} aria-describedby={ajuda ? `${idCampo}-ajuda` : undefined} {...resto}>
+        {opcoes.map(([valor, texto]) => <option key={valor} value={valor}>{texto}</option>)}
+      </select>
+      {ajuda && <span className="field-help" id={`${idCampo}-ajuda`}>{ajuda}</span>}
+    </div>
+  );
+}
+
+export function Marcar({ rotulo, ...resto }: React.InputHTMLAttributes<HTMLInputElement> & { rotulo: string }) {
+  return <label className="check"><input type="checkbox" {...resto} /> {rotulo}</label>;
 }

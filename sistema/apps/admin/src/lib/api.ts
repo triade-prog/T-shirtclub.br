@@ -6,7 +6,7 @@ export type RespostaApi<T> =
   | { ok: true; dados: T }
   | { ok: false; codigo: CodigoErro; detalhes: Record<string, unknown> };
 
-export async function chamarApi<T>(caminho: string, corpo?: unknown, metodo: "GET" | "POST" | "PUT" = corpo === undefined ? "GET" : "POST"): Promise<RespostaApi<T>> {
+export async function chamarApi<T>(caminho: string, corpo?: unknown, metodo: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = corpo === undefined ? "GET" : "POST"): Promise<RespostaApi<T>> {
   try {
     const r = await fetch(`/api/${caminho}`, {
       method: metodo,

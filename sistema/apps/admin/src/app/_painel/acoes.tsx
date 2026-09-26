@@ -2,25 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { chamarApi, mensagemDeErro, type RespostaApi } from "@/lib/api";
+import { chamarApi } from "@/lib/api";
+import { useEnvio } from "./useEnvio";
 import { Botao, Campo, Seta } from "./ui";
 
 // Ações da operação (F7, F8) no desenho V4 (telas 05 a 08): toda decisão pede motivo (vai
 // para a auditoria) e o erro aparece junto do formulário.
-
-function useEnvio(aoConcluir: () => void) {
-  const [ocupado, setOcupado] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
-  async function enviar(chamada: Promise<RespostaApi<unknown>>) {
-    setOcupado(true);
-    setErro(null);
-    const r = await chamada;
-    setOcupado(false);
-    if (r.ok) aoConcluir();
-    else setErro(mensagemDeErro(r.codigo, r.detalhes));
-  }
-  return { ocupado, erro, setErro, enviar };
-}
 
 /** Aprovar ou recusar um pedido de cancelamento (regra 12), sempre com motivo. */
 export function DecisaoCancelamento({ pedidoId, reservaId, aoDecidir }: { pedidoId: string; reservaId?: string; aoDecidir: () => void }) {

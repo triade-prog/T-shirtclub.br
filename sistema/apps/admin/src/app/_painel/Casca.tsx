@@ -22,6 +22,9 @@ const ICONES = {
   reservas: <><path d="M6 4h12a2 2 0 0 1 2 2v14H7a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2Z" /><path d="M7 20a3 3 0 0 1 0-6h13" /></>,
   cancelamentos: <path d="m6 6 12 12M18 6 6 18" />,
   entregas: <><path d="m4 7 8-4 8 4-8 4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></>,
+  catalogo: <path d="m8 4 4 2 4-2 5 3-3 5-2-1v9H8v-9l-2 1-3-5Z" />,
+  estoque: <><path d="M3 8h18v12H3Z" /><path d="M3 8l2-4h14l2 4M10 12h4" /></>,
+  promocoes: <><path d="M4 12V4h8l8 8-8 8Z" /><circle cx="8.5" cy="8.5" r="1.5" /></>,
 };
 
 export function Icone({ children }: { children: React.ReactNode }) {
@@ -61,6 +64,9 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
     { href: "/reservas", rotulo: "Reservas", icone: ICONES.reservas, n: c?.reservas.ativas ?? 0 },
     { href: "/cancelamentos", rotulo: "Cancelamentos", icone: ICONES.cancelamentos, n: c?.acoes.cancelamentosPendentes ?? 0 },
     { href: "/entregas", rotulo: "Entregas e frete", icone: ICONES.entregas, n: c ? c.acoes.fretes.aguardandoCalculo + c.acoes.fretes.vencidos + c.acoes.emPreparacao : 0 },
+    { href: "/catalogo", rotulo: "Catálogo", icone: ICONES.catalogo, n: 0 },
+    { href: "/estoque", rotulo: "Estoque", icone: ICONES.estoque, n: 0 },
+    { href: "/promocoes", rotulo: "Promoções", icone: ICONES.promocoes, n: 0 },
   ];
 
   return (
