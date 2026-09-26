@@ -5,9 +5,13 @@ export function urlFoto(caminho: string): string {
   return `${process.env.NEXT_PUBLIC_ORIGEM_IMAGENS ?? ""}/storage/v1/object/public/catalogo/${caminho}`;
 }
 
-/** "49,99" ou "1.234,50" → centavos; inválido → null. */
+/**
+ * "49,99", "1.234,50" ou "15.50" → centavos; inválido → null. Sem vírgula, ponto seguido de
+ * 1 ou 2 dígitos no fim é o decimal ("15.5" é R$ 15,50, não R$ 155).
+ */
 export function paraCentavos(texto: string): number | null {
-  const limpo = texto.trim().replace(/^R\$\s*/, "").replace(/\./g, "").replace(",", ".");
+  const bruto = texto.trim().replace(/^R\$\s*/, "");
+  const limpo = !bruto.includes(",") && /^\d+\.\d{1,2}$/.test(bruto) ? bruto : bruto.replace(/\./g, "").replace(",", ".");
   if (!/^\d+(\.\d{1,2})?$/.test(limpo)) return null;
   return Math.round(Number(limpo) * 100);
 }
@@ -49,6 +53,10 @@ export function deMedidas(medidas: Record<string, string | number> | null | unde
   return Object.entries(medidas ?? {}).map(([k, v]) => `${k}: ${String(v).replace(".", ",")}`).join("\n");
 }
 
+/** O Safari não gera WebP no canvas (devolve PNG); a foto não pode subir com o formato errado. */
+export class ErroSemWebp extends Error {}
+export const TEXTO_SEM_WEBP = "Este navegador não converte fotos para WebP (o Safari não converte). Envie pelo Chrome, Edge ou Firefox.";
+
 /**
  * Foto escolhida → WebP de até 1600 px no lado maior (as fotos do catálogo são WebP, 4:5,
  * cerca de 35 KB na loja). Só no navegador.
@@ -64,6 +72,7 @@ export async function paraWebp(arquivo: File): Promise<{ blob: Blob; largura: nu
   tela.getContext("2d")!.drawImage(bitmap, 0, 0, largura, altura);
   const blob = await new Promise<Blob | null>((ok) => tela.toBlob(ok, "image/webp", 0.85));
   if (!blob) throw new Error("webp");
+  if (blob.type !== "image/webp") throw new ErroSemWebp();
   return { blob, largura, altura };
 }
 

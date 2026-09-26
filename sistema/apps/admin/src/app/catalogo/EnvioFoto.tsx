@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
-import { enviarArquivo, paraWebp, urlFoto } from "@/lib/catalogo";
+import { ErroSemWebp, TEXTO_SEM_WEBP, enviarArquivo, paraWebp, urlFoto } from "@/lib/catalogo";
 
 // Capa de coleção ou foto de look: a api-admin gera o caminho e a URL assinada, e o arquivo
 // (convertido para WebP no navegador) vai direto ao Storage.
@@ -23,8 +23,8 @@ export function EnvioFoto({ destino, caminho, aoEnviar, rotulo }: {
       if (!(await enviarArquivo(r.dados.envio.url, blob))) return setEstado("Não conseguimos enviar a foto. Tente de novo.");
       aoEnviar(r.dados.caminho);
       setEstado("Foto enviada. Salve para aplicar.");
-    } catch {
-      setEstado("Este arquivo não é uma imagem que o navegador consiga abrir.");
+    } catch (e) {
+      setEstado(e instanceof ErroSemWebp ? TEXTO_SEM_WEBP : "Este arquivo não é uma imagem que o navegador consiga abrir.");
     }
   }
 

@@ -5,6 +5,9 @@ describe("utilidades do catálogo no painel", () => {
   it("reais e centavos", () => {
     expect(paraCentavos("49,99")).toBe(4999);
     expect(paraCentavos("R$ 1.234,5")).toBe(123450);
+    expect(paraCentavos("15.5")).toBe(1550);
+    expect(paraCentavos("15.50")).toBe(1550);
+    expect(paraCentavos("1.500")).toBe(150000);
     expect(paraCentavos("abc")).toBeNull();
     expect(paraReais(11999)).toBe("119,99");
     expect(paraReais(null)).toBe("");

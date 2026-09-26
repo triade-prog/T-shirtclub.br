@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { chamarApi, type RespostaApi } from "@/lib/api";
+import { paraCentavos } from "@/lib/catalogo";
 import { useEnvio } from "./useEnvio";
 import { Botao, Campo, Seta } from "./ui";
 
@@ -51,10 +52,10 @@ export function FormFrete({ reservaId, aoSalvar }: { reservaId: string; aoSalvar
   function salvar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const valor = Math.round(Number(String(f.get("valor") ?? "").replace(/\./g, "").replace(",", ".")) * 100);
+    const valor = paraCentavos(String(f.get("valor") ?? ""));
     const prazo = String(f.get("prazo") ?? "").trim();
     const observacao = String(f.get("observacao") ?? "").trim();
-    if (!Number.isFinite(valor) || valor < 1 || valor > 100_000) return setErro("Informe o valor do frete, como 15,00.");
+    if (valor === null || valor < 1 || valor > 100_000) return setErro("Informe o valor do frete, como 15,00.");
     if (prazo && !/^\d{1,2}$/.test(prazo)) return setErro("O prazo é em dias úteis, de 0 a 60.");
     void enviar(chamarApi(`v1/admin/reservations/${reservaId}/shipping-quote`, {
       valorCentavos: valor, ...(prazo ? { prazoDias: Number(prazo) } : {}), ...(observacao ? { observacao } : {}),

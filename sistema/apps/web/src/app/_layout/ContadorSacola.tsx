@@ -8,7 +8,9 @@ import { COOKIE_SACOLA, lerSacola } from "@/lib/sacola";
 // continuar estático (a página sem conexão fica guardada pelo service worker).
 function lerCookie(): string {
   const par = document.cookie.split("; ").find((c) => c.startsWith(`${COOKIE_SACOLA}=`));
-  return par ? decodeURIComponent(par.slice(COOKIE_SACOLA.length + 1)) : "";
+  if (!par) return "";
+  // Valor malformado (editado à mão) não pode derrubar o cabeçalho de todas as páginas.
+  try { return decodeURIComponent(par.slice(COOKIE_SACOLA.length + 1)); } catch { return ""; }
 }
 // O cookie não avisa quando muda (Remover na sacola, outra aba): confere a cada segundo, e o
 // React só redesenha quando o texto muda.

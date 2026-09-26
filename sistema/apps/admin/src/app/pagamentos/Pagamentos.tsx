@@ -7,7 +7,7 @@ import { chamarApi, dataHora, telefone } from "@/lib/api";
 import { STATUS_RESERVA } from "@/lib/rotulos";
 import { DecisaoComMotivo } from "../_painel/acoes";
 import { Casca } from "../_painel/Casca";
-import { Abas, Carregando, Selo, tomDoStatus } from "../_painel/ui";
+import { Abas, Aviso, Carregando, Selo, tomDoStatus } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 
 // Pagamentos em análise (F6.9, tela 12 do protótipo; sem referência V4, no estilo do painel V4):
@@ -33,24 +33,32 @@ export function Pagamentos() {
   const [filtro, setFiltro] = useState<Filtro>("ABERTA");
   const { dados, erro, recarregar } = useDados<Caso[]>(`v1/admin/payment-reviews?status=${filtro}`);
   const abertos = dados?.filter((c) => c.status === "ABERTA").length ?? 0;
+  // O caso convertido sai da aba Abertos: o pedido novo aparece aqui em cima.
+  const [novoPedido, setNovoPedido] = useState<{ id: string; numero: number } | null>(null);
 
   return (
     <Casca kicker="PAGAMENTOS" titulo="Pagamentos em análise"
       sub="Pagamentos aprovados pelo provedor depois do prazo da reserva. Eles nunca confirmam sozinhos e a reserva expirada não é reativada: a loja estorna ou converte em um novo pedido.">
       <Abas rotulo="Filtrar casos" valor={filtro} aoMudar={setFiltro}
         opcoes={[{ valor: "ABERTA", texto: "Abertos", n: filtro === "ABERTA" ? abertos : undefined }, { valor: "RESOLVIDA", texto: "Resolvidos" }, { valor: "TODAS", texto: "Todos" }]} />
+      {novoPedido && (
+        <div className="mb">
+          <Aviso tipo="green" titulo={`Pedido #${novoPedido.numero} criado em Pagamento confirmado.`}>
+            <p>A cliente recebe o aviso no WhatsApp. <Link className="btn-link" href={`/reservas/${novoPedido.id}`}>Abrir o pedido #{novoPedido.numero}</Link></p>
+          </Aviso>
+        </div>
+      )}
       {!dados ? <Carregando erro={erro} /> : dados.length === 0 ? (
         <p className="muted loading">{filtro === "ABERTA" ? "Nenhum pagamento esperando decisão." : "Nenhum caso."}</p>
       ) : (
-        <div className="list">{dados.map((c) => <CartaoCaso key={c.id} caso={c} aoResolver={() => void recarregar()} />)}</div>
+        <div className="list">{dados.map((c) => <CartaoCaso key={c.id} caso={c} aoResolver={() => void recarregar()} aoConverter={setNovoPedido} />)}</div>
       )}
       <p className="field-help mt">Cada reserva é paga com uma única forma, PIX ou cartão, escolhida na primeira cobrança; o valor da cobrança é sempre o total exato da reserva.</p>
     </Casca>
   );
 }
 
-function CartaoCaso({ caso: c, aoResolver }: { caso: Caso; aoResolver: () => void }) {
-  const [convertida, setConvertida] = useState<{ id: string; numero: number } | null>(null);
+function CartaoCaso({ caso: c, aoResolver, aoConverter }: { caso: Caso; aoResolver: () => void; aoConverter: (pedido: { id: string; numero: number }) => void }) {
   const aberto = c.status === "ABERTA";
   const frete = c.pagamento.finalidade === "FRETE";
 
@@ -86,7 +94,7 @@ function CartaoCaso({ caso: c, aoResolver }: { caso: Caso; aoResolver: () => voi
               rotulo: "Converter em novo pedido", variante: "dark" as const,
               enviar: async (nota: string) => {
                 const r = await chamarApi<{ reserva?: { id: string; numero: number } }>(`v1/admin/payment-reviews/${c.id}/resolve`, { resolucao: "CONVERTER_EM_PEDIDO", nota });
-                if (r.ok && r.dados.reserva) setConvertida(r.dados.reserva);
+                if (r.ok && r.dados.reserva) aoConverter(r.dados.reserva);
                 return r;
               },
             }]),
@@ -94,7 +102,7 @@ function CartaoCaso({ caso: c, aoResolver }: { caso: Caso; aoResolver: () => voi
       ) : (
         <p className="field-help">
           {c.resolucao === "ESTORNAR" ? "Estornado" : "Convertido em novo pedido"}{c.nota ? `: “${c.nota}”` : "."}{" "}
-          {(convertida?.id ?? c.novaReservaId) && <Link className="btn-link" href={`/reservas/${convertida?.id ?? c.novaReservaId}`}>Abrir o novo pedido{convertida ? ` #${convertida.numero}` : ""}</Link>}
+          {c.novaReservaId && <Link className="btn-link" href={`/reservas/${c.novaReservaId}`}>Abrir o novo pedido</Link>}
         </p>
       )}
     </section>

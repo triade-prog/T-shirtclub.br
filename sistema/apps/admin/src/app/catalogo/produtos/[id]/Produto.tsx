@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatarReais } from "@tshirtclub/domain";
 import { chamarApi, dataHora, mensagemDeErro } from "@/lib/api";
-import { deMedidas, enviarArquivo, paraCentavos, paraMedidas, paraReais, paraSlug, paraWebp, urlFoto } from "@/lib/catalogo";
+import { ErroSemWebp, TEXTO_SEM_WEBP, deMedidas, enviarArquivo, paraCentavos, paraMedidas, paraReais, paraSlug, paraWebp, urlFoto } from "@/lib/catalogo";
 import { TIPOS_FOTO, type Colecao, type Foto, type ProdutoCompleto } from "@/lib/tiposCatalogo";
 import { AjusteEstoque } from "../../../_painel/AjusteEstoque";
 import { Casca } from "../../../_painel/Casca";
@@ -143,9 +143,14 @@ function Fotos({ produto: p, aoMudar }: { produto: ProdutoCompleto; aoMudar: () 
         const tipo = p.fotos.length + n === 0 ? "FRENTE" : "DETALHE";
         const r = await chamarApi<{ foto: Foto; envio: { url: string } }>(`v1/admin/products/${p.id}/images`, { tipo, alt: p.nome, largura, altura });
         if (!r.ok) { setEstado(mensagemDeErro(r.codigo, r.detalhes)); break; }
-        if (!(await enviarArquivo(r.dados.envio.url, blob))) { setEstado("Não conseguimos enviar a foto. Tente de novo."); break; }
-      } catch {
-        setEstado("Um dos arquivos não é uma imagem que o navegador consiga abrir.");
+        if (!(await enviarArquivo(r.dados.envio.url, blob))) {
+          // A foto já foi registrada: sem o arquivo, ela sai, para não aparecer quebrada na loja.
+          if (r.dados.foto.id) await chamarApi(`v1/admin/products/${p.id}/images/${r.dados.foto.id}`, undefined, "DELETE");
+          setEstado("Não conseguimos enviar a foto. Tente de novo.");
+          break;
+        }
+      } catch (e) {
+        setEstado(e instanceof ErroSemWebp ? TEXTO_SEM_WEBP : "Um dos arquivos não é uma imagem que o navegador consiga abrir.");
         break;
       }
       setEstado(null);
