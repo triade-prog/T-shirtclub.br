@@ -8,6 +8,9 @@ import { mercadoPago } from "../_shared/pagamentos.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
 import { whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarApiAdmin } from "./app.ts";
+import { monitorDoAmbiente } from "../_shared/monitor.ts";
+
+monitorDoAmbiente("api-admin");
 
 function exigir(nome: string): string {
   const v = Deno.env.get(nome);

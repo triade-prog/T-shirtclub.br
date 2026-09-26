@@ -106,7 +106,11 @@ Falta da loja para a F8: o endereço e o horário de retirada (E7), que entram n
 
 Para publicar (F10): ligar no Supabase Auth a proteção contra senhas vazadas e o aviso de troca de senha por e-mail, junto com o SMTP do projeto.
 
-O próximo servidor é a F11 (endurecimento: teste de carga, verificador de invariantes do estoque, prazos de guarda dos dados, runbook, monitoramento e PWA), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+**F11 (26/09):** o sistema foi posto à prova e ganhou o que falta para operar. Teste de carga com 100 clientes ao mesmo tempo, 40 delas disputando as 10 últimas peças: exatamente 10 reservadas, nada vendido a mais e nenhum erro. Todo dia de madrugada o sistema confere o estoque contra as reservas (divergência vira alerta no painel) e apaga o que passou do prazo de guarda (códigos, sessões e IPs em 30 dias; mensagens recebidas em 90; endereço 90 dias depois da entrega vira só a cidade). Alertas no painel para job atrasado, fila do WhatsApp parada e avisos do Mercado Pago sem processar; um endereço de saúde para um monitor de fora avisar por e-mail; erros inesperados registrados sem dados pessoais (e no Sentry, se configurado). O teste do banco agora restaura uma cópia num banco vazio e confere tudo. O runbook (sistema/docs/runbook.md) diz o que fazer em cada problema. Na loja: funciona sem conexão (mostra uma página avisando), guarda só a parte fixa do app e as imagens, e ensina a instalar no iPhone. 442 testes de banco, 70 Deno, 129 de regras, seis testes de integração (com a carga) e 24 de telas.
+
+Falta para a F11 fechar de vez: rodar o roteiro k6 e ensaiar a restauração com o backup real, quando existir o projeto no Supabase (F1.4). A decidir com a loja: anonimização depois de 5 anos e exclusão a pedido da titular pelo painel (o prazo fiscal precisa ser confirmado com a contabilidade).
+
+Com a F11, todas as fases de servidor do plano estão feitas. O que falta para abrir a loja: as telas (esperam a aprovação do design, D1 e D2), o CI rodando (F1.2), as contas (Supabase, Vercel, Z-API, Mercado Pago), os dados da loja (produtos, domínio, endereço de retirada) e o checklist de publicação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

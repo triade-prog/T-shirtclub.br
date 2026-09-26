@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { baloo, poppins } from "./fontes";
 import { Cabecalho } from "./_layout/Cabecalho";
 import { Rodape } from "./_layout/Rodape";
+import { RegistrarServiceWorker } from "./_pwa/RegistrarServiceWorker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function LayoutLoja({ children }: { children: React.ReactNode }) 
         <Cabecalho />
         <main id="conteudo" className="mx-auto w-full max-w-6xl">{children}</main>
         <Rodape />
+        <RegistrarServiceWorker />
       </body>
     </html>
   );

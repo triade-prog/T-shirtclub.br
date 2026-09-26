@@ -5,6 +5,7 @@ import { Hono, type Env } from "hono";
 import { ErroDominio } from "@tshirtclub/domain";
 import { CABECALHO_SEGREDO, segredoConfere } from "./repasse.ts";
 import { respostaErro } from "./http.ts";
+import { relatarErro } from "./monitor.ts";
 
 // deno-lint-ignore ban-types
 export function criarApp<E extends Env = {}>(nome: string, segredo: string | undefined): Hono<E> {
@@ -18,9 +19,9 @@ export function criarApp<E extends Env = {}>(nome: string, segredo: string | und
     c.header("cache-control", "no-store");
   });
 
-  app.onError((err) => {
+  app.onError(async (err, c) => {
     if (err instanceof ErroDominio) return respostaErro(err.codigo, err.detalhes);
-    console.error(JSON.stringify({ funcao: nome, erro: String(err) }));
+    await relatarErro(err, { rota: c.req.routePath, metodo: c.req.method });
     return respostaErro("INTERNAL_ERROR");
   });
 

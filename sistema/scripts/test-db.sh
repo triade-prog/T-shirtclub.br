@@ -39,3 +39,19 @@ if [ -x "$DENO" ]; then
 else
   echo "Deno não encontrado: integração das Edge Functions pulada (rode pnpm install)"
 fi
+
+# Ensaio de restauração do backup (T25): cópia do banco restaurada num banco vazio; o sistema
+# sobe, as funções respondem, a chave anon continua sem acesso e os invariantes passam.
+"$PGBIN/pg_dump" -Fc -f "$DADOS/backup.dump" postgres
+"${PSQL[@]}" -c "create database restauracao" -c "alter database restauracao set search_path = public, extensions"
+"$PGBIN/pg_restore" --exit-on-error -d restauracao "$DADOS/backup.dump"
+restaurado=$("${PSQL[@]}" -d restauracao -tA -c "select concat_ws(' ',
+  ((select count(*) from reservations) > 0)::text,
+  (public.check_stock_invariants() ->> 'divergencias'),
+  (public.admin_dashboard() is not null)::text,
+  has_function_privilege('anon', 'public.create_reservation(uuid,text,jsonb)', 'execute')::text)")
+if [ "$restaurado" != "true 0 true false" ]; then
+  echo "Restauração do backup: falhou ($restaurado)"; "${PSQL[@]}" -d restauracao -tA -c "select public.check_stock_invariants()"; exit 1
+fi
+echo "Restauração do backup: ok (dados, invariantes, funções e acesso conferidos)"
+

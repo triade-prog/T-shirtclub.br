@@ -14,6 +14,7 @@ import {
 } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { gerarCodigo, hashCodigo } from "../_shared/otp.ts";
+import { relatarErro } from "../_shared/monitor.ts";
 import { segredoConfere } from "../_shared/repasse.ts";
 import { lerWebhookZapi, type EventoWhatsApp, type WhatsAppProvider } from "../_shared/whatsapp.ts";
 
@@ -44,7 +45,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     try {
       await deps.whatsapp.enviarTexto(`+${remetente}`, texto);
     } catch (e) {
-      console.error(JSON.stringify({ funcao: "webhook-whatsapp", aviso: "resposta não enviada", erro: String(e) }));
+      await relatarErro(e, { tarefa: "resposta-na-conversa" });
     }
   }
 
@@ -108,7 +109,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
           await deps.whatsapp.enviarCodigo(r.telefone, texto, codigo);
           return await marcar(e.id, "CODIGO_ENVIADO");
         } catch (erro) {
-          console.error(JSON.stringify({ funcao: "webhook-whatsapp", aviso: "código não enviado", erro: String(erro) }));
+          await relatarErro(erro, { tarefa: "enviar-codigo" });
           return await marcar(e.id, "FALHA_ENVIO");
         }
       case "NUMERO_DIFERENTE":
@@ -133,8 +134,8 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     return c.json({ ok: true, tratamento: await tratar(evento) });
   });
 
-  app.onError((err, c) => {
-    console.error(JSON.stringify({ funcao: "webhook-whatsapp", erro: String(err) }));
+  app.onError(async (err, c) => {
+    await relatarErro(err, { rota: c.req.routePath, metodo: c.req.method });
     return c.json({ erro: { codigo: "INTERNAL_ERROR" } }, 500); // a Z-API reenvia; o registro evita tratar duas vezes
   });
   app.notFound((c) => c.json({ erro: { codigo: "NOT_FOUND" } }, 404));

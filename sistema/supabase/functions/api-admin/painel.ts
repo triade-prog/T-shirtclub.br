@@ -2,7 +2,8 @@
 // reserva com a linha do tempo, e a consulta da auditoria.
 
 import type { Hono } from "hono";
-import { ErroDominio, buscaAuditoriaSchema, buscaReservasSchema, idSchema } from "@tshirtclub/domain";
+import { ErroDominio, buscaAuditoriaSchema, buscaReservasSchema, decisaoBloqueioSchema, idSchema } from "@tshirtclub/domain";
+import { lerCorpo } from "../_shared/validar.ts";
 import type { Banco } from "../_shared/banco.ts";
 import { chamar } from "../_shared/erros-banco.ts";
 import type { WhatsAppProvider } from "../_shared/whatsapp.ts";
@@ -62,5 +63,17 @@ export function rotasPainel(app: Hono<VarsAdmin>, deps: DepsPainel): void {
       p_actor: q.autor ?? null, p_subject: q.assunto ?? null, p_since: desde?.toISOString() ?? null,
       p_entity: q.entidade ?? null, p_entity_id: q.id ?? null, p_page: q.pagina,
     }));
+  });
+
+  // Alertas do sistema (F11): estoque divergente, job atrasado, fila parada, pagamentos parados.
+  app.get("/v1/admin/alerts", async (c) => {
+    return c.json(await chamar(deps.banco, "admin_list_alerts", { p_open: c.req.query("resolvidos") !== "1" }));
+  });
+
+  app.post("/v1/admin/alerts/:id/resolve", async (c) => {
+    const id = idSchema.safeParse(c.req.param("id"));
+    if (!id.success) throw new ErroDominio("NOT_FOUND");
+    const { motivo } = await lerCorpo(c, decisaoBloqueioSchema);
+    return c.json(await chamar(deps.banco, "admin_resolve_alert", { p_id: id.data, p_admin: c.get("admin").userId, p_note: motivo }));
   });
 }

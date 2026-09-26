@@ -55,3 +55,14 @@ Deno.test("worker só atende com o segredo", async () => {
   const r = await app.request("/worker/outbox", { method: "POST", headers: { "x-worker-segredo": "w".repeat(40) } });
   assertEquals(await r.json(), { enviadas: 0, falhas: 0 });
 });
+
+Deno.test("saúde dos jobs: sem segredo, 200 em dia e 503 com problema (monitor de fora)", async () => {
+  let saude = { ok: true, problemas: [] as unknown[], agora: "2026-10-10T12:00:00Z" };
+  const banco: Banco = { rpc: <T>(f: string) => Promise.resolve((f === "check_job_health" ? saude : null) as T) };
+  const app = criarWorker("w".repeat(40), { banco, whatsapp: whatsappFalso(), pagamentos: pagamentosFalso() });
+  const ok = await app.request("/worker/saude");
+  assertEquals([ok.status, await ok.json()], [200, { ok: true, problemas: [] }]);
+  saude = { ok: false, problemas: [{ tipo: "JOB_ATRASADO", job: "varredura" }], agora: "x" };
+  const ruim = await app.request("/worker/saude");
+  assertEquals([ruim.status, (await ruim.json()).problemas], [503, [{ tipo: "JOB_ATRASADO", job: "varredura" }]]);
+});

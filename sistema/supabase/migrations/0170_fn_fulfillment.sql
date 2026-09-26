@@ -205,6 +205,7 @@ begin
     perform log_audit('SISTEMA', null, 'frete.vencido', 'reservation', q.reservation_id::text, q.reservation_id);
     n := n + 1;
   end loop;
+  perform job_heartbeat('frete');
   return n;
 end $$;
 

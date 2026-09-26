@@ -2,6 +2,7 @@
 // promoções. Cada rota valida a entrada com o schema do packages/domain e chama a função
 // SQL do 0185, que grava e audita. As fotos vão direto ao Storage pela URL assinada.
 
+import { relatarErro } from "../_shared/monitor.ts";
 import type { Context, Hono } from "hono";
 import {
   ErroDominio,
@@ -44,7 +45,7 @@ async function apagarArquivo(armazenamento: Armazenamento, caminho: string | nul
   try {
     await armazenamento.apagar([caminho]);
   } catch (e) {
-    console.error(JSON.stringify({ funcao: "api-admin", aviso: "arquivo não apagado do Storage", caminho, erro: String(e) }));
+    await relatarErro(e, { tarefa: "apagar-arquivo-do-storage" });
   }
 }
 

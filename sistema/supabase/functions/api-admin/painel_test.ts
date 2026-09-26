@@ -120,3 +120,16 @@ Deno.test("Minha conta: autenticadores, e remover só com o código de outro", a
   assertEquals((await pedir("/v1/admin/mfa/factors/zz", undefined, "DELETE")).status, 404);
   assert(auditoria.includes("admin.autenticador.removido"));
 });
+
+Deno.test("alertas do sistema: lista e resolve com observação", async () => {
+  const { pedir, rpcs } = await logado({
+    rpcExtra: (f) => ({ admin_list_alerts: [{ id: "a1", tipo: "ESTOQUE_DIVERGENTE" }], admin_resolve_alert: { id: "a1", resolvidoPor: "Carol" } } as Record<string, unknown>)[f],
+  });
+  assertEquals((await (await pedir("/v1/admin/alerts")).json())[0].tipo, "ESTOQUE_DIVERGENTE");
+  assertEquals(rpcs.find((r) => r.funcao === "admin_list_alerts")!.args, { p_open: true });
+  await pedir("/v1/admin/alerts?resolvidos=1");
+  assertEquals(rpcs.findLast((r) => r.funcao === "admin_list_alerts")!.args, { p_open: false });
+  assertEquals((await pedir(`/v1/admin/alerts/${RESERVA}/resolve`, { motivo: "" })).status, 400);
+  assertEquals((await pedir(`/v1/admin/alerts/${RESERVA}/resolve`, { motivo: "Contei o estoque" })).status, 200);
+  assertEquals(rpcs.find((r) => r.funcao === "admin_resolve_alert")!.args, { p_id: RESERVA, p_admin: ADMIN, p_note: "Contei o estoque" });
+});

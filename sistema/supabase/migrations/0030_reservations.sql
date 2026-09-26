@@ -14,7 +14,8 @@ create table reservation_attempts (
   items                jsonb not null check (jsonb_typeof(items) = 'array' and jsonb_array_length(items) between 1 and 9),
   coupon_code          text check (coupon_code ~ '^[A-Z0-9]{4,20}$'),
   expected_total_cents integer not null check (expected_total_cents >= 0),
-  otp_session_id       uuid not null references otp_sessions (id),
+  -- A convertida solta a sessão do código depois de 30 dias (prazos de guarda, F11)
+  otp_session_id       uuid references otp_sessions (id),
   status               attempt_status not null default 'AGUARDANDO_VALIDACAO',
   verified_until       timestamptz,
   reservation_id       uuid,
@@ -22,7 +23,8 @@ create table reservation_attempts (
   browser_token_hash   text not null check (browser_token_hash ~ '^[0-9a-f]{64}$'),
   created_at           timestamptz not null default app_now(),
   updated_at           timestamptz not null default app_now(),
-  check ((status = 'CONVERTIDA') = (reservation_id is not null))
+  check ((status = 'CONVERTIDA') = (reservation_id is not null)),
+  check (otp_session_id is not null or status = 'CONVERTIDA')
 );
 
 -- A referência é única entre as tentativas em aberto.

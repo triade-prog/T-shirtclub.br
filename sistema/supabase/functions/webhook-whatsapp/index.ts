@@ -1,6 +1,9 @@
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarWebhookWhatsApp } from "./app.ts";
+import { monitorDoAmbiente } from "../_shared/monitor.ts";
+
+monitorDoAmbiente("webhook-whatsapp");
 
 function exigir(nome: string): string {
   const v = Deno.env.get(nome);

@@ -2,6 +2,7 @@
 // tolerância (consulta; se não aprovou, cancela a cobrança e expira), cobranças de reservas
 // que já saíram de RESERVADO e reconciliação do que ficou pendente sem webhook.
 
+import { relatarErro } from "../_shared/monitor.ts";
 import type { Banco } from "../_shared/banco.ts";
 import { paraAplicar, type PaymentProvider, type ResultadoProvedor } from "../_shared/pagamentos.ts";
 
@@ -48,7 +49,7 @@ export async function processarPagamentos(deps: DepsPagamentos) {
       await fn();
       return true;
     } catch (e) {
-      console.error(JSON.stringify({ funcao: "worker", tarefa: "pagamentos", erro: String(e) }));
+      await relatarErro(e, { tarefa: "pagamentos" });
       conta.falhas++;
       return false;
     }

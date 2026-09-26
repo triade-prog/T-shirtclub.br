@@ -43,6 +43,7 @@ set search_path = public
 as $$
 declare v jsonb := sweep_reservations();
 begin
+  perform job_heartbeat('varredura');
   return v || jsonb_build_object('worker', kick_worker());
 end $$;
 
@@ -51,6 +52,10 @@ begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.schedule('varredura-reservas', '10 seconds', 'select public.run_sweep()');
     perform cron.schedule('vencimento-frete', '* * * * *', 'select public.sweep_shipping_quotes()');
+    -- Horários do pg_cron em UTC: 03:10 e 03:25 na loja (America/Bahia, UTC-3)
+    perform cron.schedule('invariantes-estoque', '10 6 * * *', 'select public.check_stock_invariants()');
+    perform cron.schedule('prazos-de-guarda', '25 6 * * *', 'select public.purge_personal_data()');
+    perform cron.schedule('saude-jobs', '*/5 * * * *', 'select public.check_job_health()');
     perform cron.schedule('limpeza-limites', '7 * * * *', 'select public.purge_rate_limits()');
     perform cron.schedule('limpeza-login-painel', '17 3 * * *', 'select public.purge_admin_login_guards()');
   end if;

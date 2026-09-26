@@ -20,11 +20,19 @@ as $$
   )
 $$;
 
+-- Depois do prazo de guarda (D15), o endereço de um pedido encerrado fica só com cidade e UF.
+create function address_purged_ok(a jsonb) returns boolean
+language sql immutable
+as $$
+  select jsonb_typeof(a) = 'object' and a ? 'cidade'
+     and (select count(*) from jsonb_object_keys(a) k where k not in ('cidade', 'uf')) = 0
+$$;
+
 create table fulfillments (
   reservation_id uuid primary key references reservations (id),
   mode           delivery_mode not null,
   substatus      fulfillment_substatus not null default 'AGUARDANDO_MODALIDADE',
-  address        jsonb check (address_ok(address)),
+  address        jsonb check (address_ok(address) or (closed_at is not null and address_purged_ok(address))),
   -- Aleatório, 6 caracteres sem 0/O e 1/I, nunca derivado do número da reserva (G15)
   pickup_code    text not null check (pickup_code ~ '^[2-9A-HJ-NP-Z]{6}$'),
   tracking_code  text check (tracking_code ~ '^[A-Z0-9-]{4,40}$'),

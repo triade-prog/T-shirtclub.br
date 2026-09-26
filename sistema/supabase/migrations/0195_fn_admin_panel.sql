@@ -73,6 +73,7 @@ as $$
       'pagamentosEmAnalise', (select count(*) from payment_reviews where status = 'ABERTA'),
       'disputasAbertas', (select count(*) from payment_disputes where status = 'ABERTA'),
       'telefonesBloqueados', (select count(*) from phone_blocks where status = 'ATIVO'),
+      'alertasAbertos', (select count(*) from system_alerts where resolved_at is null),
       'fretes', jsonb_build_object(
         'aguardandoCalculo', (select count(*) from fulfillments where closed_at is null and substatus = 'AGUARDANDO_CALCULO_FRETE'),
         'aguardandoPagamento', (select count(*) from shipping_quotes where status = 'AGUARDANDO_PAGAMENTO'),

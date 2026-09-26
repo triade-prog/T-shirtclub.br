@@ -3,6 +3,7 @@
 // consulta o pagamento no provedor (fonte da verdade) e aplica. Assinatura inválida: 401 e
 // nada gravado. Erro ao gravar: 500, para o provedor reenviar.
 
+import { relatarErro } from "../_shared/monitor.ts";
 import { Hono } from "hono";
 import type { Banco } from "../_shared/banco.ts";
 import { assinaturaMpValida, type PaymentProvider } from "../_shared/pagamentos.ts";
@@ -41,14 +42,14 @@ export function criarWebhookPagamentos(deps: DepsWebhookPagamentos) {
     });
     if (id !== null) {
       const tarefa = processarEvento({ banco: deps.banco, pagamentos: deps.pagamentos }, id, dataId)
-        .catch((e) => console.error(JSON.stringify({ funcao: "webhook-payments", erro: String(e) }))); // a reconciliação cobre
+        .catch((e) => relatarErro(e, { tarefa: "processar-evento" })); // a reconciliação cobre
       (deps.processarDepois ?? (() => {}))(tarefa);
     }
     return c.json({ ok: true, repetido: id === null });
   });
 
-  app.onError((err, c) => {
-    console.error(JSON.stringify({ funcao: "webhook-payments", erro: String(err) }));
+  app.onError(async (err, c) => {
+    await relatarErro(err, { rota: c.req.routePath, metodo: c.req.method });
     return c.json({ erro: { codigo: "INTERNAL_ERROR" } }, 500);
   });
   app.notFound((c) => c.json({ erro: { codigo: "NOT_FOUND" } }, 404));

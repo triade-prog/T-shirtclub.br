@@ -19,10 +19,17 @@ create index audit_log_reservation_idx on audit_log (reservation_id, occurred_at
 create index audit_log_entity_idx on audit_log (entity_type, entity_id, occurred_at);
 create index audit_log_occurred_idx on audit_log (occurred_at);
 
+-- A única mudança aceita é a da rotina de prazos de guarda (F11, G9): apagar o IP em hash
+-- depois de 30 dias, sem tocar em mais nada da linha.
 create function audit_log_somente_insercao() returns trigger
 language plpgsql
 as $$
 begin
+  if tg_op = 'UPDATE' and current_setting('app.purga_ip', true) = 'on' and new.ip_hash is null
+     and (new.id, new.occurred_at, new.actor_type, new.actor_id, new.action, new.entity_type, new.entity_id, new.reservation_id, new.data)
+         is not distinct from (old.id, old.occurred_at, old.actor_type, old.actor_id, old.action, old.entity_type, old.entity_id, old.reservation_id, old.data) then
+    return new;
+  end if;
   raise exception 'audit_log é somente de inserção (% bloqueado)', tg_op using errcode = 'TS010';
 end $$;
 

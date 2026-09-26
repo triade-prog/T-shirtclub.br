@@ -137,6 +137,8 @@ Deno.test({
         itens: [{ produtoId: PRODUTO, qtd: 1 }], totalEsperadoCentavos: 4999, turnstileToken: "ok",
       });
       assertEquals((await outra.json()).erro.codigo, "INSUFFICIENT_STOCK");
+      // Desfaz a unidade presa à mão: o verificador de invariantes (e o ensaio de restauração) confere o banco depois
+      await banco.sql`update products set qty_reserved = 0 where code = 'INT-01'`;
     } finally {
       await banco.sql`select set_app_clock(interval '0')`;
       await banco.fechar();
