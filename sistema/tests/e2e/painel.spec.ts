@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 const PAINEL = "http://localhost:3001";
 
-// Telas do painel (fatia 9). Sem a api-admin (CI sem Supabase), o login aparece e as telas
+// Telas do painel (fatia 9, desenho V4 em docs/design/v4/painel). Sem a api-admin (CI sem Supabase), o login aparece e as telas
 // da operação avisam sem quebrar; o fluxo com dados é conferido à parte, com a api falsa.
 
 test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ page }) => {
@@ -23,7 +23,8 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
 for (const caminho of ["/reservas", "/cancelamentos", "/entregas"]) {
   test(`${caminho} sem a api-admin avisa sem quebrar`, async ({ page }) => {
     await page.goto(`${PAINEL}${caminho}`);
-    await expect(page.getByRole("navigation", { name: "Painel" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Abrir menu" })).toBeVisible();
     await expect(page.getByText(/fora do ar|Tente de novo|não conseguimos/i).first()).toBeVisible();
   });
 }

@@ -67,7 +67,8 @@ test("link /r: tira a chave do endereço e avisa sem quebrar", async ({ page }) 
   await expect(page.getByText(/não está completo/)).toBeVisible();
   await page.goto(`${LOJA}/`);
   await page.goto(`${LOJA}/r#AbCdEfGhIjKlMnOpQrStUv`);
-  await expect(page.getByRole("alert")).toBeVisible();
+  // O Next.js também põe um role="alert" vazio (anunciador de rota): o aviso é o que tem texto.
+  await expect(page.getByRole("alert").filter({ hasText: /\S/ })).toBeVisible();
   expect(new URL(page.url()).hash).toBe("");
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations).toEqual([]);

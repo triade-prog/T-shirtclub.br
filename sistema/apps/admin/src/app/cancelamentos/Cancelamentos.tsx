@@ -3,62 +3,59 @@
 import Link from "next/link";
 import { useState } from "react";
 import { formatarReais } from "@tshirtclub/domain";
-import { Aviso, cx } from "@tshirtclub/ui";
 import { dataHora, horario, telefone } from "@/lib/api";
 import { DecisaoCancelamento } from "../_painel/acoes";
-import { Caixa, Casca } from "../_painel/Casca";
+import { Casca } from "../_painel/Casca";
+import { Carregando, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
+
+// Cancelamentos (tela 07 da V4): pendentes primeiro, decisão com motivo.
 
 interface Pedido {
   id: string; status: string; observacao?: string; solicitadoEm: string; decididoEm?: string; motivoDecisao?: string;
   reserva: { id: string; numero: number; status: string; nome: string; telefone: string; totalCentavos: number; expiraEm: string };
 }
 
-const FILTROS = [["PENDENTE", "Pendentes"], ["TODOS", "Todos"]] as const;
-
 export function Cancelamentos() {
   const [filtro, setFiltro] = useState<"PENDENTE" | "TODOS">("PENDENTE");
   const { dados, erro, recarregar } = useDados<Pedido[]>(`v1/admin/cancellation-requests?status=${filtro}`);
+  const pendentes = filtro === "PENDENTE" ? dados?.length ?? 0 : dados?.filter((p) => p.status === "PENDENTE").length ?? 0;
 
   return (
-    <Casca titulo="Cancelamentos">
-      <div role="group" aria-label="Filtrar" className="flex gap-2">
-        {FILTROS.map(([v, rotulo]) => (
-          <button key={v} type="button" aria-pressed={filtro === v} onClick={() => setFiltro(v)}
-            className={cx("min-h-11 rounded-pilula border-2 border-tinta px-4 text-sm font-semibold", filtro === v ? "bg-citrino text-no-citrino" : "bg-branco")}>
-            {rotulo}
-          </button>
-        ))}
+    <Casca kicker="ATENDIMENTO" titulo="Cancelamentos" sub="Pedidos que exigem decisão da loja antes do prazo da reserva.">
+      <div className="tabs" role="group" aria-label="Filtrar pedidos">
+        <button type="button" className={`tab${filtro === "PENDENTE" ? " active" : ""}`} aria-pressed={filtro === "PENDENTE"} onClick={() => setFiltro("PENDENTE")}>
+          Pendentes {pendentes > 0 && <span className="n">{pendentes}</span>}
+        </button>
+        <button type="button" className={`tab${filtro === "TODOS" ? " active" : ""}`} aria-pressed={filtro === "TODOS"} onClick={() => setFiltro("TODOS")}>Todos</button>
       </div>
-      {erro && <Aviso tipo="erro" titulo={erro} />}
-      {!dados ? <p role="status" className="m-0 text-tinta-suave">Carregando…</p> : dados.length === 0 ? (
-        <p className="m-0 text-tinta-suave">{filtro === "PENDENTE" ? "Nenhum pedido esperando decisão." : "Nenhum pedido de cancelamento."}</p>
+      {!dados ? <Carregando erro={erro} /> : dados.length === 0 ? (
+        <p className="muted" style={{ fontSize: 12 }}>{filtro === "PENDENTE" ? "Nenhum pedido esperando decisão." : "Nenhum pedido de cancelamento."}</p>
       ) : (
-        <ul className="m-0 grid list-none gap-3 p-0">
+        <div className="list">
           {dados.map((p) => (
-            <li key={p.id}>
-              <Caixa>
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <Link href={`/reservas/${p.reserva.id}`} className="font-display text-xl font-extrabold underline decoration-rosa decoration-2 underline-offset-2">#{p.reserva.numero}</Link>
-                  <span className="text-sm text-tinta-suave">Pedido em {dataHora(p.solicitadoEm)}</span>
+            <section key={p.id} className="card" aria-label={`Pedido da reserva #${p.reserva.numero}`}
+              style={p.status === "PENDENTE" ? { background: "linear-gradient(135deg,#fff,var(--pink-soft))" } : undefined}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+                <div>
+                  <Link href={`/reservas/${p.reserva.id}`} className="pop" style={{ fontSize: 22 }}>#{p.reserva.numero}</Link>
+                  <p style={{ fontSize: 12, fontWeight: 700, margin: "3px 0 0" }}>{p.reserva.nome} · {telefone(p.reserva.telefone)} · {formatarReais(p.reserva.totalCentavos)}</p>
                 </div>
-                <p className="m-0 text-[15px]"><b>{p.reserva.nome}</b> · {telefone(p.reserva.telefone)} · {formatarReais(p.reserva.totalCentavos)}</p>
-                <p className="m-0 text-[15px]">{p.observacao ? `“${p.observacao}”` : "Sem motivo informado."}</p>
-                {p.status === "PENDENTE" ? (
-                  <>
-                    {p.reserva.status === "RESERVADO" && <p className="m-0 text-sm text-tinta-suave">A reserva expira às {horario(p.reserva.expiraEm)} se nada for decidido.</p>}
-                    <DecisaoCancelamento pedidoId={p.id} aoDecidir={() => void recarregar()} />
-                  </>
-                ) : (
-                  <p className="m-0 text-sm text-tinta-suave">
-                    {p.status === "APROVADA" ? "Aprovado" : p.status === "RECUSADA" ? "Recusado" : "Sem efeito (a reserva terminou antes)"}
-                    {p.decididoEm ? ` em ${dataHora(p.decididoEm)}` : ""}{p.motivoDecisao ? `: ${p.motivoDecisao}` : ""}.
-                  </p>
-                )}
-              </Caixa>
-            </li>
+                {p.status === "PENDENTE" ? <Selo tom="issue">Pedido pendente</Selo>
+                  : <Selo tom={p.status === "APROVADA" ? "paid" : "expired"}>{p.status === "APROVADA" ? "Aprovado" : p.status === "RECUSADA" ? "Recusado" : "Sem efeito"}</Selo>}
+              </div>
+              <div className="notice" style={{ marginTop: 16, background: "rgba(255,255,255,.72)" }}>
+                <p style={{ fontFamily: "var(--font-fraunces)", fontSize: 22, color: "var(--ink)" }}>{p.observacao ? `“${p.observacao}”` : "Sem motivo informado."}</p>
+                {p.status === "PENDENTE"
+                  ? <p>Pedido em {dataHora(p.solicitadoEm)}.{p.reserva.status === "RESERVADO" && <> A reserva expira às <b>{horario(p.reserva.expiraEm)}</b> se nada for decidido.</>}</p>
+                  : <p>{p.decididoEm ? `Decidido em ${dataHora(p.decididoEm)}` : "Encerrado"}{p.motivoDecisao ? `: ${p.motivoDecisao}` : ""}.</p>}
+              </div>
+              {p.status === "PENDENTE"
+                ? <DecisaoCancelamento pedidoId={p.id} reservaId={p.reserva.id} aoDecidir={() => void recarregar()} />
+                : <div className="actions" style={{ marginTop: 16 }}><Link className="btn btn-ghost" href={`/reservas/${p.reserva.id}`}>Abrir reserva</Link></div>}
+            </section>
           ))}
-        </ul>
+        </div>
       )}
     </Casca>
   );

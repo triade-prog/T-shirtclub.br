@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { textoErro } from "@tshirtclub/domain";
-import { Aviso, Botao, Campo, Turnstile } from "@tshirtclub/ui";
+import Image from "next/image";
+import { Turnstile } from "@tshirtclub/ui";
+import { Aviso, Botao, Campo, Seta } from "../_painel/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
 
 const CHAVE_TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -78,39 +80,59 @@ export function Entrar() {
     setErro(r.codigo === "MFA_INVALID" ? "Código do autenticador errado ou vencido. Use o código que aparece agora no app." : mensagemDeErro(r.codigo, r.detalhes));
   }
 
+  const senha = etapa === "SENHA";
   return (
-    <section className="mx-auto grid w-full max-w-md gap-5 px-4 pb-12 pt-10">
-      <h1 className="tc-titulo m-0 text-[40px]">
-        {etapa === "SENHA" ? <>Entrar no <em>painel.</em></> : etapa === "CODIGO" ? <>Código do <em>autenticador.</em></> : <>Cadastre o <em>autenticador.</em></>}
-      </h1>
-      {erro && <div role="alert"><Aviso tipo="atencao" titulo={erro} /></div>}
+    <main className="auth">
+      <section className="auth-brand" style={senha ? undefined : { background: "var(--green-soft)" }} aria-hidden="true">
+        <div className="auth-logo"><Image src="/marca/logo.webp" alt="" width={190} height={130} priority /></div>
+        <div className="auth-message">
+          <div className="starbig" style={senha ? undefined : { background: "var(--citron)" }} />
+          {senha
+            ? <p className="display h2">Tudo do <em>Club.</em><br />num só lugar.</p>
+            : <p className="display h2">Mais uma<br /><em style={{ color: "var(--green)" }}>confirmação.</em></p>}
+          <p>{senha ? "Reservas, pagamentos, cancelamentos e entregas com a mesma personalidade visual da T-shirt Club." : "Uma etapa curta para proteger o acesso à operação da loja."}</p>
+        </div>
+        <div className="auth-foot">{senha ? "Painel interno · acesso protegido" : "Autenticação em duas etapas"}</div>
+      </section>
+      <section className="auth-main">
+        <div className="auth-card">
+          <span className="club-tag tag"><span className="dot" />{senha ? "PAINEL DA LOJA" : "SEGURANÇA"}</span>
+          <h1 className="display">
+            {senha ? <>Entrar no <em style={{ color: "var(--pink-dark)" }}>painel.</em></>
+              : etapa === "CODIGO" ? <>Código do <em style={{ color: "var(--pink-dark)" }}>autenticador.</em></>
+              : <>Cadastre o <em style={{ color: "var(--pink-dark)" }}>autenticador.</em></>}
+          </h1>
+          <p className="intro">
+            {senha ? "Use seu acesso administrativo para continuar."
+              : etapa === "CODIGO" ? "Digite os 6 números exibidos no seu aplicativo autenticador."
+              : "O painel pede um autenticador (D12). Abra o Google Authenticator, o 1Password ou outro app de código e leia o QR code."}
+          </p>
+          {erro && <div style={{ marginBottom: 15 }}><Aviso tipo="error" titulo={erro} /></div>}
 
-      {etapa === "SENHA" && (
-        <form onSubmit={entrar} noValidate className="grid gap-4">
-          <Campo name="email" rotulo="E-mail" type="email" autoComplete="username" required />
-          <Campo name="senha" rotulo="Senha" type="password" autoComplete="current-password" required />
-          {pedeDesafio && <Turnstile chave={CHAVE_TURNSTILE} aoResolver={setToken} versao={versao} />}
-          <Botao type="submit" cheio carregando={ocupado}>Entrar</Botao>
-        </form>
-      )}
-
-      {etapa !== "SENHA" && (
-        <form onSubmit={confirmar} noValidate className="grid gap-4">
-          {etapa === "CADASTRAR_AUTENTICADOR" && cadastro && (
-            <div className="grid justify-items-center gap-3 rounded-cartao border-2 border-tinta bg-branco p-4">
-              <p className="m-0 text-[15px]">
-                O painel pede um autenticador (D12). Abra o Google Authenticator, o 1Password ou outro app de código e leia o QR code.
-              </p>
-              {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo do Supabase Auth */}
-              <img src={cadastro.qrCode} alt="QR code para cadastrar o autenticador" width={200} height={200} className="bg-white p-2" />
-              <p className="m-0 text-sm text-tinta-suave">Sem câmera? Digite esta chave no app: <code className="select-all break-all font-mono">{cadastro.segredo}</code></p>
-            </div>
+          {senha ? (
+            <form className="auth-form" onSubmit={entrar} noValidate>
+              <Campo name="email" rotulo="E-mail" type="email" autoComplete="username" placeholder="voce@tshirtclub.br" required />
+              <Campo name="senha" rotulo="Senha" type="password" autoComplete="current-password" placeholder="••••••••" required />
+              {pedeDesafio && <Turnstile chave={CHAVE_TURNSTILE} aoResolver={setToken} versao={versao} />}
+              <Botao type="submit" carregando={ocupado}>Entrar <Seta /></Botao>
+            </form>
+          ) : (
+            <form className="auth-form" onSubmit={confirmar} noValidate>
+              {etapa === "CADASTRAR_AUTENTICADOR" && cadastro && (
+                <div className="qr">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo do Supabase Auth */}
+                  <img src={cadastro.qrCode} alt="QR code para cadastrar o autenticador" width={200} height={200} />
+                  <p className="field-help">Sem câmera? Digite esta chave no app: <code>{cadastro.segredo}</code></p>
+                </div>
+              )}
+              <Campo name="codigo" rotulo="Código de 6 números" className="otp" inputMode="numeric" autoComplete="one-time-code" maxLength={7} placeholder="000000" ajuda="O código muda a cada 30 segundos." />
+              <Botao type="submit" carregando={ocupado}>{etapa === "CADASTRAR_AUTENTICADOR" ? "Confirmar e entrar" : "Entrar"} <Seta /></Botao>
+              <Botao variante="ghost" onClick={() => { setEtapa("SENHA"); setCadastro(null); setErro(null); }}>Voltar</Botao>
+            </form>
           )}
-          <Campo name="codigo" rotulo="Código de 6 números" inputMode="numeric" autoComplete="one-time-code" maxLength={7} placeholder="000000"
-            className="font-display text-2xl tracking-[0.3em]" ajuda="O código muda a cada 30 segundos." />
-          <Botao type="submit" cheio carregando={ocupado}>{etapa === "CADASTRAR_AUTENTICADOR" ? "Confirmar e entrar" : "Entrar"}</Botao>
-        </form>
-      )}
-    </section>
+          {senha && <p className="auth-help">Acesso restrito à equipe T-shirt Club.br.</p>}
+        </div>
+      </section>
+    </main>
   );
 }
