@@ -256,8 +256,17 @@ begin
 end $$;
 
 -- Reserva vista pela cliente: só do telefone da sessão; de outro telefone, null (404, nunca 403).
-create function reservation_for_customer(p_id uuid, p_phone text) returns jsonb
+-- p_limited: aberta pelo link (G6). Passados 30 dias do estado final, só número e estado.
+create function reservation_for_customer(p_id uuid, p_phone text, p_limited boolean default false) returns jsonb
 language sql stable
 security definer
 set search_path = public
-as $$ select reservation_json(r) from reservations r where r.id = p_id and r.phone_e164 = p_phone $$;
+as $$
+  select case
+    when p_limited and r.status in ('ENTREGUE', 'EXPIRADO')
+         and coalesce(r.delivered_at, r.expired_at) < app_now() - interval '30 days'
+      then jsonb_strip_nulls(jsonb_build_object('id', r.id, 'numero', r.number, 'status', r.status,
+                                                'motivoEncerramento', r.closure_reason, 'limitada', true))
+    else reservation_json(r) end
+  from reservations r where r.id = p_id and r.phone_e164 = p_phone
+$$;

@@ -25,11 +25,13 @@ export function normalizarTexto(texto: string): string {
 
 // ─── O que a cliente escreve ─────────────────────────────────────────────────────────
 
-export type FinalidadeCodigo = "RESERVA" | "CONSULTA";
+export type FinalidadeCodigo = "RESERVA" | "CONSULTA" | "ENTREGA";
 
 const TEXTO_PEDIDO: Record<FinalidadeCodigo, string> = {
   RESERVA: "Quero meu código da reserva",
   CONSULTA: "Quero consultar minhas reservas",
+  // Pelo link da reserva, antes de confirmar ou mudar a entrega (D13)
+  ENTREGA: "Quero confirmar a entrega do pedido",
 };
 
 /** Texto pronto que o site coloca no link do WhatsApp. */
@@ -47,7 +49,8 @@ export function lerPedidoDeCodigo(texto: string): { ref: string; finalidade: Fin
   const t = normalizarTexto(texto);
   const m = /\bref\.?\s*:?\s*([2-9a-hj-np-z]{4})\b/.exec(t);
   if (!m) return null;
-  return { ref: m[1]!.toUpperCase(), finalidade: t.includes("consultar") ? "CONSULTA" : "RESERVA" };
+  const finalidade: FinalidadeCodigo = t.includes("consultar") ? "CONSULTA" : t.includes("entrega") ? "ENTREGA" : "RESERVA";
+  return { ref: m[1]!.toUpperCase(), finalidade };
 }
 
 /** "minha reserva", "minhas reservas" ou "status" (seção 07). */
@@ -94,6 +97,45 @@ export interface ParametrosMensagem {
   saiu_entrega: { numero: number };
   pedido_enviado: { numero: number; rastreio?: string };
   pedido_entregue: { numero: number };
+  minhas_reservas: { reservas: ResumoReserva[] };
+}
+
+/** Uma linha da resposta a "Minha reserva" (whatsapp_my_reservations, 0155). */
+export interface ResumoReserva {
+  numero: number;
+  status: "RESERVADO" | "PAGAMENTO_CONFIRMADO" | "ENTREGUE" | "EXPIRADO";
+  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO";
+  pecas?: number;
+  totalCentavos: number;
+  expiraEm?: Date;
+  substatus?: string;
+  cancelamentoPendente?: boolean;
+}
+
+const SUBSTATUS_CLIENTE: Record<string, string> = {
+  AGUARDANDO_MODALIDADE: "falta escolher a entrega no site",
+  AGUARDANDO_CALCULO_FRETE: "a loja está calculando o frete",
+  AGUARDANDO_PAGAMENTO_FRETE: "frete para pagar no site",
+  FRETE_VENCIDO: "o prazo do frete venceu; a loja vai falar com você",
+  EM_PREPARACAO: "em preparação",
+  PRONTO_PARA_RETIRADA: "pronta para retirada",
+  SAIU_PARA_ENTREGA: "saiu para entrega",
+  ENVIADO: "enviada",
+};
+
+function linhaReserva(r: ResumoReserva): string {
+  const pecas = r.pecas === undefined ? "" : `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"}, `;
+  switch (r.status) {
+    case "RESERVADO":
+      return `• #${r.numero}: reservada até *${r.expiraEm ? formatarHora(r.expiraEm) : "--:--"}* · ${pecas}${formatarReais(r.totalCentavos)}` +
+        (r.cancelamentoPendente ? " · cancelamento pedido" : "");
+    case "PAGAMENTO_CONFIRMADO":
+      return `• #${r.numero}: paga · ${SUBSTATUS_CLIENTE[r.substatus ?? ""] ?? "em preparação"}`;
+    case "ENTREGUE":
+      return `• #${r.numero}: entregue`;
+    default:
+      return `• #${r.numero}: encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)" : " sem pagamento"}`;
+  }
 }
 
 export type Modelo = keyof ParametrosMensagem;
@@ -178,6 +220,13 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
     (p) => `O pedido #${p.numero} foi enviado.${p.rastreio ? ` Código de rastreio: *${p.rastreio}*.` : ""}`,
   ],
   pedido_entregue: [(p) => `Pedido #${p.numero} entregue. Obrigada pela compra! Trocas e devoluções são combinadas por aqui. 💖`],
+  // Resposta a "Minha reserva" (regra 22): sem código e sem link; detalhes no site.
+  minhas_reservas: [
+    (p) =>
+      p.reservas.length === 0
+        ? `Não achamos reservas recentes neste número. Para reservar ou consultar: ${SITE}`
+        : [p.reservas.length === 1 ? "Sua reserva:" : "Suas reservas:", ...p.reservas.map(linhaReserva), `Detalhes e pagamento no site: ${SITE}`].join("\n"),
+  ],
 };
 
 /** Texto da mensagem; `sorteio` escolhe a versão (0 a 1). */

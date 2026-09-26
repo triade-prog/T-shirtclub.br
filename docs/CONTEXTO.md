@@ -100,7 +100,9 @@ As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design 
 
 Falta da loja para a F8: o endereço e o horário de retirada (E7), que entram na mensagem de pronto para retirada.
 
-O próximo servidor é a F9 (consulta pelo site e pelo WhatsApp, e o link /r#chave), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+**F9 no servidor (26/09):** a cliente acha as reservas dela de três jeitos. Pelo site: informa o WhatsApp, manda a mensagem pronta ("Quero consultar minhas reservas") e digita o código; aí vê a lista das reservas daquele número, e só dele. Pelo link da mensagem: abre só aquela reserva, com o telefone mascarado; dá para acompanhar, pagar e pedir cancelamento, mas para confirmar ou mudar a entrega o site pede um código pelo WhatsApp antes ("Quero confirmar a entrega do pedido"). Passados 30 dias do fim, o link mostra só número e estado. Pelo WhatsApp: "Minha reserva" (ou "status") recebe na hora a lista das reservas abertas, com prazo ou andamento, aceitando o número com ou sem o nono dígito. 369 testes de banco, 62 Deno, 124 de regras e cinco testes de integração (reserva, pagamento, cancelamento, entrega e consulta).
+
+O próximo servidor é a F10 (painel completo: dashboard, busca e detalhe da reserva, telas de apoio, WhatsApp e minha conta), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

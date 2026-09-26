@@ -6,7 +6,7 @@ import { criarWebhookWhatsApp } from "./app.ts";
 const SEGREDO = "s".repeat(40);
 const AGORA = new Date("2026-10-10T12:00:00Z");
 
-function montar(opcoes: { resultado?: unknown; limite?: boolean } = {}) {
+function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean } = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const vistas = new Set<string>();
   const banco: Banco = {
@@ -21,6 +21,10 @@ function montar(opcoes: { resultado?: unknown; limite?: boolean } = {}) {
           }
           case "otp_issue_code":
             return opcoes.resultado ?? { acao: "ENVIAR_CODIGO", telefone: "+5577998128809", validadeMinutos: 5 };
+          case "otp_issue_lookup_code":
+            return opcoes.consulta ?? { acao: "REFERENCIA_INVALIDA" };
+          case "whatsapp_my_reservations":
+            return opcoes.reservas ?? [];
           default:
             return null;
         }
@@ -87,7 +91,8 @@ Deno.test("respostas: outro número, referência inválida e bloqueio", async ()
 Deno.test("sem número (LID), conversa comum, consulta e excesso de mensagens", async () => {
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid" }))).tratamento, "SEM_NUMERO");
   assertEquals((await montar().enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
-  assertEquals((await montar().enviar(msg({ text: { message: "Minha reserva" } }))).tratamento, "MINHA_RESERVA");
+  assertEquals((await montar({ reservas: [] }).enviar(msg({ phone: "123456789012345@lid", text: { message: "Minha reserva" } }))).tratamento,
+    "SEM_NUMERO");
   assertEquals((await montar({ limite: false }).enviar(msg())).tratamento, "LIMITE");
 });
 
@@ -96,4 +101,35 @@ Deno.test("status de entrega atualiza a fila", async () => {
   assertEquals((await enviar({ type: "MessageStatusCallback", status: "READ", ids: ["zapi-1"] })).tratamento, "STATUS");
   assertEquals(rpcs[0], { funcao: "outbox_delivery", args: { p_provider_message_id: "zapi-1", p_status: "LIDA" } });
   assertEquals(lerWebhookZapi({ type: "MessageStatusCallback", status: "SENT", ids: ["x"] }), { tipo: "OUTRO" });
+});
+
+Deno.test("consulta e entrega pelo link: código pela referência da consulta, com a reserva como reserva", async () => {
+  const codigo = { acao: "ENVIAR_CODIGO", telefone: "+5577998128809", validadeMinutos: 5 };
+  const consulta = montar({ consulta: codigo, resultado: { acao: "REFERENCIA_INVALIDA" } });
+  assertEquals((await consulta.enviar(msg({ text: { message: "Quero consultar minhas reservas (ref. AB3D)" } }))).tratamento, "CODIGO_ENVIADO");
+  assertEquals(consulta.rpcs.filter((r) => r.funcao.startsWith("otp_issue")).map((r) => r.funcao), ["otp_issue_lookup_code"]);
+
+  const entrega = montar({ consulta: codigo });
+  assertEquals((await entrega.enviar(msg({ text: { message: "Quero confirmar a entrega do pedido (ref. E5R2)" } }))).tratamento, "CODIGO_ENVIADO");
+  assertEquals(entrega.rpcs.find((r) => r.funcao === "otp_issue_lookup_code")!.args.p_ref, "E5R2");
+
+  // Texto mexido: a referência da reserva ainda funciona depois de não ser de consulta
+  const mexido = montar();
+  assertEquals((await mexido.enviar(msg({ text: { message: "consultar ref K7Q2" } }))).tratamento, "CODIGO_ENVIADO");
+  assertEquals(mexido.rpcs.filter((r) => r.funcao.startsWith("otp_issue")).map((r) => r.funcao), ["otp_issue_lookup_code", "otp_issue_code"]);
+
+  const nenhuma = montar({ resultado: { acao: "REFERENCIA_INVALIDA" } });
+  assertEquals((await nenhuma.enviar(msg())).tratamento, "REFERENCIA_INVALIDA");
+});
+
+Deno.test("minha reserva: responde na conversa com as reservas do número, com e sem o nono dígito", async () => {
+  const { enviar, rpcs, whatsapp } = montar({
+    reservas: [{ numero: 1049, status: "RESERVADO", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-10T12:15:00Z" }],
+  });
+  assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
+  assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+557798128809", "+5577998128809"]);
+  assertEquals(whatsapp.enviadas[0]!.texto, "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.pt");
+  const vazio = montar();
+  await vazio.enviar(msg({ text: { message: "status" } }));
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Não achamos reservas recentes neste número/);
 });

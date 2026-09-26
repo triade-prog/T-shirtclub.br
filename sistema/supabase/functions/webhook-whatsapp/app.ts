@@ -10,6 +10,7 @@ import {
   ehPedidoMinhaReserva,
   lerPedidoDeCodigo,
   mensagemWhatsApp,
+  type ResumoReserva,
 } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { gerarCodigo, hashCodigo } from "../_shared/otp.ts";
@@ -47,6 +48,18 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     }
   }
 
+  /** "Minha reserva" (regra 22): o remetente é a prova; responde na conversa, sem código. */
+  async function minhaReserva(id: string, remetente: string | null): Promise<string> {
+    const candidatos = candidatosDoRemetente(remetente);
+    if (candidatos.length === 0 || !remetente) return await marcar(id, "SEM_NUMERO");
+    const lista = await deps.banco.rpc<(Omit<ResumoReserva, "expiraEm"> & { expiraEm?: string })[]>("whatsapp_my_reservations", {
+      p_senders: candidatos,
+    });
+    const reservas = lista.map((r) => ({ ...r, expiraEm: r.expiraEm ? new Date(r.expiraEm) : undefined }));
+    await responder(remetente, mensagemWhatsApp("minhas_reservas", { reservas }));
+    return await marcar(id, "MINHA_RESERVA");
+  }
+
   async function tratar(e: EventoWhatsApp): Promise<string> {
     if (e.tipo === "STATUS") {
       for (const id of e.ids) await deps.banco.rpc("outbox_delivery", { p_provider_message_id: id, p_status: e.status });
@@ -65,19 +78,28 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     if (!reg.dentroDoLimite) return await marcar(e.id, "LIMITE");
 
     const pedido = lerPedidoDeCodigo(e.texto);
-    if (!pedido) return await marcar(e.id, ehPedidoMinhaReserva(e.texto) ? "MINHA_RESERVA" : "CONVERSA");
-    if (pedido.finalidade === "CONSULTA") return await marcar(e.id, "CONSULTA");
+    if (!pedido) {
+      if (!ehPedidoMinhaReserva(e.texto)) return await marcar(e.id, "CONVERSA");
+      return await minhaReserva(e.id, e.remetente);
+    }
 
     const candidatos = candidatosDoRemetente(e.remetente);
     if (candidatos.length === 0 || !e.remetente) return await marcar(e.id, "SEM_NUMERO");
 
+    // A referência é da tentativa de reserva ou da consulta (site ou entrega pelo link). O
+    // texto diz qual; se a cliente mexeu nele, tenta a outra antes de dar como inválida.
     const codigo = gerarCodigo();
-    const r = await deps.banco.rpc<Resultado>("otp_issue_code", {
+    const args = {
       p_ref: pedido.ref,
       p_senders: candidatos,
       p_code_hash: await hashCodigo(deps.pepper, pedido.ref, codigo),
       p_wa_message_id: e.id,
-    });
+    };
+    const [primeira, segunda] = pedido.finalidade === "RESERVA"
+      ? ["otp_issue_code", "otp_issue_lookup_code"]
+      : ["otp_issue_lookup_code", "otp_issue_code"];
+    let r = await deps.banco.rpc<Resultado>(primeira, args);
+    if (r.acao === "REFERENCIA_INVALIDA") r = await deps.banco.rpc<Resultado>(segunda, args);
 
     switch (r.acao) {
       case "ENVIAR_CODIGO":

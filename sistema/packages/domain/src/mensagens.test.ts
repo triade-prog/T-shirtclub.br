@@ -14,6 +14,7 @@ describe("o que a cliente escreve", () => {
     expect(lerPedidoDeCodigo(textoPedidoCodigo("K7Q2"))).toEqual({ ref: "K7Q2", finalidade: "RESERVA" });
     expect(lerPedidoDeCodigo("quero meu codigo REF K7Q2")).toEqual({ ref: "K7Q2", finalidade: "RESERVA" });
     expect(lerPedidoDeCodigo(textoPedidoCodigo("AB3D", "CONSULTA"))).toEqual({ ref: "AB3D", finalidade: "CONSULTA" });
+    expect(lerPedidoDeCodigo(textoPedidoCodigo("E5R2", "ENTREGA"))).toEqual({ ref: "E5R2", finalidade: "ENTREGA" });
     expect(lerPedidoDeCodigo("Oi, tem a camiseta Limone?")).toBeNull();
     expect(lerPedidoDeCodigo("ref. K0Q2")).toBeNull(); // 0 não existe na referência
   });
@@ -92,6 +93,21 @@ describe("o que a loja manda", () => {
     expect(mensagemWhatsApp("pedido_enviado", { numero: 1048, rastreio: "AB123456789BR" })).toContain("*AB123456789BR*");
     expect(mensagemWhatsApp("entrega_confirmada", { numero: 1048, modalidade: "MOTOBOY" })).toContain("calcula o frete");
     expect(mensagemWhatsApp("pagamento_em_analise", { numero: 1048, frete: true })).toContain("frete do pedido #1048");
+  });
+
+  it("minha reserva: abertas com prazo ou andamento, e nada quando não há", () => {
+    const texto = mensagemWhatsApp("minhas_reservas", {
+      reservas: [
+        { numero: 1049, status: "RESERVADO", pecas: 3, totalCentavos: 11999, expiraEm: new Date("2026-10-10T17:32:00Z") },
+        { numero: 1048, status: "PAGAMENTO_CONFIRMADO", totalCentavos: 4999, substatus: "PRONTO_PARA_RETIRADA" },
+      ],
+    });
+    expect(texto).toBe(
+      "Suas reservas:\n• #1049: reservada até *14:32* · 3 peças, R$ 119,99\n• #1048: paga · pronta para retirada\nDetalhes e pagamento no site: tshirtclub.pt",
+    );
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELAMENTO_APROVADO", totalCentavos: 4999 }] }))
+      .toContain("• #1047: encerrada (cancelamento aprovado)");
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe("Não achamos reservas recentes neste número. Para reservar ou consultar: tshirtclub.pt");
   });
 
   it("hora sempre no fuso da loja", () => {

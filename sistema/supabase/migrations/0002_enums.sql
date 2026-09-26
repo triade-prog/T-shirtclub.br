@@ -35,6 +35,10 @@ create type otp_session_status as enum ('ABERTA', 'VERIFICADA', 'BLOQUEADA', 'EN
 create type otp_code_status as enum ('ATIVO', 'USADO', 'ESGOTADO', 'VENCIDO', 'SUBSTITUIDO');
 create type attempt_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'CONVERTIDA', 'FALHOU_ESTOQUE', 'ABANDONADA');
 
+-- Consulta com código (F9): ver as reservas do telefone, ou liberar a entrega aberta pelo link (D13).
+create type lookup_reason as enum ('CONSULTA', 'ENTREGA');
+create type lookup_status as enum ('AGUARDANDO_VALIDACAO', 'VERIFICADA', 'ABANDONADA');
+
 -- Bloqueio de telefone por abuso (seção 09) e fila de mensagens (seção 10).
 create type phone_block_status as enum ('ATIVO', 'LIBERADO');
 create type phone_block_decision as enum ('LIBERAR', 'MANTER');

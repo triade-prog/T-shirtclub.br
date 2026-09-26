@@ -5,7 +5,9 @@ import {
   criarTentativaSchema,
   codigoOtpSchema,
   cupomSchema,
+  consultaSchema,
   decisaoCancelamentoSchema,
+  linkReservaSchema,
   entregaSchema,
   freteSchema,
   substatusSchema,
@@ -103,5 +105,15 @@ describe("painel", () => {
     });
     expect(freteSchema.safeParse({ valorCentavos: 0 }).success).toBe(false);
     expect(substatusSchema.parse({ substatus: "ENVIADO", rastreio: "ab123456789br" }).rastreio).toBe("AB123456789BR");
+  });
+
+  it("consulta: pelo telefone com Turnstile, ou pela reserva do link", () => {
+    expect(consultaSchema.parse({ motivo: "CONSULTA", telefone: "(77) 99812-8809", turnstileToken: "t" })).toEqual({
+      motivo: "CONSULTA", telefone: "+5577998128809", turnstileToken: "t",
+    });
+    expect(consultaSchema.safeParse({ motivo: "CONSULTA", telefone: "(77) 99812-8809" }).success).toBe(false);
+    expect(consultaSchema.safeParse({ motivo: "ENTREGA", reservaId: "x" }).success).toBe(false);
+    expect(linkReservaSchema.safeParse({ chave: "a".repeat(22) }).success).toBe(true);
+    expect(linkReservaSchema.safeParse({ chave: "a/".repeat(11) }).success).toBe(false);
   });
 });

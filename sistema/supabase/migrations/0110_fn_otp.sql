@@ -122,50 +122,37 @@ begin
   return jsonb_build_object('id', v_id, 'ref', v_ref);
 end $$;
 
--- ─── 2. Código pedido pelo WhatsApp ──────────────────────────────────────────────────
--- p_senders: o remetente nas formas com e sem o nono dígito (R17).
+-- ─── Núcleo do código (reserva e consulta) ────────────────────────────────────────────
+-- Emite um código na sessão do telefone (renovada se venceu), com intervalo mínimo, limite
+-- de códigos e bloqueio. Devolve a ação para o webhook e a sessão usada (sessaoId).
 
-create function otp_issue_code(p_ref text, p_senders text[], p_code_hash text, p_wa_message_id text) returns jsonb
+create function otp_emit(p_phone text, p_session_id uuid, p_purpose otp_purpose, p_code_hash text, p_wa_message_id text) returns jsonb
 language plpgsql
-security definer
 set search_path = public
 as $$
 declare
-  a reservation_attempts;
   s otp_sessions;
   v_ultimo timestamptz;
   v_ate timestamptz;
   v_validade integer := setting_int('otp_validade_minutos');
 begin
-  select * into a from reservation_attempts
-   where ref = upper(btrim(p_ref)) and status = 'AGUARDANDO_VALIDACAO'
-     and created_at > app_now() - make_interval(mins => setting_int('otp_janela_minutos'))
-   for update;
-  if not found then
-    return jsonb_build_object('acao', 'REFERENCIA_INVALIDA');
-  end if;
-  if not (a.phone_e164 = any(p_senders)) then
-    return jsonb_build_object('acao', 'NUMERO_DIFERENTE');
-  end if;
-
-  v_ate := otp_lock_until(a.phone_e164);
+  v_ate := otp_lock_until(p_phone);
   if v_ate is not null then
     return jsonb_build_object('acao', 'BLOQUEADO', 'ate', v_ate);
   end if;
 
-  select * into s from otp_sessions where id = a.otp_session_id for update;
+  select * into s from otp_sessions where id = p_session_id for update;
   if s.status <> 'ABERTA' or s.last_activity_at < app_now() - make_interval(mins => setting_int('otp_janela_minutos')) then
-    s := otp_session_for(a.phone_e164, 'RESERVA');
-    update reservation_attempts set otp_session_id = s.id where id = a.id;
+    s := otp_session_for(p_phone, p_purpose);
   end if;
 
   select max(created_at) into v_ultimo from otp_codes where session_id = s.id;
   if v_ultimo > app_now() - make_interval(secs => setting_int('otp_intervalo_segundos')) then
-    return jsonb_build_object('acao', 'AGUARDE');
+    return jsonb_build_object('acao', 'AGUARDE', 'sessaoId', s.id);
   end if;
 
   if s.codes_sent >= setting_int('otp_codigos_max') then
-    return jsonb_build_object('acao', 'BLOQUEADO', 'ate', otp_block_session(s.id));
+    return jsonb_build_object('acao', 'BLOQUEADO', 'ate', otp_block_session(s.id), 'sessaoId', s.id);
   end if;
 
   update otp_codes set status = 'SUBSTITUIDO' where session_id = s.id and status = 'ATIVO';
@@ -174,41 +161,27 @@ begin
   update otp_sessions set codes_sent = codes_sent + 1, last_activity_at = app_now() where id = s.id;
   perform log_audit('SISTEMA', null, 'otp.enviado', 'otp_session', s.id::text, null, jsonb_build_object('codigo', s.codes_sent + 1));
 
-  return jsonb_build_object('acao', 'ENVIAR_CODIGO', 'telefone', a.phone_e164, 'validadeMinutos', v_validade,
-                            'codigosRestantes', setting_int('otp_codigos_max') - s.codes_sent - 1);
+  return jsonb_build_object('acao', 'ENVIAR_CODIGO', 'telefone', p_phone, 'validadeMinutos', v_validade,
+                            'codigosRestantes', setting_int('otp_codigos_max') - s.codes_sent - 1, 'sessaoId', s.id);
 end $$;
 
--- ─── 3. Verificação ──────────────────────────────────────────────────────────────────
-
-create function otp_verify(p_attempt_id uuid, p_token_hash text, p_code_hash text) returns jsonb
+-- Confere o código digitado contra o código ativo da sessão: {ok} ou {erro, detalhes}.
+create function otp_check(p_phone text, p_session_id uuid, p_code_hash text) returns jsonb
 language plpgsql
-security definer
 set search_path = public
 as $$
 declare
-  a reservation_attempts;
   s otp_sessions;
   c otp_codes;
   v_ate timestamptz;
   v_max integer := setting_int('otp_tentativas');
 begin
-  select * into a from reservation_attempts where id = p_attempt_id and browser_token_hash = p_token_hash for update;
-  if not found or a.status = 'ABANDONADA' then
-    return jsonb_build_object('erro', 'NOT_FOUND');
-  end if;
-  if a.status = 'CONVERTIDA' then
-    return jsonb_build_object('ok', true, 'reservaId', a.reservation_id);
-  end if;
-  if a.status in ('VERIFICADA', 'FALHOU_ESTOQUE') and a.verified_until > app_now() then
-    return jsonb_build_object('ok', true);
-  end if;
-
-  v_ate := otp_lock_until(a.phone_e164);
+  v_ate := otp_lock_until(p_phone);
   if v_ate is not null then
     return jsonb_build_object('erro', 'OTP_LOCKED', 'detalhes', jsonb_build_object('ate', v_ate));
   end if;
 
-  select * into s from otp_sessions where id = a.otp_session_id for update;
+  select * into s from otp_sessions where id = p_session_id for update;
   select * into c from otp_codes where session_id = s.id and status = 'ATIVO' for update;
   if not found then
     return jsonb_build_object('erro', case when s.codes_sent > 0 then 'OTP_EXPIRED' else 'ATTEMPT_NOT_VERIFIED' end);
@@ -225,9 +198,6 @@ begin
   if c.code_hash = p_code_hash then
     update otp_codes set status = 'USADO', attempts_used = attempts_used + 1 where id = c.id;
     update otp_sessions set status = 'VERIFICADA', verified_at = app_now(), last_activity_at = app_now() where id = s.id;
-    update reservation_attempts
-       set status = 'VERIFICADA', verified_until = app_now() + make_interval(mins => setting_int('tentativa_verificada_minutos'))
-     where id = a.id;
     perform log_audit('CLIENTE', null, 'otp.verificado', 'otp_session', s.id::text);
     return jsonb_build_object('ok', true);
   end if;
@@ -243,6 +213,67 @@ begin
     return jsonb_build_object('erro', 'OTP_INVALID', 'detalhes', jsonb_build_object('tentativasRestantes', 0, 'podePedirOutro', true));
   end if;
   return jsonb_build_object('erro', 'OTP_INVALID', 'detalhes', jsonb_build_object('tentativasRestantes', v_max - c.attempts_used - 1));
+end $$;
+
+-- ─── 2. Código pedido pelo WhatsApp ──────────────────────────────────────────────────
+-- p_senders: o remetente nas formas com e sem o nono dígito (R17).
+
+create function otp_issue_code(p_ref text, p_senders text[], p_code_hash text, p_wa_message_id text) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  a reservation_attempts;
+  r jsonb;
+begin
+  select * into a from reservation_attempts
+   where ref = upper(btrim(p_ref)) and status = 'AGUARDANDO_VALIDACAO'
+     and created_at > app_now() - make_interval(mins => setting_int('otp_janela_minutos'))
+   for update;
+  if not found then
+    return jsonb_build_object('acao', 'REFERENCIA_INVALIDA');
+  end if;
+  if not (a.phone_e164 = any(p_senders)) then
+    return jsonb_build_object('acao', 'NUMERO_DIFERENTE');
+  end if;
+
+  r := otp_emit(a.phone_e164, a.otp_session_id, 'RESERVA', p_code_hash, p_wa_message_id);
+  if (r ->> 'sessaoId')::uuid is distinct from a.otp_session_id and r ? 'sessaoId' then
+    update reservation_attempts set otp_session_id = (r ->> 'sessaoId')::uuid where id = a.id;
+  end if;
+  return r - 'sessaoId';
+end $$;
+
+-- ─── 3. Verificação ──────────────────────────────────────────────────────────────────
+
+create function otp_verify(p_attempt_id uuid, p_token_hash text, p_code_hash text) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  a reservation_attempts;
+  r jsonb;
+begin
+  select * into a from reservation_attempts where id = p_attempt_id and browser_token_hash = p_token_hash for update;
+  if not found or a.status = 'ABANDONADA' then
+    return jsonb_build_object('erro', 'NOT_FOUND');
+  end if;
+  if a.status = 'CONVERTIDA' then
+    return jsonb_build_object('ok', true, 'reservaId', a.reservation_id);
+  end if;
+  if a.status in ('VERIFICADA', 'FALHOU_ESTOQUE') and a.verified_until > app_now() then
+    return jsonb_build_object('ok', true);
+  end if;
+
+  r := otp_check(a.phone_e164, a.otp_session_id, p_code_hash);
+  if r ? 'ok' then
+    update reservation_attempts
+       set status = 'VERIFICADA', verified_until = app_now() + make_interval(mins => setting_int('tentativa_verificada_minutos'))
+     where id = a.id;
+  end if;
+  return r;
 end $$;
 
 -- ─── Acompanhamento da tentativa (a tela consulta a cada 2 s) ─────────────────────────

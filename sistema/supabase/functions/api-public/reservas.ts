@@ -52,39 +52,67 @@ export interface DepsReserva extends DepsLoja {
   pagamentos: PaymentProvider;
 }
 
-type ErroJson = { erro?: string; detalhes?: Record<string, unknown> };
+export type ErroJson = { erro?: string; detalhes?: Record<string, unknown> };
 
 /** Resultado de negócio das funções SQL ({ erro, detalhes }) vira o erro da API. */
-function falhou(r: ErroJson): void {
+export function falhou(r: ErroJson): void {
   if (!r.erro) return;
   throw new ErroDominio(ehCodigoErro(r.erro) ? r.erro : "INTERNAL_ERROR", r.detalhes);
 }
 
-function comTelefoneMascarado<T extends { telefone?: string }>(v: T): T {
+export function comTelefoneMascarado<T extends { telefone?: string }>(v: T): T {
   return v.telefone ? { ...v, telefone: mascararTelefone(v.telefone) } : v;
 }
 
-async function tokenDoCookie(c: Context, nome: string): Promise<string> {
+export async function tokenDoCookie(c: Context, nome: string): Promise<string> {
   const token = lerCookie(c.req.raw.headers, nome);
   // Sem o cookie, a tentativa "não existe" para este navegador (G12).
   if (!token || token.length > 100) throw new ErroDominio("NOT_FOUND");
   return await sha256Hex(token);
 }
 
-function idDaRota(c: Context): string {
+export function idDaRota(c: Context): string {
   const r = idSchema.safeParse(c.req.param("id"));
   if (!r.success) throw new ErroDominio("NOT_FOUND");
   return r.data;
 }
 
+/** Limite de uso (hit_rate_limit, G20): passou do teto na janela, RATE_LIMITED. */
+export async function limitar(banco: DepsReserva["banco"], chave: string, janela: string, maximo: number): Promise<void> {
+  if (!(await chamar<boolean>(banco, "hit_rate_limit", { p_key: chave, p_window: janela, p_max: maximo }))) {
+    throw new ErroDominio("RATE_LIMITED");
+  }
+}
+
+export interface SessaoCliente {
+  telefone: string;
+  /** TELEFONE (depois do código) ou RESERVA:<id> (aberta pelo link, G6). */
+  escopo: string;
+}
+
+/** Sessão do cookie __Host-sessao; sem cookie ou vencida, UNAUTHORIZED. */
+export async function sessaoDoCookie(banco: DepsReserva["banco"], c: Context): Promise<SessaoCliente> {
+  const sessao = await sessaoOpcional(banco, c);
+  if (!sessao) throw new ErroDominio("UNAUTHORIZED");
+  return sessao;
+}
+
+export async function sessaoOpcional(banco: DepsReserva["banco"], c: Context): Promise<SessaoCliente | null> {
+  const token = lerCookie(c.req.raw.headers, COOKIE_SESSAO);
+  if (!token || token.length > 100) return null;
+  return await chamar<SessaoCliente | null>(banco, "customer_session_get", { p_token_hash: await sha256Hex(token) });
+}
+
+/** Sessão que pode ver esta reserva: a do telefone ou a do link dela. De outra, 404. */
+export async function sessaoDaReserva(banco: DepsReserva["banco"], c: Context, reservaId: string): Promise<SessaoCliente> {
+  const sessao = await sessaoDoCookie(banco, c);
+  if (sessao.escopo !== "TELEFONE" && sessao.escopo !== `RESERVA:${reservaId}`) throw new ErroDominio("NOT_FOUND");
+  return sessao;
+}
+
 export function rotasReserva(app: Hono, deps: DepsReserva): void {
   const agora = () => deps.agora?.() ?? new Date();
-
-  async function limite(chave: string, janela: string, maximo: number): Promise<void> {
-    if (!(await chamar<boolean>(deps.banco, "hit_rate_limit", { p_key: chave, p_window: janela, p_max: maximo }))) {
-      throw new ErroDominio("RATE_LIMITED");
-    }
-  }
+  const limite = (chave: string, janela: string, maximo: number) => limitar(deps.banco, chave, janela, maximo);
 
   /** Preço atual da sacola; o total precisa ser o que a cliente viu. */
   function conferirTotal(r: ResultadoPreco, esperado: number): void {
@@ -224,28 +252,19 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     return c.json(r);
   });
 
-  /** Sessão da cliente, se ela pode ver esta reserva (TELEFONE ou o link dela). */
-  async function sessaoDaReserva(c: Context, reservaId: string): Promise<{ telefone: string; escopo: string }> {
-    const token = lerCookie(c.req.raw.headers, COOKIE_SESSAO);
-    if (!token || token.length > 100) throw new ErroDominio("UNAUTHORIZED");
-    const sessao = await chamar<{ telefone: string; escopo: string } | null>(deps.banco, "customer_session_get", {
-      p_token_hash: await sha256Hex(token),
-    });
-    if (!sessao) throw new ErroDominio("UNAUTHORIZED");
-    if (sessao.escopo !== "TELEFONE" && sessao.escopo !== `RESERVA:${reservaId}`) throw new ErroDominio("NOT_FOUND");
-    return sessao;
-  }
-
   async function telefoneDaSessao(c: Context, reservaId: string): Promise<string> {
-    return (await sessaoDaReserva(c, reservaId)).telefone;
+    return (await sessaoDaReserva(deps.banco, c, reservaId)).telefone;
   }
 
-  // Reserva da cliente: só do telefone da sessão (ou a do link, F9). De outro telefone, 404.
+  // Reserva da cliente: só do telefone da sessão ou a do link. De outro telefone, 404. Pelo
+  // link, passados 30 dias do fim, só número e estado (G6).
   app.get("/v1/reservations/:id", async (c) => {
     const id = idDaRota(c);
-    const reserva = await chamar<{ telefone: string } | null>(deps.banco, "reservation_for_customer", {
+    const sessao = await sessaoDaReserva(deps.banco, c, id);
+    const reserva = await chamar<{ telefone?: string } | null>(deps.banco, "reservation_for_customer", {
       p_id: id,
-      p_phone: await telefoneDaSessao(c, id),
+      p_phone: sessao.telefone,
+      p_limited: sessao.escopo !== "TELEFONE",
     });
     if (!reserva) throw new ErroDominio("NOT_FOUND");
     return c.json(comTelefoneMascarado(reserva));
@@ -331,7 +350,7 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
   // reserva, pede antes o código do WhatsApp (D13): só a sessão do telefone mexe aqui.
   app.put("/v1/reservations/:id/fulfillment", async (c) => {
     const id = idDaRota(c);
-    const sessao = await sessaoDaReserva(c, id);
+    const sessao = await sessaoDaReserva(deps.banco, c, id);
     if (sessao.escopo !== "TELEFONE") throw new ErroDominio("PHONE_VERIFICATION_REQUIRED");
     const dados = await lerCorpo(c, entregaSchema);
     const r = await chamar<ErroJson & { logistica: unknown }>(deps.banco, "set_fulfillment", {

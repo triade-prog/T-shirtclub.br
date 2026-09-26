@@ -24,9 +24,9 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 21,
-    "situacao": "Servidor das fases F2 a F8 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F8",
+    "arquitetura_versao": 22,
+    "situacao": "Servidor das fases F2 a F9 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete, consulta e link da reserva); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F9",
     "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
   },
   "fases": [
@@ -122,11 +122,11 @@
      ]},
     {"id":"F9","nome":"Consulta","sec":"whatsapp","objetivo":"A cliente acha as reservas dela pelo site, pelo link ou pelo WhatsApp, sem expor dados de ninguém.",
      "itens":[
-      {"id":"F9.1","texto":"Consulta pelo site com código (lookup-attempts)","sec":"api","refs":["G13"],"status":"pendente"},
-      {"id":"F9.2","texto":"Link /r#chave: POST /v1/r, escopo da reserva, telefone e endereço mascarados, 30 dias após o fim","sec":"whatsapp","refs":["G6"],"status":"pendente"},
-      {"id":"F9.3","texto":"Pelo link, confirmar ou mudar a entrega pede o código do WhatsApp (D13)","sec":"whatsapp","refs":["G6"],"status":"pendente"},
-      {"id":"F9.4","texto":"\"Minha reserva\" no WhatsApp, aceitando o número com e sem o nono dígito","sec":"whatsapp","refs":[],"status":"pendente"},
-      {"id":"F9.5","texto":"Telas de consulta e de entrada pelo link, com o código antes de mexer na entrega","sec":"frontend","refs":["G6"],"status":"pendente"}
+      {"id":"F9.1","texto":"Consulta pelo site com código (lookup-attempts)","sec":"api","refs":["G13"],"status":"feito","evidencia":"sistema/supabase/migrations/0155_fn_lookup.sql: lookup_attempts, código pelo mesmo núcleo da reserva (otp_emit e otp_check), sessão do telefone ao validar; rotas /v1/lookup-attempts e /v1/me/reservations; pgTAP 018; integração consulta_test.ts"},
+      {"id":"F9.2","texto":"Link /r#chave: POST /v1/r, escopo da reserva, telefone e endereço mascarados, 30 dias após o fim","sec":"whatsapp","refs":["G6"],"status":"feito","evidencia":"POST /v1/r: chave do fragmento, só o hash no banco, sessão RESERVA:id, telefone e endereço mascarados, limite por IP, no-store e no-referrer; 30 dias depois do fim, só número e estado; pgTAP 018 e integração"},
+      {"id":"F9.3","texto":"Pelo link, confirmar ou mudar a entrega pede o código do WhatsApp (D13)","sec":"whatsapp","refs":["G6"],"status":"feito","evidencia":"Consulta com motivo ENTREGA a partir do link (\"Quero confirmar a entrega do pedido\"): o código abre a sessão do telefone e libera PUT .../fulfillment; integração consulta_test.ts"},
+      {"id":"F9.4","texto":"\"Minha reserva\" no WhatsApp, aceitando o número com e sem o nono dígito","sec":"whatsapp","refs":[],"status":"feito","evidencia":"webhook-whatsapp responde \"Minha reserva\" na conversa com as reservas abertas (ou a última encerrada em 30 dias), aceitando o número com e sem o nono dígito; whatsapp_my_reservations (0155); webhook_test.ts e integração"},
+      {"id":"F9.5","texto":"Telas de consulta e de entrada pelo link, com o código antes de mexer na entrega","sec":"frontend","refs":["G6"],"status":"andamento","nota":"Rotas prontas (consulta com código, entrada pelo link, código para a entrega, lista das reservas); faltam as telas, que esperam o design"}
      ]},
     {"id":"F10","nome":"Painel admin completo","sec":"api","objetivo":"Tudo o que a loja precisa operar num lançamento, com rastro na auditoria.",
      "itens":[
@@ -150,7 +150,7 @@
     {"id":"T1","texto":"50 confirmações simultâneas para a última unidade: exatamente 1 reserva","fase":"F4","refs":[],"status":"feito","evidencia":"tests/concorrencia/ultima-unidade.sh: 1 reserva, 49 STOCK_UNAVAILABLE, qty_reserved = 1"},
     {"id":"T2","texto":"Carrinho com 1 item sem estoque: nenhuma reserva, nenhum estoque alterado","fase":"F4","refs":[],"status":"feito","evidencia":"pgTAP 012: item sem estoque → nenhuma reserva, nenhum estoque alterado, erro com o nome da peça"},
     {"id":"T3","texto":"Duas abas do mesmo telefone confirmando juntas: 1 reserva","fase":"F4","refs":[],"status":"feito","evidencia":"tests/concorrencia/ultima-unidade.sh: duas abas → 1 reserva e ACTIVE_RESERVATION_EXISTS"},
-    {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12","G18"],"status":"andamento","nota":"Tentativa de outro navegador, reserva, pagamento (pgTAP 015), cancelamento (016) e entrega (017) de outro telefone já respondem 404; falta a consulta (F9)"},
+    {"id":"T4","texto":"Reserva, pagamento ou tentativa de outra cliente pelo id: 404","fase":"F4","refs":["G12","G18"],"status":"feito","evidencia":"Tentativa de outro navegador, reserva, pagamento (pgTAP 015), cancelamento (016), entrega (017) e consulta (018) de outro telefone respondem 404; integração consulta_test.ts"},
     {"id":"T5","texto":"Transições proibidas direto no SQL: o gatilho rejeita","fase":"F1","refs":[],"status":"feito","evidencia":"supabase/tests/pgtap/003_transition_guard_test.sql"},
     {"id":"T6","texto":"Chave anon não lê nenhuma tabela (RLS)","fase":"F1","refs":["G18"],"status":"feito","evidencia":"supabase/tests/pgtap/004_rls_test.sql"},
     {"id":"T7","texto":"Senha certa sem código do autenticador: 403 em todo o painel","fase":"F2","refs":["G7"],"status":"feito","evidencia":"sistema/supabase/functions/api-admin/auth_test.ts: sessão aal1 recebe 403 MFA_REQUIRED"},
@@ -168,9 +168,9 @@
     {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"webhook-payments/webhook_test.ts: sem assinatura, errada, de outro pagamento ou com 6 min → 401 e nada gravado"},
     {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"pgTAP 015: valor diferente vai para análise; referência, moeda ou conta diferentes são descartadas"},
     {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"feito","evidencia":"pgTAP 017: com contestação aberta, deliver_reservation recusa (DISPUTE_OPEN); resolvida a disputa, entrega"},
-    {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
-    {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
-    {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"andamento","nota":"A regra já vale: a sessão do link recebe PHONE_VERIFICATION_REQUIRED ao mexer na entrega (integração entrega_test.ts); falta a entrada pelo link (POST /v1/r, F9)"},
+    {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"feito","evidencia":"A consulta lista só as reservas do telefone validado, e a reserva de outra cliente responde 404 (pgTAP 018 e integração consulta_test.ts)"},
+    {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"feito","evidencia":"Pelo link, em outro aparelho: vê só aquela reserva, telefone mascarado, paga normalmente e não vê a lista do telefone (integração consulta_test.ts)"},
+    {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"feito","evidencia":"Pelo link, PUT .../fulfillment recebe PHONE_VERIFICATION_REQUIRED; com o código pedido pelo link, a entrega é liberada (integração consulta_test.ts)"},
     {"id":"T25","texto":"Restauração do backup num projeto vazio: sistema sobe e invariantes passam","fase":"F11","refs":["G18"],"status":"pendente"},
     {"id":"T26","texto":"Jornada completa no celular (Android e iPhone), da loja ao meu pedido, sem violação do axe","fase":"F9","refs":["G19"],"status":"pendente"},
     {"id":"T27","texto":"Comparação visual da página de componentes nos temas claro e escuro","fase":"F1","refs":["G19"],"status":"andamento","nota":"Passa localmente; falta gerar as referências no container do CI"}
@@ -279,6 +279,7 @@
     ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F9 no servidor: consulta pelo site com código, link da reserva com sessão limitada, código pelo link antes de mexer na entrega e resposta a Minha reserva no WhatsApp; desenho técnico v22.","ref":""},
     {"data":"26/09/2026","texto":"F8 no servidor: entrega com código de retirada aleatório, modalidade e endereço, frete informado pelo painel e pago em até 2 h, substatus e Entregue sem disputa aberta; desenho técnico v21.","ref":""},
     {"data":"26/09/2026","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},
     {"data":"26/09/2026","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},

@@ -141,6 +141,23 @@ export const pedidoCancelamentoSchema = z.object({ observacao: z.string().trim()
 /** POST /v1/admin/cancellation-requests/:id/approve e /reject: sempre com motivo. */
 export const decisaoCancelamentoSchema = decisaoBloqueioSchema;
 
+// ─── Consulta (F9, G13, D13) ─────────────────────────────────────────────────────────
+
+/**
+ * POST /v1/lookup-attempts: CONSULTA pede o telefone (e o Turnstile); ENTREGA parte do
+ * link da reserva, e o telefone vem da sessão dele.
+ */
+export const consultaSchema = z.discriminatedUnion("motivo", [
+  z.object({ motivo: z.literal("CONSULTA"), telefone: telefoneSchema, turnstileToken: z.string().min(1).max(2048) }),
+  z.object({ motivo: z.literal("ENTREGA"), reservaId: idSchema }),
+]);
+
+/** POST /v1/lookup-attempts/:id/verify */
+export const verificarConsultaSchema = z.object({ codigo: codigoOtpSchema });
+
+/** POST /v1/r: a chave do fragmento do link (22 caracteres base62, G6). */
+export const linkReservaSchema = z.object({ chave: z.string().regex(/^[0-9A-Za-z]{22}$/, "NOT_FOUND") });
+
 // ─── Entrega e frete (regra 17, F8) ──────────────────────────────────────────────────
 
 const campoEndereco = (max: number) => z.string().trim().min(1, "VALIDATION_ERROR").max(max, "VALIDATION_ERROR");

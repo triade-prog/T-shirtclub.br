@@ -135,6 +135,29 @@ create table cancellation_requests (
 
 create unique index cancellation_requests_uma_pendente on cancellation_requests (reservation_id) where status = 'PENDENTE';
 
+-- Consulta com código (F9, G13): a cliente pede o código pelo WhatsApp com a referência
+-- ("Quero consultar minhas reservas (ref. K7Q2)") e, validado, ganha a sessão do telefone.
+-- ENTREGA é a mesma coisa a partir do link da reserva, antes de mexer na entrega (D13).
+-- Só o navegador com o cookie __Host-consulta acompanha e valida (como a tentativa, G12).
+create table lookup_attempts (
+  id                 uuid primary key default gen_random_uuid(),
+  ref                text not null check (ref ~ '^[2-9A-HJ-NP-Z]{4}$'),
+  reason             lookup_reason not null,
+  phone_e164         text not null check (phone_e164 ~ '^\+[1-9][0-9]{7,14}$'),
+  reservation_id     uuid references reservations (id),
+  otp_session_id     uuid not null references otp_sessions (id),
+  status             lookup_status not null default 'AGUARDANDO_VALIDACAO',
+  browser_token_hash text not null check (browser_token_hash ~ '^[0-9a-f]{64}$'),
+  ip_hash            text check (ip_hash ~ '^[0-9a-f]{64}$'),
+  created_at         timestamptz not null default app_now(),
+  verified_at        timestamptz,
+  check ((reason = 'ENTREGA') = (reservation_id is not null)),
+  check ((status = 'VERIFICADA') = (verified_at is not null))
+);
+
+create unique index lookup_attempts_ref_aberta on lookup_attempts (ref) where status = 'AGUARDANDO_VALIDACAO';
+create index lookup_attempts_phone_idx on lookup_attempts (phone_e164, created_at desc);
+
 -- Referências que só agora têm para onde apontar.
 alter table coupon_uses add constraint coupon_uses_reservation_fk foreign key (reservation_id) references reservations (id);
 alter table stock_movements add constraint stock_movements_reservation_fk foreign key (reservation_id) references reservations (id);

@@ -2,6 +2,7 @@
 
 import { criarApp } from "../_shared/app.ts";
 import { rotasCatalogo } from "./catalogo.ts";
+import { rotasConsulta } from "./consultas.ts";
 import { rotasReserva, type DepsReserva } from "./reservas.ts";
 
 export function criarApiPublica(segredo: string | undefined, deps: DepsReserva) {
@@ -9,5 +10,6 @@ export function criarApiPublica(segredo: string | undefined, deps: DepsReserva) 
   app.get("/v1/health", (c) => c.json({ ok: true, servico: "api-public" }));
   rotasCatalogo(app, deps);
   rotasReserva(app, deps);
+  rotasConsulta(app, deps);
   return app;
 }
