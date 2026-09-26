@@ -59,3 +59,16 @@ test("reserva ativa: 404 e tela sem conexão com a api acessível", async ({ pag
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations).toEqual([]);
 });
+
+// Link da reserva (fatia 6): a chave do fragmento sai da barra de endereço; link incompleto
+// avisa; sem a api-public, a página explica sem quebrar.
+test("link /r: tira a chave do endereço e avisa sem quebrar", async ({ page }) => {
+  await page.goto(`${LOJA}/r`);
+  await expect(page.getByText(/não está completo/)).toBeVisible();
+  await page.goto(`${LOJA}/`);
+  await page.goto(`${LOJA}/r#AbCdEfGhIjKlMnOpQrStUv`);
+  await expect(page.getByRole("alert")).toBeVisible();
+  expect(new URL(page.url()).hash).toBe("");
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+});

@@ -11,5 +11,5 @@ export const metadata: Metadata = { title: "Sua reserva", robots: { index: false
 export default async function PaginaReserva({ params }: PageProps<"/reserva/[numero]">) {
   const { numero } = await params;
   if (!/^\d{1,9}$/.test(numero)) notFound();
-  return <ReservaAtiva numero={Number(numero)} />;
+  return <ReservaAtiva numero={Number(numero)} numeroLoja={process.env.WHATSAPP_LOJA ?? "5577998155772"} />;
 }
