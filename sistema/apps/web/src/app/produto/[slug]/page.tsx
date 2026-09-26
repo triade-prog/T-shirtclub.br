@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
 import { Botao, ProgressoClub, Selo, Sobretitulo } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
 import { dividirNome, textoOferta } from "@/lib/vitrine";
+import { BotaoFavorito } from "../../_vitrine/BotaoFavorito";
 import { Galeria } from "./Galeria";
 
 // Página do produto (F2.7; V4 em docs/design/v4/produto.html): galeria de 1 a 10 fotos,
@@ -42,9 +44,11 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
   const detalhes = [
     { titulo: "Material e caimento", texto: [produto.composicao, produto.modelagem].filter(Boolean).join(" ") || null },
     { titulo: "Medidas", texto: produto.medidas, id: "medidas" },
-    { titulo: "Cuidados", texto: produto.cuidados },
     { titulo: "Entrega e retirada", texto: "Retire na loja ou escolha a entrega. A reserva é confirmada pelo WhatsApp." },
+    { titulo: "Trocas e cuidados", texto: produto.cuidados },
   ].filter((d) => d.texto);
+  const sobretitulo = [produto.noClub && "Club pick", selo].filter(Boolean).join(" · ");
+  const looks = produto.looks.slice(0, 3);
 
   return (
     <>
@@ -66,6 +70,7 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
               {" / T-shirts"}
             </nav>
           )}
+          {sobretitulo && <Sobretitulo>{sobretitulo}</Sobretitulo>}
           <h1 className="m-0 font-editorial text-[clamp(44px,5vw,74px)] font-bold leading-[0.87] tracking-[-0.06em]">
             {destaque && <><em className="text-rosa-press">{destaque}</em><br /></>}
             {resto}
@@ -81,7 +86,7 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
           </p>
 
           {oferta && club && (
-            <ProgressoClub pecas={0} titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
+            <ProgressoClub nivel={2} pecas={0} titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
           )}
 
           <div className="grid gap-2.5">
@@ -93,10 +98,16 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
           </div>
 
           {/* A sacola (fatia 3) recebe a peça por aqui; sem JavaScript também funciona. */}
-          <form action="/sacola" method="get">
-            <input type="hidden" name="adicionar" value={produto.slug} />
-            <Botao type="submit" cheio disabled={esgotado}>{esgotado ? "Esgotado" : "Adicionar ao Club"}</Botao>
-          </form>
+          <div className="grid grid-cols-[1fr_auto] items-start gap-2">
+            <form action="/sacola" method="get">
+              <input type="hidden" name="adicionar" value={produto.slug} />
+              <Botao type="submit" cheio disabled={esgotado} className="flex-row-reverse">
+                {!esgotado && <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.8} />}
+                {esgotado ? "Esgotado" : "Adicionar ao Club"}
+              </Botao>
+            </form>
+            <BotaoFavorito slug={produto.slug} nome={produto.nome} className="size-13 bg-transparent" />
+          </div>
 
           {detalhes.length > 0 && (
             <div className="border-b border-linha">
@@ -115,12 +126,17 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
         </div>
       </section>
 
-      {produto.looks.length > 0 && (
+      {looks.length > 0 && (
         <section className="border-y-4 border-tinta bg-verde px-3.5 py-14 text-no-verde md:px-5 md:py-18">
-          <Sobretitulo className="text-no-verde!">Uma T-shirt, vários contextos</Sobretitulo>
-          <h2 className="tc-titulo m-0 mb-7 mt-2 text-[clamp(38px,5.2vw,68px)] text-citrino">Você faz o <em className="text-citrino">look.</em></h2>
+          <div className="mb-7.5 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <Sobretitulo className="text-no-verde!">Uma T-shirt · {looks.length === 1 ? "outro contexto" : `${["", "", "dois", "três"][looks.length]} contextos`}</Sobretitulo>
+              <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)] text-citrino">Você faz<br />o <em className="text-citrino">look.</em></h2>
+            </div>
+            <p className="m-0 max-w-[44ch] text-[13px] leading-relaxed">O produto continua igual. Jeans, saia ou alfaiataria mudam a leitura completamente.</p>
+          </div>
           <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 md:grid-cols-3">
-            {produto.looks.slice(0, 3).map((l, i) => (
+            {looks.map((l, i) => (
               <li key={l.id} className="relative min-h-[420px] overflow-hidden rounded-foto border-2 border-tinta sm:first:col-span-2 md:first:col-span-1 md:min-h-[470px]">
                 <Image src={urlFoto(l.foto.caminho)} alt={l.foto.alt ?? l.titulo} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
                 <span className="absolute bottom-3 left-3 rounded-[7px] border-[1.5px] border-tinta bg-rosa px-2.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-no-rosa shadow-adesivo-sm">

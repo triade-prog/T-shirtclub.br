@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
@@ -43,6 +44,8 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
   const filtro = lerFiltro((await searchParams).filtro);
   const visiveis = filtrarProdutos(produtos, filtro);
   const oferta = textoOferta(club);
+  // A nota do fim usa a foto da última peça da coleção (na V4, uma foto editorial da coleção).
+  const fotoFim = [...produtos].reverse().find((p) => p.capa)?.capa ?? null;
   const preco = produtos[0] ? formatarReais(produtos[0].precoCentavos) : null;
 
   return (
@@ -58,8 +61,9 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
               <p className="m-0 max-w-[24ch] font-editorial text-[22px] italic leading-tight text-tinta-suave">{colecao.descricao}</p>
             )}
             {produtos.length > 0 && (
-              <Link href="#pecas" className="inline-flex min-h-13 items-center rounded-pilula border-2 border-tinta bg-tinta px-6 text-[15px] font-bold text-papel shadow-adesivo">
+              <Link href="#pecas" className="inline-flex min-h-13 items-center gap-2 rounded-pilula border-2 border-tinta bg-tinta px-6 text-[15px] font-bold text-papel shadow-adesivo">
                 Ver {produtos.length === 1 ? "a estampa" : `as ${produtos.length} estampas`}
+                <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.8} />
               </Link>
             )}
           </div>
@@ -68,6 +72,15 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
               <Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 768px) 60vw, 100vw" className="object-cover" />
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="border-b-3 border-tinta bg-verde-escuro px-3.5 py-7 text-no-verde md:px-5">
+        <div className="grid items-center gap-2 md:grid-cols-[auto_1fr] md:gap-7.5">
+          <strong className="font-display text-lg font-extrabold uppercase tracking-[-0.015em] text-citrino">The {colecao.nome} edit</strong>
+          <p className="m-0 text-xs leading-relaxed">
+            {colecao.nome} é mais um drop para misturar com os outros. A T-shirt Club continua reconhecível pelo sistema: Club Tags, fotografia editorial e o progresso {club ? `${club.qtd}/${club.qtd}` : "do Club"}.
+          </p>
         </div>
       </section>
 
@@ -124,6 +137,23 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
           </p>
         )}
       </section>
+
+      {fotoFim && (
+        <section className="grid items-center gap-7.5 border-t-3 border-tinta bg-rosa-bruma px-3.5 py-15.5 md:grid-cols-2 md:px-5">
+          <div>
+            <Sobretitulo>Editorial note</Sobretitulo>
+            <h2 className="m-0 mb-4.5 mt-2.5 font-editorial text-[clamp(48px,6vw,90px)] font-bold leading-[0.84] tracking-[-0.05em] text-verde-escuro">
+              Do drop<br />para o seu <em className="text-rosa-press">look.</em>
+            </h2>
+            <p className="m-0 max-w-[40ch] text-[13px] leading-relaxed text-tinta-suave">
+              {colecao.nome} é campanha, não uniforme. Use com jeans, alfaiataria, saia ou como quiser: a coleção muda de contexto junto com você.
+            </p>
+          </div>
+          <div className="relative min-h-[430px] overflow-hidden rounded-[22px] border-2 border-tinta">
+            <Image src={urlFoto(fotoFim.caminho)} alt={fotoFim.alt ?? ""} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

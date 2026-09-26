@@ -7,6 +7,8 @@ export interface ProgressoClubProps {
   texto?: string;
   /** Rótulos dos três passos; o padrão é "1ª peça", "2ª peça", "3ª peça". */
   rotulos?: [string, string, string];
+  /** Nível do título; 2 logo abaixo do h1 da página (o padrão é 3). */
+  nivel?: 2 | 3;
   className?: string;
 }
 
@@ -14,7 +16,8 @@ export interface ProgressoClubProps {
  * Progresso do Club (D24): cartão citrino com os três passos. Conta dentro do trio atual
  * (4 peças = 1 de 3 no segundo Club); com o trio fechado, os três ficam feitos.
  */
-export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2ª peça", "3ª peça"], className }: ProgressoClubProps) {
+export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2ª peça", "3ª peça"], nivel = 3, className }: ProgressoClubProps) {
+  const Titulo = nivel === 2 ? "h2" : "h3";
   const noTrio = pecas > 0 && pecas % 3 === 0 ? 3 : pecas % 3;
   return (
     <section
@@ -23,7 +26,7 @@ export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2
     >
       <div className="flex items-start justify-between gap-5">
         <div>
-          <h3 className="m-0 font-editorial text-[25px] font-bold leading-tight tracking-[-0.035em]">{titulo}</h3>
+          <Titulo className="m-0 font-editorial text-[25px] font-bold leading-tight tracking-[-0.035em]">{titulo}</Titulo>
           {texto && <p className="m-0 mt-1 text-sm text-[#4a441a]">{texto}</p>}
         </div>
         <b className="font-display text-2xl font-extrabold" aria-hidden="true">{noTrio}/3</b>

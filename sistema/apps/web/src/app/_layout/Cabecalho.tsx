@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import { BotaoVoltar } from "./BotaoVoltar";
 
 // Cabeçalho V4 (D24): faixa rosa da oferta, logo no centro, sacola em pílula de adesivo e
 // a faixa de três cores embaixo.
@@ -12,7 +13,7 @@ export function Cabecalho() {
       </p>
       <div className="border-b-2 border-tinta bg-papel/95 backdrop-blur-md">
         <div className="mx-auto grid h-18 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-3.5 md:h-21.5 md:px-5">
-          <span aria-hidden="true" />
+          <BotaoVoltar />
           <Link href="/" className="rounded-campo" aria-label="T-shirt Club.br, página inicial">
             <Image src="/marca/logo.webp" alt="" width={160} height={110} priority className="h-12 w-auto md:h-15.5" />
           </Link>
