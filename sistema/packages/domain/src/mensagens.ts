@@ -66,7 +66,8 @@ export function candidatosDoRemetente(remetente: string | null | undefined): str
   const d = (remetente ?? "").replace(/\D/g, "");
   if (!/^\d{10,15}$/.test(d) || (remetente ?? "").includes("@")) return [];
   const formas = new Set([`+${d}`]);
-  if (d.startsWith("55") && d.length === 12) formas.add(`+${d.slice(0, 4)}9${d.slice(4)}`);
+  // Só celular ganha o nono dígito (o assinante de 8 dígitos começa com 6 a 9); fixo, não
+  if (d.startsWith("55") && d.length === 12 && /[6-9]/.test(d[4]!)) formas.add(`+${d.slice(0, 4)}9${d.slice(4)}`);
   if (d.startsWith("55") && d.length === 13 && d[4] === "9") formas.add(`+${d.slice(0, 4)}${d.slice(5)}`);
   return [...formas];
 }

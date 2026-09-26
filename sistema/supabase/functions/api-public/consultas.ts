@@ -9,6 +9,7 @@
 
 import type { Hono } from "hono";
 import {
+  COOKIES_LOJA,
   ErroDominio,
   consultaSchema,
   linkReservaSchema,
@@ -37,7 +38,7 @@ import {
   tokenDoCookie,
 } from "./reservas.ts";
 
-export const COOKIE_CONSULTA = "__Host-consulta";
+export const COOKIE_CONSULTA = COOKIES_LOJA.consulta;
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
 
 export function rotasConsulta(app: Hono, deps: DepsReserva): void {

@@ -29,6 +29,8 @@ describe("o que a cliente escreve", () => {
 
   it("remetente com e sem o nono dígito; LID não é telefone", () => {
     expect(candidatosDoRemetente("557798128809")).toEqual(["+557798128809", "+5577998128809"]);
+    // Fixo (assinante começando com 2 a 5) não vira o celular de outra pessoa
+    expect(candidatosDoRemetente("551134567890")).toEqual(["+551134567890"]);
     expect(candidatosDoRemetente("5577998128809")).toEqual(["+5577998128809", "+557798128809"]);
     expect(candidatosDoRemetente("123456789012345@lid")).toEqual([]);
     expect(candidatosDoRemetente(null)).toEqual([]);

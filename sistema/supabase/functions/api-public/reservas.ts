@@ -8,6 +8,7 @@
 
 import type { Context, Hono } from "hono";
 import {
+  COOKIES_LOJA,
   ErroDominio,
   ajustarItensSchema,
   entregaSchema,
@@ -35,8 +36,8 @@ import type { PaymentProvider } from "../_shared/pagamentos.ts";
 import { aplicar } from "../worker/pagamentos.ts";
 import { cotar, type DepsLoja } from "./catalogo.ts";
 
-export const COOKIE_TENTATIVA = "__Host-tentativa";
-export const COOKIE_SESSAO = "__Host-sessao";
+export const COOKIE_TENTATIVA = COOKIES_LOJA.tentativa;
+export const COOKIE_SESSAO = COOKIES_LOJA.sessao;
 
 export interface DepsReserva extends DepsLoja {
   whatsapp: WhatsAppProvider;

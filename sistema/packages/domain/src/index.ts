@@ -8,3 +8,4 @@ export * from "./preco.ts";
 export * from "./catalogo.ts";
 export * from "./mensagens.ts";
 export * from "./monitor.ts";
+export * from "./cookies.ts";
