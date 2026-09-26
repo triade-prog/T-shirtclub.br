@@ -28,10 +28,10 @@ describe("o que a cliente escreve", () => {
   });
 
   it("remetente com e sem o nono dígito; LID não é telefone", () => {
-    expect(candidatosDoRemetente("557798128809")).toEqual(["+557798128809", "+5577998128809"]);
-    // Fixo (assinante começando com 2 a 5) não vira o celular de outra pessoa
-    expect(candidatosDoRemetente("551134567890")).toEqual(["+551134567890"]);
-    expect(candidatosDoRemetente("5577998128809")).toEqual(["+5577998128809", "+557798128809"]);
+    expect(candidatosDoRemetente("557798128809")).toEqual(["+5577998128809"]);
+    expect(candidatosDoRemetente("5577998128809")).toEqual(["+5577998128809"]);
+    // Celular novo (9 seguido de 1 a 5) também chega sem o nono dígito
+    expect(candidatosDoRemetente("553141234567")).toEqual(["+5531941234567"]);
     expect(candidatosDoRemetente("123456789012345@lid")).toEqual([]);
     expect(candidatosDoRemetente(null)).toEqual([]);
   });

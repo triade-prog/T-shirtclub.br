@@ -67,7 +67,7 @@ Deno.test("pedido de código: gera, guarda só o hash e responde na conversa", a
   assertEquals((await enviar(msg())).tratamento, "CODIGO_ENVIADO");
   const pedido = rpcs.find((r) => r.funcao === "otp_issue_code")!.args;
   assertEquals(pedido.p_ref, "K7Q2");
-  assertEquals(pedido.p_senders, ["+5577998128809", "+557798128809"]);
+  assertEquals(pedido.p_senders, ["+5577998128809"]);
   assertMatch(String(pedido.p_code_hash), /^[0-9a-f]{64}$/);
   const enviada = whatsapp.enviadas[0]!;
   assertMatch(enviada.codigo!, /^\d{6}$/);
@@ -122,13 +122,15 @@ Deno.test("consulta e entrega pelo link: código pela referência da consulta, c
   assertEquals((await nenhuma.enviar(msg())).tratamento, "REFERENCIA_INVALIDA");
 });
 
-Deno.test("minha reserva: responde na conversa com as reservas do número, com e sem o nono dígito", async () => {
+Deno.test("minha reserva: sem o nono dígito, acha as reservas e responde no número guardado", async () => {
   const { enviar, rpcs, whatsapp } = montar({
-    reservas: [{ numero: 1049, status: "RESERVADO", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-10T12:15:00Z" }],
+    reservas: [{ numero: 1049, status: "RESERVADO", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-10T12:15:00Z", telefone: "+5577998128809" }],
   });
   assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
-  assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+557798128809", "+5577998128809"]);
-  assertEquals(whatsapp.enviadas[0]!.texto, "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.pt");
+  assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+5577998128809"]);
+  assertEquals(whatsapp.enviadas.map((m) => [m.telefone, m.texto]), [
+    ["+5577998128809", "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.pt"],
+  ], "vai para o número da reserva, sem o telefone no texto");
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "status" } }));
   assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Não achamos reservas recentes neste número/);

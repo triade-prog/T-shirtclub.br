@@ -8,3 +8,9 @@ export const COOKIES_LOJA = {
   /** Consulta com código (e validação da entrega pelo link). */
   consulta: "__Host-consulta",
 } as const;
+
+// Cookie do painel (api-admin grava e lê; o repasse /api do painel só deixa passar este).
+export const COOKIES_PAINEL = {
+  /** Sessão do Supabase Auth (tokens empacotados), em aal1 até o autenticador. */
+  painel: "__Host-painel",
+} as const;

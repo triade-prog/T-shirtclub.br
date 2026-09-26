@@ -5,7 +5,7 @@
 // por 15 min só aquela rede, e a partir do 3º o login pede o Turnstile.
 
 import type { Context, Hono, MiddlewareHandler } from "hono";
-import { ErroDominio, loginAdminSchema, verificarAutenticadorSchema } from "@tshirtclub/domain";
+import { COOKIES_PAINEL, ErroDominio, loginAdminSchema, verificarAutenticadorSchema } from "@tshirtclub/domain";
 import type { Portador, ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
 import type { Banco } from "../_shared/banco.ts";
 import type { VerificadorTurnstile } from "../_shared/turnstile.ts";
@@ -14,7 +14,6 @@ import { base64url, deBase64url, sha256Hex } from "../_shared/cripto.ts";
 import { ipDaCliente } from "../_shared/repasse.ts";
 import { lerCorpo } from "../_shared/validar.ts";
 
-export const COOKIE_PAINEL = "__Host-painel";
 /** Igual ao timebox das sessões no config.toml (12 h). */
 const SESSAO_SEGUNDOS = 12 * 60 * 60;
 
@@ -60,7 +59,7 @@ function desempacotar(valor: string | null): { a: string; r: string } | null {
 }
 
 export function gravarSessao(c: Context, s: SessaoAuth): void {
-  c.header("set-cookie", gravarCookie(COOKIE_PAINEL, empacotar(s), SESSAO_SEGUNDOS), { append: true });
+  c.header("set-cookie", gravarCookie(COOKIES_PAINEL.painel, empacotar(s), SESSAO_SEGUNDOS), { append: true });
 }
 
 async function auditar(banco: Banco, acao: string, actorId: string | null, entidade: string, id: string, dados: Record<string, unknown> = {}) {
@@ -76,7 +75,7 @@ async function auditar(banco: Banco, acao: string, actorId: string | null, entid
 
 /** Sessão do cookie, renovada se o token venceu. Não exige aal2. */
 async function sessaoDoCookie(c: Context, deps: DepsAuthAdmin): Promise<(Portador & { accessToken: string }) | null> {
-  const s = desempacotar(lerCookie(c.req.raw.headers, COOKIE_PAINEL));
+  const s = desempacotar(lerCookie(c.req.raw.headers, COOKIES_PAINEL.painel));
   if (!s) return null;
   const p = await deps.auth.portador(s.a);
   if (p) return { ...p, accessToken: s.a };
@@ -166,9 +165,9 @@ export function rotasAuthAdmin(app: Hono<VarsAdmin>, deps: DepsAuthAdmin): void 
   });
 
   app.post("/v1/admin/auth/logout", async (c) => {
-    const s = desempacotar(lerCookie(c.req.raw.headers, COOKIE_PAINEL));
+    const s = desempacotar(lerCookie(c.req.raw.headers, COOKIES_PAINEL.painel));
     if (s) await deps.auth.sair(s.a).catch(() => undefined);
-    c.header("set-cookie", apagarCookie(COOKIE_PAINEL), { append: true });
+    c.header("set-cookie", apagarCookie(COOKIES_PAINEL.painel), { append: true });
     return c.json({ ok: true });
   });
 }

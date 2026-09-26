@@ -4,6 +4,7 @@
 // liberar a entrega (D13), "Minha reserva" no WhatsApp e o link 30 dias depois do fim.
 
 import { assert, assertEquals, assertMatch } from "@std/assert";
+import { criarRepasse, opcoesLoja } from "../../../packages/servidor/src/repasse.ts";
 import { criarApiPublica } from "../api-public/app.ts";
 import { criarWebhookWhatsApp } from "../webhook-whatsapp/app.ts";
 import { sha256Hex } from "../_shared/cripto.ts";
@@ -72,15 +73,22 @@ Deno.test({
           body: JSON.stringify({ type: "ReceivedCallback", messageId: `consulta-${++nMensagem}`, phone: remetente, fromMe: false, isGroup: false, momment: Date.now(), text: { message: texto } }),
         })).json()).tratamento;
 
+      // O navegador fala com o /api do site: o mesmo repasse da loja (cookies que vão e voltam,
+      // cabeçalhos que passam), com o fetch indo direto para a função, sem rede
+      const repassar = criarRepasse(() => ({
+        ...opcoesLoja({ SUPABASE_FUNCTIONS_URL: "http://funcoes", REPASSE_SEGREDO: SEGREDO }),
+        buscar: async (destino, init) => await api.fetch(new Request(destino, init)),
+      }));
+
       /** Um aparelho: guarda os próprios cookies. */
       const aparelho = () => {
         let cookies = "";
         return async (metodo: string, caminho: string, corpo?: unknown, extra: Record<string, string> = {}) => {
-          const r = await api.request(`/api-public${caminho}`, {
+          const r = await repassar(new Request(`https://tshirtclub.pt/api${caminho}`, {
             method: metodo,
-            headers: { "x-repasse-segredo": SEGREDO, "x-cliente-ip": "200.1.2.3", cookie: cookies, ...(corpo === undefined ? {} : { "content-type": "application/json" }), ...extra },
+            headers: { "x-real-ip": "200.1.2.3", cookie: cookies, ...(corpo === undefined ? {} : { "content-type": "application/json" }), ...extra },
             body: corpo === undefined ? undefined : JSON.stringify(corpo),
-          });
+          }), { params: Promise.resolve({ path: caminho.slice(1).split("?")[0]!.split("/") }) });
           for (const s of r.headers.getSetCookie()) {
             const [par] = s.split(";");
             const [nome] = par!.split("=");
@@ -119,7 +127,7 @@ Deno.test({
       const outro = aparelho();
       assertEquals((await outro("POST", "/v1/r", { chave: "x".repeat(22) })).status, 404);
       const link = await outro("POST", "/v1/r", { chave: atual.chave });
-      assertEquals([link.status, link.headers.get("referrer-policy"), link.headers.get("cache-control")], [200, "no-referrer", "no-store"]);
+      assertEquals([link.status, link.headers.get("cache-control")], [200, "no-store"]);
       const aberto = await link.json();
       assertEquals([aberto.escopo, aberto.reserva.numero, aberto.reserva.telefone], ["RESERVA", atual.numero, "(77) •••••-0001"]);
       assertEquals((await outro("GET", `/v1/reservations/${antiga.id}`)).status, 404, "o link vê só a reserva dele");
@@ -148,7 +156,7 @@ Deno.test({
       // ── "Minha reserva" no WhatsApp ──
       assertEquals(await mensagem(REMETENTE, "Minha reserva"), "MINHA_RESERVA");
       assertEquals(whatsapp.enviadas.at(-1)!.texto, `Sua reserva:\n• #${atual.numero}: paga · em preparação\nDetalhes e pagamento no site: tshirtclub.pt`);
-      assertEquals(whatsapp.enviadas.at(-1)!.telefone, `+${REMETENTE}`, "responde na mesma conversa, no número como o WhatsApp mandou");
+      assertEquals(whatsapp.enviadas.at(-1)!.telefone, TELEFONE, "responde no número guardado na reserva, não no remetente");
 
       // ── O link 30 dias depois do fim: só número e estado ──
       await banco.sql`select set_app_clock(interval '31 days')`;

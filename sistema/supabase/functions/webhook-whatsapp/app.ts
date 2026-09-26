@@ -42,8 +42,12 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
   }
 
   async function responder(remetente: string, texto: string): Promise<void> {
+    await responderPara(`+${remetente}`, texto);
+  }
+
+  async function responderPara(telefone: string, texto: string): Promise<void> {
     try {
-      await deps.whatsapp.enviarTexto(`+${remetente}`, texto);
+      await deps.whatsapp.enviarTexto(telefone, texto);
     } catch (e) {
       await relatarErro(e, { tarefa: "resposta-na-conversa" });
     }
@@ -53,11 +57,20 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
   async function minhaReserva(id: string, remetente: string | null): Promise<string> {
     const candidatos = candidatosDoRemetente(remetente);
     if (candidatos.length === 0 || !remetente) return await marcar(id, "SEM_NUMERO");
-    const lista = await deps.banco.rpc<(Omit<ResumoReserva, "expiraEm"> & { expiraEm?: string })[]>("whatsapp_my_reservations", {
-      p_senders: candidatos,
-    });
-    const reservas = lista.map((r) => ({ ...r, expiraEm: r.expiraEm ? new Date(r.expiraEm) : undefined }));
-    await responder(remetente, mensagemWhatsApp("minhas_reservas", { reservas }));
+    const lista = await deps.banco.rpc<(Omit<ResumoReserva, "expiraEm"> & { expiraEm?: string; telefone: string })[]>(
+      "whatsapp_my_reservations", { p_senders: candidatos },
+    );
+    if (lista.length === 0) {
+      await responder(remetente, mensagemWhatsApp("minhas_reservas", { reservas: [] }));
+      return await marcar(id, "MINHA_RESERVA");
+    }
+    // Para o número guardado na reserva (como o código): quem escreveu de um fixo que
+    // coincide com o celular de outra pessoa não recebe nada dela
+    const porTelefone = new Map<string, ResumoReserva[]>();
+    for (const { telefone, expiraEm, ...r } of lista) {
+      porTelefone.set(telefone, [...(porTelefone.get(telefone) ?? []), { ...r, expiraEm: expiraEm ? new Date(expiraEm) : undefined }]);
+    }
+    for (const [telefone, reservas] of porTelefone) await responderPara(telefone, mensagemWhatsApp("minhas_reservas", { reservas }));
     return await marcar(id, "MINHA_RESERVA");
   }
 

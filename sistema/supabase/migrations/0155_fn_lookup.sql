@@ -174,7 +174,8 @@ as $$
 $$;
 
 -- ─── "Minha reserva" pelo WhatsApp (seção 07, regra 22, R17) ─────────────────────────
--- O remetente é a prova: responde na conversa, sem código. As abertas (reservada no prazo
+-- O remetente é a prova, e a resposta vai para o número guardado na reserva (um fixo pode
+-- coincidir com a forma sem o nono dígito de um celular). As abertas (reservada no prazo
 -- ou paga e ainda não entregue); sem nenhuma, a última encerrada nos últimos 30 dias.
 
 create function whatsapp_my_reservations(p_senders text[]) returns jsonb
@@ -194,6 +195,8 @@ as $$
        and coalesce(r.delivered_at, r.expired_at) > app_now() - interval '30 days'
      order by coalesce(r.delivered_at, r.expired_at) desc limit 1
   )
-  select coalesce(jsonb_agg(reservation_summary_json(x) order by x.created_at desc, x.number desc), '[]')
+  -- O telefone guardado vai junto: a resposta sai para ele, nunca para o remetente
+  select coalesce(jsonb_agg(reservation_summary_json(x) || jsonb_build_object('telefone', x.phone_e164)
+                            order by x.created_at desc, x.number desc), '[]')
     from (select * from abertas union all select * from recente) x
 $$;

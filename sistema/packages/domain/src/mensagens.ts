@@ -65,11 +65,11 @@ export function ehPedidoMinhaReserva(texto: string): boolean {
 export function candidatosDoRemetente(remetente: string | null | undefined): string[] {
   const d = (remetente ?? "").replace(/\D/g, "");
   if (!/^\d{10,15}$/.test(d) || (remetente ?? "").includes("@")) return [];
-  const formas = new Set([`+${d}`]);
-  // Só celular ganha o nono dígito (o assinante de 8 dígitos começa com 6 a 9); fixo, não
-  if (d.startsWith("55") && d.length === 12 && /[6-9]/.test(d[4]!)) formas.add(`+${d.slice(0, 4)}9${d.slice(4)}`);
-  if (d.startsWith("55") && d.length === 13 && d[4] === "9") formas.add(`+${d.slice(0, 4)}${d.slice(5)}`);
-  return [...formas];
+  // O telefone guardado é sempre o celular com o nono dígito (normalizarTelefone): o WhatsApp
+  // às vezes manda sem ele. Um fixo pode coincidir com o celular de outra pessoa; por isso
+  // o que o remetente pede sai sempre para o número guardado, nunca para o remetente.
+  if (d.startsWith("55") && d.length === 12) return [`+${d.slice(0, 4)}9${d.slice(4)}`];
+  return [`+${d}`];
 }
 
 // ─── O que a loja manda ──────────────────────────────────────────────────────────────

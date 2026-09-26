@@ -36,8 +36,6 @@ import type { PaymentProvider } from "../_shared/pagamentos.ts";
 import { aplicar } from "../worker/pagamentos.ts";
 import { cotar, type DepsLoja } from "./catalogo.ts";
 
-export const COOKIE_TENTATIVA = COOKIES_LOJA.tentativa;
-export const COOKIE_SESSAO = COOKIES_LOJA.sessao;
 
 export interface DepsReserva extends DepsLoja {
   whatsapp: WhatsAppProvider;
@@ -99,7 +97,7 @@ export async function sessaoDoCookie(banco: DepsReserva["banco"], c: Context): P
 }
 
 export async function sessaoOpcional(banco: DepsReserva["banco"], c: Context): Promise<SessaoCliente | null> {
-  const token = lerCookie(c.req.raw.headers, COOKIE_SESSAO);
+  const token = lerCookie(c.req.raw.headers, COOKIES_LOJA.sessao);
   if (!token || token.length > 100) return null;
   return await chamar<SessaoCliente | null>(banco, "customer_session_get", { p_token_hash: await sha256Hex(token) });
 }
@@ -156,7 +154,7 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     falhou(r);
 
     const texto = textoPedidoCodigo(r.ref);
-    c.header("set-cookie", gravarCookie(COOKIE_TENTATIVA, token, 60 * 60), { append: true });
+    c.header("set-cookie", gravarCookie(COOKIES_LOJA.tentativa, token, 60 * 60), { append: true });
     return c.json({
       id: r.id,
       ref: r.ref,
@@ -168,7 +166,7 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
   app.get("/v1/reservation-attempts/:id", async (c) => {
     const situacao = await chamar<{ telefone?: string } | null>(deps.banco, "attempt_status", {
       p_attempt_id: idDaRota(c),
-      p_token_hash: await tokenDoCookie(c, COOKIE_TENTATIVA),
+      p_token_hash: await tokenDoCookie(c, COOKIES_LOJA.tentativa),
     });
     if (!situacao) throw new ErroDominio("NOT_FOUND");
     return c.json(comTelefoneMascarado(situacao));
@@ -176,7 +174,7 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
 
   app.post("/v1/reservation-attempts/:id/confirm", async (c) => {
     const id = idDaRota(c);
-    const tokenHash = await tokenDoCookie(c, COOKIE_TENTATIVA);
+    const tokenHash = await tokenDoCookie(c, COOKIES_LOJA.tentativa);
     const { codigo } = await lerCorpo(c, confirmarTentativaSchema);
 
     const a = await chamar<{
@@ -233,14 +231,14 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
       p_token_hash: await sha256Hex(sessao),
       p_scope: "TELEFONE",
     });
-    c.header("set-cookie", gravarCookie(COOKIE_SESSAO, sessao, 12 * 60 * 60), { append: true });
-    c.header("set-cookie", apagarCookie(COOKIE_TENTATIVA), { append: true });
+    c.header("set-cookie", gravarCookie(COOKIES_LOJA.sessao, sessao, 12 * 60 * 60), { append: true });
+    c.header("set-cookie", apagarCookie(COOKIES_LOJA.tentativa), { append: true });
     return c.json({ reserva: comTelefoneMascarado(r.reserva) }, 201);
   });
 
   app.put("/v1/reservation-attempts/:id/items", async (c) => {
     const id = idDaRota(c);
-    const tokenHash = await tokenDoCookie(c, COOKIE_TENTATIVA);
+    const tokenHash = await tokenDoCookie(c, COOKIES_LOJA.tentativa);
     const dados = await lerCorpo(c, ajustarItensSchema);
     const preco = await cotar(deps.banco, dados.itens, dados.cupom, agora());
     conferirTotal(preco, dados.totalEsperadoCentavos);

@@ -1,5 +1,5 @@
 begin;
-select plan(30);
+select plan(31);
 
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Limone', 'limone', 'LIMAO');
 insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
@@ -84,6 +84,8 @@ select ok(reservation_for_customer((select id from t where nome = 'r1'), '+55779
 -- ── "Minha reserva" pelo WhatsApp (R17) ──
 select is(whatsapp_my_reservations(array['+557798128809', '+5577998128809']) -> 0 ->> 'id', (select id::text from t where nome = 'r2'),
   'sem o nono dígito, acha a reserva aberta');
+select is(whatsapp_my_reservations(array['+557798128809', '+5577998128809']) -> 0 ->> 'telefone', '+5577998128809',
+  'traz o telefone guardado, para onde a resposta vai');
 select is(jsonb_array_length(whatsapp_my_reservations(array['+557798128809', '+5577998128809'])), 1, 'só as abertas quando há alguma');
 select expire_reservation((select id from t where nome = 'r2'), 'PRAZO_ESGOTADO');
 select is(whatsapp_my_reservations(array['+5577998128809']) -> 0 ->> 'status', 'EXPIRADO', 'sem abertas, a última encerrada');
