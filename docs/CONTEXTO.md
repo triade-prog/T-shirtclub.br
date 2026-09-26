@@ -112,7 +112,9 @@ Falta para a F11 fechar de vez: rodar o roteiro k6 e ensaiar a restauração com
 
 **Revisão do servidor (26/09):** revisão de segurança e de código antes das telas. Nenhum problema alto ou médio de segurança. Dois defeitos que só apareceriam pelo site foram corrigidos: o repasse `/api` não deixava passar o cookie da consulta nem o `Idempotency-Key` (consulta com código, entrega pelo link e pagamentos falhariam). Os nomes dos cookies e as opções de cada repasse ficam num lugar só, e o teste de integração da consulta passa pelo repasse de verdade. "Minha reserva" agora responde no número guardado na reserva, nunca no remetente. Desenho técnico v25.
 
-Com a F11, todas as fases de servidor do plano estão feitas. O que falta para abrir a loja: as telas (esperam a aprovação do design, D1 e D2), o CI rodando (F1.2), as contas (Supabase, Vercel, Z-API, Mercado Pago), os dados da loja (produtos, domínio, endereço de retirada) e o checklist de publicação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+**Design aprovado (26/09, D24):** a loja mandou a V4 tipografia (início, coleção, produto e sacola, em `docs/design/v4/`) como o design de todo o sistema, com o logo oficial e o monograma TC. D1 e D2 estão feitos: `packages/ui` tem a paleta nova com contrastes medidos, Fraunces + Poppins + Baloo 2, o estilo adesivo e os componentes Selo, Sobretítulo e ProgressoClub; cabeçalho, rodapé, painel e ícones já seguem a V4. As telas podem começar.
+
+Com a F11, todas as fases de servidor do plano estão feitas. O que falta para abrir a loja: as telas (design aprovado em 26/09, D24), o CI rodando (F1.2), as contas (Supabase, Vercel, Z-API, Mercado Pago), os dados da loja (produtos, domínio, endereço de retirada) e o checklist de publicação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

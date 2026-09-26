@@ -33,8 +33,8 @@
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
      "itens":[
-      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"andamento","nota":"Proposta 4: descoberta editorial (D21), 80% foto e produto; Baloo só em títulos de marca; stickers com moderação. Faltam o logo em SVG e o endereço do site"},
-      {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"andamento","nota":"11 tokens base, 5 cores de coleção aprovadas (contraste e daltonismo) e componentes novos: CardProduto, ProgressoClub, Galeria, ChipColecao, Acordeao (proposta 4); aguarda aprovação"},
+      {"id":"D1","texto":"Identidade: logotipo, paleta, tipografia, padrão de fotos e tom de voz","sec":"frontend","refs":[],"status":"feito","nota":"Aprovada em 26/09 pela loja: V4 tipografia (D24), referência em docs/design/v4. Logo oficial e monograma TC (ícones e favicon). Falta o logo em SVG e o endereço do site"},
+      {"id":"D2","texto":"Design system: tokens (loja só no claro; painel claro e escuro), contrastes medidos e componentes com estados","sec":"frontend","refs":["G19"],"status":"feito","nota":"V4 aplicada em packages/ui (26/09): paleta com contrastes medidos (verde e rosa de texto escurecidos), Fraunces + Poppins + Baloo 2, adesivo (contorno de 2px e sombra dura), Selo, Sobretítulo, ProgressoClub; botões, campos e avisos no novo estilo; cabeçalho, rodapé e painel. Axe sem violação na loja e no painel claro e escuro"},
       {"id":"D3","texto":"Telas finais no celular: descoberta (início, coleção, produto, sacola) e reserva (dados, código, PIX, pago, expirada)","sec":"frontend","refs":["G8"],"status":"andamento","nota":"Proposta 4: 4 telas novas de descoberta e 5 da reserva mantidas; faltam as fotos reais; aguarda aprovação"},
       {"id":"D4","texto":"Textos: erros por código da API e mensagens do WhatsApp (5 essenciais com 2 versões)","sec":"frontend","refs":["G5"],"status":"andamento","nota":"19 erros e 20 mensagens escritos; aguardam revisão da loja"},
       {"id":"D5","texto":"Imagens: por produto frente, costas, detalhe e vestida; capa e campanha de cada coleção; looks; ícones do app, favicon e imagem de compartilhamento","sec":"frontend","refs":[],"status":"andamento","nota":"42 fotos de produto recebidas pelo conector do Google Drive e já nas telas (docs/design/fotos/produtos). Faltam fotos com modelo, costas, looks e clientes"},
@@ -277,9 +277,11 @@
     ["D20","Produto com página própria e 1 a 10 fotos; coleções com cor aprovada; looks"],
     ["D21","Descoberta editorial antes da reserva; loja pública só no tema claro"],
     ["D22","Descontos do produto ativos valem juntos como preço promocional (nunca dois no mesmo produto)"],
-    ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
+    ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"],
+    ["D24","Design V4 tipografia aprovado para todo o sistema: Fraunces, Poppins e Baloo 2; adesivos com contorno e sombra dura; monograma TC nos ícones"]
   ],
   "historico": [
+    {"data":"26/09/2026","inicio":"12:06","fim":"12:25","texto":"Design V4 aprovado pela loja e aplicado ao sistema (D1, D2 e D24): paleta, três fontes, estilo adesivo, Selo e ProgressoClub, cabeçalho, rodapé, painel e ícones com o monograma TC; referências em docs/design/v4.","ref":""},
     {"data":"26/09/2026","inicio":"11:43","fim":"12:05","texto":"Revisão de segurança e de código do servidor: sem achados altos ou médios; o repasse /api passa a levar o cookie da consulta e o Idempotency-Key do pagamento; \"Minha reserva\" responde no número da reserva; teste da consulta pelo repasse de verdade; desenho técnico v25.","ref":""},
     {"data":"26/09/2026","inicio":"11:39","fim":"11:41","texto":"Histórico com horário de início e de fim de cada entrega (horário de Brasília); datas conferidas no mesmo fuso.","ref":""},
     {"data":"26/09/2026","inicio":"11:15","fim":"11:37","texto":"F11: teste de carga com 100 clientes, verificador de invariantes, prazos de guarda, alertas e saúde dos jobs, erros sem dados pessoais, ensaio de restauração, runbook e PWA (service worker, sem conexão, aviso no iPhone); desenho técnico v24.","ref":""},

@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Sem conexão", robots: { index: fals
 export default function SemConexao() {
   return (
     <section className="grid gap-4 px-4 pb-4 pt-8">
-      <h1 className="m-0 font-display text-[40px] font-extrabold leading-[0.95] tracking-tight">Sem conexão agora</h1>
+      <h1 className="tc-titulo m-0 text-[44px]">Sem conexão <em>agora.</em></h1>
       <p className="m-0 max-w-prose text-[15px] text-tinta-suave">
         Para ver as peças, reservar ou pagar, a loja precisa da internet. Sua reserva continua valendo: o prazo aparece
         certinho assim que a conexão voltar.

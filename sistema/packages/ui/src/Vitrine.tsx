@@ -3,10 +3,13 @@
 import { Aviso } from "./Aviso.tsx";
 import { Botao } from "./Botao.tsx";
 import { Campo } from "./Campo.tsx";
+import { ProgressoClub } from "./ProgressoClub.tsx";
+import { Selo, Sobretitulo } from "./Selo.tsx";
 
 const CORES = [
-  ["papel", "Fundo"], ["algodao", "Áreas recuadas"], ["tinta", "Texto"], ["tinta-suave", "Texto secundário"],
-  ["rosa", "Ação principal"], ["rosa-bruma", "Destaque da marca"], ["verde", "Feito"], ["verde-broto", "Fundo de ok"],
+  ["papel", "Fundo"], ["algodao", "Áreas recuadas"], ["tinta", "Texto, contornos e sombras"], ["tinta-suave", "Texto secundário"],
+  ["rosa", "Ação principal"], ["rosa-press", "Texto rosa pequeno"], ["rosa-bruma", "Fundo da marca"], ["citrino", "Destaque do Club"],
+  ["limao-bruma", "Fundo editorial"], ["verde", "Faixas e enfeites"], ["verde-escuro", "Texto verde e rodapé"], ["verde-broto", "Fundo de ok"],
   ["ok", "Ok"], ["aviso", "Atenção"], ["erro", "Erro"], ["info", "Informação"],
 ] as const;
 
@@ -15,7 +18,7 @@ const COLECOES = [["tomate", "Tomate"], ["limao", "Limão"], ["mediterraneo", "M
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="grid gap-4 border-t border-linha py-8">
-      <h2 className="m-0 text-2xl font-semibold tracking-tight">{titulo}</h2>
+      <h2 className="tc-titulo m-0 text-3xl">{titulo}</h2>
       {children}
     </section>
   );
@@ -25,8 +28,8 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
   return (
     <div className="mx-auto grid max-w-5xl px-4 pb-16">
       <header className="grid gap-2 py-8">
-        <p className="m-0 text-xs font-semibold uppercase tracking-[0.16em] text-tinta-suave">Uso interno · {app}</p>
-        <h1 className="m-0 font-display text-5xl font-extrabold leading-none">Componentes</h1>
+        <Sobretitulo>Uso interno · {app}</Sobretitulo>
+        <h1 className="tc-titulo m-0 text-5xl">Compo<em>nentes.</em></h1>
         <p className="m-0 text-tinta-suave">Tokens e estados do design system (packages/ui).</p>
       </header>
 
@@ -51,8 +54,10 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
       </Secao>
 
       <Secao titulo="Tipografia">
-        <p className="m-0 font-display text-[46px] font-extrabold leading-[0.92]">Welcome to the Club.</p>
-        <p className="m-0 text-2xl font-semibold tracking-tight">Título de seção em Poppins</p>
+        <p className="tc-titulo m-0 text-[56px]">Você faz o <em className="tc-marca">Club.</em></p>
+        <p className="tc-titulo m-0 text-[40px]">Escolha <em>as suas.</em></p>
+        <p className="m-0 font-editorial text-xl italic text-tinta-suave">Fraunces itálico para a frase de apoio editorial.</p>
+        <p className="m-0 font-display text-3xl font-extrabold tracking-[-0.045em]">3 por R$ 119,99</p>
         <p className="m-0 max-w-prose">Texto corrido em Poppins 400, com linhas confortáveis para ler no celular.</p>
         <p className="m-0 text-sm text-tinta-suave">Nota e texto secundário.</p>
       </Secao>
@@ -61,10 +66,24 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
         <div className="grid max-w-sm gap-3">
           <Botao>Adicionar ao Club</Botao>
           <Botao variante="escuro">Escolher a terceira</Botao>
+          <Botao variante="citrino">Monte seu Club</Botao>
           <Botao variante="contorno">Todas as peças</Botao>
           <Botao disabled>Escolha uma peça</Botao>
           <Botao carregando>Gerando PIX…</Botao>
           <Botao variante="link" className="justify-self-start">Pedir cancelamento</Botao>
+        </div>
+      </Secao>
+
+      <Secao titulo="Selos e Club">
+        <Sobretitulo>Drop 01 · 8 estampas</Sobretitulo>
+        <div className="flex flex-wrap gap-3">
+          <Selo>Drop 01 · 01/08</Selo>
+          <Selo fundo="citrino">Últimas 2</Selo>
+          <Selo fundo="rosa">3 por R$ 119,99</Selo>
+        </div>
+        <div className="grid max-w-md gap-4">
+          <ProgressoClub pecas={2} titulo="Falta 1 para fechar." texto="A terceira ativa o preço do Club: cerca de R$ 40 por peça." />
+          <ProgressoClub pecas={3} titulo="Club completo." rotulos={["Pomodoro", "Poodle", "Limone"]} />
         </div>
       </Secao>
 

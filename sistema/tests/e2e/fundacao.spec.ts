@@ -62,7 +62,7 @@ test("a loja ignora o tema escuro do aparelho (D21)", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto(`${LOJA}/`);
   const fundo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(fundo).toBe("rgb(255, 252, 250)");
+  expect(fundo).toBe("rgb(255, 249, 245)");
 });
 
 test("link da reserva sem referrer", async ({ request }) => {

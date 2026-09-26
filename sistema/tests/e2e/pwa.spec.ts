@@ -45,7 +45,7 @@ test.describe("PWA da loja", () => {
     await page.getByRole("button", { name: "Agora não" }).click();
     await expect(aviso).toHaveCount(0);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Welcome to the Club." })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /FAZ O/ })).toBeVisible();
     await page.waitForTimeout(500); // o aviso decide depois da hidratação
     await expect(aviso).toHaveCount(0);
   });
