@@ -96,7 +96,11 @@ As telas (F2.5 a F2.10, F3.6, F3.8, F4.3, F4.5) esperam a aprovação do design 
 
 **F7 no servidor (26/09):** a cliente pede o cancelamento na reserva (só enquanto está reservada, um pedido por vez) e a loja aprova ou recusa no painel, sempre com motivo. O prazo continua correndo. Aprovado: a reserva é encerrada com motivo "cancelamento aprovado", as peças voltam, não conta para o bloqueio e um PIX em aberto é cancelado no Mercado Pago. Recusado: a reserva segue valendo até o horário original. Se ela expira ou é paga antes da decisão, o pedido fica prejudicado. A cliente recebe no WhatsApp "pedido recebido", "aprovado" ou "recusado". 293 testes de banco, 59 Deno, 120 de regras e três testes de integração (fluxo da reserva, pagamento e cancelamento).
 
-O próximo servidor é a F8 (pós-pagamento: entrega, frete e Entregue), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
+**F8 no servidor (26/09):** depois do pagamento, o pedido ganha a entrega na modalidade escolhida na reserva e um código de retirada aleatório (6 letras e números, nunca o número do pedido). A cliente confirma ou troca a modalidade no site (retirada, motoboy ou envio, com endereço) até pagar o frete ou confirmar a retirada; pelo link encaminhado, precisa do código do WhatsApp antes. A loja informa o frete no painel (valor, prazo e observação) e a cliente tem 2 h para pagar, pela mesma forma dos produtos. Frete não pago em 2 h: o pedido continua pago e fica em "prazo vencido" no painel, para a loja recalcular ou combinar. Depois: em preparação, pronto para retirada / saiu para entrega / enviado (com rastreio) e Entregue, que é recusado enquanto houver estorno ou contestação aberta. A cliente recebe no WhatsApp o valor do frete, a confirmação do frete pago, o aviso de pronto (com o código e o endereço da loja), saiu, enviado e entregue. 339 testes de banco, 60 Deno, 122 de regras e quatro testes de integração (reserva, pagamento, cancelamento e entrega).
+
+Falta da loja para a F8: o endereço e o horário de retirada (E7), que entram na mensagem de pronto para retirada.
+
+O próximo servidor é a F9 (consulta pelo site e pelo WhatsApp, e o link /r#chave), que precisa de liberação. Com o Mercado Pago real (E1), confirmar o PIX de 30 min e o formato das datas (E4).
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

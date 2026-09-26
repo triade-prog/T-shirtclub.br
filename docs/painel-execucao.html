@@ -24,9 +24,9 @@
 {
   "meta": {
     "atualizado_em": "26/09/2026",
-    "arquitetura_versao": 20,
-    "situacao": "Servidor das fases F2 a F7 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago e cancelamento); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
-    "fase_atual": "F7",
+    "arquitetura_versao": 21,
+    "situacao": "Servidor das fases F2 a F8 pronto (catálogo, promoções, login do painel, código pelo WhatsApp, reserva, expiração, bloqueio, pagamento pelo Mercado Pago, cancelamento, entrega e frete); as telas aguardam a aprovação do design. F1 aguarda o CI e as contas",
+    "fase_atual": "F8",
     "proximo_passo": "Loja aprova a proposta 4 do design (D1, D2), que libera as telas; manda as credenciais de teste do Mercado Pago (E1) para confirmarmos o PIX de 30 min (E4) e a conta da Z-API (E2); pede ao suporte do GitHub o desbloqueio (F1.2); cria os projetos Supabase e Vercel (F1.4). O próximo servidor é a F7 (cancelamento), que precisa de liberação."
   },
   "fases": [
@@ -114,11 +114,11 @@
      ]},
     {"id":"F8","nome":"Pós-pagamento","sec":"estados","objetivo":"Entrega, frete manual com 2 h para pagar, substatus e Entregue.",
      "itens":[
-      {"id":"F8.1","texto":"Migrations 0050 e 0170: entrega, cotações de frete e substatus","sec":"dados","refs":[],"status":"pendente"},
-      {"id":"F8.2","texto":"Código de retirada aleatório, nunca o número da reserva","sec":"dados","refs":["G15"],"status":"pendente"},
-      {"id":"F8.3","texto":"Frete: informado pelo painel, segundo pagamento, prazo de 2 h e alerta de vencido","sec":"jobs","refs":[],"status":"pendente"},
-      {"id":"F8.4","texto":"T5 Entregue só com substatus pronto, frete pago e sem disputa aberta","sec":"estados","refs":["G2"],"status":"pendente"},
-      {"id":"F8.5","texto":"Tela Meu pedido: entrega, endereço, frete, Andamento e código de retirada (tela 5); frete no painel","sec":"frontend","refs":["G15"],"status":"pendente"}
+      {"id":"F8.1","texto":"Migrations 0050 e 0170: entrega, cotações de frete e substatus","sec":"dados","refs":[],"status":"feito","evidencia":"sistema/supabase/migrations/0050_fulfillment.sql e 0170_fn_fulfillment.sql: entrega criada no pagamento, modalidade e endereço, cotação de frete, máquina do substatus; pgTAP 017"},
+      {"id":"F8.2","texto":"Código de retirada aleatório, nunca o número da reserva","sec":"dados","refs":["G15"],"status":"feito","evidencia":"gen_pickup_code: 6 caracteres sem 0/O e 1/I, único entre pedidos abertos (índice parcial); a cliente só vê depois de confirmar a retirada; pgTAP 017"},
+      {"id":"F8.3","texto":"Frete: informado pelo painel, segundo pagamento, prazo de 2 h e alerta de vencido","sec":"jobs","refs":[],"status":"feito","evidencia":"admin_shipping_quote, register_shipping_payment (mesma forma dos produtos), aprovação em apply_payment_result, sweep_shipping_quotes a cada 1 min (só alerta, D8); rotas PUT fulfillment e POST shipping-payments; integração entrega_test.ts"},
+      {"id":"F8.4","texto":"T5 Entregue só com substatus pronto, frete pago e sem disputa aberta","sec":"estados","refs":["G2"],"status":"feito","evidencia":"deliver_reservation: exige pronto, saído ou enviado, frete pago quando existe e nenhuma disputa aberta; rota POST /v1/admin/reservations/:id/deliver; pgTAP 017 (T21)"},
+      {"id":"F8.5","texto":"Tela Meu pedido: entrega, endereço, frete, Andamento e código de retirada (tela 5); frete no painel","sec":"frontend","refs":["G15"],"status":"andamento","nota":"Rotas prontas (entrega e frete da cliente; fila de frete, substatus e Entregue no painel) e mensagens de WhatsApp; faltam as telas, que esperam o design"}
      ]},
     {"id":"F9","nome":"Consulta","sec":"whatsapp","objetivo":"A cliente acha as reservas dela pelo site, pelo link ou pelo WhatsApp, sem expor dados de ninguém.",
      "itens":[
@@ -167,7 +167,7 @@
     {"id":"T18","texto":"Mesmo PIX aprovado aos 20min01s: expirado e em análise","fase":"F6","refs":[],"status":"feito","evidencia":"pgTAP 015: aprovado aos 20min01s → reserva expirada e pagamento em análise"},
     {"id":"T19","texto":"Webhook do Mercado Pago sem assinatura, errada ou antiga: 401","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"webhook-payments/webhook_test.ts: sem assinatura, errada, de outro pagamento ou com 6 min → 401 e nada gravado"},
     {"id":"T20","texto":"Valor ou referência diferentes: não confirma","fase":"F6","refs":["G3","G18"],"status":"feito","evidencia":"pgTAP 015: valor diferente vai para análise; referência, moeda ou conta diferentes são descartadas"},
-    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"andamento","nota":"Contestação abre disputa e has_open_dispute fica verdadeira (pgTAP 015); a recusa do Entregue chega na F8"},
+    {"id":"T21","texto":"Contestação seguida de Marcar como entregue: recusado","fase":"F8","refs":["G2","G18"],"status":"feito","evidencia":"pgTAP 017: com contestação aberta, deliver_reservation recusa (DISPUTE_OPEN); resolvida a disputa, entrega"},
     {"id":"T22","texto":"Consulta com o número de outra cliente: 404","fase":"F9","refs":[],"status":"pendente"},
     {"id":"T23","texto":"Link aberto em outro aparelho: paga, mas vê telefone e endereço mascarados","fase":"F9","refs":["G6","G18"],"status":"pendente"},
     {"id":"T24","texto":"Link tentando confirmar a entrega sem código: PHONE_VERIFICATION_REQUIRED","fase":"F9","refs":["G6"],"status":"pendente"},
@@ -217,7 +217,7 @@
     {"id":"E4","texto":"Confirmar o mínimo de 30 min do PIX no ambiente de teste","quem":"Claude, com as credenciais","precisa_em":"F6","refs":["G14"],"status":"pendente"},
     {"id":"E5","texto":"Conferir preços do Supabase Pro e do Vercel Pro e contratar","quem":"Loja","precisa_em":"Publicação","refs":["G10"],"status":"pendente"},
     {"id":"E6","texto":"Dados da empresa: razão social, CNPJ, endereço, nome e e-mail do encarregado","quem":"Loja","precisa_em":"Publicação","refs":["G9"],"status":"pendente"},
-    {"id":"E7","texto":"Endereço e horário de retirada na loja","quem":"Loja","precisa_em":"F8","refs":[],"status":"pendente"},
+    {"id":"E7","texto":"Endereço e horário de retirada na loja","quem":"Loja","precisa_em":"F8","refs":[],"status":"pendente","nota":"O sistema já tem onde guardar (loja_endereco_retirada e loja_horario_retirada) e manda na mensagem de pronto para retirada; falta a loja informar"},
     {"id":"E8","texto":"Prazo fiscal de guarda das vendas confirmado pela contabilidade","quem":"Loja","precisa_em":"F11","refs":["G9"],"status":"pendente"},
     {"id":"E9","texto":"Logo em SVG nas 4 versões: completa, horizontal, ícone redondo e uma cor só","quem":"Loja","precisa_em":"F2","refs":[],"status":"andamento","nota":"Logo oficial recebido em imagem em 25/09 e aplicado (fundo removido, favicon e ícones do app). Falta o SVG para impressão e ícones nítidos em qualquer tamanho"},
     {"id":"E10","texto":"Endereço do site: a marca usa \".br\" e o domínio registrado é tshirtclub.pt","quem":"Loja","precisa_em":"F1","refs":[],"status":"pendente"},
@@ -279,6 +279,7 @@
     ["D23","Mensagem de pagamento confirmado sem o link com a chave (leva o site); cartão só à vista (1x)"]
   ],
   "historico": [
+    {"data":"26/09/2026","texto":"F8 no servidor: entrega com código de retirada aleatório, modalidade e endereço, frete informado pelo painel e pago em até 2 h, substatus e Entregue sem disputa aberta; desenho técnico v21.","ref":""},
     {"data":"26/09/2026","texto":"F7 no servidor: pedido de cancelamento pela cliente, aprovar ou recusar no painel com motivo, PIX pendente cancelado no provedor; desenho técnico v20.","ref":""},
     {"data":"26/09/2026","texto":"F6 no servidor: pagamento pelo Mercado Pago (PIX e cartão), webhook assinado, idempotência em 5 camadas, tolerância, reconciliação, análise e disputas; desenho técnico v19.","ref":""},
     {"data":"26/09/2026","texto":"F5 no servidor: expiração, lembrete de 5 min, bloqueio por 3 expirações, varredura a cada 10 s e teste de vazão; funções novas fechadas para anon; desenho técnico v18.","ref":""},

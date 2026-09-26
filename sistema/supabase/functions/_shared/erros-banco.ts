@@ -14,12 +14,16 @@ const MAPA: Record<string, CodigoErro> = {
   TS161: "ALREADY_APPLIED",
   TS162: "ACTIVE_RESERVATION_EXISTS",
   TS163: "INSUFFICIENT_STOCK",
+  TS170: "NOT_PAID",
+  TS172: "DELIVERY_LOCKED",
+  TS173: "DISPUTE_OPEN",
+  TS174: "NOT_READY",
   "23505": "ALREADY_EXISTS",
   "23P01": "PROMOTION_OVERLAP",
 };
 
 // Regras de formato: a tela já valida antes, então aqui só por segurança.
-const VALIDACAO = new Set(["23514", "23503", "22P02", "TS110", "TS111", "TS112", "TS113", "TS114", "TS120", "TS121", "TS131", "TS132", "TS133"]);
+const VALIDACAO = new Set(["23514", "23503", "22P02", "TS110", "TS111", "TS112", "TS113", "TS114", "TS120", "TS121", "TS131", "TS132", "TS133", "TS164"]);
 
 export function traduzirErroBanco(e: unknown): unknown {
   if (!(e instanceof ErroBanco)) return e;

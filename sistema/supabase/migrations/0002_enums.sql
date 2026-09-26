@@ -11,7 +11,7 @@ create type fulfillment_substatus as enum (
 create type payment_purpose as enum ('PRODUTOS', 'FRETE');
 create type payment_method as enum ('PIX', 'CARTAO');
 create type payment_status as enum ('CRIADO', 'PENDENTE', 'APROVADO', 'RECUSADO', 'CANCELADO', 'FALHOU', 'EM_ANALISE', 'ESTORNADO');
-create type review_reason as enum ('APROVADO_APOS_TOLERANCIA', 'RESERVA_ENCERRADA', 'VALOR_DIVERGENTE');
+create type review_reason as enum ('APROVADO_APOS_TOLERANCIA', 'RESERVA_ENCERRADA', 'VALOR_DIVERGENTE', 'FRETE_ENCERRADO');
 create type cancel_status as enum ('PENDENTE', 'APROVADA', 'RECUSADA', 'PREJUDICADA');
 create type otp_purpose as enum ('RESERVA', 'CONSULTA');
 create type stock_movement_kind as enum ('ENTRADA', 'AJUSTE', 'RESERVA', 'LIBERACAO', 'VENDA');
@@ -44,3 +44,6 @@ create type outbox_status as enum ('PENDENTE', 'ENVIANDO', 'ENVIADA', 'ENTREGUE'
 create type review_status as enum ('ABERTA', 'RESOLVIDA');
 create type review_resolution as enum ('ESTORNAR', 'CONVERTER_EM_PEDIDO');
 create type dispute_kind as enum ('ESTORNO', 'CONTESTACAO', 'CANCELAMENTO');
+
+-- Entrega e frete (seção 04, regra 17, F8).
+create type shipping_quote_status as enum ('AGUARDANDO_PAGAMENTO', 'PAGO', 'VENCIDO', 'SUBSTITUIDO');

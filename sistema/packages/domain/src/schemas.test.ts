@@ -6,6 +6,9 @@ import {
   codigoOtpSchema,
   cupomSchema,
   decisaoCancelamentoSchema,
+  entregaSchema,
+  freteSchema,
+  substatusSchema,
   loginAdminSchema,
   nomeClienteSchema,
   pedidoCancelamentoSchema,
@@ -85,5 +88,20 @@ describe("painel", () => {
     expect(pedidoCancelamentoSchema.safeParse({ observacao: "x".repeat(501) }).success).toBe(false);
     expect(decisaoCancelamentoSchema.safeParse({ motivo: " " }).success).toBe(false);
     expect(decisaoCancelamentoSchema.parse({ motivo: " Pedido da cliente " }).motivo).toBe("Pedido da cliente");
+  });
+
+  it("entrega: retirada sem endereço; motoboy e envio com endereço completo", () => {
+    expect(entregaSchema.parse({ modalidade: "RETIRADA", endereco: { cep: "x" } })).toEqual({ modalidade: "RETIRADA" });
+    expect(entregaSchema.safeParse({ modalidade: "MOTOBOY" }).success).toBe(false);
+    const e = entregaSchema.parse({
+      modalidade: "ENVIO",
+      endereco: { cep: "45000-000", rua: " Rua das Flores ", numero: "12", complemento: "", bairro: "Centro", cidade: "Vitória da Conquista", uf: "ba" },
+    });
+    expect(e).toEqual({
+      modalidade: "ENVIO",
+      endereco: { cep: "45000000", rua: "Rua das Flores", numero: "12", bairro: "Centro", cidade: "Vitória da Conquista", uf: "BA" },
+    });
+    expect(freteSchema.safeParse({ valorCentavos: 0 }).success).toBe(false);
+    expect(substatusSchema.parse({ substatus: "ENVIADO", rastreio: "ab123456789br" }).rastreio).toBe("AB123456789BR");
   });
 });

@@ -9,7 +9,7 @@ create function payment_json(p payments) returns jsonb
 language sql stable
 as $$
   select jsonb_strip_nulls(jsonb_build_object(
-    'id', p.id, 'reservaId', p.reservation_id, 'forma', p.method, 'status', p.status, 'valorCentavos', p.amount_cents,
+    'id', p.id, 'reservaId', p.reservation_id, 'finalidade', p.purpose, 'forma', p.method, 'status', p.status, 'valorCentavos', p.amount_cents,
     'criadoEm', p.created_at, 'aprovadoEm', p.approved_at,
     'pix', case when p.method = 'PIX' and p.pix_qr is not null
                 then jsonb_build_object('copiaECola', p.pix_qr, 'qrBase64', p.pix_qr_base64, 'expiraEm', p.pix_expires_at) end))
@@ -120,7 +120,7 @@ begin
   insert into payment_reviews (payment_id, reservation_id, reason) values (p_payment.id, r.id, p_reason)
   on conflict (payment_id) where status = 'ABERTA' do nothing;
   perform enqueue_message('pagamento_em_analise:' || p_payment.id, r.phone_e164, 'pagamento_em_analise',
-                          jsonb_build_object('numero', r.number), 2::smallint, app_now() + interval '1 day', p_optional => true);
+                          jsonb_build_object('numero', r.number, 'frete', p_payment.purpose = 'FRETE'), 2::smallint, app_now() + interval '1 day', p_optional => true);
   perform log_audit('PROVEDOR', null, 'pagamento.em_analise', 'payment', p_payment.id::text, r.id, jsonb_build_object('motivo', p_reason));
   return jsonb_build_object('resultado', 'EM_ANALISE', 'motivo', p_reason);
 end $$;
@@ -187,6 +187,11 @@ begin
     return jsonb_build_object('resultado', 'ATUALIZADO', 'status', (select status from payments where id = pg.id));
   end if;
 
+  -- Frete (F8): confirma a cotação e libera a preparação (0170)
+  if pg.purpose = 'FRETE' then
+    return apply_shipping_approval(r, pg, (p ->> 'valorCentavos')::int, v_aprovado);
+  end if;
+
   -- Aprovado: só confirma se tudo confere e dentro do prazo efetivo
   if (p ->> 'valorCentavos')::int is distinct from pg.amount_cents then
     return send_to_review(pg, 'VALOR_DIVERGENTE', v_aprovado);
@@ -203,6 +208,7 @@ begin
   perform set_transition_context('T2', 'PROVEDOR');
   update reservations set status = 'PAGAMENTO_CONFIRMADO', payment_confirmed_at = app_now() where id = r.id;
   update payments set status = 'APROVADO', applied = true, approved_at = v_aprovado where id = pg.id;
+  perform ensure_fulfillment(r);
   for v_item in select product_id, qty from reservation_items where reservation_id = r.id order by product_id loop
     update products set qty_reserved = qty_reserved - v_item.qty, qty_sold = qty_sold + v_item.qty where id = v_item.product_id;
     insert into stock_movements (product_id, kind, qty, reservation_id, actor_type)
@@ -240,11 +246,14 @@ begin
     from reservations r
    where r.status = 'RESERVADO' and r.grace_until <= app_now() and has_pending_payment(r.id);
 
-  -- Pagamento pendente de reserva que já saiu de RESERVADO: cancelar a cobrança
+  -- Cobrança pendente que perdeu o sentido: a dos produtos de reserva que já saiu de
+  -- RESERVADO, e a do frete cuja cotação foi substituída (troca de modalidade ou recálculo)
   select coalesce(jsonb_agg(jsonb_build_object('id', p.id, 'providerPaymentId', p.provider_payment_id)), '[]')
     into v_cancelar
     from payments p join reservations r on r.id = p.reservation_id
-   where p.status = 'PENDENTE' and p.provider_payment_id is not null and r.status <> 'RESERVADO'
+   where p.status = 'PENDENTE' and p.provider_payment_id is not null
+     and ((p.purpose = 'PRODUTOS' and r.status <> 'RESERVADO')
+          or (p.purpose = 'FRETE' and exists (select 1 from shipping_quotes q where q.id = p.shipping_quote_id and q.status = 'SUBSTITUIDO')))
      and (p.last_checked_at is null or p.last_checked_at < app_now() - interval '1 minute');
 
   -- Pendente há mais de 2 min sem notícia do webhook: consultar (reconciliação)
@@ -387,6 +396,9 @@ begin
     raise exception 'A cliente tem uma reserva ativa' using errcode = 'TS162';
   end if;
   select * into pg from payments where id = v.payment_id for update;
+  if pg.purpose = 'FRETE' then
+    raise exception 'Pagamento de frete não vira pedido: estorne' using errcode = 'TS164';
+  end if;
 
   perform 1 from products where id in (select product_id from reservation_items where reservation_id = velha.id) order by id for update;
   select jsonb_agg(i.name_snapshot) into v_faltando
@@ -409,6 +421,7 @@ begin
   perform set_transition_context('T2', 'ADMIN', p_admin, 'Convertido de pagamento em análise');
   update reservations set status = 'PAGAMENTO_CONFIRMADO', payment_confirmed_at = app_now() where id = nova.id;
   update payments set reservation_id = nova.id, status = 'APROVADO', applied = true, review_reason = null where id = pg.id;
+  perform ensure_fulfillment(nova);
   for v_item in select product_id, qty from reservation_items where reservation_id = nova.id order by product_id loop
     update products set qty_sold = qty_sold + v_item.qty where id = v_item.product_id;
     insert into stock_movements (product_id, kind, qty, reservation_id, actor_type, actor_id)

@@ -10,6 +10,7 @@ import type { Context, Hono } from "hono";
 import {
   ErroDominio,
   ajustarItensSchema,
+  entregaSchema,
   pagamentoSchema,
   pedidoCancelamentoSchema,
   confirmarTentativaSchema,
@@ -223,8 +224,8 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     return c.json(r);
   });
 
-  /** Telefone da sessão da cliente, se ela pode ver esta reserva (TELEFONE ou o link dela). */
-  async function telefoneDaSessao(c: Context, reservaId: string): Promise<string> {
+  /** Sessão da cliente, se ela pode ver esta reserva (TELEFONE ou o link dela). */
+  async function sessaoDaReserva(c: Context, reservaId: string): Promise<{ telefone: string; escopo: string }> {
     const token = lerCookie(c.req.raw.headers, COOKIE_SESSAO);
     if (!token || token.length > 100) throw new ErroDominio("UNAUTHORIZED");
     const sessao = await chamar<{ telefone: string; escopo: string } | null>(deps.banco, "customer_session_get", {
@@ -232,7 +233,11 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     });
     if (!sessao) throw new ErroDominio("UNAUTHORIZED");
     if (sessao.escopo !== "TELEFONE" && sessao.escopo !== `RESERVA:${reservaId}`) throw new ErroDominio("NOT_FOUND");
-    return sessao.telefone;
+    return sessao;
+  }
+
+  async function telefoneDaSessao(c: Context, reservaId: string): Promise<string> {
+    return (await sessaoDaReserva(c, reservaId)).telefone;
   }
 
   // Reserva da cliente: só do telefone da sessão (ou a do link, F9). De outro telefone, 404.
@@ -259,17 +264,18 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     return c.json({ cancelamento: r.cancelamento }, 201);
   });
 
-  // Pagamento (seção 08, F6): PIX ou cartão, uma forma por reserva. O Idempotency-Key (um
-  // por clique) devolve a mesma tentativa; a chave no provedor é o id do pagamento.
-  app.post("/v1/reservations/:id/payments", async (c): Promise<Response> => {
-    const id = idDaRota(c);
-    const telefone = await telefoneDaSessao(c, id);
+  /**
+   * Cobrança no provedor (seção 08): a função SQL registra a tentativa, e a chave de
+   * idempotência no provedor é o id do pagamento. Serve aos produtos (F6) e ao frete (F8).
+   */
+  async function cobrar(c: Context, id: string, telefone: string, frete: boolean): Promise<Response> {
     const chave = idSchema.safeParse(c.req.header("idempotency-key"));
     if (!chave.success) throw new ErroDominio("VALIDATION_ERROR", { campo: "Idempotency-Key" });
     const dados = await lerCorpo(c, pagamentoSchema);
 
-    const r = await chamar<ErroJson & { pagamento: { id: string; status: string; valorCentavos: number }; repetido?: boolean }>(
-      deps.banco, "register_payment_attempt", { p_reservation_id: id, p_phone: telefone, p_method: dados.forma, p_idempotency_key: chave.data });
+    const r = await chamar<ErroJson & { pagamento: { id: string; status: string; valorCentavos: number }; repetido?: boolean; pagarAte?: string }>(
+      deps.banco, frete ? "register_shipping_payment" : "register_payment_attempt",
+      { p_reservation_id: id, p_phone: telefone, p_method: dados.forma, p_idempotency_key: chave.data });
     falhou(r);
     const pagamento = r.pagamento;
     if (r.repetido || pagamento.status !== "CRIADO") {
@@ -277,14 +283,15 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
     }
 
     const reserva = await chamar<{ numero: number }>(deps.banco, "reservation_for_customer", { p_id: id, p_phone: telefone });
-    const descricao = `T-shirt Club.br, reserva #${reserva.numero}`;
+    const descricao = frete ? `T-shirt Club.br, frete do pedido #${reserva.numero}` : `T-shirt Club.br, reserva #${reserva.numero}`;
+    // PIX nasce com o mínimo do Mercado Pago (30 min); o dos produtos é cancelado no fim da
+    // tolerância (G14), e o do frete vale até o fim do prazo de 2 h, se for mais longo.
+    const minimo = agora().getTime() + 30 * 60_000;
+    const expiraEm = new Date(Math.max(minimo, r.pagarAte ? new Date(r.pagarAte).getTime() : 0));
     let resultado;
     try {
       resultado = dados.forma === "PIX"
-        ? await deps.pagamentos.criarPix({
-          pagamentoId: pagamento.id, valorCentavos: pagamento.valorCentavos, descricao,
-          expiraEm: new Date(agora().getTime() + 30 * 60_000), // mínimo do Mercado Pago; cancelado no fim da tolerância (G14)
-        })
+        ? await deps.pagamentos.criarPix({ pagamentoId: pagamento.id, valorCentavos: pagamento.valorCentavos, descricao, expiraEm })
         : await deps.pagamentos.criarCartao({
           pagamentoId: pagamento.id, valorCentavos: pagamento.valorCentavos, descricao,
           token: dados.cartao!.token, metodo: dados.cartao!.paymentMethodId, emissor: dados.cartao!.issuerId, email: dados.cartao!.email,
@@ -311,6 +318,33 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
       pagamento: await chamar(deps.banco, "payment_for_customer", { p_reservation_id: id, p_payment_id: pagamento.id, p_phone: telefone }),
       ...(resultado.status === "RECUSADO" && resultado.detalhe ? { recusa: resultado.detalhe } : {}),
     }, 201);
+  }
+
+  // Pagamento (seção 08, F6): PIX ou cartão, uma forma por reserva. O Idempotency-Key (um
+  // por clique) devolve a mesma tentativa; a chave no provedor é o id do pagamento.
+  app.post("/v1/reservations/:id/payments", async (c) => {
+    const id = idDaRota(c);
+    return await cobrar(c, id, await telefoneDaSessao(c, id), false);
+  });
+
+  // Entrega (regra 17, F8): confirmar ou trocar a modalidade e o endereço. Pelo link da
+  // reserva, pede antes o código do WhatsApp (D13): só a sessão do telefone mexe aqui.
+  app.put("/v1/reservations/:id/fulfillment", async (c) => {
+    const id = idDaRota(c);
+    const sessao = await sessaoDaReserva(c, id);
+    if (sessao.escopo !== "TELEFONE") throw new ErroDominio("PHONE_VERIFICATION_REQUIRED");
+    const dados = await lerCorpo(c, entregaSchema);
+    const r = await chamar<ErroJson & { logistica: unknown }>(deps.banco, "set_fulfillment", {
+      p_reservation_id: id, p_phone: sessao.telefone, p_mode: dados.modalidade, p_address: "endereco" in dados ? dados.endereco : null,
+    });
+    falhou(r);
+    return c.json({ logistica: r.logistica });
+  });
+
+  // Frete: segundo pagamento, pela mesma forma dos produtos, dentro das 2 h.
+  app.post("/v1/reservations/:id/shipping-payments", async (c) => {
+    const id = idDaRota(c);
+    return await cobrar(c, id, await telefoneDaSessao(c, id), true);
   });
 
   // A tela consulta a cada 3 s enquanto o pagamento está pendente.

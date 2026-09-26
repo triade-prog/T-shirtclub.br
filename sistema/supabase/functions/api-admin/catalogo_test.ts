@@ -144,3 +144,27 @@ Deno.test("cancelamentos: listar, aprovar e recusar sempre com motivo", async ()
   assertEquals(rpcs.find((r) => r.funcao === "approve_cancellation")!.args, { p_request_id: PRODUTO, p_admin: ADMIN, p_reason: "Pedido da cliente" });
   assertEquals((await erro(await pedir(`/v1/admin/cancellation-requests/${PRODUTO}/reject`, { motivo: "Troca na loja" }))).codigo, "ALREADY_APPLIED");
 });
+
+Deno.test("entregas: fila, frete, substatus e Entregue", async () => {
+  const { pedir, rpcs } = await logado({
+    rpcExtra: (f) => ({
+      admin_list_fulfillments: [{ substatus: "AGUARDANDO_CALCULO_FRETE" }],
+      admin_shipping_quote: { substatus: "AGUARDANDO_PAGAMENTO_FRETE" },
+      admin_set_substatus: new ErroBanco("TS172", "etapa errada"),
+      deliver_reservation: new ErroBanco("TS173", "disputa aberta"),
+    } as Record<string, unknown>)[f],
+  });
+  assertEquals((await (await pedir("/v1/admin/fulfillments")).json())[0].substatus, "AGUARDANDO_CALCULO_FRETE");
+  assertEquals(rpcs.find((r) => r.funcao === "admin_list_fulfillments")!.args, { p_substatus: null });
+  assertEquals((await pedir("/v1/admin/fulfillments?substatus=OUTRO")).status, 400);
+  assertEquals((await pedir(`/v1/admin/reservations/${PRODUTO}/shipping-quote`, { valorCentavos: 0 })).status, 400);
+  const frete = await pedir(`/v1/admin/reservations/${PRODUTO}/shipping-quote`, { valorCentavos: 1200, prazoDias: 1 });
+  assertEquals(frete.status, 201);
+  assertEquals(rpcs.find((r) => r.funcao === "admin_shipping_quote")!.args, {
+    p_reservation_id: PRODUTO, p_admin: ADMIN, p_amount_cents: 1200, p_days: 1, p_note: null,
+  });
+  assertEquals((await erro(await pedir(`/v1/admin/reservations/${PRODUTO}/fulfillment/substatus`, { substatus: "ENVIADO" }, "PUT"))).codigo,
+    "DELIVERY_LOCKED");
+  assertEquals((await pedir(`/v1/admin/reservations/${PRODUTO}/fulfillment/substatus`, { substatus: "EM_PREPARACAO" }, "PUT")).status, 400);
+  assertEquals((await erro(await pedir(`/v1/admin/reservations/${PRODUTO}/deliver`, {}))).codigo, "DISPUTE_OPEN");
+});

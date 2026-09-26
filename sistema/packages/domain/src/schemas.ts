@@ -133,10 +133,47 @@ export const resolverAnaliseSchema = z.object({
 });
 
 /** POST /v1/admin/payment-disputes/:id/resolve (G2) */
+export const resolverDisputaSchema = z.object({ nota: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR") });
+
 /** POST /v1/reservations/:id/cancellation-request (regra 12). */
 export const pedidoCancelamentoSchema = z.object({ observacao: z.string().trim().max(500, "VALIDATION_ERROR").optional() });
 
 /** POST /v1/admin/cancellation-requests/:id/approve e /reject: sempre com motivo. */
 export const decisaoCancelamentoSchema = decisaoBloqueioSchema;
 
-export const resolverDisputaSchema = z.object({ nota: z.string().trim().min(3, "VALIDATION_ERROR").max(500, "VALIDATION_ERROR") });
+// ─── Entrega e frete (regra 17, F8) ──────────────────────────────────────────────────
+
+const campoEndereco = (max: number) => z.string().trim().min(1, "VALIDATION_ERROR").max(max, "VALIDATION_ERROR");
+
+/** Endereço de entrega: só para motoboy ou envio (LGPD). O CEP aceita "45000-000". */
+export const enderecoSchema = z.object({
+  cep: z.string().transform((v) => v.replace(/\D/g, "")).pipe(z.string().regex(/^\d{8}$/, "VALIDATION_ERROR")),
+  rua: campoEndereco(120),
+  numero: campoEndereco(20),
+  complemento: z.string().trim().max(60, "VALIDATION_ERROR").optional().transform((v) => v || undefined),
+  bairro: campoEndereco(80),
+  cidade: campoEndereco(80),
+  uf: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/, "VALIDATION_ERROR"),
+});
+
+/** PUT /v1/reservations/:id/fulfillment: retirada sem endereço; motoboy e envio com. */
+export const entregaSchema = z.discriminatedUnion("modalidade", [
+  z.object({ modalidade: z.literal("RETIRADA") }),
+  z.object({ modalidade: z.enum(["MOTOBOY", "ENVIO"]), endereco: enderecoSchema }),
+]);
+
+/** POST /v1/admin/reservations/:id/shipping-quote: valor, prazo em dias úteis e observação. */
+export const freteSchema = z.object({
+  valorCentavos: z.number().int().min(1, "VALIDATION_ERROR").max(100_000, "VALIDATION_ERROR"),
+  prazoDias: z.number().int().min(0).max(60).optional(),
+  observacao: z.string().trim().max(300, "VALIDATION_ERROR").optional(),
+});
+
+/** PUT /v1/admin/reservations/:id/fulfillment/substatus */
+export const substatusSchema = z.object({
+  substatus: z.enum(["PRONTO_PARA_RETIRADA", "SAIU_PARA_ENTREGA", "ENVIADO"]),
+  rastreio: z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{4,40}$/, "VALIDATION_ERROR").optional(),
+});
+
+/** POST /v1/admin/reservations/:id/deliver */
+export const entregarSchema = z.object({ observacao: z.string().trim().max(500, "VALIDATION_ERROR").optional() });

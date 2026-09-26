@@ -83,6 +83,8 @@ as $$
     'cancelamento', (select jsonb_strip_nulls(jsonb_build_object('status', c.status, 'solicitadoEm', c.requested_at,
                                                                  'decididoEm', c.decided_at, 'motivoDecisao', c.decision_reason))
                        from cancellation_requests c where c.reservation_id = r.id order by c.status = 'PENDENTE' desc, c.requested_at desc limit 1),
+    -- Depois do pagamento: modalidade, endereço resumido, frete e código de retirada (F8)
+    'logistica', (select fulfillment_json(f, false) from fulfillments f where f.reservation_id = r.id),
     'agora', app_now())
 $$;
 

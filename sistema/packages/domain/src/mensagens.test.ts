@@ -79,6 +79,21 @@ describe("o que a loja manda", () => {
     expect(mensagemWhatsApp("cancelamento_recusado", { numero: 1048, expiraEm: expira })).toBe("A loja manteve a reserva #1048. Ela segue valendo até *14:32*.");
   });
 
+  it("pós-pagamento: frete, retirada com código, envio e entregue", () => {
+    expect(mensagemWhatsApp("frete_calculado", { numero: 1048, valorCentavos: 1200, pagarAte: new Date("2026-10-10T19:32:00Z") })).toBe(
+      "Frete do pedido #1048: R$ 12,00. Pague até *16:32* pelo site: tshirtclub.pt",
+    );
+    expect(mensagemWhatsApp("pronto_retirada", { numero: 1048, codigo: "Q4K7MX" })).toBe(
+      "O pedido #1048 está pronto para retirada! Código: *Q4K7MX*. Leve também seu nome e este WhatsApp.",
+    );
+    expect(mensagemWhatsApp("pronto_retirada", { numero: 1048, codigo: "Q4K7MX", endereco: "Rua da Loja, 10", horario: "seg a sáb, 9h às 18h" }))
+      .toContain("Endereço: Rua da Loja, 10. Horário: seg a sáb, 9h às 18h.");
+    expect(mensagemWhatsApp("pedido_enviado", { numero: 1048 })).toBe("O pedido #1048 foi enviado.");
+    expect(mensagemWhatsApp("pedido_enviado", { numero: 1048, rastreio: "AB123456789BR" })).toContain("*AB123456789BR*");
+    expect(mensagemWhatsApp("entrega_confirmada", { numero: 1048, modalidade: "MOTOBOY" })).toContain("calcula o frete");
+    expect(mensagemWhatsApp("pagamento_em_analise", { numero: 1048, frete: true })).toContain("frete do pedido #1048");
+  });
+
   it("hora sempre no fuso da loja", () => {
     expect(formatarHora(new Date("2026-10-10T03:05:00Z"))).toBe("00:05");
   });

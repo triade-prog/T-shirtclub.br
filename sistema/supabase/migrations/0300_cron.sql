@@ -50,6 +50,7 @@ do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.schedule('varredura-reservas', '10 seconds', 'select public.run_sweep()');
+    perform cron.schedule('vencimento-frete', '* * * * *', 'select public.sweep_shipping_quotes()');
     perform cron.schedule('limpeza-limites', '7 * * * *', 'select public.purge_rate_limits()');
     perform cron.schedule('limpeza-login-painel', '17 3 * * *', 'select public.purge_admin_login_guards()');
   end if;

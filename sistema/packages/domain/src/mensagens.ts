@@ -80,13 +80,20 @@ export interface ParametrosMensagem {
   reserva_lembrete_5min: { numero: number; expiraEm: Date };
   reserva_expirada: { numero: number; expiradaEm: Date };
   pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: "PIX" | "CARTAO" };
-  pagamento_em_analise: { numero: number };
+  pagamento_em_analise: { numero: number; frete?: boolean };
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
   bloqueio_mantido: Record<string, never>;
   cancelamento_recebido: { numero: number; expiraEm: Date };
   cancelamento_aprovado: { numero: number };
   cancelamento_recusado: { numero: number; expiraEm: Date };
+  entrega_confirmada: { numero: number; modalidade: "RETIRADA" | "MOTOBOY" | "ENVIO" };
+  frete_calculado: { numero: number; valorCentavos: number; pagarAte: Date };
+  frete_confirmado: { numero: number };
+  pronto_retirada: { numero: number; codigo: string; endereco?: string; horario?: string };
+  saiu_entrega: { numero: number };
+  pedido_enviado: { numero: number; rastreio?: string };
+  pedido_entregue: { numero: number };
 }
 
 export type Modelo = keyof ParametrosMensagem;
@@ -129,7 +136,10 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
     (p) => `Recebemos seu pagamento, ${primeiroNome(p.nome)}! Pedido #${p.numero} garantido. Falta só escolher a entrega, no site: ${SITE}`,
   ],
   pagamento_em_analise: [
-    (p) => `Seu pagamento chegou depois do prazo da reserva #${p.numero}. A loja vai conferir e falar com você por aqui.`,
+    (p) =>
+      p.frete
+        ? `O pagamento do frete do pedido #${p.numero} chegou depois que a entrega mudou. A loja vai conferir e falar com você por aqui.`
+        : `Seu pagamento chegou depois do prazo da reserva #${p.numero}. A loja vai conferir e falar com você por aqui.`,
   ],
   telefone_bloqueado: [
     () => "Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.",
@@ -144,6 +154,30 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   ],
   cancelamento_aprovado: [(p) => `Cancelamento aprovado: a reserva #${p.numero} foi encerrada e nada foi cobrado.`],
   cancelamento_recusado: [(p) => `A loja manteve a reserva #${p.numero}. Ela segue valendo até *${formatarHora(p.expiraEm)}*.`],
+  // Pós-pagamento (regras 17 e 18): sem endereço nem telefone no texto (seção 10).
+  entrega_confirmada: [
+    (p) =>
+      p.modalidade === "RETIRADA"
+        ? `Retirada confirmada para o pedido #${p.numero}. Avisamos por aqui quando ele estiver pronto.`
+        : `Recebemos o endereço do pedido #${p.numero}. A loja calcula o frete e manda o valor por aqui.`,
+  ],
+  frete_calculado: [
+    (p) => `Frete do pedido #${p.numero}: ${formatarReais(p.valorCentavos)}. Pague até *${formatarHora(p.pagarAte)}* pelo site: ${SITE}`,
+  ],
+  frete_confirmado: [(p) => `Frete pago! O pedido #${p.numero} já está em preparação.`],
+  pronto_retirada: [
+    (p) =>
+      [
+        `O pedido #${p.numero} está pronto para retirada! Código: *${p.codigo}*. Leve também seu nome e este WhatsApp.`,
+        p.endereco ? `Endereço: ${p.endereco}.` : "",
+        p.horario ? `Horário: ${p.horario}.` : "",
+      ].filter(Boolean).join(" "),
+  ],
+  saiu_entrega: [(p) => `O pedido #${p.numero} saiu para entrega. Tenha alguém para receber.`],
+  pedido_enviado: [
+    (p) => `O pedido #${p.numero} foi enviado.${p.rastreio ? ` Código de rastreio: *${p.rastreio}*.` : ""}`,
+  ],
+  pedido_entregue: [(p) => `Pedido #${p.numero} entregue. Obrigada pela compra! Trocas e devoluções são combinadas por aqui. 💖`],
 };
 
 /** Texto da mensagem; `sorteio` escolhe a versão (0 a 1). */

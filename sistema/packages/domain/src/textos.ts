@@ -92,6 +92,16 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro." };
     case "PHONE_VERIFICATION_REQUIRED":
       return { mensagem: "Para mexer na entrega, confirme que é você com um código pelo WhatsApp.", acao: "Receber código" };
+    case "NOT_PAID":
+      return { mensagem: "A entrega é combinada depois do pagamento confirmado.", acao: "Ir para o pagamento" };
+    case "SHIPPING_ALREADY_PAID":
+      return { mensagem: "O frete já foi pago, então a entrega não muda mais por aqui. Fale com a gente pelo WhatsApp." };
+    case "DELIVERY_LOCKED":
+      return { mensagem: "Esta etapa da entrega não está disponível agora. Atualize a página para ver o andamento." };
+    case "NOT_READY":
+      return { mensagem: "Para marcar como entregue, o pedido precisa estar pronto para retirada, ter saído para entrega ou ter sido enviado." };
+    case "DISPUTE_OPEN":
+      return { mensagem: "Há um estorno ou contestação aberto neste pagamento. Resolva a disputa antes de marcar como entregue.", acao: "Ver disputas" };
     case "QUOTE_EXPIRED":
       return { mensagem: "O prazo para pagar o frete venceu. A gente fala com você pelo WhatsApp.", acao: "Prefiro retirar na loja" };
     case "NOT_FOUND":
