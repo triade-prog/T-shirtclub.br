@@ -52,7 +52,7 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
             Sua <em className="text-rosa-press">Sacola.</em>
           </h1>
         </div>
-        <Link href="/" className="border-b border-tinta pb-1 text-[11px] font-extrabold uppercase tracking-[0.11em]">Continuar escolhendo</Link>
+        <Link href="/" className="tc-alvo relative border-b border-tinta pb-1 text-[11px] font-extrabold uppercase tracking-[0.11em]">Continuar escolhendo</Link>
       </div>
 
       {(aviso || avisos.length > 0) && (

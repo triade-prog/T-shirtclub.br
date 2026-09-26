@@ -123,7 +123,13 @@ http.createServer(async (req, res) => {
       return responder(res, 200, { reserva: { id: r.id, numero: r.numero } });
     }
 
-    if (m === "GET" && p === "v1/me/reservations") return responder(res, 200, { reservas: [...reservas.values()].map((r) => ({ id: r.id, numero: r.numero, status: r.status })) });
+    // Como customer_reservations: o resumo que a consulta e a reserva usam
+    if (m === "GET" && p === "v1/me/reservations") {
+      return responder(res, 200, { reservas: [...reservas.values()].map((r) => ({
+        id: r.id, numero: r.numero, status: r.status, motivoEncerramento: r.motivoEncerramento ?? undefined, totalCentavos: r.totalCentavos, criadaEm: r.criadaEm,
+        pecas: r.itens.reduce((s, i) => s + i.qtd, 0), expiraEm: r.status === "RESERVADO" ? r.expiraEm : undefined, substatus: r.logistica?.substatus, modalidade: r.logistica?.modalidade, cancelamentoPendente: false,
+      })) });
+    }
     if (m === "GET" && (x = p.match(/^v1\/reservations\/([0-9a-f-]{36})$/))) {
       const r = reservas.get(x[1]);
       return r ? responder(res, 200, reservaJson(r)) : erro(res, 404, "NOT_FOUND");

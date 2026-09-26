@@ -66,7 +66,7 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
         <div className="grid gap-5 rounded-[20px] border-2 border-tinta bg-papel p-5 shadow-[5px_5px_0_var(--tc-citrino)] md:sticky md:top-36 md:p-7">
           {produto.colecao && (
             <nav aria-label="Você está em" className="text-[10px] font-extrabold uppercase tracking-[0.11em] text-tinta-suave">
-              <Link href={`/colecao/${produto.colecao.slug}`} className="underline decoration-rosa decoration-2 underline-offset-2">{produto.colecao.nome}</Link>
+              <Link href={`/colecao/${produto.colecao.slug}`} className="tc-alvo relative underline decoration-rosa decoration-2 underline-offset-2">{produto.colecao.nome}</Link>
               {" / T-shirts"}
             </nav>
           )}
@@ -92,7 +92,7 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
           <div className="grid gap-2.5">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[10px] font-extrabold uppercase tracking-[0.1em]">Tamanho</span>
-              {produto.medidas && <a href="#medidas" className="text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Tabela de medidas</a>}
+              {produto.medidas && <a href="#medidas" className="tc-alvo relative text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Tabela de medidas</a>}
             </div>
             <p className="m-0 rounded-campo border-[1.5px] border-tinta px-3.5 py-3.5 text-sm font-bold shadow-adesivo-sm">Tamanho único</p>
           </div>
@@ -112,13 +112,14 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
           {detalhes.length > 0 && (
             <div className="border-b border-linha">
               {detalhes.map((d, i) => (
-                <details key={d.titulo} id={d.id} open={i === 0} className="group border-t border-linha py-4">
-                  <summary className="flex cursor-pointer list-none items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.1em] [&::-webkit-details-marker]:hidden">
+                // Resumo com 44 px de toque (F2.7); o espaçamento compensa para o desenho não mudar
+                <details key={d.titulo} id={d.id} open={i === 0} className="group border-t border-linha py-2 open:pb-4">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.1em] [&::-webkit-details-marker]:hidden">
                     {d.titulo}
                     <span aria-hidden="true" className="text-lg font-normal group-open:hidden">+</span>
                     <span aria-hidden="true" className="hidden text-lg font-normal group-open:inline">−</span>
                   </summary>
-                  <p className="m-0 mt-3 whitespace-pre-line text-sm leading-relaxed text-tinta-suave">{d.texto}</p>
+                  <p className="m-0 mt-1 whitespace-pre-line text-sm leading-relaxed text-tinta-suave">{d.texto}</p>
                 </details>
               ))}
             </div>

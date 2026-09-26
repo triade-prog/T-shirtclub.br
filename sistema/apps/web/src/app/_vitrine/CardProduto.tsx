@@ -33,12 +33,12 @@ export function CardProduto({ produto, oferta, prioridade }: { produto: CartaoPr
           )}
         </Link>
         {selo && <Selo fundo="citrino" className="absolute left-2.5 top-2.5">{selo}</Selo>}
-        <BotaoFavorito slug={produto.slug} nome={produto.nome} className="absolute right-2.5 top-2.5 size-9.5" />
+        <BotaoFavorito slug={produto.slug} nome={produto.nome} className="tc-alvo absolute right-2.5 top-2.5 size-9.5" />
         {produto.selo !== "ESGOTADO" && (
           // A sacola (fatia 3) recebe a peça por aqui; sem JavaScript também funciona.
           <form action="/sacola" method="get" className="absolute bottom-2.5 right-2.5">
             <input type="hidden" name="adicionar" value={produto.slug} />
-            <button type="submit" aria-label={`Adicionar ${produto.nome} à sacola`} className="grid size-10.5 place-items-center rounded-full border-[1.5px] border-tinta bg-papel/95 hover:bg-citrino">
+            <button type="submit" aria-label={`Adicionar ${produto.nome} à sacola`} className="tc-alvo relative grid size-10.5 place-items-center rounded-full border-[1.5px] border-tinta bg-papel/95 hover:bg-citrino">
               <Plus aria-hidden="true" className="size-5" strokeWidth={1.8} />
             </button>
           </form>
@@ -46,8 +46,9 @@ export function CardProduto({ produto, oferta, prioridade }: { produto: CartaoPr
       </div>
       <div className="px-0.5">
         {produto.colecao && <p className="m-0 text-[10px] font-bold uppercase tracking-[0.11em] text-tinta-suave">{produto.colecao.nome}</p>}
-        <h3 className="m-0 mt-0.5 truncate text-sm font-bold tracking-[-0.02em]">
-          <Link href={href} className="rounded-[4px]">{produto.nome}</Link>
+        {/* Toque de 44 px: o link ganha 12 px em cima e embaixo, e as margens negativas mantêm o desenho */}
+        <h3 className="m-0 -mb-3 -mt-2.5 text-sm font-bold tracking-[-0.02em]">
+          <Link href={href} className="block truncate rounded-[4px] py-3">{produto.nome}</Link>
         </h3>
         <p className="m-0 mt-1 font-display text-[15px] font-extrabold">
           {promo !== null ? (

@@ -156,6 +156,19 @@
 /* Peças da identidade que o Tailwind não expressa bem: título editorial com a palavra de
    marca em itálico rosa, sobretítulo com a fita citrino e o brilho do selo. */
 @layer components {
+  /* Alvo de toque de pelo menos 44 × 44 px sem mudar o desenho (F2.7): a área invisível fica
+     centrada no elemento, que precisa estar posicionado (relative ou absolute). */
+  .tc-alvo::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    min-width: 100%;
+    min-height: 100%;
+    transform: translate(-50%, -50%);
+  }
   .tc-titulo {
     font-family: var(--font-editorial);
     font-optical-sizing: auto;

@@ -144,7 +144,7 @@ function Lista({ reservas }: { reservas: Resumo[] }) {
     return (
       <div className="grid justify-items-start gap-3">
         <Aviso tipo="info" titulo="Nenhuma reserva neste número ainda." />
-        <Link href="/" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Ver as estampas</Link>
+        <Link href="/" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Ver as estampas</Link>
       </div>
     );
   }

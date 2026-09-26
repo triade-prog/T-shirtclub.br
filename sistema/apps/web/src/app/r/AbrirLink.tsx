@@ -44,7 +44,7 @@ export function AbrirLink() {
         <>
           <div role="alert"><Aviso tipo="atencao" titulo={erro} /></div>
           <p className="m-0 text-sm text-tinta-suave">No WhatsApp da loja, você também pode mandar “Minha reserva” a qualquer momento.</p>
-          <Link href="/" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
+          <Link href="/" className="tc-alvo relative justify-self-start font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
         </>
       ) : (
         <p role="status" className="m-0 text-tinta-suave">Abrindo sua reserva…</p>

@@ -108,7 +108,7 @@ export function FormDados({ pedido, pecas, cotacaoInicial }: { pedido: ItemCarri
       {erros.geral && (
         <div role="alert" className="grid gap-2">
           <Aviso tipo="atencao" titulo={erros.geral} />
-          {erros.sacola && <Link href="/sacola" className="text-sm font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a sacola</Link>}
+          {erros.sacola && <Link href="/sacola" className="tc-alvo relative text-sm font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a sacola</Link>}
         </div>
       )}
 

@@ -33,14 +33,14 @@ export default async function PaginaSeusDados() {
         {cotacao ? (
           <FormDados pedido={pedido} pecas={cotacao.pecas} cotacaoInicial={cotacao} />
         ) : (
-          <Link href="/sacola" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a sacola</Link>
+          <Link href="/sacola" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a sacola</Link>
         )}
       </div>
 
       <aside aria-labelledby="resumo-reserva" className="rounded-[22px] border-2 border-tinta bg-rosa-bruma p-5 shadow-[6px_6px_0_var(--tc-citrino)] md:sticky md:top-36 md:p-6">
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="resumo-reserva" className="m-0 font-editorial text-[25px] font-bold tracking-[-0.035em]">Sua seleção</h2>
-          <Link href="/sacola" className="text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Alterar</Link>
+          <Link href="/sacola" className="tc-alvo relative text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Alterar</Link>
         </div>
         <ul className="m-0 mt-4 grid list-none gap-3 p-0">
           {validos.map(({ produto, qtd }) => (

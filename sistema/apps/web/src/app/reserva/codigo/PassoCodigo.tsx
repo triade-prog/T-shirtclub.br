@@ -98,7 +98,7 @@ export function PassoCodigo({ tentativaId, numeroLoja }: { tentativaId: string; 
         <Aviso tipo="atencao" titulo="Esta confirmação não vale mais.">
           <p className="m-0 mt-1 text-sm">Ela só abre no navegador em que você começou, e por um tempo curto. Comece de novo: suas peças continuam na sacola.</p>
         </Aviso>
-        <Link href="/reserva" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Começar de novo</Link>
+        <Link href="/reserva" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Começar de novo</Link>
       </Moldura>
     );
   }
@@ -111,7 +111,7 @@ export function PassoCodigo({ tentativaId, numeroLoja }: { tentativaId: string; 
       {erro && (
         <div role="alert" className="grid gap-2">
           <Aviso tipo="atencao" titulo={erro.texto} />
-          {erro.sacola && <Link href="/sacola" className="text-sm font-bold underline decoration-rosa decoration-2 underline-offset-2">Ajustar a sacola</Link>}
+          {erro.sacola && <Link href="/sacola" className="tc-alvo relative text-sm font-bold underline decoration-rosa decoration-2 underline-offset-2">Ajustar a sacola</Link>}
         </div>
       )}
 

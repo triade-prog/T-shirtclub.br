@@ -123,6 +123,8 @@ Com a F11, todas as fases de servidor do plano estão feitas. O que falta para a
 
 **Jornada e dependências (26/09):** `tests/e2e/jornada.spec.ts` percorre a loja inteira no celular (início, produto, sacola, Seus dados, código do WhatsApp, PIX, pago e retirada), com o axe em cada tela, contra a api-public falsa guardada em `tests/e2e/api-falsa/api-publica.mjs`. O `playwright.config` sobe a api falsa (porta 4010) e uma loja ligada a ela (porta 3003), também localmente; o build precisa de `ORIGEM_IMAGENS=http://127.0.0.1:4010`, já posto nos workflows. Dependências: produção sem vulnerabilidade; no Lighthouse CI, `tmp` e `uuid` vão por override (`pnpm-workspace.yaml`), e o `extract-zip` segue sem versão corrigida (só baixa o Chrome no CI).
 
+**Acessibilidade da loja (26/09, F2.7):** as 14 telas foram auditadas no celular e em 320 px (contraste, foco, alvos de toque, reflow, títulos, erros ligados aos campos, avisos ao vivo). Para os alvos de 44 px sem mexer no desenho da V4 existe a classe `tc-alvo` em `packages/ui/src/tema.css` (área invisível centrada; o elemento precisa estar `relative` ou `absolute`); o nome no cartão de produto usa padding com margem negativa, porque o título corta o que passa dele. A loja ganhou `app/error.tsx` e `app/not-found.tsx` em português. `jornada.spec.ts` tem um teste permanente de alvos de toque. Falta o teste com leitor de tela em aparelhos reais (P20).
+
 ## Dados que ainda faltam (não bloqueiam a revisão)
 
 - Credenciais de teste do Mercado Pago.

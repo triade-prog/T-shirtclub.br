@@ -154,7 +154,7 @@ function Cronometro({ relogio, expiraEm, terminou }: { relogio: ReturnType<typeo
       </p>
       {/* A costura da V4: some da direita para a esquerda */}
       <div className="h-2.5 overflow-hidden rounded-pilula border-[1.5px] border-tinta bg-papel">
-        <i className="block h-full bg-rosa transition-[width] duration-1000 ease-linear" style={{ width: `${Math.round(relogio.fracao * 100)}%` }} />
+        <i className="block h-full bg-rosa transition-[width] duration-1000 ease-linear motion-reduce:transition-none" style={{ width: `${Math.round(relogio.fracao * 100)}%` }} />
       </div>
     </div>
   );
@@ -231,7 +231,7 @@ function Limitada({ reserva }: { reserva: Reserva }) {
   return (
     <Moldura numero={reserva.numero} selo={reserva.status === "ENTREGUE" ? "Entregue" : "Encerrada"}>
       <p className="m-0 text-[15px]">{texto} Os detalhes ficam guardados por 30 dias pelo link; depois, só com o código no WhatsApp.</p>
-      <Link href="/" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
+      <Link href="/" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
     </Moldura>
   );
 }
@@ -264,7 +264,7 @@ function Problema({ tipo }: { tipo: "SEM_SESSAO" | "NAO_ACHOU" | "FORA_DO_AR" })
     <section className="mx-auto grid w-full max-w-xl gap-4 px-3.5 pb-12 pt-8 md:pt-12">
       <h1 className="m-0 font-editorial text-[clamp(34px,5vw,48px)] font-bold leading-[0.95] tracking-[-0.05em]">Sua reserva</h1>
       <Aviso tipo="atencao" titulo={textos.titulo}><p className="m-0 mt-1 text-sm">{textos.texto}</p></Aviso>
-      <Link href="/" className="font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
+      <Link href="/" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
     </section>
   );
 }

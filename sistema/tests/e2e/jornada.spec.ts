@@ -69,3 +69,27 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await semViolacoes(page, "meu pedido");
   expect(erros).toEqual([]);
 });
+
+// Alvos de toque de 44 px (F2.7): botões e links soltos, ou a área invisível .tc-alvo. Ficam
+// de fora os links no meio de uma frase (exceção da WCAG) e o "Pular para o conteúdo".
+test("alvos de toque de pelo menos 44 px nas telas da vitrine", async ({ page }) => {
+  for (const caminho of ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/nao-existe"]) {
+    await page.goto(`${LOJA}${caminho}`);
+    await page.waitForLoadState("networkidle").catch(() => undefined);
+    const pequenos = await page.evaluate(() => {
+      const saida: string[] = [];
+      for (const e of document.querySelectorAll<HTMLElement>("a[href], button, input:not([type=hidden]), select, textarea, summary")) {
+        if (e.matches(".sr-only, .sr-only *") || e.closest("p")) continue;
+        const alvo = e instanceof HTMLInputElement && ["radio", "checkbox"].includes(e.type) ? (e.closest("label") ?? e) : e;
+        const b = alvo.getBoundingClientRect();
+        if (b.width === 0 && b.height === 0) continue;
+        const extra = getComputedStyle(e, "::after");
+        const w = Math.max(b.width, e.classList.contains("tc-alvo") ? parseFloat(extra.width) : 0);
+        const h = Math.max(b.height, e.classList.contains("tc-alvo") ? parseFloat(extra.height) : 0);
+        if (Math.min(w, h) < 44) saida.push(`${e.tagName.toLowerCase()} "${(e.innerText || e.getAttribute("aria-label") || "").trim().slice(0, 30)}" ${Math.round(w)}x${Math.round(h)}`);
+      }
+      return saida;
+    });
+    expect(pequenos, caminho).toEqual([]);
+  }
+});

@@ -176,7 +176,7 @@ function FormEntrega({ reserva, aoSalvar, aoCancelar }: { reserva: Reserva; aoSa
             <Campo name="numero" rotulo="Número" maxLength={20} erro={erros.numero} />
             <Campo name="complemento" rotulo="Complemento (opcional)" autoComplete="address-line2" maxLength={60} />
           </div>
-          <Campo name="bairro" rotulo="Bairro" maxLength={80} erro={erros.bairro} />
+          <Campo name="bairro" rotulo="Bairro" autoComplete="address-level3" maxLength={80} erro={erros.bairro} />
           <div className="grid grid-cols-[1fr_88px] gap-3">
             <Campo name="cidade" rotulo="Cidade" autoComplete="address-level2" maxLength={80} erro={erros.cidade} />
             <Campo name="uf" rotulo="UF" autoComplete="address-level1" maxLength={2} className="uppercase" erro={erros.uf} />
