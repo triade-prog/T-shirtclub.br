@@ -65,3 +65,19 @@ body{line-height:normal}:where(h1,h2,h3,b,strong){font-weight:700}:where(p){marg
 .file{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border-radius:999px;border:1.5px dashed var(--ink);padding:0 18px;font-size:12px;font-weight:800;cursor:pointer;background:var(--paper)}.file:focus-within{outline:3px solid var(--pink);outline-offset:2px}.file input{position:absolute;opacity:0;width:1px;height:1px}
 /* O CSP bloqueia style="" vindo do servidor: a cor do título fica no CSS. */
 h1.display em{color:var(--pink-dark)}
+/* ─── Pagamentos, contestações, bloqueios, WhatsApp, auditoria e conta (fatia 11) ─── */
+.sidebar{overflow-y:auto}
+.case{display:grid;gap:14px}.case.open{background:linear-gradient(135deg,#fff,var(--pink-soft))}
+.case-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.case-head .pop{font-size:22px}.case-head p{font-size:12px;font-weight:700;margin:3px 0 0}
+.case .notice{background:rgba(255,255,255,.72)}
+.case .notice .big{font-family:var(--font-fraunces);font-size:20px;color:var(--ink);margin:0 0 4px}
+.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:18px}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;font-size:11px;color:var(--muted)}
+.audit-ref{font-size:10.5px;color:var(--muted)}.audit-ref a{color:var(--pink-dark);font-weight:700;text-decoration:underline}
+.rule{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:center}.rule strong{display:block;font-family:var(--font-baloo);font-size:38px;line-height:1}.rule span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.notif{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.notif:last-child{border-bottom:0}.notif b{font-size:12px}.notif p{font-size:10.5px;color:var(--muted);margin:2px 0 0}
+.stack{display:grid;gap:12px}.mt{margin-top:16px}
+ol.list{list-style:none;margin:0;padding:0}
+@media(max-width:820px){.filters{grid-template-columns:1fr}.rule strong{font-size:30px}}
+@media(max-width:560px){ol.list .row{grid-template-columns:1fr;gap:6px}}

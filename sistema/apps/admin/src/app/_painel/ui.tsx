@@ -76,3 +76,18 @@ export function Escolha({ rotulo, opcoes, ajuda, id, ...resto }:
 export function Marcar({ rotulo, ...resto }: React.InputHTMLAttributes<HTMLInputElement> & { rotulo: string }) {
   return <label className="check"><input type="checkbox" {...resto} /> {rotulo}</label>;
 }
+
+/** Abas de filtro das listas (tabs da V4); o número aparece só na aba que tem. */
+export function Abas<T extends string>({ rotulo, valor, opcoes, aoMudar }: {
+  rotulo: string; valor: T; opcoes: readonly { valor: T; texto: string; n?: number }[]; aoMudar: (v: T) => void;
+}) {
+  return (
+    <div className="tabs" role="group" aria-label={rotulo}>
+      {opcoes.map((o) => (
+        <button key={o.valor} type="button" className={`tab${valor === o.valor ? " active" : ""}`} aria-pressed={valor === o.valor} onClick={() => aoMudar(o.valor)}>
+          {o.texto}{o.n ? <span className="n">{o.n}</span> : null}
+        </button>
+      ))}
+    </div>
+  );
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { chamarApi } from "@/lib/api";
+import { chamarApi, type RespostaApi } from "@/lib/api";
 import { useEnvio } from "./useEnvio";
 import { Botao, Campo, Seta } from "./ui";
 
@@ -122,4 +122,44 @@ export function AcoesEntrega({ reservaId, modalidade, substatus, aoMudar }: { re
     );
   }
   return erro ? <p role="alert" className="field-error">{erro}</p> : null;
+}
+
+/**
+ * Decisão com motivo obrigatório e mais de um caminho (análise de pagamento, contestação,
+ * bloqueio): o motivo fica visível, cada botão manda a decisão com ele e o erro aparece junto.
+ */
+export function DecisaoComMotivo({ rotulo, ajuda, placeholder, opcoes, aoDecidir }: {
+  rotulo: string;
+  ajuda?: string;
+  placeholder?: string;
+  opcoes: { rotulo: string; variante?: "dark" | "ghost" | "danger"; enviar: (motivo: string) => Promise<RespostaApi<unknown>> }[];
+  aoDecidir: () => void;
+}) {
+  const { ocupado, erro, setErro, enviar } = useEnvio(aoDecidir);
+  const [qual, setQual] = useState<number | null>(null);
+  const [motivo, setMotivo] = useState("");
+
+  function decidir(i: number) {
+    const texto = motivo.trim();
+    if (texto.length < 3) return setErro("Escreva o motivo: ele fica registrado na auditoria.");
+    setQual(i);
+    void enviar(opcoes[i]!.enviar(texto));
+  }
+
+  return (
+    <div className="decision">
+      <div className="field">
+        <label htmlFor={`motivo-${rotulo}`}>{rotulo}</label>
+        <textarea id={`motivo-${rotulo}`} className="textarea" maxLength={500} placeholder={placeholder} value={motivo} onChange={(e) => setMotivo(e.target.value)}
+          aria-invalid={erro ? true : undefined} aria-describedby={erro ? `motivo-${rotulo}-erro` : undefined} />
+        {erro && <p className="field-error" id={`motivo-${rotulo}-erro`} role="alert">{erro}</p>}
+      </div>
+      <div className="actions">
+        {opcoes.map((o, i) => (
+          <Botao key={o.rotulo} variante={o.variante ?? "dark"} carregando={ocupado && qual === i} disabled={ocupado && qual !== i} onClick={() => decidir(i)}>{o.rotulo}</Botao>
+        ))}
+      </div>
+      {ajuda && <p className="field-help">{ajuda}</p>}
+    </div>
+  );
 }

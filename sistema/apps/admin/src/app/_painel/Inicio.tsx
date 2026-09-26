@@ -56,9 +56,9 @@ export function Inicio() {
             <Acao n={p.acoes.fretes.vencidos} texto="fretes vencidos" href="/entregas?substatus=FRETE_VENCIDO" tom="hot" />
             <Acao n={p.acoes.emPreparacao} texto="pedidos para preparar" href="/entregas?substatus=EM_PREPARACAO" tom="citron" />
             <Acao n={p.acoes.aguardandoModalidade} texto="pagos sem entrega escolhida" href="/entregas?substatus=AGUARDANDO_MODALIDADE" tom="citron" />
-            <Acao n={p.acoes.pagamentosEmAnalise} texto="pagamentos em análise" tom="hot" />
-            <Acao n={p.acoes.disputasAbertas} texto="contestações abertas" tom="hot" />
-            <Acao n={p.acoes.telefonesBloqueados} texto={plural(p.acoes.telefonesBloqueados, "telefone bloqueado", "telefones bloqueados")} tom="hot" />
+            <Acao n={p.acoes.pagamentosEmAnalise} texto="pagamentos em análise" href="/pagamentos" tom="hot" />
+            <Acao n={p.acoes.disputasAbertas} texto="contestações abertas" href="/contestacoes" tom="hot" />
+            <Acao n={p.acoes.telefonesBloqueados} texto={plural(p.acoes.telefonesBloqueados, "telefone bloqueado", "telefones bloqueados")} href="/bloqueados" tom="hot" />
           </section>
 
           <section className="grid cards3" style={{ marginTop: 28 }}>
@@ -85,7 +85,7 @@ function Acao({ n, texto, href, tom }: { n: number; texto: string; href?: string
   return href && n > 0 ? <Link className={classe} href={href}>{corpo}</Link> : <div className={classe}>{corpo}</div>;
 }
 
-function WhatsApp({ fila }: { fila: Painel["fila"] }) {
+export function WhatsApp({ fila }: { fila: Painel["fila"] }) {
   const total = fila.enviadasHoje + fila.pendentes + fila.falhasHoje;
   const pct = total ? Math.round((fila.enviadasHoje / total) * 100) : 100;
   return (
