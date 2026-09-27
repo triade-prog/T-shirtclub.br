@@ -23,7 +23,11 @@ function adicionarPelaUrl(request: NextRequest): NextResponse | null {
 
 export function proxy(request: NextRequest) {
   const redirecionamento = adicionarPelaUrl(request);
-  if (redirecionamento) return redirecionamento;
+  if (redirecionamento) {
+    // Grava o cookie da sacola: leva os mesmos cabeçalhos, inclusive o sem cache
+    for (const [k, v] of Object.entries(cabecalhosSeguranca("loja", request.nextUrl.pathname))) redirecionamento.headers.set(k, v);
+    return redirecionamento;
+  }
 
   const nonce = gerarNonce();
   const csp = montarCsp({

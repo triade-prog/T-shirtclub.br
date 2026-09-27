@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 
 export const metadata: Metadata = { title: "Sem conexão", robots: { index: false } };
 
 // Guardada pelo service worker na instalação: aparece quando a cliente abre a loja sem rede.
-// Nada de preço nem de reserva aqui, porque isso só vale vindo da rede.
-export default function SemConexao() {
+// Nada de preço nem de reserva aqui, porque isso só vale vindo da rede. Gerada a cada pedido,
+// como as outras, para os scripts terem o nonce da CSP; o service worker guarda a página junto
+// com o cabeçalho, então nonce e CSP continuam casando sem rede.
+export default async function SemConexao() {
+  await connection();
   return (
     <section className="grid gap-4 px-4 pb-4 pt-8">
       <h1 className="tc-titulo m-0 text-[44px]">Sem conexão <em>agora.</em></h1>

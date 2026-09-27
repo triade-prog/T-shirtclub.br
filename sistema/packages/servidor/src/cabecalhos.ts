@@ -48,6 +48,11 @@ export function montarCsp({ app, nonce, dev = false, origemImagens }: OpcoesCsp)
   return partes.join("; ");
 }
 
+// Rotas da loja com dados da cliente (sacola, reserva, link /r, consulta e o repasse /api) ou
+// com segredo (revalidação): nunca em cache, nem na CDN nem no navegador. Hoje o Next já manda
+// no-store nas páginas dinâmicas; a trava aqui garante isso mesmo se uma delas deixar de ser.
+const LOJA_SEM_CACHE = /^\/(sacola|reserva|r|consulta|api|revalidar)(\/|$)/;
+
 /** Cabeçalhos fixos (sem a CSP), aplicados em todas as respostas. */
 export function cabecalhosSeguranca(app: App, caminho = "/"): Record<string, string> {
   return {
@@ -57,6 +62,7 @@ export function cabecalhosSeguranca(app: App, caminho = "/"): Record<string, str
     "Referrer-Policy": caminho === "/r" || caminho.startsWith("/r/") ? "no-referrer" : "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(self)",
     "Cross-Origin-Opener-Policy": "same-origin",
+    ...(app === "loja" && LOJA_SEM_CACHE.test(caminho) ? { "Cache-Control": "private, no-store" } : {}),
     ...(app === "painel" ? { "X-Frame-Options": "DENY", "X-Robots-Tag": "noindex, nofollow" } : {}),
   };
 }
