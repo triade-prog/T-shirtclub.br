@@ -3,6 +3,7 @@
 import { Aviso } from "./Aviso.tsx";
 import { Botao } from "./Botao.tsx";
 import { Campo } from "./Campo.tsx";
+import { CardProduto } from "./CardProduto.tsx";
 import { Cronometro } from "./Cronometro.tsx";
 import { ProgressoClub } from "./ProgressoClub.tsx";
 import { RELOGIO_ENCERRADO } from "./relogio.ts";
@@ -93,6 +94,13 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
         <div className="grid max-w-md gap-4">
           <ProgressoClub pecas={2} titulo="Falta 1 para fechar." texto="A terceira ativa o preço do Club: cerca de R$ 40 por peça." />
           <ProgressoClub pecas={3} titulo="Club completo." rotulos={["Pomodoro", "Poodle", "Limone"]} />
+        </div>
+      </Secao>
+
+      <Secao titulo="Cartão da vitrine">
+        <div className="grid max-w-md grid-cols-2 gap-3">
+          <CardProduto nome="Limone Amalfi" href="#" colecao="Limone" preco="R$ 49,99" oferta="3 por R$ 119,99" />
+          <CardProduto nome="Teddy Rose" href="#" colecao="Teddy Club" preco="R$ 39,99" precoOriginal="R$ 49,99" selo="Últimas peças" />
         </div>
       </Secao>
 
