@@ -4,8 +4,9 @@ select plan(39);
 insert into auth.users (id) values ('00000000-0000-4000-8000-0000000000d1');
 insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1', 'Loja');
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Dog Club', 'dog-club', 'MENTA');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'DOG-01', 'dog-1', 'Dog Club Caramelo', 4999, 20);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'DOG-01', 'dog-1', 'Dog Club Caramelo', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 20)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 values ('00000000-0000-4000-8000-00000000a001', 'produtos/dog-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
 update products set published_at = app_now();
@@ -17,11 +18,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina Souza', p_phone, 'RETIRADA', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 2}]',
+  values (gen_attempt_ref(), 'Marina Souza', p_phone, 'RETIRADA', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 2}]'),
           9998, s, 'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token))
   returning id into a;
   return (create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 2, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 9998}]'::jsonb,
+    'linhas', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 2, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 9998}]'),
     'subtotalCentavos', 9998, 'descontoCentavos', 0, 'totalCentavos', 9998, 'aplicada', null,
     'chaveHash', pg_temp.h(v_token || 'k'), 'link', 'https://tshirtclub.pt/r#x')) -> 'reserva' ->> 'id')::uuid;
 end $$;
@@ -73,13 +74,13 @@ select is((select status from reservations where id = (select id from t where no
 select is(apply_payment_result((select id from t where nome = 'p2'), pg_temp.resultado((select id from t where nome = 'p2'), 'APROVADO')) ->> 'resultado',
   'CONFIRMADO', 'aprovado dentro do prazo confirma');
 select is((select status from reservations where id = (select id from t where nome = 'r1')), 'PAGAMENTO_CONFIRMADO'::reservation_status, 'reserva paga');
-select is((select (qty_reserved, qty_sold)::text from products), '(0,2)', 'reservado vira vendido');
+select is((select (qty_reserved, qty_sold)::text from product_variants where size = 'UNICO'), '(0,2)', 'reservado vira vendido');
 select is((select array_agg(event order by id) from reservation_transitions where reservation_id = (select id from t where nome = 'r1')), array['T1', 'T2'], 'linha do tempo T1 → T2');
 select is((select template from outbox_messages where reservation_id = (select id from t where nome = 'r1') and template = 'pagamento_confirmado'),
   'pagamento_confirmado', 'mensagem "pagamento confirmado" na fila');
 select is((select array_agg(apply_payment_result((select id from t where nome = 'p2'), pg_temp.resultado((select id from t where nome = 'p2'), 'APROVADO')) ->> 'resultado')
              from generate_series(1, 9)), array_fill('ALREADY_APPLIED'::text, array[9]), 'o mesmo aprovado 9 vezes: nenhum efeito (T15)');
-select is((select qty_sold from products), 2, 'vendido uma vez só');
+select is((select qty_sold from product_variants where size = 'UNICO'), 2, 'vendido uma vez só');
 select payment_event_register('mercadopago', 'evt-1', 'mp-2', '{}') from generate_series(1, 10);
 select is((select count(*)::int from payment_events where provider_event_id = 'evt-1'), 1, 'o mesmo evento do webhook 10 vezes vira 1 linha na inbox');
 select throws_ok($$ update payments set applied = true where id = (select id from t where nome = 'p1') $$, '23514', null,

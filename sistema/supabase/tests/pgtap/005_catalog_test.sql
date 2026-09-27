@@ -1,5 +1,5 @@
 begin;
-select plan(17);
+select plan(22);
 
 insert into collections (id, name, slug, color_key) values
   ('00000000-0000-0000-0000-00000000c001', 'Limone', 'limone', 'LIMAO');
@@ -42,26 +42,47 @@ delete from product_images where product_id = '00000000-0000-0000-0000-00000000a
 select throws_ok($$ delete from product_images where product_id = '00000000-0000-0000-0000-00000000a001' $$,
   'TS101', null, 'produto publicado não fica sem foto');
 
--- estoque nunca negativo nem abaixo do comprometido
-select throws_ok($$ update products set qty_reserved = 1 where code = 'LIM-01' $$,
+-- variantes (0370): a peça nasce com o Único ativo e o Plus inativo, cada um com SKU próprio
+select is((select string_agg(size || ':' || sku || ':' || active, ' ' order by size) from product_variants
+            where product_id = '00000000-0000-0000-0000-00000000a001'),
+  'UNICO:LIM-01-UNI:true PLUS:LIM-01-PLUS:false', 'Único ativo e Plus inativo, com SKU pelo código');
+select throws_ok($$ insert into product_variants (product_id, size, sku) values ('00000000-0000-0000-0000-00000000a001', 'PLUS', 'LIM-01-P2') $$,
+  '23505', null, 'um tamanho por peça');
+
+-- estoque nunca negativo nem abaixo do comprometido, por tamanho
+select throws_ok($$ update product_variants set qty_reserved = 1 where sku = 'LIM-01-UNI' $$,
   '23514', null, 'reservado acima do total é recusado');
-update products set qty_total = 5, qty_reserved = 2, qty_sold = 1 where code = 'LIM-01';
+update product_variants set qty_total = 5, qty_reserved = 2, qty_sold = 1 where sku = 'LIM-01-UNI';
 select is((select available from v_product_availability where product_id = '00000000-0000-0000-0000-00000000a001'), 2,
   'disponível = total − reservado − vendido');
 select is((select label from v_product_availability where product_id = '00000000-0000-0000-0000-00000000a001'), 'ULTIMAS_UNIDADES',
   'até 2 disponíveis aparece como últimas unidades');
-update products set qty_reserved = 4 where code = 'LIM-01';
+update product_variants set qty_total = 3 where sku = 'LIM-01-PLUS';
+select is((select available from v_product_availability where product_id = '00000000-0000-0000-0000-00000000a001'), 2,
+  'tamanho inativo não conta na loja');
+update product_variants set active = true where sku = 'LIM-01-PLUS';
+select is((select available from v_product_availability where product_id = '00000000-0000-0000-0000-00000000a001'), 5,
+  'a peça soma os tamanhos ativos');
+update product_variants set qty_reserved = 4 where sku = 'LIM-01-UNI';
+update product_variants set qty_total = 0 where sku = 'LIM-01-PLUS';
 select is((select label from v_product_availability where product_id = '00000000-0000-0000-0000-00000000a001'), 'ESGOTADO',
-  'sem disponível aparece esgotado');
+  'sem disponível em nenhum tamanho aparece esgotado');
 
--- movimentos: somente inserção e com as regras de cada tipo
-insert into stock_movements (product_id, kind, qty, actor_type, reason)
-values ('00000000-0000-0000-0000-00000000a001', 'ENTRADA', 5, 'ADMIN', 'Chegada do lote');
+-- movimentos: somente inserção, com as regras de cada tipo e a variante da própria peça
+insert into stock_movements (product_id, variant_id, kind, qty, actor_type, reason)
+values ('00000000-0000-0000-0000-00000000a001', testes.unico('00000000-0000-0000-0000-00000000a001'), 'ENTRADA', 5, 'ADMIN', 'Chegada do lote');
 select throws_ok($$ update stock_movements set qty = 6 $$, 'TS010', null, 'movimento não é alterado');
-select throws_ok($$ insert into stock_movements (product_id, kind, qty, actor_type) values ('00000000-0000-0000-0000-00000000a001', 'AJUSTE', -1, 'ADMIN') $$,
+select throws_ok($$ insert into stock_movements (product_id, variant_id, kind, qty, actor_type)
+                    values ('00000000-0000-0000-0000-00000000a001', testes.unico('00000000-0000-0000-0000-00000000a001'), 'AJUSTE', -1, 'ADMIN') $$,
   '23514', null, 'ajuste sem motivo é recusado');
-select throws_ok($$ insert into stock_movements (product_id, kind, qty, actor_type) values ('00000000-0000-0000-0000-00000000a001', 'RESERVA', 1, 'SISTEMA') $$,
+select throws_ok($$ insert into stock_movements (product_id, variant_id, kind, qty, actor_type)
+                    values ('00000000-0000-0000-0000-00000000a001', testes.unico('00000000-0000-0000-0000-00000000a001'), 'RESERVA', 1, 'SISTEMA') $$,
   '23514', null, 'movimento de reserva exige a reserva');
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-0000-0000-00000000a002', '00000000-0000-0000-0000-00000000c001', 'LIM-02', 'limone-dois', 'Limone dois', 4999);
+select throws_ok($$ insert into stock_movements (product_id, variant_id, kind, qty, actor_type, reason)
+                    values ('00000000-0000-0000-0000-00000000a001', testes.unico('00000000-0000-0000-0000-00000000a002'), 'ENTRADA', 1, 'ADMIN', 'Lote') $$,
+  '23503', null, 'movimento com a variante de outra peça é recusado');
 
 select * from finish();
 rollback;

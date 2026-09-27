@@ -29,6 +29,24 @@ export const colecaoEntradaSchema = z.object({
   ativa: z.boolean().default(true),
 });
 
+/** Tamanhos da loja (0370): fixos; o nome de cada um é da loja inteira (Minha conta). */
+export const TAMANHOS = ["UNICO", "PLUS"] as const;
+export type Tamanho = (typeof TAMANHOS)[number];
+
+/** Medidas em cm ou texto curto, ex.: { "busto": 104, "comprimento": 68 }. */
+export const medidasSchema = z
+  .record(z.string().trim().min(1).max(40), z.union([z.number().min(0).max(1000), z.string().trim().max(60)]))
+  .refine((m) => Object.keys(m).length <= 20, "VALIDATION_ERROR")
+  .default({});
+
+/** Um tamanho da peça no cadastro: SKU, se está à venda e as medidas dele. */
+export const varianteEntradaSchema = z.object({
+  tamanho: z.enum(TAMANHOS),
+  sku: z.string().trim().toUpperCase().regex(/^[A-Z0-9][A-Z0-9-]{1,29}$/, "VALIDATION_ERROR"),
+  ativa: z.boolean(),
+  medidas: medidasSchema,
+});
+
 export const produtoEntradaSchema = z.object({
   colecaoId: idSchema,
   codigo: z.string().trim().toUpperCase().regex(/^[A-Z0-9][A-Z0-9-]{1,19}$/, "VALIDATION_ERROR"),
@@ -38,15 +56,25 @@ export const produtoEntradaSchema = z.object({
   descricao: textoOpcional(2000),
   composicao: textoOpcional(200),
   modelagem: textoOpcional(200),
-  /** Medidas em cm ou texto curto, ex.: { "busto": 104, "comprimento": 68 }. */
-  medidas: z
-    .record(z.string().trim().min(1).max(40), z.union([z.number().min(0).max(1000), z.string().trim().max(60)]))
-    .refine((m) => Object.keys(m).length <= 20, "VALIDATION_ERROR")
-    .default({}),
   cuidados: textoOpcional(500),
   ativo: z.boolean().default(true),
   publicado: z.boolean().default(false),
+  /** Os tamanhos enviados (os outros ficam como estão); o preço é o da peça. */
+  variantes: z
+    .array(varianteEntradaSchema)
+    .max(TAMANHOS.length)
+    .refine((vs) => new Set(vs.map((v) => v.tamanho)).size === vs.length, "VALIDATION_ERROR")
+    .refine((vs) => new Set(vs.map((v) => v.sku)).size === vs.length, "VALIDATION_ERROR")
+    .default([]),
 });
+
+/** PUT /v1/admin/settings/tamanhos: o nome de cada tamanho na loja, no painel e no WhatsApp. */
+export const nomesTamanhosSchema = z
+  .object({
+    unico: z.string().trim().min(2).max(40).optional(),
+    plus: z.string().trim().min(2).max(40).optional(),
+  })
+  .refine((n) => n.unico !== undefined || n.plus !== undefined, "VALIDATION_ERROR");
 
 /** POST /v1/admin/products/:id/images — o arquivo vai direto ao Storage, sempre em WebP. */
 export const fotoEntradaSchema = z.object({
@@ -166,10 +194,10 @@ export type PromocaoEntrada = z.infer<typeof promocaoEntradaSchema>;
 /** POST /v1/cart/quote. Os limites de peças vêm de app_settings e são conferidos na rota. */
 export const cotacaoSchema = z.object({
   itens: z
-    .array(z.object({ produtoId: idSchema, qtd: z.number().int().min(1).max(9) }))
+    .array(z.object({ produtoId: idSchema, varianteId: idSchema, qtd: z.number().int().min(1).max(9) }))
     .min(1)
     .max(9)
-    .refine((itens) => new Set(itens.map((i) => i.produtoId)).size === itens.length, "VALIDATION_ERROR"),
+    .refine((itens) => new Set(itens.map((i) => i.varianteId)).size === itens.length, "VALIDATION_ERROR"),
   /** Cupom digitado; se não tiver o formato, o motor responde "não encontrado". */
   cupom: z.string().trim().max(40).optional(),
 });

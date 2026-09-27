@@ -1,17 +1,28 @@
 // Formatos que a api-admin devolve no catálogo (admin_product_row_json, collection_json,
 // look_json, promotion_json).
 export interface Foto { id?: string; caminho: string; alt: string | null; tipo?: string; largura?: number; altura?: number; posicao?: number }
+export type Tamanho = "UNICO" | "PLUS";
+export interface Estoque { total: number; reservado: number; vendido: number; disponivel: number }
 export interface ProdutoLinha {
   id: string; codigo: string; slug: string; nome: string; precoCentavos: number; colecaoId: string;
   ativo: boolean; publicado: boolean; capa: Foto | null; fotos: number;
-  estoque: { total: number; reservado: number; vendido: number; disponivel: number };
+  /** A soma dos tamanhos (o disponível conta só os ativos). */
+  estoque: Estoque;
+  tamanhos: { id: string; tamanho: Tamanho; rotulo: string; ativa: boolean; disponivel: number }[];
+}
+/** Um tamanho da peça (0370): SKU, se está à venda, medidas e o estoque dele. */
+export interface Variante {
+  id: string; tamanho: Tamanho; rotulo: string; sku: string; ativa: boolean;
+  medidas: Record<string, string | number>; estoque: Estoque;
 }
 /** admin_get_product: a linha do produto, com "fotos" trocado pela lista das fotos. */
 export interface ProdutoCompleto extends Omit<ProdutoLinha, "fotos"> {
-  descricao: string | null; composicao: string | null; modelagem: string | null; medidas: Record<string, string | number> | null; cuidados: string | null;
+  descricao: string | null; composicao: string | null; modelagem: string | null; cuidados: string | null;
   fotos: (Foto & { id: string })[];
-  movimentos: { tipo: string; qtd: number; motivo: string | null; em: string }[];
+  variantes: Variante[];
+  movimentos: { tipo: string; qtd: number; motivo: string | null; em: string; tamanho?: Tamanho }[];
 }
+export const NOME_TAMANHO: Record<Tamanho, string> = { UNICO: "Único", PLUS: "Plus" };
 export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: { caminho: string; alt: string } | null; posicao: number; ativa: boolean; produtos: number }
 export interface Look { id: string; titulo: string; foto: { caminho: string; alt: string }; posicao: number; ativo: boolean; produtos: { id: string; nome: string; x: number; y: number }[] }
 export interface Bloco { id?: string; tipo: string; refId: string | null; titulo: string | null; ativo: boolean }

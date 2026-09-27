@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { urlFoto } from "@/lib/catalogo";
+import { NOME_TAMANHO } from "@/lib/tiposCatalogo";
 import { Casca, Icone } from "../_painel/Casca";
 import { AjusteEstoque } from "../_painel/AjusteEstoque";
 import { Botao, Carregando, Selo } from "../_painel/ui";
@@ -48,14 +49,14 @@ export function Estoque() {
                   : <span className="thumb"><Icone><path d="m8 4 4 2 4-2 5 3-3 5-2-1v9H8v-9l-2 1-3-5Z" /></Icone></span>}
                 <div style={{ minWidth: 0 }}>
                   <Link href={`/catalogo/produtos/${p.id}`}><b>{p.nome}</b></Link>
-                  <div className="meta">{p.codigo} · total {p.estoque.total} · {p.estoque.reservado} reservadas · {p.estoque.vendido} vendidas</div>
+                  <div className="meta">{p.codigo} · {p.tamanhos.filter((t) => t.ativa).map((t) => `${NOME_TAMANHO[t.tamanho]} ${t.disponivel}`).join(" · ") || "nenhum tamanho à venda"} · {p.estoque.reservado} reservadas · {p.estoque.vendido} vendidas</div>
                   <div style={{ marginTop: 7 }}>
                     {p.estoque.disponivel === 0 ? <Selo tom="expired">Esgotada</Selo> : p.estoque.disponivel <= 2 ? <Selo tom="issue">Últimas {p.estoque.disponivel}</Selo> : <Selo tom="paid">{p.estoque.disponivel} disponíveis</Selo>}
                   </div>
                 </div>
                 <Botao variante={abertos === p.id ? "dark" : "ghost"} aria-expanded={abertos === p.id} onClick={() => setAbertos(abertos === p.id ? null : p.id)}>Ajustar</Botao>
               </div>
-              {abertos === p.id && <div style={{ marginTop: 14 }}><AjusteEstoque produtoId={p.id} nome={p.nome} aoAjustar={aoAjustar} /></div>}
+              {abertos === p.id && <div style={{ marginTop: 14 }}><AjusteEstoque produtoId={p.id} nome={p.nome} variantes={p.tamanhos} aoAjustar={aoAjustar} /></div>}
             </li>
           ))}
         </ul>

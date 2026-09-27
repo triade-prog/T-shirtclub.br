@@ -4,6 +4,7 @@ import {
   colecaoEntradaSchema,
   cotacaoSchema,
   lookEntradaSchema,
+  nomesTamanhosSchema,
   produtoEntradaSchema,
   promocaoDoBancoSchema,
   promocaoEntradaSchema,
@@ -22,10 +23,27 @@ describe("painel: catálogo", () => {
   });
 
   it("produto: código em maiúsculas, preço em centavos inteiros e medidas curtas", () => {
-    const p = produtoEntradaSchema.parse({ colecaoId: ID, codigo: "lim-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, medidas: { busto: 104 } });
-    expect(p).toMatchObject({ codigo: "LIM-01", publicado: false, descricao: null });
+    const unico = { tamanho: "UNICO", sku: "lim-01-uni", ativa: true, medidas: { busto: 104 } };
+    const p = produtoEntradaSchema.parse({ colecaoId: ID, codigo: "lim-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, variantes: [unico] });
+    expect(p).toMatchObject({ codigo: "LIM-01", publicado: false, descricao: null, variantes: [{ tamanho: "UNICO", sku: "LIM-01-UNI", ativa: true }] });
     expect(produtoEntradaSchema.safeParse({ ...p, precoCentavos: 49.99 }).success).toBe(false);
-    expect(produtoEntradaSchema.safeParse({ ...p, medidas: { busto: "x".repeat(61) } }).success).toBe(false);
+    expect(produtoEntradaSchema.safeParse({ ...p, variantes: [{ ...unico, medidas: { busto: "x".repeat(61) } }] }).success).toBe(false);
+  });
+
+  it("produto: cada tamanho uma vez, com SKU próprio", () => {
+    const base = { colecaoId: ID, codigo: "LIM-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999 };
+    const unico = { tamanho: "UNICO", sku: "LIM-01-UNI", ativa: true };
+    expect(produtoEntradaSchema.parse(base).variantes).toEqual([]);
+    expect(produtoEntradaSchema.safeParse({ ...base, variantes: [unico, { tamanho: "PLUS", sku: "LIM-01-PLUS", ativa: false }] }).success).toBe(true);
+    expect(produtoEntradaSchema.safeParse({ ...base, variantes: [unico, { ...unico, sku: "OUTRO" }] }).success).toBe(false);
+    expect(produtoEntradaSchema.safeParse({ ...base, variantes: [unico, { tamanho: "PLUS", sku: "lim-01-uni", ativa: true }] }).success).toBe(false);
+    expect(produtoEntradaSchema.safeParse({ ...base, variantes: [{ ...unico, tamanho: "GG" }] }).success).toBe(false);
+  });
+
+  it("nomes dos tamanhos: um ou os dois, de 2 a 40 letras", () => {
+    expect(nomesTamanhosSchema.parse({ plus: " Plus · 44 ao 50 " })).toEqual({ plus: "Plus · 44 ao 50" });
+    expect(nomesTamanhosSchema.safeParse({}).success).toBe(false);
+    expect(nomesTamanhosSchema.safeParse({ unico: "U" }).success).toBe(false);
   });
 
   it("look: pontos dentro da foto e sem produto repetido", () => {
@@ -93,8 +111,11 @@ describe("banco → motor de preço", () => {
 
 describe("loja: cotação", () => {
   it("itens sem repetir e cupom opcional", () => {
-    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, qtd: 1 }], cupom: " bemvinda10 " }).success).toBe(true);
-    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, qtd: 1 }, { produtoId: ID, qtd: 1 }] }).success).toBe(false);
+    const V2 = "8b3c4d5e-6f7a-4b2c-8d3e-4f5a6b7c8d9e";
+    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, varianteId: ID, qtd: 1 }], cupom: " bemvinda10 " }).success).toBe(true);
+    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, varianteId: ID, qtd: 1 }, { produtoId: ID, varianteId: V2, qtd: 1 }] }).success).toBe(true);
+    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, varianteId: ID, qtd: 1 }, { produtoId: ID, varianteId: ID, qtd: 1 }] }).success).toBe(false);
+    expect(cotacaoSchema.safeParse({ itens: [{ produtoId: ID, qtd: 1 }] }).success).toBe(false);
     expect(cotacaoSchema.safeParse({ itens: [] }).success).toBe(false);
   });
 });

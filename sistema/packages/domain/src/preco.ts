@@ -15,6 +15,8 @@ export interface ProdutoPreco {
 
 export interface LinhaEntrada {
   produto: ProdutoPreco;
+  /** O tamanho (0370): passa direto para a linha do resultado; o preço e as promoções são da peça. */
+  varianteId?: string;
   qtd: number;
 }
 
@@ -121,6 +123,7 @@ export type SituacaoCupom =
 
 export interface LinhaResultado {
   produtoId: string;
+  varianteId?: string;
   qtd: number;
   precoTabelaCentavos: number;
   subtotalCentavos: number;
@@ -327,7 +330,10 @@ export function calcularPreco(entrada: EntradaPreco): ResultadoPreco {
   const linhas: LinhaResultado[] = itens.map((l, linha) => {
     const descontoCentavos = soma(porPeca.filter((_, i) => pecas[i]!.linha === linha));
     const subtotalCentavos = l.produto.precoCentavos * l.qtd;
-    return { produtoId: l.produto.id, qtd: l.qtd, precoTabelaCentavos: l.produto.precoCentavos, subtotalCentavos, descontoCentavos, totalCentavos: subtotalCentavos - descontoCentavos };
+    return {
+      produtoId: l.produto.id, ...(l.varianteId ? { varianteId: l.varianteId } : {}), qtd: l.qtd, precoTabelaCentavos: l.produto.precoCentavos,
+      subtotalCentavos, descontoCentavos, totalCentavos: subtotalCentavos - descontoCentavos,
+    };
   });
   const desconto = soma(porPeca);
 

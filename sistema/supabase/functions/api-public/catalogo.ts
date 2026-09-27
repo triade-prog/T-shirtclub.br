@@ -52,9 +52,12 @@ function comPrecos(valor: unknown, promocoes: readonly Promocao[], agora: Date):
   return visitar(valor);
 }
 
-interface ProdutoSacola {
+/** Um tamanho pedido na sacola (cart_products, 0370): a peça, o preço dela e o disponível do tamanho. */
+interface VarianteSacola {
   id: string;
+  produtoId: string;
   nome: string;
+  rotulo: string;
   precoCentavos: number;
   disponivel: number;
 }
@@ -71,24 +74,29 @@ export async function cotar(
   opcoes: { cliente?: Cliente; conferirEstoque?: boolean } = {},
 ): Promise<ResultadoPreco> {
   const cupom = cupomDigitado?.trim().toUpperCase() || undefined;
-  const dados = await chamar<{ produtos: ProdutoSacola[]; limites: { maxPecas: number; maxPorProduto: number } }>(
-    banco, "cart_products", { p_ids: itens.map((i) => i.produtoId) });
+  const dados = await chamar<{ variantes: VarianteSacola[]; limites: { maxPecas: number; maxPorProduto: number } }>(
+    banco, "cart_products", { p_variant_ids: itens.map((i) => i.varianteId) });
 
   const erro = validarCarrinho(itens, dados.limites)[0];
   if (erro) throw new ErroDominio(erro, erro === "MAX_ITEMS" ? { maxPecas: dados.limites.maxPecas } : { maxPorProduto: dados.limites.maxPorProduto });
 
-  const porId = new Map(dados.produtos.map((p) => [p.id, p]));
-  const faltando = opcoes.conferirEstoque === false ? [] : itens.filter((i) => (porId.get(i.produtoId)?.disponivel ?? 0) < i.qtd);
+  // Tamanho de outra peça, inativo ou de peça fora da loja não vem do banco: conta como indisponível.
+  const porId = new Map(dados.variantes.map((v) => [v.id, v]));
+  const doItem = (i: ItemCarrinho) => {
+    const v = porId.get(i.varianteId);
+    return v && v.produtoId === i.produtoId ? v : undefined;
+  };
+  const faltando = opcoes.conferirEstoque === false ? [] : itens.filter((i) => (doItem(i)?.disponivel ?? 0) < i.qtd);
   if (faltando.length > 0) {
     throw new ErroDominio("INSUFFICIENT_STOCK", {
-      produtos: faltando.map((i) => porId.get(i.produtoId)?.nome).filter(Boolean),
-      itens: faltando.map((i) => ({ produtoId: i.produtoId, disponivel: porId.get(i.produtoId)?.disponivel ?? 0 })),
+      produtos: faltando.map((i) => doItem(i)).filter((v) => v !== undefined).map((v) => `${v.nome} · ${v.rotulo}`),
+      itens: faltando.map((i) => ({ produtoId: i.produtoId, varianteId: i.varianteId, disponivel: doItem(i)?.disponivel ?? 0 })),
     });
   }
 
   return calcularPreco({
-    // Produto que saiu da vitrine entra com preço 0: a reserva recusa com STOCK_UNAVAILABLE.
-    itens: itens.map((i) => ({ produto: { id: i.produtoId, precoCentavos: porId.get(i.produtoId)?.precoCentavos ?? 0 }, qtd: i.qtd })),
+    // Tamanho que saiu da vitrine entra com preço 0: a reserva recusa com STOCK_UNAVAILABLE.
+    itens: itens.map((i) => ({ produto: { id: i.produtoId, precoCentavos: doItem(i)?.precoCentavos ?? 0 }, varianteId: i.varianteId, qtd: i.qtd })),
     promocoes: await promocoesVigentes(banco, cupom),
     agora,
     codigoCupom: cupom,

@@ -44,7 +44,7 @@ const ACAO: Record<string, string> = {
   "pagamento.estornado": "Pagamento estornado", "pagamento.convertido": "Pagamento convertido em novo pedido", "pagamento.descartado": "Aviso de pagamento descartado",
   "pagamento.disputa": "Contestação aberta", "pagamento.disputa_resolvida": "Contestação resolvida",
   "frete.calculado": "Frete calculado", "frete.tentativa": "Cobrança do frete criada", "frete.pago": "Frete pago", "frete.vencido": "Prazo do frete vencido",
-  "estoque.ajustado": "Estoque ajustado", "produto.criado": "Peça criada", "produto.editado": "Peça editada",
+  "estoque.ajustado": "Estoque ajustado", "tamanhos.alterados": "Nomes dos tamanhos alterados", "produto.criado": "Peça criada", "produto.editado": "Peça editada",
   "produto.foto.adicionada": "Foto adicionada", "produto.foto.editada": "Foto editada", "produto.foto.apagada": "Foto apagada", "produto.fotos.reordenadas": "Fotos reordenadas",
   "colecao.criada": "Coleção criada", "colecao.editada": "Coleção editada", "look.criado": "Look criado", "look.editado": "Look editado", "look.apagado": "Look apagado",
   "inicio.reordenado": "Página inicial reordenada", "promocao.criada": "Promoção criada", "promocao.editada": "Promoção editada", "promocao.encerrada": "Promoção encerrada",

@@ -2,8 +2,9 @@ begin;
 select plan(31);
 
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Limone', 'limone', 'LIMAO');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999, 20);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 20)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 values ('00000000-0000-4000-8000-00000000a001', 'produtos/lim-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
 update products set published_at = app_now();
@@ -15,11 +16,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]', 4999, s,
+  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]'), 4999, s,
           'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token))
   returning id into a;
   return (create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'::jsonb,
+    'linhas', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'),
     'subtotalCentavos', 4999, 'descontoCentavos', 0, 'totalCentavos', 4999, 'aplicada', null,
     'chaveHash', pg_temp.h(p_chave), 'link', 'https://tshirtclub.pt/r#x')) -> 'reserva' ->> 'id')::uuid;
 end $$;

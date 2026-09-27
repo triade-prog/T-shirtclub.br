@@ -4,8 +4,9 @@ select plan(33);
 insert into auth.users (id) values ('00000000-0000-4000-8000-0000000000d1');
 insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1', 'Carol');
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Limone', 'limone', 'LIMAO');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999, 20);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 20)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 values ('00000000-0000-4000-8000-00000000a001', 'produtos/lim-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
 update products set published_at = app_now();
@@ -17,11 +18,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash, ip_hash)
-  values (gen_attempt_ref(), 'Marina', p_phone, p_entrega, '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]', 4999, s,
+  values (gen_attempt_ref(), 'Marina', p_phone, p_entrega, testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]'), 4999, s,
           'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token), pg_temp.h('ip'))
   returning id into a;
   return (create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'::jsonb,
+    'linhas', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'),
     'subtotalCentavos', 4999, 'descontoCentavos', 0, 'totalCentavos', 4999, 'aplicada', null,
     'chaveHash', pg_temp.h(v_token || 'k'), 'link', 'https://tshirtclub.pt/r#x')) -> 'reserva' ->> 'id')::uuid;
 end $$;
@@ -41,13 +42,13 @@ select pg_temp.pagar((select id from t where nome = 'paga'), '+5571991112222');
 -- ── Verificador de invariantes do estoque ──
 select is(check_stock_invariants() ->> 'divergencias', '0', 'estoque confere com as reservas');
 select ok((select last_ok_at is not null from job_heartbeats where job = 'invariantes'), 'o verificador marca o pulso');
-update products set qty_reserved = qty_reserved + 1;
-select is(check_stock_invariants() -> 'produtos' -> 0, '{"codigo": "LIM-01", "reservado": 2, "esperadoReservado": 1, "vendido": 1, "esperadoVendido": 1}'::jsonb,
+update product_variants set qty_reserved = qty_reserved + 1 where size = 'UNICO';
+select is(check_stock_invariants() -> 'produtos' -> 0, '{"codigo": "LIM-01-UNI", "reservado": 2, "esperadoReservado": 1, "vendido": 1, "esperadoVendido": 1}'::jsonb,
   'divergência aparece com o que falta');
-select is((select (kind, data ->> 'codigo')::text from system_alerts where resolved_at is null), '(ESTOQUE_DIVERGENTE,LIM-01)', 'e vira alerta no painel');
+select is((select (kind, data ->> 'codigo')::text from system_alerts where resolved_at is null), '(ESTOQUE_DIVERGENTE,LIM-01-UNI)', 'e vira alerta no painel');
 select check_stock_invariants();
 select is((select occurrences from system_alerts where resolved_at is null), 2, 'a mesma causa não abre outro alerta');
-update products set qty_reserved = qty_reserved - 1;
+update product_variants set qty_reserved = qty_reserved - 1 where size = 'UNICO';
 select check_stock_invariants();
 select is((select count(*)::int from system_alerts where resolved_at is null), 0, 'corrigido, o alerta se fecha sozinho');
 

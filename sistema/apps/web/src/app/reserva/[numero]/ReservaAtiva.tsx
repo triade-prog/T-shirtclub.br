@@ -139,7 +139,9 @@ function Pedido({ reserva }: { reserva: Reserva }) {
       <h2 id="titulo-pedido" className="m-0 font-editorial text-xl font-bold tracking-[-0.035em]">Peças reservadas</h2>
       <ul className="m-0 grid list-none gap-2 p-0 text-sm">
         {(reserva.itens ?? []).map((i) => (
-          <li key={i.produtoId} className="flex justify-between gap-3"><span>{i.nome} × {i.qtd}</span><span>{formatarReais(i.totalCentavos)}</span></li>
+          <li key={i.varianteId ?? i.produtoId} className="flex justify-between gap-3">
+            <span>{i.nome}{i.rotuloTamanho ? <span className="text-tinta-suave"> · {i.rotuloTamanho}</span> : null} × {i.qtd}</span><span>{formatarReais(i.totalCentavos)}</span>
+          </li>
         ))}
       </ul>
       <dl className="m-0 border-t border-tinta/20 pt-2 text-sm">

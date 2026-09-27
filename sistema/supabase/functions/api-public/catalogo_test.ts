@@ -8,6 +8,11 @@ const SEGREDO = "s3gredo";
 const A = "6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f";
 const B = "7a2b3c4d-5e6f-4a1b-9c2d-3e4f5a6b7c8d";
 const C = "8b3c4d5e-6f7a-4b2c-8d3e-4f5a6b7c8d9e";
+// Tamanhos (0370): Único de A e de B, e Plus de A
+const A1 = "9c4d5e6f-7a8b-4c3d-9e4f-5a6b7c8d9e0f";
+const A2 = "0d5e6f7a-8b9c-4d4e-8f5a-6b7c8d9e0f1a";
+const B1 = "1e6f7a8b-9c0d-4e5f-9a6b-7c8d9e0f1a2b";
+const item = (produtoId: string, varianteId: string, qtd: number) => ({ produtoId, varianteId, qtd });
 
 const card = (id: string, slug: string) => ({ id, slug, nome: slug, precoCentavos: 4999, disponivel: 3, selo: "DISPONIVEL" });
 const club = {
@@ -50,11 +55,18 @@ function montar(opcoes: { promocoes?: unknown[]; disponivel?: number; limite?: b
             return [{ id: "l1", titulo: "Verão", produtos: [{ ...card(A, "limone-amalfi"), x: 0.4, y: 0.5 }] }];
           case "hit_rate_limit":
             return opcoes.limite ?? true;
-          case "cart_products":
+          case "cart_products": {
+            const todas = [
+              { id: A1, produtoId: A, nome: "Limone Amalfi", rotulo: "Único · P ao 42" },
+              { id: A2, produtoId: A, nome: "Limone Amalfi", rotulo: "Plus · 44 ao 48" },
+              { id: B1, produtoId: B, nome: "Teddy Rosa", rotulo: "Único · P ao 42" },
+            ];
             return {
-              produtos: [A, B].map((id, i) => ({ id, nome: i ? "Teddy Rosa" : "Limone Amalfi", precoCentavos: 4999, disponivel: opcoes.disponivel ?? 2 })),
+              variantes: todas.filter((v) => (args.p_variant_ids as string[]).includes(v.id))
+                .map((v) => ({ ...v, precoCentavos: 4999, disponivel: opcoes.disponivel ?? 2 })),
               limites: { maxPecas: 9, maxPorProduto: 2 },
             };
+          }
           default:
             throw new Error(`rpc inesperada ${funcao}`);
         }
@@ -109,7 +121,7 @@ Deno.test("produtos, filtros, página do produto e looks", async () => {
 });
 
 Deno.test("cotação: Monte seu Club a cada 3", async () => {
-  const r = await montar({ promocoes: [club] }).pedir("/v1/cart/quote", { itens: [{ produtoId: A, qtd: 2 }, { produtoId: B, qtd: 1 }] });
+  const r = await montar({ promocoes: [club] }).pedir("/v1/cart/quote", { itens: [item(A, A1, 2), item(B, B1, 1)] });
   assertEquals(r.status, 200);
   const q = await r.json();
   assertEquals([q.subtotalCentavos, q.descontoCentavos, q.totalCentavos], [14997, 2998, 11999]);
@@ -117,7 +129,7 @@ Deno.test("cotação: Monte seu Club a cada 3", async () => {
 });
 
 Deno.test("cotação: cupom aplicado, não é o melhor e inválido", async () => {
-  const doisItens = { itens: [{ produtoId: A, qtd: 1 }, { produtoId: B, qtd: 1 }] };
+  const doisItens = { itens: [item(A, A1, 1), item(B, B1, 1)] };
   const aplicado = await (await montar({ promocoes: [club] }).pedir("/v1/cart/quote", { ...doisItens, cupom: "bemvinda10" })).json();
   assertEquals(aplicado.cupom, { codigo: "BEMVINDA10", situacao: "APLICADO" });
   assertEquals(aplicado.totalCentavos, 8998);
@@ -126,16 +138,25 @@ Deno.test("cotação: cupom aplicado, não é o melhor e inválido", async () =>
 });
 
 Deno.test("cotação: sem estoque, limites e excesso de pedidos", async () => {
-  const semEstoque = await montar({ disponivel: 1 }).pedir("/v1/cart/quote", { itens: [{ produtoId: A, qtd: 2 }] });
+  const semEstoque = await montar({ disponivel: 1 }).pedir("/v1/cart/quote", { itens: [item(A, A2, 2)] });
   assertEquals(semEstoque.status, 409);
   assertEquals((await semEstoque.json()).erro, {
     codigo: "INSUFFICIENT_STOCK",
-    detalhes: { produtos: ["Limone Amalfi"], itens: [{ produtoId: A, disponivel: 1 }] },
+    detalhes: { produtos: ["Limone Amalfi · Plus · 44 ao 48"], itens: [{ produtoId: A, varianteId: A2, disponivel: 1 }] },
   });
-  const desconhecido = await montar().pedir("/v1/cart/quote", { itens: [{ produtoId: C, qtd: 1 }] });
-  assertEquals((await desconhecido.json()).erro.detalhes.itens, [{ produtoId: C, disponivel: 0 }]);
-  const tres = await montar().pedir("/v1/cart/quote", { itens: [{ produtoId: A, qtd: 3 }] });
+  const desconhecido = await montar().pedir("/v1/cart/quote", { itens: [item(C, A1, 1)] });
+  assertEquals((await desconhecido.json()).erro.detalhes.itens, [{ produtoId: C, varianteId: A1, disponivel: 0 }], "variante de outra peça");
+  const tres = await montar().pedir("/v1/cart/quote", { itens: [item(A, A1, 3)] });
   assertEquals((await tres.json()).erro, { codigo: "MAX_PER_MODEL", detalhes: { maxPorProduto: 2 } });
-  assertEquals((await montar({ limite: false }).pedir("/v1/cart/quote", { itens: [{ produtoId: A, qtd: 1 }] })).status, 429);
+  const somaTamanhos = await montar().pedir("/v1/cart/quote", { itens: [item(A, A1, 2), item(A, A2, 1)] });
+  assertEquals((await somaTamanhos.json()).erro, { codigo: "MAX_PER_MODEL", detalhes: { maxPorProduto: 2 } }, "o limite soma os tamanhos");
+  assertEquals((await montar({ limite: false }).pedir("/v1/cart/quote", { itens: [item(A, A1, 1)] })).status, 429);
   assertEquals((await montar().pedir("/v1/cart/quote", { itens: [] })).status, 400);
+  assertEquals((await montar().pedir("/v1/cart/quote", { itens: [{ produtoId: A, qtd: 1 }] })).status, 400, "sem o tamanho");
+});
+
+Deno.test("cotação: Único e Plus da mesma peça fecham o Club com uma terceira", async () => {
+  const q = await (await montar({ promocoes: [club] }).pedir("/v1/cart/quote", { itens: [item(A, A1, 1), item(A, A2, 1), item(B, B1, 1)] })).json();
+  assertEquals(q.totalCentavos, 11999);
+  assertEquals(q.linhas.map((l: { varianteId: string }) => l.varianteId), [A1, A2, B1]);
 });

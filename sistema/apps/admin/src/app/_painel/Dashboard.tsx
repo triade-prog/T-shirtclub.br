@@ -38,8 +38,8 @@ interface Comercial {
   meta: number | null;
   serie: { dia: string; receitaLiquidaCentavos: number }[];
   colecoes: { nome: string; receitaCentavos: number; pecas: number }[];
-  mix: { pagamento: Partial<Record<"PIX" | "CARTAO", number>>; entrega: Partial<Record<"RETIRADA" | "MOTOBOY" | "ENVIO", number>> };
-  estoque: { id: string; nome: string; colecao: string; disponivel: number }[];
+  mix: { pagamento: Partial<Record<"PIX" | "CARTAO", number>>; entrega: Partial<Record<"RETIRADA" | "MOTOBOY" | "ENVIO", number>>; tamanho?: Partial<Record<"UNICO" | "PLUS", number>> };
+  estoque: { id: string; nome: string; colecao: string; tamanho: string; rotuloTamanho: string; disponivel: number }[];
   estoqueTotal: number;
   pulso: { ativas: number; precisamDeAcao: number; pagas: number; freteParaCalcular: number; entreguesHoje: number };
   whatsapp: { conectado: boolean };
@@ -287,6 +287,8 @@ function Colecoes({ colecoes }: { colecoes: Comercial["colecoes"] }) {
 function Mix({ mix }: { mix: Comercial["mix"] }) {
   const pag = (mix.pagamento.PIX ?? 0) + (mix.pagamento.CARTAO ?? 0);
   const ent = (mix.entrega.RETIRADA ?? 0) + (mix.entrega.MOTOBOY ?? 0) + (mix.entrega.ENVIO ?? 0);
+  // Peças vendidas por tamanho (0370)
+  const tam = (mix.tamanho?.UNICO ?? 0) + (mix.tamanho?.PLUS ?? 0);
   const linha = (rotulo: string, n: number, todo: number, cor: string) => (
     <div className="mix-row">
       <b>{rotulo}</b>
@@ -306,6 +308,13 @@ function Mix({ mix }: { mix: Comercial["mix"] }) {
           {linha("Retirada", mix.entrega.RETIRADA ?? 0, ent, "violet")}
           {linha("Motoboy", mix.entrega.MOTOBOY ?? 0, ent, "blue")}
           {linha("Envio", mix.entrega.ENVIO ?? 0, ent, "citron")}
+          {tam > 0 && (
+            <>
+              <div className="mix-gap" />
+              {linha("Único", mix.tamanho?.UNICO ?? 0, tam, "pink")}
+              {linha("Plus", mix.tamanho?.PLUS ?? 0, tam, "violet")}
+            </>
+          )}
         </div>
       )}
     </article>
@@ -316,14 +325,14 @@ function Estoque({ estoque, total }: { estoque: Comercial["estoque"]; total: num
   return (
     <article className="card list-card">
       <div className="card-head">
-        <div><h2 className="card-title">Estoque que merece atenção</h2><p className="card-sub">Peças publicadas com até 1 unidade disponível.</p></div>
-        {total > 0 && <span className="mini-tag tomato">{total} {total === 1 ? "peça" : "peças"}</span>}
+        <div><h2 className="card-title">Estoque que merece atenção</h2><p className="card-sub">Tamanhos à venda de peças publicadas com até 1 unidade disponível.</p></div>
+        {total > 0 && <span className="mini-tag tomato">{total} {total === 1 ? "tamanho" : "tamanhos"}</span>}
       </div>
       {estoque.length === 0 ? <p className="dc-vazio">Nenhuma peça com estoque crítico.</p> : (
         <ul className="compact-list">
           {estoque.map((p) => (
-            <li key={p.id} className="inventory-row">
-              <div><strong>{p.nome}</strong><br /><span>{p.colecao}</span></div>
+            <li key={`${p.id}-${p.tamanho}`} className="inventory-row">
+              <div><strong>{p.nome}</strong><br /><span>{p.colecao} · {p.rotuloTamanho}</span></div>
               <span className="stock-badge">{p.disponivel === 0 ? "esgotada" : "1 disponível"}</span>
             </li>
           ))}

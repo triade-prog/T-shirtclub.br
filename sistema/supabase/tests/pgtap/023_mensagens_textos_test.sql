@@ -4,9 +4,10 @@ select plan(8);
 insert into auth.users (id) values ('00000000-0000-4000-8000-0000000000d1');
 insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1', 'Loja');
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Teddy', 'teddy', 'TOMATE');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'TED-01', 'teddy-1', 'Teddy Rosa', 4999, 1),
-  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'TED-02', 'teddy-2', 'Teddy Azul', 4999, 10);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'TED-01', 'teddy-1', 'Teddy Rosa', 4999),
+  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'TED-02', 'teddy-2', 'Teddy Azul', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 1), ('00000000-0000-4000-8000-00000000a002', 10)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 select id, 'produtos/' || lower(code) || '.webp', 'FRENTE', name, 10, 10, 1 from products;
 update products set published_at = app_now();
@@ -19,11 +20,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'qtd', 1)),
+  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'varianteId', testes.unico(p_produto::uuid), 'qtd', 1)),
           4999 - p_desconto, s, 'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token))
   returning id into a;
   return create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'qtd', 1, 'precoTabelaCentavos', 4999,
+    'linhas', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'varianteId', testes.unico(p_produto::uuid), 'qtd', 1, 'precoTabelaCentavos', 4999,
                                                    'descontoCentavos', p_desconto, 'totalCentavos', 4999 - p_desconto)),
     'subtotalCentavos', 4999, 'descontoCentavos', p_desconto, 'totalCentavos', 4999 - p_desconto, 'aplicada', p_aplicada,
     'chaveHash', pg_temp.h(v_token || 'chave'), 'link', 'https://tshirtclub.pt/r#x'));

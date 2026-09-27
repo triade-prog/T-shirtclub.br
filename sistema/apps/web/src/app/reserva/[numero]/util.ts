@@ -29,7 +29,7 @@ export interface Reserva {
   expiraEm: string;
   toleranciaAte: string | null;
   expiradaEm?: string | null;
-  itens?: { produtoId: string; nome: string; qtd: number; totalCentavos: number }[];
+  itens?: { produtoId: string; varianteId?: string; nome: string; tamanho?: string; rotuloTamanho?: string; qtd: number; totalCentavos: number }[];
   descontos?: { tipo: string; valorCentavos: number; rotulo: string | null }[];
   cancelamento?: { status: "PENDENTE" | "APROVADA" | "RECUSADA" | "PREJUDICADA" } | null;
   logistica?: Logistica | null;

@@ -13,7 +13,8 @@ export interface EstadoPeca {
   ativa: boolean;
   fotos: Pick<Foto, "tipo">[];
   descricao: string;
-  medidas: string;
+  /** Os tamanhos ativos (0370), com as medidas preenchidas ou não. */
+  tamanhos: { nome: string; comMedidas: boolean }[];
   disponivel: number;
   colecaoAtiva: boolean;
   /** Oferta do Club, quando a peça participa ("3 por R$ 119,99"); null fora dele; undefined sem promoção do Club. */
@@ -28,6 +29,9 @@ export function itensPublicacao(e: EstadoPeca): ItemPublicacao[] {
     ? { chave: "dados", situacao: "OK", texto: "Nome, código, endereço e preço preenchidos." }
     : { chave: "dados", situacao: "FALTA", texto: "Preencha nome, código, endereço e preço." });
   if (!e.ativa) itens.push({ chave: "ativa", situacao: "FALTA", texto: "A peça está inativa: marque “Peça ativa” para ela aparecer." });
+  itens.push(e.tamanhos.length > 0
+    ? { chave: "tamanhos", situacao: "OK", texto: `À venda em ${juntar(e.tamanhos.map((t) => t.nome))}.` }
+    : { chave: "tamanhos", situacao: "FALTA", texto: "Ative pelo menos um tamanho." });
 
   if (e.nova) {
     itens.push({ chave: "capa", situacao: "FALTA", texto: "Salve o rascunho para acrescentar as fotos." });
@@ -40,7 +44,8 @@ export function itensPublicacao(e: EstadoPeca): ItemPublicacao[] {
   }
 
   if (!e.descricao.trim()) itens.push({ chave: "descricao", situacao: "SUGESTAO", texto: "Escreva a descrição da peça." });
-  if (!e.medidas.trim()) itens.push({ chave: "medidas", situacao: "SUGESTAO", texto: "Confirme as medidas antes de publicar." });
+  const semMedidas = e.tamanhos.filter((t) => !t.comMedidas).map((t) => t.nome);
+  if (semMedidas.length > 0) itens.push({ chave: "medidas", situacao: "SUGESTAO", texto: `Confirme as medidas do ${juntar(semMedidas)} antes de publicar.` });
   if (!e.nova) {
     itens.push(e.disponivel > 0
       ? { chave: "estoque", situacao: "OK", texto: `${e.disponivel} ${e.disponivel === 1 ? "peça disponível" : "peças disponíveis"}.` }

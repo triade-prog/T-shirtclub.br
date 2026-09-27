@@ -15,8 +15,6 @@ import { removerPeca } from "./acoes";
 
 export const metadata: Metadata = { title: "Sua sacola", robots: { index: false } };
 
-const ESPECIE = "Tamanho único · 100% algodão";
-
 export default async function PaginaSacola({ searchParams }: PageProps<"/sacola">) {
   const { itens, produtos, validos, cotacao, club, avisos } = await montarSacola();
   const aviso = textoAviso((await searchParams).aviso);
@@ -28,15 +26,15 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
   // promoção, o desconto de cada linha é repartido entre as peças dela.
   const comClub = cotacao?.aplicada?.tipo === "COMPRE_MAIS" && club !== null;
   const emTrios = total - (total % qtdClub);
-  const pecas = validos.flatMap(({ produto, qtd }) => {
-    const linha = cotacao?.linhas.find((l) => l.produtoId === produto.id);
+  const pecas = validos.flatMap(({ produto, tamanho, qtd }) => {
+    const linha = cotacao?.linhas.find((l) => l.varianteId === tamanho.id);
     const media = linha ? Math.round(linha.totalCentavos / linha.qtd) : null;
-    return Array.from({ length: qtd }, () => ({ produto, media }));
+    return Array.from({ length: qtd }, () => ({ produto, tamanho, media }));
   }).map((p, i) => ({ ...p, unitario: comClub ? (i < emTrios ? Math.round(club.precoCentavos / qtdClub) : null) : p.media }));
   // Peças esgotadas continuam listadas, para a cliente poder tirar da sacola.
   const esgotadas = itens
-    .map((item, i) => ({ slug: item.produtoId, nome: produtos[i]?.nome, id: produtos[i]?.id }))
-    .filter((e) => !validos.some((v) => v.produto.id === e.id));
+    .map((item, i) => ({ slug: item.slug, tamanho: item.tamanho, nome: produtos[i]?.nome, rotulo: produtos[i]?.tamanhos.find((t) => t.tamanho === item.tamanho)?.rotulo }))
+    .filter((e) => !validos.some((v) => v.produto.slug === e.slug && v.tamanho.tamanho === e.tamanho));
 
   const noTrio = total > 0 && total % qtdClub === 0 ? qtdClub : total % qtdClub;
   const trioAtual = pecas.slice(total - noTrio, total - noTrio + qtdClub);
@@ -88,8 +86,8 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
             )}
 
             <ul className="m-0 list-none border-t border-linha p-0">
-              {pecas.map(({ produto, unitario }, i) => (
-                <li key={`${produto.id}-${i}`} className="grid grid-cols-[84px_1fr] items-center gap-x-4.5 border-b border-linha py-4.5 sm:grid-cols-[110px_1fr_auto]">
+              {pecas.map(({ produto, tamanho, unitario }, i) => (
+                <li key={`${tamanho.id}-${i}`} className="grid grid-cols-[84px_1fr] items-center gap-x-4.5 border-b border-linha py-4.5 sm:grid-cols-[110px_1fr_auto]">
                   <Link href={`/produto/${produto.slug}`} tabIndex={-1} aria-hidden="true" className="relative row-span-2 h-26 w-21 overflow-hidden rounded-[13px] border-[1.5px] border-tinta bg-algodao shadow-[3px_3px_0_var(--tc-rosa-bruma)] sm:row-span-1 sm:h-33 sm:w-27.5">
                     {produto.fotos[0] && <Image src={urlFoto(produto.fotos[0].caminho)} alt="" fill sizes="110px" className="object-cover" />}
                   </Link>
@@ -98,10 +96,11 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
                       {[produto.colecao?.nome, ordinalClub(i, qtdClub)].filter(Boolean).join(" · ")}
                     </p>
                     <h3 className="m-0 mt-1 text-[17px] font-bold tracking-[-0.02em]"><Link href={`/produto/${produto.slug}`}>{produto.nome}</Link></h3>
-                    <p className="m-0 mt-1.5 text-[11px] text-tinta-suave">{ESPECIE}</p>
+                    <p className="m-0 mt-1.5 text-[11px] text-tinta-suave">Tamanho {tamanho.rotulo}</p>
                     <form action={removerPeca}>
                       <input type="hidden" name="slug" value={produto.slug} />
-                      <button type="submit" aria-label={`Remover ${produto.nome}`} className="mt-1.5 min-h-11 border-0 bg-transparent p-0 text-[10px] font-extrabold uppercase tracking-[0.1em] text-tinta-suave underline">
+                      <input type="hidden" name="tamanho" value={tamanho.tamanho.toLowerCase()} />
+                      <button type="submit" aria-label={`Remover ${produto.nome}, tamanho ${tamanho.rotulo}`} className="mt-1.5 min-h-11 border-0 bg-transparent p-0 text-[10px] font-extrabold uppercase tracking-[0.1em] text-tinta-suave underline">
                         Remover
                       </button>
                     </form>
@@ -117,10 +116,11 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
                 </li>
               ))}
               {esgotadas.map((p) => (
-                <li key={p.slug} className="flex items-center justify-between gap-4 border-b border-linha py-4.5 text-sm text-tinta-suave">
-                  <span>{p.nome ? `${p.nome} · esgotada` : "Peça que saiu da loja"}</span>
+                <li key={`${p.slug}.${p.tamanho}`} className="flex items-center justify-between gap-4 border-b border-linha py-4.5 text-sm text-tinta-suave">
+                  <span>{p.nome ? `${p.nome}${p.rotulo ? ` (${p.rotulo})` : ""} · ${p.rotulo ? "esgotada" : "fora de venda nesse tamanho"}` : "Peça que saiu da loja"}</span>
                   <form action={removerPeca}>
                     <input type="hidden" name="slug" value={p.slug} />
+                    <input type="hidden" name="tamanho" value={p.tamanho.toLowerCase()} />
                     <button type="submit" aria-label={`Remover ${p.nome ?? "peça que saiu da loja"}`} className="min-h-11 border-0 bg-transparent p-0 text-[10px] font-extrabold uppercase tracking-[0.1em] underline">Remover</button>
                   </form>
                 </li>

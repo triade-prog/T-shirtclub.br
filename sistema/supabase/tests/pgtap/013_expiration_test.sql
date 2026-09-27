@@ -4,9 +4,10 @@ select plan(29);
 insert into auth.users (id) values ('00000000-0000-4000-8000-0000000000d1');
 insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1', 'Loja');
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Teddy', 'teddy', 'TOMATE');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'TED-01', 'teddy-1', 'Teddy Rosa', 4999, 1),
-  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'TED-02', 'teddy-2', 'Teddy Azul', 4999, 10);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'TED-01', 'teddy-1', 'Teddy Rosa', 4999),
+  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'TED-02', 'teddy-2', 'Teddy Azul', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 1), ('00000000-0000-4000-8000-00000000a002', 10)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 select id, 'produtos/' || lower(code) || '.webp', 'FRENTE', name, 10, 10, 1 from products;
 update products set published_at = app_now();
@@ -19,11 +20,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'qtd', 1)),
+  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'varianteId', testes.unico(p_produto::uuid), 'qtd', 1)),
           4999 - p_desconto, s, 'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token))
   returning id into a;
   return create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'qtd', 1, 'precoTabelaCentavos', 4999,
+    'linhas', jsonb_build_array(jsonb_build_object('produtoId', p_produto, 'varianteId', testes.unico(p_produto::uuid), 'qtd', 1, 'precoTabelaCentavos', 4999,
                                                    'descontoCentavos', p_desconto, 'totalCentavos', 4999 - p_desconto)),
     'subtotalCentavos', 4999, 'descontoCentavos', p_desconto, 'totalCentavos', 4999 - p_desconto, 'aplicada', p_aplicada,
     'chaveHash', pg_temp.h(v_token || 'chave'), 'link', 'https://tshirtclub.pt/r#x'));
@@ -53,7 +54,7 @@ select is((sweep_reservations() ->> 'lembretes')::int, 0, 'e não entra duas vez
 select set_app_clock(interval '15 minutes');
 select is((sweep_reservations() ->> 'expiradas')::int, 1, 'aos 15 min a reserva expira');
 select is((select (status, closure_reason)::text from reservations where id = (select pg_temp.id(v) from t where nome = 'r1')), '(EXPIRADO,PRAZO_ESGOTADO)', 'prazo esgotado');
-select is((select qty_reserved from products where code = 'TED-01'), 0, 'o estoque volta na hora');
+select is((testes.variante('TED-01')).qty_reserved, 0, 'o estoque volta na hora');
 select is((select count(*)::int from stock_movements where kind = 'LIBERACAO'), 1, 'movimento de liberação');
 select is((select array_agg(event order by id) from reservation_transitions where reservation_id = (select pg_temp.id(v) from t where nome = 'r1')), array['T1', 'T3'], 'linha do tempo T1 → T3');
 select is((select (used_quantity, (select status::text from coupon_uses)) from coupons)::text, '(0,DEVOLVIDO)', 'o uso do cupom volta');
@@ -99,7 +100,7 @@ select pg_temp.expirar_uma('+5573995556666', 40);
 select is((select status from phone_blocks), 'ATIVO'::phone_block_status, 'a 3ª expiração em 30 dias bloqueia');
 select is((select array_length(trigger_reservations, 1) from phone_blocks), 3, 'com as 3 reservas que levaram ao bloqueio');
 select is(create_reservation_attempt(jsonb_build_object('nome', 'X', 'telefone', '+5573995556666', 'entrega', 'RETIRADA',
-            'itens', '[{"produtoId": "00000000-0000-4000-8000-00000000a002", "qtd": 1}]'::jsonb, 'totalEsperadoCentavos', 4999,
+            'itens', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a002", "qtd": 1}]'), 'totalEsperadoCentavos', 4999,
             'tokenHash', pg_temp.h('b'))) ->> 'erro', 'PHONE_BLOCKED', 'telefone bloqueado não pede código');
 select is((admin_list_phone_blocks() -> 0 ->> 'telefone'), '+5573995556666', 'o painel vê o bloqueio');
 

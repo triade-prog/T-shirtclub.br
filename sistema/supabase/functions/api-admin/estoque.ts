@@ -1,4 +1,5 @@
-// Ajuste de estoque pelo painel (F2.3): delta com motivo, sob o mesmo lock da reserva (0180).
+// Ajuste de estoque pelo painel (F2.3): delta com motivo, sob o mesmo lock da reserva (0180),
+// por tamanho (0370): a variante tem de ser da peça da rota.
 
 import type { Hono } from "hono";
 import { ErroDominio, ajusteEstoqueSchema, idSchema } from "@tshirtclub/domain";
@@ -11,9 +12,10 @@ export function rotasEstoque(app: Hono<VarsAdmin>, banco: Banco): void {
   app.post("/v1/admin/products/:id/stock-adjustments", async (c) => {
     const id = idSchema.safeParse(c.req.param("id"));
     if (!id.success) throw new ErroDominio("NOT_FOUND");
-    const { delta, motivo, tipo } = await lerCorpo(c, ajusteEstoqueSchema);
+    const { varianteId, delta, motivo, tipo } = await lerCorpo(c, ajusteEstoqueSchema);
     const total = await chamar<number>(banco, "adjust_stock", {
       p_product_id: id.data,
+      p_variant_id: varianteId,
       p_delta: delta,
       p_reason: motivo,
       p_admin_id: c.get("admin").userId,

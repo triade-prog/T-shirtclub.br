@@ -2,6 +2,8 @@ import { assertEquals, assertMatch } from "@std/assert";
 import { ErroBanco } from "../_shared/banco.ts";
 import { ADMIN, erro, logado, montar } from "./teste_util.ts";
 
+const VARIANTE = "9c4d5e6f-7a8b-4c3d-9e4f-5a6b7c8d9e0f";
+
 const COLECAO = "6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f";
 const PRODUTO = "7a2b3c4d-5e6f-4a1b-9c2d-3e4f5a6b7c8d";
 const FOTO = "8b3c4d5e-6f7a-4b2c-8d3e-4f5a6b7c8d9e";
@@ -188,8 +190,23 @@ Deno.test("revalidação ao publicar: avisa a loja depois de cada gravação do 
 
 Deno.test("revalidação ao publicar: ajuste de estoque avisa; rotas fora do catálogo, não", async () => {
   const { pedir, revalidacoes } = await logado();
-  assertEquals((await pedir(`/v1/admin/products/${PRODUTO}/stock-adjustments`, { delta: 5, motivo: "Lote" })).status, 200);
+  assertEquals((await pedir(`/v1/admin/products/${PRODUTO}/stock-adjustments`, { varianteId: VARIANTE, delta: 5, motivo: "Lote" })).status, 200);
   assertEquals(revalidacoes.length, 1);
   await pedir("/v1/admin/auth/logout", {});
   assertEquals(revalidacoes.length, 1);
+});
+
+Deno.test("nomes dos tamanhos: lê, grava com o administrador e avisa a loja", async () => {
+  const nomes = { unico: "Único · P ao 42", plus: "Plus · 44 ao 50" };
+  const { pedir, rpcs, revalidacoes } = await logado({
+    rpcExtra: (f) => (f === "admin_size_labels" || f === "admin_update_size_labels" ? nomes : undefined),
+  });
+  assertEquals(await (await pedir("/v1/admin/settings/tamanhos")).json(), nomes);
+  assertEquals(revalidacoes.length, 0);
+  const r = await pedir("/v1/admin/settings/tamanhos", { plus: " Plus · 44 ao 50 " }, "PUT");
+  assertEquals(r.status, 200);
+  const gravado = rpcs.find((c) => c.funcao === "admin_update_size_labels")!;
+  assertEquals(gravado.args, { p_admin: ADMIN, p: { plus: "Plus · 44 ao 50" } });
+  assertEquals(revalidacoes.length, 1, "a loja mostra os nomes: revalida");
+  assertEquals((await pedir("/v1/admin/settings/tamanhos", {}, "PUT")).status, 400);
 });
