@@ -96,6 +96,7 @@ export function montar(cen: Cenario = {}) {
   };
 
   const arquivosApagados: string[] = [];
+  const revalidacoes: string[] = [];
   const pagamentos = pagamentosFalso();
   const whatsapp = whatsappFalso();
   const app = criarApiAdmin(SEGREDO, {
@@ -119,6 +120,12 @@ export function montar(cen: Cenario = {}) {
       return Promise.resolve();
     },
     whatsapp,
+    loja: {
+      catalogoMudou: () => {
+        revalidacoes.push("catalogo");
+        return Promise.resolve();
+      },
+    },
   });
 
   function pedir(caminho: string, corpo?: unknown, cookie?: string, metodo?: string) {
@@ -132,7 +139,7 @@ export function montar(cen: Cenario = {}) {
     });
   }
 
-  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados, pagamentos, whatsapp, fatores };
+  return { pedir, chamadas, rpcs, avisos, auditoria, arquivosApagados, revalidacoes, pagamentos, whatsapp, fatores };
 }
 
 export function cookieDe(r: Response): string {

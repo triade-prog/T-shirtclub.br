@@ -40,14 +40,21 @@ export type BlocoInicio =
   | { tipo: "LOOKS"; titulo: string | null; conteudo: Look[] }
   | { tipo: "MONTE_SEU_CLUB"; titulo: string | null; conteudo: OfertaClub };
 
-/** GET na api-public; o resultado fica em cache por 60 s (preço e selo mudam pouco). */
+/** Etiqueta do cache do catálogo: o painel a expira ao gravar (POST /revalidar). */
+export const ETIQUETA_CATALOGO = "catalogo";
+
+/**
+ * GET na api-public. O resultado fica em cache e sai dele quando o painel grava o catálogo
+ * (revalidação ao publicar); os 60 s ficam como reserva e cobrem o selo de estoque, que
+ * muda com as reservas.
+ */
 export async function buscarCatalogo<T>(caminho: string): Promise<T | null> {
   const op = opcoesLoja(process.env);
   if (!op.segredo || !process.env.SUPABASE_FUNCTIONS_URL) return null;
   try {
     const r = await fetch(`${op.destino}/${caminho}`, {
       headers: { "x-repasse-segredo": op.segredo, accept: "application/json" },
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: [ETIQUETA_CATALOGO] },
       signal: AbortSignal.timeout(8_000),
     });
     return r.ok ? ((await r.json()) as T) : null;

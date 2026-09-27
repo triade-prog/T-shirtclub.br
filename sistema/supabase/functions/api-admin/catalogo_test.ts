@@ -168,3 +168,28 @@ Deno.test("entregas: fila, frete, substatus e Entregue", async () => {
   assertEquals((await pedir(`/v1/admin/reservations/${PRODUTO}/fulfillment/substatus`, { substatus: "EM_PREPARACAO" }, "PUT")).status, 400);
   assertEquals((await erro(await pedir(`/v1/admin/reservations/${PRODUTO}/deliver`, {}))).codigo, "DISPUTE_OPEN");
 });
+
+Deno.test("revalidação ao publicar: avisa a loja depois de cada gravação do catálogo que deu certo", async () => {
+  const { pedir, revalidacoes } = await logado({
+    rpcExtra: (f) => (f === "admin_save_product" ? PRODUTO : f === "admin_list_collections" ? [] : f === "admin_save_collection" ? COLECAO : undefined),
+  });
+  // Leitura não avisa
+  assertEquals((await pedir("/v1/admin/collections")).status, 200);
+  assertEquals(revalidacoes.length, 0);
+  // Gravação avisa, uma vez por gravação
+  assertEquals((await pedir("/v1/admin/products", produto)).status, 201);
+  assertEquals((await pedir(`/v1/admin/products/${PRODUTO}`, produto, "PUT")).status, 200);
+  assertEquals((await pedir("/v1/admin/collections", { nome: "Limone", slug: "limone", cor: "LIMAO" })).status, 201);
+  assertEquals(revalidacoes.length, 3);
+  // Entrada inválida (400) e erro do banco não avisam
+  assertEquals((await pedir("/v1/admin/products", { ...produto, precoCentavos: 49.99 })).status, 400);
+  assertEquals(revalidacoes.length, 3);
+});
+
+Deno.test("revalidação ao publicar: ajuste de estoque avisa; rotas fora do catálogo, não", async () => {
+  const { pedir, revalidacoes } = await logado();
+  assertEquals((await pedir(`/v1/admin/products/${PRODUTO}/stock-adjustments`, { delta: 5, motivo: "Lote" })).status, 200);
+  assertEquals(revalidacoes.length, 1);
+  await pedir("/v1/admin/auth/logout", {});
+  assertEquals(revalidacoes.length, 1);
+});

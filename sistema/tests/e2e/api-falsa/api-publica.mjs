@@ -34,6 +34,7 @@ const home = [
   { tipo: "MONTE_SEU_CLUB", titulo: null, conteudo: club },
 ];
 
+const buscasRevalidacao = new Map();
 const tentativas = new Map();
 const reservas = new Map();
 const pagamentos = new Map();
@@ -86,6 +87,13 @@ http.createServer(async (req, res) => {
     if (m === "GET" && p === "v1/catalog/home") return responder(res, 200, home);
     if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao]);
     if (m === "GET" && p === "v1/catalog/products") return responder(res, 200, url.searchParams.get("collection") === "limone" || !url.searchParams.get("collection") ? [cartao] : []);
+    // Peça só do teste da revalidação: o nome traz quantas vezes a loja buscou a peça aqui
+    // (fora das listas, para não mexer nos outros testes).
+    if (m === "GET" && (x = p.match(/^v1\/catalog\/products\/(revalidacao-[a-z0-9-]+)$/))) {
+      const n = (buscasRevalidacao.get(x[1]) ?? 0) + 1;
+      buscasRevalidacao.set(x[1], n);
+      return responder(res, 200, { ...produto, slug: x[1], nome: `Peça da revalidação, busca ${n}` });
+    }
     if (m === "GET" && (x = p.match(/^v1\/catalog\/products\/([a-z0-9-]+)$/))) return x[1] === cartao.slug ? responder(res, 200, produto) : erro(res, 404, "NOT_FOUND");
     if (m === "POST" && p === "v1/cart/quote") return responder(res, 200, cotar((await lerCorpo(req)).itens ?? []));
 

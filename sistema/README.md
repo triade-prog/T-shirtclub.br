@@ -54,6 +54,10 @@ Ver [`.env.example`](.env.example). Nas Edge Functions (`supabase secrets set`):
 (o mesmo valor dos apps), `TURNSTILE_SECRET`, `OTP_PEPPER` e `WEBHOOK_WHATSAPP_SEGREDO` (32+
 caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTANCIA`, `ZAPI_TOKEN`,
 `ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP`, `LOJA_URL`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` e `MP_EMAIL_PIX`. `SUPABASE_URL` e as chaves o Supabase já entrega.
+Revalidação ao publicar: `REVALIDAR_SEGREDO` (`openssl rand -hex 32`) com o mesmo valor nas Edge
+Functions e no projeto da loja na Vercel; a api-admin usa também o `LOJA_URL` para chamar o
+`POST /revalidar` da loja depois de cada gravação do catálogo. Sem ele, a loja atualiza o
+catálogo em até 60 s.
 Opcionais, nas funções e nos apps: `SENTRY_DSN` (erros, sem dados pessoais) e `AMBIENTE` (`producao`
 ou `teste`).
 O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (o segredo vai na
