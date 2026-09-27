@@ -112,9 +112,19 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
     },
 
     async cadastrarTotp(token) {
+      // Cada login antes de confirmar o código gera um cadastro novo: os anteriores, ainda não
+      // confirmados, saem antes (o Auth deixa remover um fator não confirmado sem o 2º fator).
+      const u = (await exigirOk(await chamar("/user", { token }))) as { factors?: { id: string; factor_type: string; status: string }[] };
+      for (const f of u.factors ?? []) {
+        if (f.factor_type === "totp" && f.status !== "verified") {
+          await chamar(`/factors/${encodeURIComponent(f.id)}`, { method: "DELETE", token });
+        }
+      }
+      // O nome precisa ser único por usuário (o Auth recusa repetido): segundos e um sufixo.
+      const nome = `Painel ${new Date().toISOString().slice(0, 19).replace("T", " ")} ${crypto.randomUUID().slice(0, 4)}`;
       const f = (await exigirOk(await chamar("/factors", {
         token,
-        corpo: { factor_type: "totp", friendly_name: `Painel ${new Date().toISOString().slice(0, 16)}` },
+        corpo: { factor_type: "totp", friendly_name: nome },
       }))) as { id: string; totp: { qr_code: string; secret: string } };
       return { factorId: f.id, qrCode: qrComoDataUrl(f.totp.qr_code), segredo: f.totp.secret };
     },

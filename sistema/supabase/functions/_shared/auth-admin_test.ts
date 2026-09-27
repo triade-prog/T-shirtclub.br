@@ -31,13 +31,28 @@ Deno.test("GoTrue: senha errada é null; aal vem do token validado", async () =>
   assertEquals(pedidos[0]!.url, "https://p.supabase.co/auth/v1/token?grant_type=password");
 });
 
-Deno.test("GoTrue: o QR do autenticador vem como SVG puro e sai como data URL", async () => {
-  const auth = authGoTrue("https://p.supabase.co", "anon", fetchFalso({
+Deno.test("GoTrue: cadastro do autenticador limpa os não confirmados, usa nome único e devolve o QR como data URL", async () => {
+  const pedidos: { url: string; init?: RequestInit }[] = [];
+  const rotas = {
+    "/user": { status: 200, corpo: { id: "u1", factors: [
+      { id: "velho", factor_type: "totp", status: "unverified" },
+      { id: "bom", factor_type: "totp", status: "verified" },
+    ] } },
+    "/factors/velho": { status: 200, corpo: {} },
     "/factors": { status: 200, corpo: { id: "f9", totp: { qr_code: '<svg><rect fill="#000"/></svg>', secret: "ABC" } } },
-  }));
+  };
+  const auth = authGoTrue("https://p.supabase.co", "anon", fetchFalso(rotas, pedidos));
   const c = await auth.cadastrarTotp("t");
   assertEquals(c.qrCode, `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg><rect fill="#000"/></svg>')}`);
   assertEquals([c.factorId, c.segredo], ["f9", "ABC"]);
+  // Só o não confirmado sai; o confirmado fica
+  assertEquals(pedidos.filter((p) => p.init?.method === "DELETE").map((p) => p.url), ["https://p.supabase.co/auth/v1/factors/velho"]);
+  // Dois cadastros no mesmo minuto não repetem o nome
+  await auth.cadastrarTotp("t");
+  const nomes = pedidos.filter((p) => p.url.endsWith("/factors") && p.init?.method === "POST")
+    .map((p) => (JSON.parse(String(p.init!.body)) as { friendly_name: string }).friendly_name);
+  assertEquals(nomes.length, 2);
+  assertEquals(new Set(nomes).size, 2);
 });
 
 Deno.test("GoTrue: código do autenticador passa por desafio e verificação", async () => {
