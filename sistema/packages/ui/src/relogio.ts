@@ -17,8 +17,11 @@ export function calcularRelogio(criadaEm: string, expiraEm: string, toleranciaAt
   const tolerancia = toleranciaAte ? Date.parse(toleranciaAte) : fim;
   if (agoraMs < fim) return { fase: "PRAZO", restanteMs: fim - agoraMs, fracao: Math.min(1, (fim - agoraMs) / Math.max(1, fim - inicio)) };
   if (agoraMs < tolerancia) return { fase: "TOLERANCIA", restanteMs: tolerancia - agoraMs, fracao: 0 };
-  return { fase: "FIM", restanteMs: 0, fracao: 0 };
+  return RELOGIO_ENCERRADO;
 }
+
+/** O relógio de uma reserva que já terminou (expirada ou cancelada). */
+export const RELOGIO_ENCERRADO: Relogio = { fase: "FIM", restanteMs: 0, fracao: 0 };
 
 /** "11:24" (minutos e segundos), sem passar de 99:59. */
 export function formatarTempo(ms: number): string {

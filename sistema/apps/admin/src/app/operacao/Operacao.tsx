@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatarReais } from "@tshirtclub/domain";
+import { useRelogioDoServidor } from "@tshirtclub/ui";
 import { horario } from "@/lib/api";
 import { Alertas, AvisoWhatsApp, type Alerta } from "../_painel/Alertas";
 import { Casca, Icone } from "../_painel/Casca";
@@ -98,29 +99,14 @@ function passa(c: Cartao, coluna: Coluna, filtro: Filtro, busca: string): boolea
   return c.nome.toLowerCase().includes(q) || (digitos !== "" && (String(c.numero).includes(digitos) || soDigitos(c.telefone).includes(digitos)));
 }
 
-/**
- * Hora para os prazos: começa na do banco e anda com o relógio do navegador, corrigido pela
- * diferença entre os dois (um computador com a hora errada não adianta nem atrasa o prazo).
- */
-function useRelogio(agoraDoBanco: string | undefined): number {
-  const [agora, setAgora] = useState<number | null>(null);
-  useEffect(() => {
-    if (!agoraDoBanco) return;
-    const desvio = new Date(agoraDoBanco).getTime() - Date.now();
-    const tique = () => setAgora(Date.now() + desvio);
-    const t = setInterval(tique, 15_000);
-    return () => clearInterval(t);
-  }, [agoraDoBanco]);
-  return agora ?? (agoraDoBanco ? new Date(agoraDoBanco).getTime() : 0);
-}
-
 export function Operacao() {
   const quadro = useDados<Quadro>("v1/admin/operacao");
   const alertas = useDados<Alerta[]>("v1/admin/alerts");
   useRepetir(() => { void quadro.recarregar(); void alertas.recarregar(); }, 30_000, true);
   const [filtro, setFiltro] = useState<Filtro>("TODOS");
   const [busca, setBusca] = useState("");
-  const agora = useRelogio(quadro.dados?.agora);
+  // Prazos pelo relógio do servidor (um computador com a hora errada não muda o prazo)
+  const agora = useRelogioDoServidor(quadro.dados?.agora, 15_000) ?? 0;
   const q = quadro.dados;
 
   return (
