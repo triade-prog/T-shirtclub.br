@@ -74,6 +74,14 @@ update app_settings set value = '"https://<projeto>.supabase.co/functions/v1/wor
 select vault.create_secret('<WORKER_SEGREDO>', 'worker_segredo');
 ```
 
+## Publicação na Vercel
+
+Os projetos `web` e `admin` publicam a cada merge na `main`. As outras branches não geram
+publicação de teste (`git.deploymentEnabled` em `apps/*/vercel.json`): no plano gratuito, cada
+envio gastava duas publicações do limite diário, e em 27/09 o limite travou a publicação da
+`main`. Quando a Vercel recusa por limite ("rate limited"), passadas as 24 h use "Redeploy" na
+última publicação da `main` de cada projeto.
+
 ## Primeiro administrador do painel
 
 1. No painel do Supabase, em Authentication, crie o usuário com e-mail e senha de 12+ caracteres
