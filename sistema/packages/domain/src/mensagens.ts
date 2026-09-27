@@ -6,6 +6,7 @@
 // que não é da loja (27/09).
 
 import { formatarReais } from "./dinheiro.ts";
+import type { Promocao } from "./preco.ts";
 
 const FUSO = "America/Bahia";
 /** Endereço da loja nas mensagens sem link de reserva (27/09: o da Vercel, até existir o domínio próprio). */
@@ -61,6 +62,11 @@ export function ehPedidoMinhaReserva(texto: string): boolean {
   return /^(minha reserva|minhas reservas|status)[.!?]*$/.test(normalizarTexto(texto));
 }
 
+/** "oferta", "ofertas", "promoção" ou "promoções", sozinhas na mensagem (27/09). */
+export function ehPedidoOfertas(texto: string): boolean {
+  return /^(ofertas?|promocao|promocoes)[.!?]*$/.test(normalizarTexto(texto));
+}
+
 /**
  * O remetente do WhatsApp (só dígitos) nas formas E.164 com e sem o nono dígito (R17).
  * Vazio quando não é um telefone (identificador LID, G4).
@@ -112,6 +118,8 @@ export interface ParametrosMensagem {
   pedido_enviado: { numero: number; rastreio?: string };
   pedido_entregue: { numero: number; nome?: string };
   minhas_reservas: { reservas: ResumoReserva[] };
+  /** As vigentes, na ordem de whatsapp_offers() (0340). */
+  ofertas: { promocoes: readonly Promocao[] };
   boas_vindas: Record<string, never>;
   mensagem_teste: Record<string, never>;
 }
@@ -151,6 +159,28 @@ function linhaReserva(r: ResumoReserva): string {
       return `• #${r.numero} · entregue`;
     default:
       return `• #${r.numero} · encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)" : " sem pagamento"}`;
+  }
+}
+
+/** Uma linha da resposta a "ofertas": o que a promoção dá, sem as regras miúdas. */
+function linhaOferta(p: Promocao): string {
+  const selecionadas = p.tipo !== "DESCONTO_PRODUTO" && p.escopo === "ESPECIFICOS" ? " em peças selecionadas" : "";
+  switch (p.tipo) {
+    case "COMPRE_MAIS":
+      return p.modo === "PRECO_POR_GRUPO"
+        ? `• *${p.nome}*: ${p.grupo.qtd} peças por ${formatarReais(p.grupo.precoCentavos)}${selecionadas}`
+        : `• *${p.nome}*: ${p.niveis.map((n) => `${n.qtdMin} peças com ${n.pct}% de desconto`).join(" · ")}${selecionadas}`;
+    case "DESCONTO_PRODUTO": {
+      const pcts = Object.values(p.produtos).filter((d) => d.modo === "PERCENTUAL").map((d) => d.valor);
+      const todasPct = pcts.length === Object.keys(p.produtos).length && pcts.length > 0;
+      return `• *${p.nome}*: ${todasPct ? `até ${Math.max(...pcts)}% de desconto` : "preço especial"} em peças selecionadas`;
+    }
+    case "CUPOM": {
+      const valor = p.modo === "VALOR" ? formatarReais(p.valor) : `${p.valor}%`;
+      const teto = p.modo === "PERCENTUAL" && p.descontoMaximoCentavos ? ` (até ${formatarReais(p.descontoMaximoCentavos)})` : "";
+      const minimo = p.gastoMinimoCentavos ? ` em compras a partir de ${formatarReais(p.gastoMinimoCentavos)}` : "";
+      return `• Cupom *${p.codigo}*: ${valor} de desconto${teto}${minimo}${selecionadas}`;
+    }
   }
 }
 
@@ -345,6 +375,18 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
           p.reservas.length === 1 ? "Esta é sua reserva recente:" : "Estas são suas reservas recentes:",
           p.reservas.map(linhaReserva).join("\n"),
           `Para ver todos os detalhes:\n${SITE}`,
+        ),
+  ],
+  // Resposta a "ofertas" (27/09): as promoções e cupons vigentes do painel.
+  ofertas: [
+    (p) =>
+      p.promocoes.length === 0
+        ? blocos("No momento não temos ofertas ativas.", `Para ver as peças e reservar:\n${SITE}`)
+        : blocos(
+          "Ofertas de hoje na T-shirt Club ✦",
+          p.promocoes.map(linhaOferta).join("\n"),
+          p.promocoes.length > 1 && "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.",
+          `Para ver as peças e reservar:\n${SITE}`,
         ),
   ],
   // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310).

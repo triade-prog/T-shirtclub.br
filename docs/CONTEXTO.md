@@ -172,6 +172,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Textos do WhatsApp (27/09):** textos novos da loja, uma versão oficial por evento (antes havia 2 sorteadas nas essenciais, G5): informação primeiro, marca depois; 💖 e ✦ só nos momentos bons, código, erro e bloqueio neutros. "Club" é o conjunto de 3: a reserva de 2 peças com um "compre mais" por grupo ativo para todos (ex.: 3 por R$ 119,99) oferece a peça que falta. O enqueue completa nome e peças a partir da reserva e a oferta do grupo, e o pagamento em análise diz quando o valor veio diferente (migration 0330). Com a Z-API não oficial, texto sempre igual aumenta um pouco o risco de bloqueio do número; se aparecer, voltar a ter 2 versões nas mensagens de maior volume.
 
+**Ofertas no WhatsApp (27/09):** "oferta", "ofertas", "promoção" ou "promoções" sozinhas na mensagem recebem as promoções vigentes e os cupons do painel (Vendas → Promoções) que ainda podem ser usados, uma linha cada, com "os descontos não se somam" quando há mais de uma (vale a mais vantajosa). `whatsapp_offers()` (migration 0340) devolve no formato do motor de preço; sem nenhuma, a resposta diz que não há ofertas e manda o link da loja. Não conta como mensagem comum (não gasta a resposta automática).
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
 - assinatura da Z-API (a conta em trial põe cabeçalho de teste em toda mensagem);
