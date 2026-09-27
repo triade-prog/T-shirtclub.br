@@ -62,11 +62,20 @@ export function whatsappZapi(cfg: ConfigZapi, buscar: typeof fetch = fetch): Wha
         return await enviar("send-text", { phone: numero(telefone), message: texto });
       }
     },
+    // O motivo vai para o log: sem ele, token ou Client-Token recusados aparecem só como
+    // "desconectado". Nunca a URL nem a mensagem do erro de rede: elas levam o token.
     async conectado() {
       try {
         const r = await buscar(`${base}/status`, { headers, signal: AbortSignal.timeout(5000) });
-        return r.ok && (await r.json())?.connected === true;
-      } catch {
+        if (!r.ok) {
+          console.warn(`Z-API /status respondeu ${r.status}: ${(await r.text()).slice(0, 200)}`);
+          return false;
+        }
+        const j = (await r.json()) as { connected?: unknown } | null;
+        if (j?.connected !== true) console.warn(`Z-API sem conexão: ${JSON.stringify(j).slice(0, 200)}`);
+        return j?.connected === true;
+      } catch (e) {
+        console.warn(`Z-API /status falhou: ${e instanceof Error ? e.name : "erro"}`);
         return false;
       }
     },
