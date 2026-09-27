@@ -174,6 +174,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Ofertas no WhatsApp (27/09):** "oferta", "ofertas", "promoção" ou "promoções" sozinhas na mensagem recebem as promoções vigentes e os cupons do painel (Vendas → Promoções) que ainda podem ser usados, uma linha cada, com "os descontos não se somam" quando há mais de uma (vale a mais vantajosa). `whatsapp_offers()` (migration 0340) devolve no formato do motor de preço; sem nenhuma, a resposta diz que não há ofertas e manda o link da loja. Não conta como mensagem comum (não gasta a resposta automática).
 
+**Operação e Dashboard comercial (27/09, F12):** a partir dos protótipos 09 (Kanban) e 03 (dashboard) da loja. Decisões D25 e D26: o Início vira o Dashboard comercial e as pendências vão para a Operação; aviso de WhatsApp no topo das duas e alertas na Operação; metas diária, mensal e anual em Minha conta; concluídos só os entregues hoje; estoque em atenção com até 1 peça; faturamento pelas regras contábeis (definição a confirmar com a loja). A Operação (`/operacao`) está feita: `admin_operation_board()` (migration 0350) põe cada reserva em uma coluna só (aguardando pagamento, precisa de ação, pagamento confirmado, preparação e entrega, concluídos hoje), sem arrastar cartões; o botão leva à tela da ação. Os testes do banco rodam nesta máquina com o pgTAP instalado à mão (pg_prove não: um script no psql confere o TAP); acharam 2 testes desatualizados pela 0330, corrigidos.
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
 - assinatura da Z-API (a conta em trial põe cabeçalho de teste em toda mensagem);

@@ -109,8 +109,9 @@ select throws_ok(format('select admin_set_substatus(%L, %L, %L, %L)', (select id
 select is(admin_set_substatus((select id from t where nome = 'r2'), :admin, 'PRONTO_PARA_RETIRADA') ->> 'substatus', 'PRONTO_PARA_RETIRADA', 'pronto para retirada');
 select is((select params from outbox_messages where template = 'pronto_retirada'),
   jsonb_build_object('numero', (select number from reservations where id = (select id from t where nome = 'r2')),
-                     'codigo', (select pickup_code from fulfillments where reservation_id = (select id from t where nome = 'r2')), 'endereco', 'Rua da Loja, 10'),
-  'a mensagem leva o código e o endereço da loja');
+                     'codigo', (select pickup_code from fulfillments where reservation_id = (select id from t where nome = 'r2')), 'endereco', 'Rua da Loja, 10',
+                     'nome', 'Marina', 'pecas', 1),
+  'a mensagem leva o código e o endereço da loja (nome e peças completados da reserva, 0330)');
 insert into payment_disputes (payment_id, reservation_id, kind, provider_status)
 select id, reservation_id, 'CONTESTACAO', 'charged_back' from payments where reservation_id = (select id from t where nome = 'r2');
 select throws_ok(format('select deliver_reservation(%L, %L)', (select id from t where nome = 'r2'), :admin), 'TS173', null,

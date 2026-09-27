@@ -10,9 +10,12 @@ Deno.test("painel: dashboard, busca, detalhe e auditoria", async () => {
       admin_search_reservations: { itens: [{ numero: 1048 }], pagina: 1, porPagina: 20, total: 1 },
       admin_reservation_detail: args.p_id === RESERVA ? { id: RESERVA, transicoes: [{ evento: "T1" }] } : null,
       admin_list_audit: { itens: [], pagina: 1, porPagina: 50, total: 0 },
+      admin_operation_board: { resumo: { ativas: 1 }, colunas: { ACAO: [], AGUARDANDO: [{ numero: 1048 }], PAGO: [], ENTREGA: [], CONCLUIDO: [] } },
     } as Record<string, unknown>)[f],
   });
   const painel = await (await pedir("/v1/admin/dashboard")).json();
+  const operacao = await (await pedir("/v1/admin/operacao")).json();
+  assertEquals([operacao.resumo.ativas, operacao.colunas.AGUARDANDO[0].numero, operacao.whatsapp.conectado], [1, 1048, true]);
   assertEquals([painel.reservas.ativas, painel.whatsapp.conectado], [12, true]);
 
   assertEquals((await (await pedir("/v1/admin/reservations?status=RESERVADO&q=%20Marina%20&page=2")).json()).total, 1);
