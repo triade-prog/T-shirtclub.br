@@ -164,6 +164,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Z-API (27/09):** instância conectada. O primeiro `WEBHOOK_WHATSAPP_SEGREDO` era base64 com `/`, que parte o caminho da URL e fazia todo aviso cair em 404; trocado por um hexadecimal de 64 caracteres (gravado direto no Supabase, sem passar pela conversa) e a URL nova entregue à loja para os campos "Ao receber" e "Status da mensagem".
 
+**Resposta automática no WhatsApp (27/09):** mensagem comum (nem pedido de código nem "minha reserva") recebe o endereço da loja e o aviso de que a equipe responde por ali, no máximo 1 vez a cada 24 h por número (`boas_vindas_intervalo_horas`). O banco decide e marca de uma vez (`inbound_welcome`, migration 0310, com trava por número); a loja desliga na tela do WhatsApp do painel (linha "Resposta automática", modelo `boas_vindas`). Remetente sem número (LID) não recebe.
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
 - `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings` e os produtos (pelo painel);

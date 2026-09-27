@@ -74,6 +74,17 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     return await marcar(id, "MINHA_RESERVA");
   }
 
+  /**
+   * Mensagem comum: responde com o endereço da loja no máximo 1 vez a cada 24 h por número
+   * (o banco decide e já marca, e a loja pode desligar no painel); a equipe segue
+   * atendendo pelo celular. Remetente sem número (LID) não recebe.
+   */
+  async function conversa(id: string, remetente: string | null): Promise<string> {
+    if (!remetente || !(await deps.banco.rpc<boolean>("inbound_welcome", { p_wa_message_id: id }))) return await marcar(id, "CONVERSA");
+    await responder(remetente, mensagemWhatsApp("boas_vindas", {}));
+    return "BOAS_VINDAS";
+  }
+
   async function tratar(e: EventoWhatsApp): Promise<string> {
     if (e.tipo === "STATUS") {
       for (const id of e.ids) await deps.banco.rpc("outbox_delivery", { p_provider_message_id: id, p_status: e.status });
@@ -93,7 +104,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
 
     const pedido = lerPedidoDeCodigo(e.texto);
     if (!pedido) {
-      if (!ehPedidoMinhaReserva(e.texto)) return await marcar(e.id, "CONVERSA");
+      if (!ehPedidoMinhaReserva(e.texto)) return await conversa(e.id, e.remetente);
       return await minhaReserva(e.id, e.remetente);
     }
 

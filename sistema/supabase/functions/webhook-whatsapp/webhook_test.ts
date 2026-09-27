@@ -6,7 +6,7 @@ import { criarWebhookWhatsApp } from "./app.ts";
 const SEGREDO = "s".repeat(40);
 const AGORA = new Date("2026-10-10T12:00:00Z");
 
-function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean } = {}) {
+function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean } = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const vistas = new Set<string>();
   const banco: Banco = {
@@ -25,6 +25,8 @@ function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: un
             return opcoes.consulta ?? { acao: "REFERENCIA_INVALIDA" };
           case "whatsapp_my_reservations":
             return opcoes.reservas ?? [];
+          case "inbound_welcome":
+            return opcoes.boasVindas ?? false;
           default:
             return null;
         }
@@ -94,6 +96,25 @@ Deno.test("sem número (LID), conversa comum, consulta e excesso de mensagens", 
   assertEquals((await montar({ reservas: [] }).enviar(msg({ phone: "123456789012345@lid", text: { message: "Minha reserva" } }))).tratamento,
     "SEM_NUMERO");
   assertEquals((await montar({ limite: false }).enviar(msg())).tratamento, "LIMITE");
+});
+
+Deno.test("mensagem comum: resposta automática com o site quando o banco libera; senão, só conversa", async () => {
+  const liberada = montar({ boasVindas: true });
+  assertEquals((await liberada.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "BOAS_VINDAS");
+  assertEquals(liberada.rpcs.find((x) => x.funcao === "inbound_welcome")!.args, { p_wa_message_id: "m1" });
+  assertEquals(liberada.whatsapp.enviadas.length, 1);
+  assertEquals(liberada.whatsapp.enviadas[0]!.telefone, "+5577998128809");
+  assertMatch(liberada.whatsapp.enviadas[0]!.texto, /tshirtclub\.vercel\.app/);
+  assertEquals(liberada.rpcs.some((x) => x.funcao === "inbound_mark"), false, "o banco já marcou BOAS_VINDAS");
+
+  const jaRecebeu = montar({ boasVindas: false });
+  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
+  assertEquals(jaRecebeu.whatsapp.enviadas.length, 0);
+
+  const lid = montar({ boasVindas: true });
+  assertEquals((await lid.enviar(msg({ phone: "123456789012345@lid", text: { message: "Oi" } }))).tratamento, "CONVERSA");
+  assertEquals(lid.rpcs.some((x) => x.funcao === "inbound_welcome"), false);
+  assertEquals(lid.whatsapp.enviadas.length, 0);
 });
 
 Deno.test("status de entrega atualiza a fila", async () => {

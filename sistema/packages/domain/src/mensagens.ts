@@ -99,6 +99,7 @@ export interface ParametrosMensagem {
   pedido_enviado: { numero: number; rastreio?: string };
   pedido_entregue: { numero: number };
   minhas_reservas: { reservas: ResumoReserva[] };
+  boas_vindas: Record<string, never>;
   mensagem_teste: Record<string, never>;
 }
 
@@ -229,6 +230,10 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
         ? `Não achamos reservas recentes neste número. Para reservar ou consultar: ${SITE}`
         : [p.reservas.length === 1 ? "Sua reserva:" : "Suas reservas:", ...p.reservas.map(linhaReserva), `Detalhes e pagamento no site: ${SITE}`].join("\n"),
   ],
+  // Resposta automática a mensagem comum (27/09): no máximo 1 vez a cada 24 h por número.
+  boas_vindas: [
+    () => `Oi! 💖 Aqui é a T-shirt Club.br. Para ver as peças, reservar e pagar, acesse ${SITE}. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.`,
+  ],
   mensagem_teste: [() => "Mensagem de teste da T-shirt Club.br: o envio pelo sistema está funcionando."],
 };
 
@@ -259,6 +264,7 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "pronto_retirada", nome: "Pronto para retirada", quando: "Quando a loja marca o pedido como pronto, com o código de retirada", essencial: false, modelos: ["pronto_retirada"] },
   { id: "saida", nome: "Saiu para entrega / enviado", quando: "Quando a loja marca a saída", essencial: false, modelos: ["saiu_entrega", "pedido_enviado"] },
   { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, modelos: ["pedido_entregue"] },
+  { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, com o endereço da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
 ];
 

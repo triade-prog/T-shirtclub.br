@@ -120,6 +120,13 @@ describe("o que a loja manda", () => {
     expect(NOTIFICACOES.filter((n) => n.essencial).map((n) => n.id)).toEqual(["codigo", "reserva_criada", "lembrete", "pagamento_confirmado", "reserva_expirada"]);
   });
 
+  it("resposta automática a mensagem comum: o endereço da loja e a equipe, e dá para desligar no painel", () => {
+    expect(mensagemWhatsApp("boas_vindas", {})).toBe(
+      "Oi! 💖 Aqui é a T-shirt Club.br. Para ver as peças, reservar e pagar, acesse tshirtclub.vercel.app. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.",
+    );
+    expect(NOTIFICACOES.find((n) => n.id === "boas_vindas")).toMatchObject({ essencial: false, modelos: ["boas_vindas"] });
+  });
+
   it("hora sempre no fuso da loja", () => {
     expect(formatarHora(new Date("2026-10-10T03:05:00Z"))).toBe("00:05");
   });
