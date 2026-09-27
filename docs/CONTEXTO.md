@@ -166,8 +166,11 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Resposta automática no WhatsApp (27/09):** mensagem comum (nem pedido de código nem "minha reserva") recebe o endereço da loja e o aviso de que a equipe responde por ali, no máximo 1 vez a cada 24 h por número (`boas_vindas_intervalo_horas`). O banco decide e marca de uma vez (`inbound_welcome`, migration 0310, com trava por número); a loja desliga na tela do WhatsApp do painel (linha "Resposta automática", modelo `boas_vindas`). Remetente sem número (LID) não recebe.
 
+**Nome nas mensagens (27/09):** o WhatsApp faz link de "Club.br" para club.br, que não é da loja. As mensagens do WhatsApp (e a prévia do código no site) dizem "T-shirt Club"; o site, o painel e a descrição do pagamento seguem com "T-shirt Club.br". A conta da Z-API ainda está em trial: até a assinatura, cada mensagem sai com o cabeçalho "MENSAGEM DE TESTE… CONTA EM TRIAL".
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
+- assinatura da Z-API (a conta em trial põe cabeçalho de teste em toda mensagem);
 - `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings` e os produtos (pelo painel);
 - no Auth: Site URL `https://admin-tshirtclub.vercel.app`, cadastro público desligado, proteção contra senhas vazadas e o SMTP.
 

@@ -46,7 +46,7 @@ describe("o que a cliente escreve", () => {
 describe("o que a loja manda", () => {
   it("código nas duas versões aprovadas", () => {
     expect(mensagemWhatsApp("codigo_verificacao", { codigo: "482193", minutos: 5 }, 0)).toBe(
-      "Seu código da T-shirt Club.br é *482193*. Vale por 5 minutos. Não passe para ninguém.",
+      "Seu código da T-shirt Club é *482193*. Vale por 5 minutos. Não passe para ninguém.",
     );
     expect(mensagemWhatsApp("codigo_verificacao", { codigo: "482193", minutos: 5 }, 0.99)).toContain("Código de confirmação: *482193*");
   });
@@ -122,9 +122,22 @@ describe("o que a loja manda", () => {
 
   it("resposta automática a mensagem comum: o endereço da loja e a equipe, e dá para desligar no painel", () => {
     expect(mensagemWhatsApp("boas_vindas", {})).toBe(
-      "Oi! 💖 Aqui é a T-shirt Club.br. Para ver as peças, reservar e pagar, acesse tshirtclub.vercel.app. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.",
+      "Oi! 💖 Aqui é a T-shirt Club. Para ver as peças, reservar e pagar, acesse tshirtclub.vercel.app. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.",
     );
     expect(NOTIFICACOES.find((n) => n.id === "boas_vindas")).toMatchObject({ essencial: false, modelos: ["boas_vindas"] });
+  });
+
+  it("nenhuma mensagem escreve Club.br (o WhatsApp faz link para club.br, que não é da loja)", () => {
+    const r = { numero: 1048, totalCentavos: 4999 };
+    const amostras = [
+      mensagemWhatsApp("codigo_verificacao", { codigo: "482193", minutos: 5 }, 0),
+      mensagemWhatsApp("codigo_verificacao", { codigo: "482193", minutos: 5 }, 0.99),
+      mensagemWhatsApp("telefone_liberado", {}),
+      mensagemWhatsApp("boas_vindas", {}),
+      mensagemWhatsApp("mensagem_teste", {}),
+      mensagemWhatsApp("pedido_entregue", r),
+    ];
+    for (const t of amostras) expect(t).not.toMatch(/club\.br/i);
   });
 
   it("hora sempre no fuso da loja", () => {
