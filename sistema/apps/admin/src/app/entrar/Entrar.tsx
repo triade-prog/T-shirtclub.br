@@ -5,7 +5,7 @@ import { useState } from "react";
 import { qrComoDataUrl, textoErro } from "@tshirtclub/domain";
 import Image from "next/image";
 import { Turnstile } from "@tshirtclub/ui";
-import { Aviso, Botao, Campo, Seta } from "../_painel/ui";
+import { Aviso, Botao, Campo, CampoCodigo, Seta } from "../_painel/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
 
 const CHAVE_TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -125,7 +125,7 @@ export function Entrar() {
                   <p className="field-help">Sem câmera? Digite esta chave no app: <code>{cadastro.segredo}</code></p>
                 </div>
               )}
-              <Campo name="codigo" rotulo="Código de 6 números" className="otp" inputMode="numeric" autoComplete="one-time-code" maxLength={7} placeholder="000000" ajuda="O código muda a cada 30 segundos." />
+              <CampoCodigo rotulo="Código de 6 números" className="otp" ajuda="O código muda a cada 30 segundos." />
               <Botao type="submit" carregando={ocupado}>{etapa === "CADASTRAR_AUTENTICADOR" ? "Confirmar e entrar" : "Entrar"} <Seta /></Botao>
               <Botao variante="ghost" onClick={() => { setEtapa("SENHA"); setCadastro(null); setErro(null); }}>Voltar</Botao>
             </form>
