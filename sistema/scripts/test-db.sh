@@ -25,6 +25,8 @@ for f in "$RAIZ"/supabase/migrations/*.sql; do
   echo "migration $(basename "$f")"
   "${PSQL[@]}" -f "$f"
 done
+# Ajudantes dos testes (estoque por variante, 0370)
+"${PSQL[@]}" -f "$RAIZ/supabase/tests/ajudantes.sql"
 
 pg_prove --ext .sql -r "$RAIZ/supabase/tests/pgtap"
 

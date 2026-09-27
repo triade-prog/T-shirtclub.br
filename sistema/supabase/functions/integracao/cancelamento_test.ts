@@ -14,6 +14,8 @@ import { bancoPg } from "./banco_pg.ts";
 const url = Deno.env.get("PGURL_TESTE");
 const SEGREDO = "s3gredo";
 const PRODUTO = "6f1c2d3e-4b5a-4c6d-8e7f-000000000003";
+// O Único da peça (0370): o id é fixado depois de criar a peça, para os itens citarem direto
+const VARIANTE = "6f1c2d3e-4b5a-4c6d-8e7f-000000000f03";
 const ADMIN = "6f1c2d3e-4b5a-4c6d-8e7f-0000000000d7";
 
 Deno.test({
@@ -31,8 +33,9 @@ Deno.test({
         insert into auth.users (id) values ('${ADMIN}');
         insert into admin_users (id, name) values ('${ADMIN}', 'Loja');
         insert into collections (id, name, slug, color_key) values ('6f1c2d3e-4b5a-4c6d-8e7f-00000000c003', 'Cancelamento', 'cancelamento', 'MENTA');
-        insert into products (id, collection_id, code, slug, name, price_cents, qty_total)
-          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c003', 'CAN-01', 'cancelamento-1', 'Limone Cancelamento', 4999, 10);
+        insert into products (id, collection_id, code, slug, name, price_cents)
+          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c003', 'CAN-01', 'cancelamento-1', 'Limone Cancelamento', 4999);
+        update product_variants set id = '${VARIANTE}', qty_total = 10 where product_id = '${PRODUTO}' and size = 'UNICO';
         insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
           values ('${PRODUTO}', 'produtos/can-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
         update products set published_at = now() where code = 'CAN-01';
@@ -44,12 +47,12 @@ Deno.test({
       const [s] = await banco.sql`insert into otp_sessions (phone_e164, purpose, status, verified_at) values (${telefone}, 'RESERVA', 'VERIFICADA', app_now()) returning id`;
       const [a] = await banco.sql`
         insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id, status, verified_until, browser_token_hash)
-        values (gen_attempt_ref(), 'Marina Souza', ${telefone}, 'RETIRADA', ${banco.sql.json([{ produtoId: PRODUTO, qtd: 1 }])}, 4999, ${s!.id},
+        values (gen_attempt_ref(), 'Marina Souza', ${telefone}, 'RETIRADA', ${banco.sql.json([{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }])}, 4999, ${s!.id},
                 'VERIFICADA', app_now() + interval '10 minutes', ${hash}) returning id`;
       const { reserva } = await banco.rpc<{ reserva: { id: string; numero: number } }>("create_reservation", {
         p_attempt_id: a!.id, p_token_hash: hash,
         p: {
-          linhas: [{ produtoId: PRODUTO, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
+          linhas: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
           subtotalCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999, aplicada: null, chaveHash: await sha256Hex(`${token}k`), link: "https://tshirtclub.pt/r#x",
         },
       });
@@ -95,7 +98,7 @@ Deno.test({
       // A loja recusa: a reserva segue no prazo
       await banco.rpc("reject_cancellation", { p_request_id: await pedidoPendente(), p_admin: ADMIN, p_reason: "Troca é na loja" });
       assertEquals((await ver()).status, "RESERVADO");
-      assertMatch(await enviar(), new RegExp(`^A loja manteve a reserva #${reserva.numero}\\. Ela segue valendo até \\*\\d{2}:\\d{2}\\*\\.$`));
+      assertMatch(await enviar(), new RegExp(`^O pedido de cancelamento da reserva #${reserva.numero} não foi aprovado\\.\\n\\nA reserva continua válida até \\*\\d{2}:\\d{2}\\*\\.`));
 
       // Novo pedido, e a loja aprova: T4, estoque de volta e o PIX cancelado no provedor
       assertEquals((await pedir()).status, 201);
@@ -103,14 +106,14 @@ Deno.test({
       assertEquals(aprovado.status, "APROVADA");
       const encerrada = await ver();
       assertEquals([encerrada.status, encerrada.cancelamento.status], ["EXPIRADO", "APROVADA"]);
-      const [{ qty_reserved }] = await banco.sql`select qty_reserved from products where code = 'CAN-01'`;
+      const [{ qty_reserved }] = await banco.sql`select qty_reserved from product_variants where sku = 'CAN-01-UNI'`;
       assertEquals(qty_reserved, 0);
       assertEquals((await pedir()).status, 409, "reserva encerrada não aceita outro pedido");
 
       const [{ provider_payment_id: mp }] = await banco.sql`select provider_payment_id from payments where id = ${pagamento.id}`;
       assertEquals((await processarPagamentos({ banco, pagamentos })).cancelados, 1);
       assertEquals(pagamentos.pagamentos.get(mp)!.status, "CANCELADO", "a cobrança não fica aberta depois do cancelamento");
-      assertEquals(await enviar(), `Cancelamento aprovado: a reserva #${reserva.numero} foi encerrada e nada foi cobrado.`);
+      assertEquals(await enviar(), `Cancelamento aprovado.\n\nA reserva #${reserva.numero} foi encerrada e nenhuma cobrança foi feita.`);
     } finally {
       // Não deixa envios recentes nem fila para os outros testes (o ritmo da fila é global)
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;

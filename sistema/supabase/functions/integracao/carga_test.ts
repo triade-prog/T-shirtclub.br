@@ -21,6 +21,8 @@ const DISPUTANDO = 40;
 const ULTIMAS = 10;
 const QUENTE = "6f1c2d3e-4b5a-4c6d-8e7f-0000000000c1";
 const OUTROS = ["6f1c2d3e-4b5a-4c6d-8e7f-0000000000c2", "6f1c2d3e-4b5a-4c6d-8e7f-0000000000c3", "6f1c2d3e-4b5a-4c6d-8e7f-0000000000c4"];
+/** O Único de cada peça, com id fixo (0370). */
+const unico = (produto: string) => `${produto.slice(0, -4)}0f${produto.slice(-2)}`;
 
 function percentil(valores: number[], p: number): number {
   const ordenados = [...valores].sort((a, b) => a - b);
@@ -40,9 +42,11 @@ Deno.test({
     try {
       await banco.sql.unsafe(`
         insert into collections (id, name, slug, color_key) values ('6f1c2d3e-4b5a-4c6d-8e7f-0000000000c0', 'Carga', 'carga', 'LIMAO');
-        insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-          ('${QUENTE}', '6f1c2d3e-4b5a-4c6d-8e7f-0000000000c0', 'CRG-01', 'carga-1', 'Limone Lançamento', 4999, ${ULTIMAS}),
-          ${OUTROS.map((id, i) => `('${id}', '6f1c2d3e-4b5a-4c6d-8e7f-0000000000c0', 'CRG-0${i + 2}', 'carga-${i + 2}', 'Limone ${i + 2}', 4999, 200)`).join(",\n")};
+        insert into products (id, collection_id, code, slug, name, price_cents) values
+          ('${QUENTE}', '6f1c2d3e-4b5a-4c6d-8e7f-0000000000c0', 'CRG-01', 'carga-1', 'Limone Lançamento', 4999),
+          ${OUTROS.map((id, i) => `('${id}', '6f1c2d3e-4b5a-4c6d-8e7f-0000000000c0', 'CRG-0${i + 2}', 'carga-${i + 2}', 'Limone ${i + 2}', 4999)`).join(",\n")};
+        -- O estoque é do Único (0370); o id dele é fixado para os itens citarem direto
+        ${[QUENTE, ...OUTROS].map((id) => `update product_variants set id = '${unico(id)}', qty_total = ${id === QUENTE ? ULTIMAS : 200} where product_id = '${id}' and size = 'UNICO';`).join("\n")}
         insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
           select id, 'produtos/' || lower(code) || '.webp', 'FRENTE', 'Frente', 10, 10, 1 from products where code like 'CRG-%';
         update products set published_at = now() where code like 'CRG-%';
@@ -81,7 +85,8 @@ Deno.test({
           return r;
         };
 
-        const itens = i < DISPUTANDO ? [{ produtoId: QUENTE, qtd: 1 }] : [{ produtoId: OUTROS[i % 3]!, qtd: 1 + (i % 2) }];
+        const outro = OUTROS[i % 3]!;
+        const itens = i < DISPUTANDO ? [{ produtoId: QUENTE, varianteId: unico(QUENTE), qtd: 1 }] : [{ produtoId: outro, varianteId: unico(outro), qtd: 1 + (i % 2) }];
         const cotacao = await (await pedir("cotacao", "POST", "/v1/cart/quote", { itens })).json();
         const t = await (await pedir("tentativa", "POST", "/v1/reservation-attempts", {
           nome: `Cliente ${String.fromCharCode(65 + (i % 26), 97 + Math.floor(i / 26))}`, telefone: `(77) ${celular.slice(0, 5)}-${celular.slice(5)}`,
@@ -128,7 +133,7 @@ Deno.test({
       const disputa = resultados.slice(0, DISPUTANDO);
       assertEquals(disputa.filter((r) => r === "RESERVADA").length, ULTIMAS, "exatamente as 10 últimas peças foram reservadas");
       assertEquals(resultados.slice(DISPUTANDO).every((r) => r === "RESERVADA"), true, "quem pediu produto com estoque reservou");
-      const [q] = await banco.sql`select qty_total, qty_reserved, qty_sold from products where id = ${QUENTE}`;
+      const [q] = await banco.sql`select qty_total, qty_reserved, qty_sold from product_variants where id = ${unico(QUENTE)}`;
       assertEquals(q!.qty_reserved + q!.qty_sold, ULTIMAS, "nada vendido a mais");
       assert(q!.qty_sold > 0 && q!.qty_reserved > 0, "parte paga, parte ainda reservada");
       assertEquals((await banco.rpc<{ divergencias: number }>("check_stock_invariants")).divergencias, 0, "verificador de invariantes sem divergência");

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { formatarReais } from "@tshirtclub/domain";
 import { urlFoto } from "@/lib/catalogo";
-import type { Colecao, PaginaProdutos } from "@/lib/tiposCatalogo";
+import { NOME_TAMANHO, type Colecao, type PaginaProdutos } from "@/lib/tiposCatalogo";
 import { Casca, Icone } from "../_painel/Casca";
 import { Botao, Carregando, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
@@ -95,6 +95,7 @@ function Produtos() {
                     </div>
                     <div className="res-side">
                       <div className="amount">{p.estoque.disponivel} disponíveis</div>
+                      <div className="date">{p.tamanhos.filter((t) => t.ativa).map((t) => `${NOME_TAMANHO[t.tamanho]} ${t.disponivel}`).join(" · ") || "Nenhum tamanho à venda"}</div>
                       <div className="date">{p.estoque.reservado} reservadas · {p.estoque.vendido} vendidas</div>
                     </div>
                   </Link>

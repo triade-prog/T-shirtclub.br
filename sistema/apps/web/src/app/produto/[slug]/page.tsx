@@ -5,14 +5,14 @@ import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { Botao, ProgressoClub, Selo, Sobretitulo } from "@tshirtclub/ui";
+import { Botao, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
-import { dividirNome, textoOferta } from "@/lib/vitrine";
+import { dividirNome, textoMedidas, textoOferta } from "@/lib/vitrine";
 import { BotaoFavorito } from "../../_vitrine/BotaoFavorito";
 import { Galeria } from "./Galeria";
 
 // Página do produto (F2.7; V4 em docs/design/v4/produto.html): galeria de 1 a 10 fotos,
-// preço com a oferta do Club, detalhes da peça e os looks em que ela aparece.
+// preço com a oferta do Club, o tamanho (Único ou Plus, 0370), detalhes da peça e os looks.
 
 function buscarProduto(slug: string) {
   return /^[a-z0-9-]{1,80}$/.test(slug) ? buscarCatalogo<ProdutoDetalhe>(`v1/catalog/products/${slug}`) : Promise.resolve(null);
@@ -31,19 +31,24 @@ export async function generateMetadata({ params }: PageProps<"/produto/[slug]">)
 
 const SELO: Record<ProdutoDetalhe["selo"], string | null> = { DISPONIVEL: null, ULTIMAS_UNIDADES: "Últimas peças", ESGOTADO: "Esgotado" };
 
-export default async function PaginaProduto({ params }: PageProps<"/produto/[slug]">) {
+export default async function PaginaProduto({ params, searchParams }: PageProps<"/produto/[slug]">) {
   await connection();
   const [produto, club] = await Promise.all([buscarProduto((await params).slug), buscarOfertaClub()]);
   if (!produto) notFound();
+  // Veio do "+" de um cartão com dois tamanhos (ou de um link sem o tamanho): pede a escolha
+  const pedirTamanho = (await searchParams).escolha === "tamanho";
 
   const { destaque, resto } = dividirNome(produto.nome, produto.colecao?.nome);
   const selo = SELO[produto.selo];
   const esgotado = produto.selo === "ESGOTADO";
   const promo = produto.precoPromocionalCentavos;
   const oferta = produto.noClub ? textoOferta(club) : undefined;
+  // O primeiro tamanho com estoque já vem marcado; o esgotado fica visível, mas não dá para escolher
+  const inicial = produto.tamanhos.find((t) => t.disponivel > 0);
+  const medidas = produto.tamanhos.map((t) => ({ rotulo: t.rotulo, texto: textoMedidas(t.medidas) })).filter((m) => m.texto);
   const detalhes = [
     { titulo: "Material e caimento", texto: [produto.composicao, produto.modelagem].filter(Boolean).join(" ") || null },
-    { titulo: "Medidas", texto: produto.medidas, id: "medidas" },
+    { titulo: "Medidas", texto: medidas.map((m) => `${m.rotulo}: ${m.texto}`).join("\n") || null, id: "medidas" },
     { titulo: "Entrega e retirada", texto: "Retire na loja ou escolha a entrega. A reserva é confirmada pelo WhatsApp." },
     { titulo: "Trocas e cuidados", texto: produto.cuidados },
   ].filter((d) => d.texto);
@@ -89,25 +94,39 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
             <ProgressoClub nivel={2} pecas={0} titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
           )}
 
-          <div className="grid gap-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.1em]">Tamanho</span>
-              {produto.medidas && <a href="#medidas" className="tc-alvo relative text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Tabela de medidas</a>}
-            </div>
-            <p className="m-0 rounded-campo border-[1.5px] border-tinta px-3.5 py-3.5 text-sm font-bold shadow-adesivo-sm">Tamanho único</p>
-          </div>
-
-          {/* A sacola (fatia 3) recebe a peça por aqui; sem JavaScript também funciona. */}
-          <div className="grid grid-cols-[1fr_auto] items-start gap-2">
-            <form action="/sacola" method="get">
-              <input type="hidden" name="adicionar" value={produto.slug} />
+          {/* A sacola (fatia 3) recebe a peça e o tamanho por aqui; sem JavaScript também funciona. */}
+          <form action="/sacola" method="get" className="grid gap-4">
+            <input type="hidden" name="adicionar" value={produto.slug} />
+            <fieldset id="tamanho" className="m-0 grid scroll-mt-40 gap-2.5 border-0 p-0" aria-describedby={pedirTamanho ? "pedir-tamanho" : undefined}>
+              <div className="flex items-center justify-between gap-3">
+                <legend className="float-left p-0 text-[10px] font-extrabold uppercase tracking-[0.1em]">Tamanho</legend>
+                {medidas.length > 0 && <a href="#medidas" className="tc-alvo relative text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Tabela de medidas</a>}
+              </div>
+              {pedirTamanho && !esgotado && <p id="pedir-tamanho" role="status" className="m-0 text-sm font-semibold text-rosa-press">Escolha o tamanho para adicionar ao Club.</p>}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {produto.tamanhos.map((t) => (
+                  <label key={t.id} className={cx(
+                    "flex min-h-13 cursor-pointer items-center justify-between gap-3 rounded-campo border-[1.5px] border-tinta px-3.5 py-2.5 shadow-adesivo-sm has-checked:bg-rosa-bruma has-focus-visible:outline-3 has-focus-visible:outline-rosa",
+                    t.disponivel === 0 && "cursor-not-allowed opacity-60 shadow-none",
+                  )}>
+                    <span className="flex items-center gap-2.5">
+                      <input type="radio" name="tamanho" value={t.tamanho.toLowerCase()} defaultChecked={t.id === inicial?.id} disabled={t.disponivel === 0} required
+                        className="size-5 accent-rosa" />
+                      <span className="text-sm font-bold">{t.rotulo}</span>
+                    </span>
+                    {t.selo !== "DISPONIVEL" && <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-tinta-suave">{SELO[t.selo]}</span>}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="grid grid-cols-[1fr_auto] items-start gap-2">
               <Botao type="submit" cheio disabled={esgotado} className="flex-row-reverse">
                 {!esgotado && <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.8} />}
                 {esgotado ? "Esgotado" : "Adicionar ao Club"}
               </Botao>
-            </form>
-            <BotaoFavorito slug={produto.slug} nome={produto.nome} className="size-13 bg-transparent" />
-          </div>
+              <BotaoFavorito slug={produto.slug} nome={produto.nome} className="size-13 bg-transparent" />
+            </div>
+          </form>
 
           {detalhes.length > 0 && (
             <div className="border-b border-linha">

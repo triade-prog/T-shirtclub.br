@@ -1,11 +1,20 @@
 // Leitura do catálogo no servidor (páginas geradas no servidor, G17): chama a api-public
 // direto, com o segredo de repasse, sem passar pelo /api do navegador. Falha vira null e a
 // página mostra o estado sem dados, nunca um erro 500.
-import type { ItemCarrinho, ResultadoPreco } from "@tshirtclub/domain";
+import type { ItemCarrinho, ResultadoPreco, Tamanho } from "@tshirtclub/domain";
 import { ipReal, opcoesLoja } from "@tshirtclub/servidor/repasse";
 
 export type Selo = "DISPONIVEL" | "ULTIMAS_UNIDADES" | "ESGOTADO";
 export interface Foto { caminho: string; alt: string | null; tipo?: string; largura?: number; altura?: number }
+/** Um tamanho à venda (0370): só os ativos, Único antes do Plus; a página traz as medidas. */
+export interface TamanhoLoja {
+  id: string;
+  tamanho: Tamanho;
+  rotulo: string;
+  disponivel: number;
+  selo: Selo;
+  medidas?: Record<string, string | number>;
+}
 export interface CartaoProduto {
   id: string;
   slug: string;
@@ -17,6 +26,7 @@ export interface CartaoProduto {
   capa: Foto | null;
   disponivel: number;
   selo: Selo;
+  tamanhos: TamanhoLoja[];
 }
 export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: Foto | null }
 export interface Look { id: string; titulo: string; foto: Foto; produtos: CartaoProduto[] }
@@ -25,7 +35,6 @@ export interface ProdutoDetalhe extends Omit<CartaoProduto, "colecao"> {
   descricao: string | null;
   composicao: string | null;
   modelagem: string | null;
-  medidas: string | null;
   cuidados: string | null;
   colecao: Omit<Colecao, "id"> | null;
   fotos: Foto[];

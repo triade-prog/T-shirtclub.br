@@ -36,6 +36,7 @@ export function Conta() {
           </div>
           <div className="stack">
             <Metas />
+            <Tamanhos />
             <Autenticadores fatores={dados.autenticadores} aoMudar={() => void recarregar()} />
             <Aviso tipo="yellow" titulo="Esqueceu a senha?">
               <p>Na tela de login, use &quot;Esqueci minha senha&quot;: o link de redefinição chega no e-mail da conta.</p>
@@ -84,6 +85,42 @@ function Metas() {
           {erro && <p className="field-error" role="alert">{erro}</p>}
           <div className="actions mt"><Botao type="submit" carregando={ocupado}>Salvar metas</Botao></div>
           {feito && <p className="field-help" role="status">Metas salvas.</p>}
+        </form>
+      )}
+    </section>
+  );
+}
+
+interface NomesTamanhos { unico: string; plus: string }
+
+/** Nomes dos tamanhos (0370): os mesmos na loja, no painel e no WhatsApp. */
+function Tamanhos() {
+  const { dados, erro: erroLeitura, recarregar } = useDados<NomesTamanhos>("v1/admin/settings/tamanhos");
+  const [feito, setFeito] = useState(false);
+  const { ocupado, erro, setErro, enviar } = useEnvio(() => { setFeito(true); void recarregar(); });
+
+  function salvar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setFeito(false);
+    const f = new FormData(e.currentTarget);
+    const nomes = { unico: String(f.get("unico") ?? "").trim(), plus: String(f.get("plus") ?? "").trim() };
+    if ([nomes.unico, nomes.plus].some((n) => n.length < 2 || n.length > 40)) return setErro("Cada nome tem de 2 a 40 letras.");
+    void enviar(chamarApi("v1/admin/settings/tamanhos", nomes, "PUT"));
+  }
+
+  return (
+    <section className="card" id="tamanhos" aria-labelledby="tamanhos-titulo">
+      <h2 id="tamanhos-titulo">Tamanhos</h2>
+      <p className="field-help">Como cada tamanho aparece na loja, na sacola, no painel e no WhatsApp. A loja atualiza na hora.</p>
+      {!dados ? <Carregando erro={erroLeitura} /> : (
+        <form onSubmit={salvar} noValidate key={`${dados.unico}-${dados.plus}`}>
+          <div className="stack">
+            <Campo name="unico" rotulo="Único" maxLength={40} defaultValue={dados.unico} />
+            <Campo name="plus" rotulo="Plus" maxLength={40} defaultValue={dados.plus} />
+          </div>
+          {erro && <p className="field-error" role="alert">{erro}</p>}
+          <div className="actions mt"><Botao type="submit" carregando={ocupado}>Salvar nomes</Botao></div>
+          {feito && <p className="field-help" role="status">Nomes salvos.</p>}
         </form>
       )}
     </section>

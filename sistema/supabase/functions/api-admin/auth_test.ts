@@ -2,6 +2,8 @@ import { assert, assertEquals, assertMatch } from "@std/assert";
 import { ErroBanco } from "../_shared/banco.ts";
 import { ADMIN, cookieDe, erro, LOGIN, montar, type Cenario } from "./teste_util.ts";
 
+const VARIANTE = "9c4d5e6f-7a8b-4c3d-9e4f-5a6b7c8d9e0f";
+
 Deno.test("senha certa: cookie __Host- seguro e pede o código do autenticador", async () => {
   const { pedir, chamadas } = montar();
   const r = await pedir("/v1/admin/auth/login", LOGIN);
@@ -58,7 +60,7 @@ Deno.test("senha certa sem o código (aal1): 403 em qualquer rota do painel (D12
   const r = await pedir("/v1/admin/me", undefined, cookie);
   assertEquals(r.status, 403);
   assertEquals((await erro(r)).codigo, "MFA_REQUIRED");
-  const ajuste = await pedir("/v1/admin/products/6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f/stock-adjustments", { delta: 1, motivo: "Lote" }, cookie);
+  const ajuste = await pedir("/v1/admin/products/6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f/stock-adjustments", { varianteId: VARIANTE, delta: 1, motivo: "Lote" }, cookie);
   assertEquals(ajuste.status, 403);
 });
 
@@ -127,13 +129,15 @@ Deno.test("ajuste de estoque: motivo obrigatório e nunca abaixo do comprometido
     return { ...m, cookie: cookieDe(await m.pedir("/v1/admin/auth/mfa/verify", { codigo: "482193" }, aal1)) };
   }
   const ok = await comSessao({});
-  const r = await ok.pedir(produto, { delta: 5, motivo: "Chegada do lote", tipo: "ENTRADA" }, ok.cookie);
+  const r = await ok.pedir(produto, { varianteId: VARIANTE, delta: 5, motivo: "Chegada do lote", tipo: "ENTRADA" }, ok.cookie);
   assertEquals(await r.json(), { total: 7 });
-  assertEquals((await erro(await ok.pedir(produto, { delta: 5, motivo: "" }, ok.cookie))).codigo, "VALIDATION_ERROR");
-  assertEquals((await ok.pedir("/v1/admin/products/nao-e-id/stock-adjustments", { delta: 1, motivo: "Lote" }, ok.cookie)).status, 404);
+  assertEquals(ok.rpcs.find((x) => x.funcao === "adjust_stock")?.args.p_variant_id, VARIANTE, "o ajuste vai para o tamanho");
+  assertEquals((await erro(await ok.pedir(produto, { delta: 5, motivo: "Lote" }, ok.cookie))).codigo, "VALIDATION_ERROR", "sem o tamanho");
+  assertEquals((await erro(await ok.pedir(produto, { varianteId: VARIANTE, delta: 5, motivo: "" }, ok.cookie))).codigo, "VALIDATION_ERROR");
+  assertEquals((await ok.pedir("/v1/admin/products/nao-e-id/stock-adjustments", { varianteId: VARIANTE, delta: 1, motivo: "Lote" }, ok.cookie)).status, 404);
 
   const abaixo = await comSessao({ erroAjuste: new ErroBanco("TS124", "O estoque não pode ficar abaixo do reservado + vendido (3)") });
-  const r2 = await abaixo.pedir(produto, { delta: -9, motivo: "Contagem" }, abaixo.cookie);
+  const r2 = await abaixo.pedir(produto, { varianteId: VARIANTE, delta: -9, motivo: "Contagem" }, abaixo.cookie);
   assertEquals(r2.status, 409);
   assertEquals(await erro(r2), { codigo: "STOCK_BELOW_COMMITTED", detalhes: { comprometido: 3 } });
 });

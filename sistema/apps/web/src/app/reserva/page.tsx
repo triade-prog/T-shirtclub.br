@@ -43,12 +43,12 @@ export default async function PaginaSeusDados() {
           <Link href="/sacola" className="tc-alvo relative text-xs font-bold underline decoration-rosa decoration-2 underline-offset-2">Alterar</Link>
         </div>
         <ul className="m-0 mt-4 grid list-none gap-3 p-0">
-          {validos.map(({ produto, qtd }) => (
-            <li key={produto.id} className="grid grid-cols-[52px_1fr_auto] items-center gap-3 text-sm">
+          {validos.map(({ produto, tamanho, qtd }) => (
+            <li key={tamanho.id} className="grid grid-cols-[52px_1fr_auto] items-center gap-3 text-sm">
               <span className="relative block h-16 w-13 overflow-hidden rounded-[9px] border-[1.5px] border-tinta bg-algodao">
                 {produto.fotos[0] && <Image src={urlFoto(produto.fotos[0].caminho)} alt="" fill sizes="52px" className="object-cover" />}
               </span>
-              <span className="font-semibold">{produto.nome}</span>
+              <span><span className="block font-semibold">{produto.nome}</span><span className="text-xs text-tinta-suave">{tamanho.rotulo}</span></span>
               <span className="text-tinta-suave">× {qtd}</span>
             </li>
           ))}

@@ -19,9 +19,9 @@ export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & Dep
   loja?: AvisoLoja;
 };
 
-// Rotas que mudam o que a loja mostra: peças (com fotos e estoque), coleções, looks, blocos da
-// página inicial e promoções.
-const CATALOGO = /^\/v1\/admin\/(products|collections|looks|home-blocks|promotions)(\/|$)/;
+// Rotas que mudam o que a loja mostra: peças (com fotos, tamanhos e estoque), coleções, looks,
+// blocos da página inicial, promoções e os nomes dos tamanhos.
+const CATALOGO = /^\/v1\/admin\/(products|collections|looks|home-blocks|promotions|settings\/tamanhos)(\/|$)/;
 
 export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   const app = criarApp<VarsAdmin>("api-admin", segredo);

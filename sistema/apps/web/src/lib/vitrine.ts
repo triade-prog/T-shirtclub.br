@@ -1,6 +1,6 @@
 // Regras de apresentação da vitrine que não dependem de React (testadas em vitrine.test.ts).
 import { formatarReais } from "@tshirtclub/domain";
-import type { CartaoProduto, OfertaClub } from "./catalogo";
+import type { CartaoProduto, OfertaClub, TamanhoLoja } from "./catalogo";
 
 export type Filtro = "todas" | "disponiveis" | "ultimas";
 
@@ -27,4 +27,19 @@ export function dividirNome(nome: string, colecao: string | undefined): { destaq
   return colecao && cabeca.toLowerCase() === colecao.toLowerCase() && /^\s+\S/.test(resto)
     ? { destaque: cabeca, resto: resto.trim() }
     : { destaque: null, resto: nome };
+}
+
+/**
+ * O tamanho que o "+" do cartão adiciona direto: o único com estoque. Com dois tamanhos à venda
+ * (ou nenhum), null: a cliente escolhe na página da peça.
+ */
+export function tamanhoRapido(produto: Pick<CartaoProduto, "tamanhos">): TamanhoLoja | null {
+  const aVenda = produto.tamanhos.filter((t) => t.disponivel > 0);
+  return aVenda.length === 1 ? aVenda[0]! : null;
+}
+
+/** "busto 104 cm · comprimento 68 cm": número em centímetros, texto como veio. */
+export function textoMedidas(medidas: Record<string, string | number> | undefined): string | null {
+  const partes = Object.entries(medidas ?? {}).map(([k, v]) => `${k} ${typeof v === "number" ? `${String(v).replace(".", ",")} cm` : v}`);
+  return partes.length > 0 ? partes.join(" · ") : null;
 }

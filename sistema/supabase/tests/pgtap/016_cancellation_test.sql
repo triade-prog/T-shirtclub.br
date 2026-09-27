@@ -4,8 +4,9 @@ select plan(20);
 insert into auth.users (id) values ('00000000-0000-4000-8000-0000000000d1');
 insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1', 'Loja');
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Limone', 'limone', 'LIMAO');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999, 20);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 20)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 values ('00000000-0000-4000-8000-00000000a001', 'produtos/lim-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
 update products set published_at = app_now();
@@ -17,11 +18,11 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id,
                                     status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]', 4999, s,
+  values (gen_attempt_ref(), 'Marina', p_phone, 'RETIRADA', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]'), 4999, s,
           'VERIFICADA', app_now() + interval '10 minutes', pg_temp.h(v_token))
   returning id into a;
   return (create_reservation(a, pg_temp.h(v_token), jsonb_build_object(
-    'linhas', '[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'::jsonb,
+    'linhas', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1, "precoTabelaCentavos": 4999, "descontoCentavos": 0, "totalCentavos": 4999}]'),
     'subtotalCentavos', 4999, 'descontoCentavos', 0, 'totalCentavos', 4999, 'aplicada', null,
     'chaveHash', pg_temp.h(v_token || 'k'), 'link', 'https://tshirtclub.pt/r#x')) -> 'reserva' ->> 'id')::uuid;
 end $$;
@@ -56,7 +57,7 @@ select is(approve_cancellation(pg_temp.pedido((select id from t where nome = 'r1
 select is((select (status, closure_reason)::text from reservations where id = (select id from t where nome = 'r1')), '(EXPIRADO,CANCELAMENTO_APROVADO)',
   'termina em EXPIRADO com motivo "cancelamento aprovado" (R1)');
 select is((select array_agg(event order by id) from reservation_transitions where reservation_id = (select id from t where nome = 'r1')), array['T1', 'T4'], 'linha do tempo T1 → T4');
-select is((select qty_reserved from products), 0, 'o estoque volta');
+select is((select qty_reserved from product_variants where size = 'UNICO'), 0, 'o estoque volta');
 select is((select count(*)::int from outbox_messages where template = 'reserva_expirada'), 0, 'sem a mensagem de reserva expirada por prazo');
 
 -- Cancelamento aprovado não conta para o bloqueio (D7)

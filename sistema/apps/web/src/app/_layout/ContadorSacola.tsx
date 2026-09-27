@@ -1,8 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { totalPecas } from "@tshirtclub/domain";
-import { COOKIE_SACOLA, lerSacola } from "@/lib/sacola";
+import { COOKIE_SACOLA, lerSacola, pecasNaSacola } from "@/lib/sacola";
 
 // Número de peças na pílula da sacola (V4). Lido do cookie no navegador para o cabeçalho
 // continuar estático (a página sem conexão fica guardada pelo service worker).
@@ -20,7 +19,7 @@ function assinar(aviso: () => void) {
 }
 
 export function ContadorSacola() {
-  const pecas = totalPecas(lerSacola(useSyncExternalStore(assinar, lerCookie, () => "")));
+  const pecas = pecasNaSacola(lerSacola(useSyncExternalStore(assinar, lerCookie, () => "")));
   if (pecas === 0) return null;
   return (
     <span className="grid min-w-5.5 place-items-center rounded-full border-[1.5px] border-tinta bg-citrino px-1 text-[10px] text-no-citrino">

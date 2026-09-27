@@ -18,11 +18,13 @@ import {
 } from "./schemas.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-00000000000${n}`;
+// Peça n no Único (variante 5n) ou no Plus (5n + 1): o id da variante só precisa ser outro uuid
+const v = (n: number, plus = false) => `00000000-0000-4000-8000-0000000001${n}${plus ? 1 : 0}`;
 const valido = {
   nome: "Marina Souza",
   telefone: "(77) 99812-8809",
   entrega: "RETIRADA",
-  itens: [{ produtoId: id(1), qtd: 2 }, { produtoId: id(2), qtd: 1 }],
+  itens: [{ produtoId: id(1), varianteId: v(1), qtd: 2 }, { produtoId: id(2), varianteId: v(2), qtd: 1 }],
   totalEsperadoCentavos: 11999,
   turnstileToken: "tok",
 };
@@ -39,10 +41,12 @@ describe("schemas", () => {
     expect(r.error?.issues[0]?.message).toBe("PHONE_INVALID");
   });
 
-  it("recusa itens repetidos, acima de 2 por modelo e acima de 9 peças", () => {
-    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), qtd: 1 }, { produtoId: id(1), qtd: 1 }] }).success).toBe(false);
-    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), qtd: 3 }] }).success).toBe(false);
-    const cinco = [1, 2, 3, 4, 5].map((n) => ({ produtoId: id(n), qtd: 2 }));
+  it("recusa itens repetidos, acima de 2 por modelo, acima de 9 peças e sem o tamanho", () => {
+    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), varianteId: v(1), qtd: 1 }, { produtoId: id(1), varianteId: v(1), qtd: 1 }] }).success).toBe(false);
+    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), varianteId: v(1), qtd: 1 }, { produtoId: id(1), varianteId: v(1, true), qtd: 1 }] }).success).toBe(true);
+    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), varianteId: v(1), qtd: 3 }] }).success).toBe(false);
+    expect(criarTentativaSchema.safeParse({ ...valido, itens: [{ produtoId: id(1), qtd: 1 }] }).success).toBe(false);
+    const cinco = [1, 2, 3, 4, 5].map((n) => ({ produtoId: id(n), varianteId: v(n), qtd: 2 }));
     expect(criarTentativaSchema.safeParse({ ...valido, itens: cinco }).success).toBe(false);
   });
 
@@ -75,9 +79,11 @@ describe("painel", () => {
   });
 
   it("ajuste de estoque com motivo e sem zero", () => {
-    expect(ajusteEstoqueSchema.parse({ delta: -2, motivo: " Peça com defeito " })).toEqual({ delta: -2, motivo: "Peça com defeito", tipo: "AJUSTE" });
-    expect(ajusteEstoqueSchema.safeParse({ delta: 0, motivo: "Nada" }).success).toBe(false);
-    expect(ajusteEstoqueSchema.safeParse({ delta: 1, motivo: "  " }).success).toBe(false);
+    expect(ajusteEstoqueSchema.parse({ varianteId: v(1), delta: -2, motivo: " Peça com defeito " }))
+      .toEqual({ varianteId: v(1), delta: -2, motivo: "Peça com defeito", tipo: "AJUSTE" });
+    expect(ajusteEstoqueSchema.safeParse({ varianteId: v(1), delta: 0, motivo: "Nada" }).success).toBe(false);
+    expect(ajusteEstoqueSchema.safeParse({ varianteId: v(1), delta: 1, motivo: "  " }).success).toBe(false);
+    expect(ajusteEstoqueSchema.safeParse({ delta: 1, motivo: "Lote" }).success).toBe(false);
   });
 
   it("cupom tem de 4 a 20 letras e números", () => {

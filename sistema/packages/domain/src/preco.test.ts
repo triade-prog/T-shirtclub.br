@@ -88,6 +88,20 @@ describe("Monte seu Club: 3 por R$ 119,99, a cada 3 (regra 3)", () => {
   });
 });
 
+describe("tamanhos (0370): Único e Plus da mesma peça", () => {
+  it("contam juntos para o Club e cada linha leva a sua variante", () => {
+    const peca = { id: "p1", precoCentavos: 4999 };
+    const r = calcularPreco({
+      itens: [{ produto: peca, varianteId: "p1-uni", qtd: 1 }, { produto: peca, varianteId: "p1-plus", qtd: 1 }, { produto: { id: "p2", precoCentavos: 4999 }, varianteId: "p2-uni", qtd: 1 }],
+      promocoes: [club],
+      agora,
+    });
+    expect(r.totalCentavos).toBe(11999);
+    expect(r.linhas.map((l) => `${l.produtoId}/${l.varianteId}`)).toEqual(["p1/p1-uni", "p1/p1-plus", "p2/p2-uni"]);
+    expect(r.linhas.reduce((s, l) => s + l.descontoCentavos, 0)).toBe(r.descontoCentavos);
+  });
+});
+
 describe("compre e economize mais em níveis", () => {
   it("vale o maior nível atingido", () => {
     expect(total(pecas(2), [leveMais])).toBe(9998);

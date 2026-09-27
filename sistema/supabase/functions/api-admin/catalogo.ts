@@ -13,6 +13,7 @@ import {
   fotoEntradaSchema,
   idSchema,
   lookEntradaSchema,
+  nomesTamanhosSchema,
   ordemFotosSchema,
   produtoEntradaSchema,
   promocaoEntradaSchema,
@@ -136,6 +137,13 @@ export function rotasCatalogoAdmin(app: Hono<VarsAdmin>, { banco, armazenamento 
   app.put("/v1/admin/home-blocks", async (c) => {
     const { blocos } = await lerCorpo(c, blocosInicioSchema);
     return c.json(await chamar(banco, "admin_set_home_blocks", { p_admin: admin(c), p: blocos }));
+  });
+
+  // Nomes dos tamanhos (0370): os mesmos na loja, no painel e no WhatsApp
+  app.get("/v1/admin/settings/tamanhos", async (c) => c.json(await chamar(banco, "admin_size_labels")));
+  app.put("/v1/admin/settings/tamanhos", async (c) => {
+    const nomes = await lerCorpo(c, nomesTamanhosSchema);
+    return c.json(await chamar(banco, "admin_update_size_labels", { p_admin: admin(c), p: nomes }));
   });
 
   // Promoções (desconto do produto, compre e economize mais, cupom)

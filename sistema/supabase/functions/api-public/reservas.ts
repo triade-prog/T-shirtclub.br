@@ -210,7 +210,7 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
       p_token_hash: tokenHash,
       p: {
         linhas: preco.linhas.map((l) => ({
-          produtoId: l.produtoId, qtd: l.qtd, precoTabelaCentavos: l.precoTabelaCentavos,
+          produtoId: l.produtoId, varianteId: l.varianteId, qtd: l.qtd, precoTabelaCentavos: l.precoTabelaCentavos,
           descontoCentavos: l.descontoCentavos, totalCentavos: l.totalCentavos,
         })),
         subtotalCentavos: preco.subtotalCentavos,

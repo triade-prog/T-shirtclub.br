@@ -15,23 +15,31 @@ for (const caminho of ["/colecao/nao-existe", "/produto/nao-existe", "/produto/.
 
 // Sacola (fatia 3): o "Adicionar" é um GET que grava o cookie e volta para /sacola; sem
 // catálogo, a peça aparece como fora da loja e o Remover (ação do servidor) esvazia a sacola.
-test("sacola: adicionar pela URL, limite por modelo, remover e axe", async ({ page }) => {
+test("sacola: adicionar pela URL, limite por estampa somando os tamanhos, remover e axe", async ({ page }) => {
   await page.goto(`${LOJA}/sacola`);
   await expect(page.getByRole("heading", { name: "Sua sacola está vazia." })).toBeVisible();
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations).toEqual([]);
 
-  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste&tamanho=unico`);
   await expect(page).toHaveURL(`${LOJA}/sacola`);
   await expect(page.getByRole("link", { name: /Sacola\s*1\s*peça/ })).toBeVisible();
-  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
-  await page.goto(`${LOJA}/sacola?adicionar=peca-teste`);
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste&tamanho=plus`);
+  await page.goto(`${LOJA}/sacola?adicionar=peca-teste&tamanho=unico`);
   await expect(page).toHaveURL(/aviso=MAX_PER_MODEL/);
-  await expect(page.getByText("Cada estampa pode entrar no máximo 2 vezes.")).toBeVisible();
+  await expect(page.getByText("Cada estampa pode entrar no máximo 2 vezes, somando os tamanhos.")).toBeVisible();
 
-  await page.getByRole("button", { name: "Remover peça que saiu da loja" }).click();
+  await page.getByRole("button", { name: "Remover peça que saiu da loja" }).first().click();
+  await expect(page.getByRole("button", { name: "Remover peça que saiu da loja" })).toHaveCount(1);
   await page.getByRole("button", { name: "Remover peça que saiu da loja" }).click();
   await expect(page.getByRole("heading", { name: "Sua sacola está vazia." })).toBeVisible();
+});
+
+// Sem o tamanho (link antigo ou + de um cartão com dois tamanhos), a cliente escolhe na página da peça.
+test("sacola: sem o tamanho, vai para a página da peça", async ({ page }) => {
+  const r = await page.request.get(`${LOJA}/sacola?adicionar=peca-teste`, { maxRedirects: 0 });
+  expect(r.status()).toBe(303);
+  expect(r.headers().location).toMatch(/\/produto\/peca-teste\?escolha=tamanho#tamanho$/);
 });
 
 // Reserva (fatia 4): sem nada para reservar, "Seus dados" volta para a sacola; a tela do

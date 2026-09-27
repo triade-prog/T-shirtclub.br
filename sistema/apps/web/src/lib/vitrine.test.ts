@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { CartaoProduto } from "./catalogo";
-import { dividirNome, filtrarProdutos, lerFiltro, textoOferta } from "./vitrine";
+import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta } from "./vitrine";
 
 const produto = (slug: string, selo: CartaoProduto["selo"]): CartaoProduto => ({
   id: slug, slug, nome: slug, precoCentavos: 4999, precoPromocionalCentavos: null, noClub: true,
-  colecao: null, capa: null, disponivel: selo === "ESGOTADO" ? 0 : 5, selo,
+  colecao: null, capa: null, disponivel: selo === "ESGOTADO" ? 0 : 5, selo, tamanhos: [],
 });
+const tamanho = (t: "UNICO" | "PLUS", disponivel: number) => ({ id: t, tamanho: t, rotulo: t, disponivel, selo: "DISPONIVEL" as const });
 
 describe("vitrine", () => {
   const lista = [produto("a", "DISPONIVEL"), produto("b", "ULTIMAS_UNIDADES"), produto("c", "ESGOTADO")];
@@ -34,5 +35,21 @@ describe("vitrine", () => {
     expect(dividirNome("Limone", "Limone")).toEqual({ destaque: null, resto: "Limone" });
     expect(dividirNome("Il Limone Rosa", "Limone")).toEqual({ destaque: null, resto: "Il Limone Rosa" });
     expect(dividirNome("Teddy", undefined)).toEqual({ destaque: null, resto: "Teddy" });
+  });
+});
+
+describe("tamanhos (0370)", () => {
+  it("o + do cartão adiciona direto só quando há um tamanho à venda", () => {
+    expect(tamanhoRapido({ tamanhos: [tamanho("UNICO", 3)] })?.tamanho).toBe("UNICO");
+    expect(tamanhoRapido({ tamanhos: [tamanho("UNICO", 0), tamanho("PLUS", 2)] })?.tamanho).toBe("PLUS");
+    expect(tamanhoRapido({ tamanhos: [tamanho("UNICO", 3), tamanho("PLUS", 2)] })).toBeNull();
+    expect(tamanhoRapido({ tamanhos: [tamanho("UNICO", 0)] })).toBeNull();
+  });
+
+  it("medidas em centímetros, na ordem do cadastro", () => {
+    expect(textoMedidas({ busto: 104, comprimento: 68.5 })).toBe("busto 104 cm · comprimento 68,5 cm");
+    expect(textoMedidas({ caimento: "amplo" })).toBe("caimento amplo");
+    expect(textoMedidas({})).toBeNull();
+    expect(textoMedidas(undefined)).toBeNull();
   });
 });

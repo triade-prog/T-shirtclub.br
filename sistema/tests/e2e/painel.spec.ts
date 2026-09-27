@@ -55,7 +55,12 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
     [`v1/admin/products/${PECA}`]: {
       id: PECA, codigo: "LIM-AMA", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: false,
       capa: null, fotos: [], estoque: { total: 12, reservado: 0, vendido: 0, disponivel: 12 }, movimentos: [],
-      descricao: null, composicao: "100% algodão", modelagem: null, medidas: {}, cuidados: null,
+      descricao: null, composicao: "100% algodão", modelagem: null, cuidados: null,
+      tamanhos: [{ id: "v1", tamanho: "UNICO", rotulo: "Único · P ao 42", ativa: true, disponivel: 12 }, { id: "v2", tamanho: "PLUS", rotulo: "Plus · 44 ao 48", ativa: false, disponivel: 0 }],
+      variantes: [
+        { id: "v1", tamanho: "UNICO", rotulo: "Único · P ao 42", sku: "LIM-AMA-UNI", ativa: true, medidas: {}, estoque: { total: 12, reservado: 0, vendido: 0, disponivel: 12 } },
+        { id: "v2", tamanho: "PLUS", rotulo: "Plus · 44 ao 48", sku: "LIM-AMA-PLUS", ativa: false, medidas: {}, estoque: { total: 0, reservado: 0, vendido: 0, disponivel: 0 } },
+      ],
     },
   };
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
@@ -83,7 +88,14 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
 
   const checklist = page.locator(".checklist");
   await expect(checklist).toContainText("Falta: Acrescente pelo menos a foto de capa.");
-  await expect(checklist).toContainText("Sugestão: Confirme as medidas antes de publicar.");
+  await expect(checklist).toContainText("Sugestão: Confirme as medidas do Único antes de publicar.");
+  await expect(checklist).toContainText("Feito: À venda em Único.");
+
+  // Tamanhos (0370): liga o Plus, com medidas; o checklist acompanha
+  const plus = page.getByRole("group", { name: "Plus · 44 ao 48" });
+  await plus.getByLabel("À venda na loja").check();
+  await plus.getByLabel("Medidas (uma por linha)").fill("busto: 116");
+  await expect(checklist).toContainText("Feito: À venda em Único e Plus.");
   await expect(checklist).toContainText("Feito: 12 peças disponíveis.");
   // Um lugar para cada ângulo que falta; o da frente vira a capa
   await expect(page.getByRole("button", { name: "Capa · frente", exact: true })).toHaveAttribute("type", "file");
@@ -101,6 +113,12 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
   await page.getByRole("button", { name: "Salvar rascunho" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Peça salva." })).toBeVisible();
   expect(enviados.map((e) => `${e.metodo} ${e.caminho}`)).toEqual([`PUT v1/admin/products/${PECA}`, `PUT v1/admin/promotions/${CLUB}`]);
-  expect(enviados[0]!.corpo).toMatchObject({ nome: "Limone Positano", publicado: false, precoCentavos: 4999 });
+  expect(enviados[0]!.corpo).toMatchObject({
+    nome: "Limone Positano", publicado: false, precoCentavos: 4999,
+    variantes: [
+      { tamanho: "UNICO", sku: "LIM-AMA-UNI", ativa: true, medidas: {} },
+      { tamanho: "PLUS", sku: "LIM-AMA-PLUS", ativa: true, medidas: { busto: 116 } },
+    ],
+  });
   expect(enviados[1]!.corpo).toMatchObject({ escopo: "ESPECIFICOS", produtos: [{ produtoId: OUTRA }, { produtoId: PECA }], grupo: { qtd: 3, precoCentavos: 11999 } });
 });

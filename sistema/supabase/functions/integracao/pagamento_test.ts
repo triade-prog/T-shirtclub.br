@@ -16,6 +16,8 @@ const url = Deno.env.get("PGURL_TESTE");
 const SEGREDO = "s3gredo";
 const WEBHOOK = "segredo-do-webhook-mp";
 const PRODUTO = "6f1c2d3e-4b5a-4c6d-8e7f-000000000002";
+// O Único da peça (0370): o id é fixado depois de criar a peça, para os itens citarem direto
+const VARIANTE = "6f1c2d3e-4b5a-4c6d-8e7f-000000000f02";
 
 Deno.test({
   name: "pagamento: PIX pelo webhook, cartão recusado e aprovado, PIX cancelado no fim da tolerância",
@@ -30,8 +32,9 @@ Deno.test({
     try {
       await banco.sql.unsafe(`
         insert into collections (id, name, slug, color_key) values ('6f1c2d3e-4b5a-4c6d-8e7f-00000000c002', 'Pagamento', 'pagamento', 'MENTA');
-        insert into products (id, collection_id, code, slug, name, price_cents, qty_total)
-          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c002', 'PAG-01', 'pagamento-1', 'Limone Pagamento', 4999, 10);
+        insert into products (id, collection_id, code, slug, name, price_cents)
+          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c002', 'PAG-01', 'pagamento-1', 'Limone Pagamento', 4999);
+        update product_variants set id = '${VARIANTE}', qty_total = 10 where product_id = '${PRODUTO}' and size = 'UNICO';
         insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
           values ('${PRODUTO}', 'produtos/pag-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
         update products set published_at = now() where code = 'PAG-01';
@@ -44,12 +47,12 @@ Deno.test({
         const [s] = await banco.sql`insert into otp_sessions (phone_e164, purpose, status, verified_at) values (${telefone}, 'RESERVA', 'VERIFICADA', app_now()) returning id`;
         const [a] = await banco.sql`
           insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id, status, verified_until, browser_token_hash)
-          values (gen_attempt_ref(), 'Marina Souza', ${telefone}, 'RETIRADA', ${banco.sql.json([{ produtoId: PRODUTO, qtd: 1 }])}, 4999, ${s!.id},
+          values (gen_attempt_ref(), 'Marina Souza', ${telefone}, 'RETIRADA', ${banco.sql.json([{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }])}, 4999, ${s!.id},
                   'VERIFICADA', app_now() + interval '10 minutes', ${hash}) returning id`;
         const r = await banco.rpc<{ reserva: { id: string } }>("create_reservation", {
           p_attempt_id: a!.id, p_token_hash: hash,
           p: {
-            linhas: [{ produtoId: PRODUTO, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
+            linhas: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
             subtotalCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999, aplicada: null, chaveHash: await sha256Hex(`${token}k`), link: "https://tshirtclub.pt/r#x",
           },
         });
@@ -106,7 +109,7 @@ Deno.test({
       const status = await (await api.request(`/api-public/v1/reservations/${r1.id}/payments/${pix.id}`, { headers: { "x-repasse-segredo": SEGREDO, cookie: r1.cookie } })).json();
       assertEquals([status.status, status.reservaStatus], ["APROVADO", "PAGAMENTO_CONFIRMADO"]);
       await avisarWebhook(mp1); // o provedor avisa de novo: nada muda
-      const [{ qty_sold }] = await banco.sql`select qty_sold from products where code = 'PAG-01'`;
+      const [{ qty_sold }] = await banco.sql`select qty_sold from product_variants where sku = 'PAG-01-UNI'`;
       assertEquals(qty_sold, 1, "vendido uma vez só");
 
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and template <> 'pagamento_confirmado'`;

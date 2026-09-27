@@ -10,7 +10,7 @@ import { chamarApi, dataHora, mensagemDeErro } from "@/lib/api";
 import { ErroSemWebp, TEXTO_SEM_WEBP, deMedidas, enviarArquivo, paraCentavos, paraMedidas, paraReais, paraSlug, paraWebp, urlFoto } from "@/lib/catalogo";
 import { corpoClubComPeca, participaDoClub, promocaoDoClub, textoOfertaClub } from "@/lib/club";
 import { itensPublicacao, podePublicar, type ItemPublicacao } from "@/lib/publicacao";
-import { TIPOS_FOTO, type Colecao, type Foto, type ProdutoCompleto, type Promocao } from "@/lib/tiposCatalogo";
+import { NOME_TAMANHO, TIPOS_FOTO, type Colecao, type Foto, type ProdutoCompleto, type Promocao, type Tamanho } from "@/lib/tiposCatalogo";
 import { AjusteEstoque } from "../../../_painel/AjusteEstoque";
 import { Casca } from "../../../_painel/Casca";
 import { Aviso, Botao, Campo, Carregando, Escolha, Marcar, Selo } from "../../../_painel/ui";
@@ -48,13 +48,21 @@ export function Produto({ id }: { id: string | null }) {
   );
 }
 
-interface Campos { colecaoId: string; codigo: string; preco: string; descricao: string; medidas: string; ativo: boolean; club: boolean }
+// Tamanhos da peça (0370): SKU, se está à venda e as medidas de cada um; o preço é o da peça.
+const TAMANHOS: readonly Tamanho[] = ["UNICO", "PLUS"];
+const SUFIXO_SKU: Record<Tamanho, string> = { UNICO: "UNI", PLUS: "PLUS" };
+interface CamposTamanho { sku: string; ativa: boolean; medidas: string }
+interface Campos { colecaoId: string; codigo: string; preco: string; descricao: string; ativo: boolean; club: boolean; tamanhos: Record<Tamanho, CamposTamanho> }
 type Acao = "rascunho" | "publicar" | "salvar" | "despublicar";
 
 function lerCampos(form: HTMLFormElement): Campos {
   const f = new FormData(form);
   const txt = (k: string) => String(f.get(k) ?? "");
-  return { colecaoId: txt("colecaoId"), codigo: txt("codigo"), preco: txt("preco"), descricao: txt("descricao"), medidas: txt("medidas"), ativo: f.get("ativo") === "on", club: f.get("club") === "on" };
+  const tamanho = (t: Tamanho): CamposTamanho => ({ sku: txt(`sku_${t}`), ativa: f.get(`ativa_${t}`) === "on", medidas: txt(`medidas_${t}`) });
+  return {
+    colecaoId: txt("colecaoId"), codigo: txt("codigo"), preco: txt("preco"), descricao: txt("descricao"),
+    ativo: f.get("ativo") === "on", club: f.get("club") === "on", tamanhos: { UNICO: tamanho("UNICO"), PLUS: tamanho("PLUS") },
+  };
 }
 
 function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: ProdutoCompleto | null; colecoes: Colecao[]; promocoes: Promocao[] | null; aoMudar: () => void }) {
@@ -68,7 +76,12 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
   const [slug, setSlug] = useState(p?.slug ?? "");
   const [campos, setCampos] = useState<Campos>({
     colecaoId: p?.colecaoId ?? colecoes[0]?.id ?? "", codigo: p?.codigo ?? "", preco: paraReais(p?.precoCentavos) || "49,99",
-    descricao: p?.descricao ?? "", medidas: deMedidas(p?.medidas), ativo: p?.ativo ?? true, club: noClub,
+    descricao: p?.descricao ?? "", ativo: p?.ativo ?? true, club: noClub,
+    // Peça nova: Único à venda e Plus não; o SKU sai do código enquanto ficar em branco
+    tamanhos: Object.fromEntries(TAMANHOS.map((t) => {
+      const v = p?.variantes.find((x) => x.tamanho === t);
+      return [t, { sku: v?.sku ?? "", ativa: v?.ativa ?? t === "UNICO", medidas: deMedidas(v?.medidas) }];
+    })) as Record<Tamanho, CamposTamanho>,
   });
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -79,7 +92,8 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
   const dadosValidos = !!nome.trim() && /^[A-Z0-9][A-Z0-9-]{1,19}$/.test(campos.codigo.trim().toUpperCase()) && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && preco !== null && preco >= 1;
   const ofertaClub = club && (escolhida ? campos.club : true) ? textoOfertaClub(club) : null;
   const itens = itensPublicacao({
-    nova: !p, dadosValidos, ativa: campos.ativo, fotos: p?.fotos ?? [], descricao: campos.descricao, medidas: campos.medidas,
+    nova: !p, dadosValidos, ativa: campos.ativo, fotos: p?.fotos ?? [], descricao: campos.descricao,
+    tamanhos: TAMANHOS.filter((t) => campos.tamanhos[t].ativa).map((t) => ({ nome: NOME_TAMANHO[t], comMedidas: campos.tamanhos[t].medidas.trim() !== "" })),
     disponivel: p?.estoque.disponivel ?? 0, colecaoAtiva: colecao?.ativa ?? true, club: club ? ofertaClub : undefined,
   });
 
@@ -91,14 +105,22 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
     setAviso(null);
     const c = lerCampos(e.currentTarget);
     const precoCentavos = paraCentavos(c.preco);
-    const medidas = paraMedidas(c.medidas);
     const codigo = c.codigo.trim().toUpperCase();
     const texto = (v: string) => v.trim() || null;
     if (!nome.trim()) return setErro("Dê um nome à peça.");
     if (!/^[A-Z0-9][A-Z0-9-]{1,19}$/.test(codigo)) return setErro("O código usa letras, números e hífen (2 a 20), como LIM-01.");
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return setErro("Confira o endereço da peça.");
     if (precoCentavos === null || precoCentavos < 1) return setErro("Informe o preço, como 49,99.");
-    if (medidas === null) return setErro("Escreva as medidas uma por linha, como “busto: 104”.");
+    const variantes = [];
+    for (const t of TAMANHOS) {
+      const ct = c.tamanhos[t];
+      const sku = (ct.sku.trim() || `${codigo}-${SUFIXO_SKU[t]}`).toUpperCase();
+      const medidas = paraMedidas(ct.medidas);
+      if (!/^[A-Z0-9][A-Z0-9-]{1,29}$/.test(sku)) return setErro(`O SKU do ${NOME_TAMANHO[t]} usa letras, números e hífen (2 a 30).`);
+      if (medidas === null) return setErro(`Escreva as medidas do ${NOME_TAMANHO[t]} uma por linha, como “busto: 104”.`);
+      variantes.push({ tamanho: t, sku, ativa: ct.ativa, medidas });
+    }
+    if (variantes[0]!.sku === variantes[1]!.sku) return setErro("Cada tamanho precisa de um SKU diferente.");
     const publicar = acao === "publicar" || acao === "salvar";
     if (acao === "publicar" && !podePublicar(itens)) {
       return setErro(`Para publicar, falta: ${itens.filter((i) => i.situacao === "FALTA").map((i) => i.texto.replace(/\.$/, "").toLowerCase()).join("; ")}.`);
@@ -108,7 +130,7 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
     const corpo = {
       colecaoId: c.colecaoId, codigo, slug, nome: nome.trim(), precoCentavos,
       descricao: texto(c.descricao), composicao: texto(String(f.get("composicao") ?? "")), modelagem: texto(String(f.get("modelagem") ?? "")),
-      medidas, cuidados: texto(String(f.get("cuidados") ?? "")), ativo: c.ativo, publicado: publicar,
+      cuidados: texto(String(f.get("cuidados") ?? "")), ativo: c.ativo, publicado: publicar, variantes,
     };
     setOcupado(true);
     const r = p ? await chamarApi<{ id: string }>(`v1/admin/products/${p.id}`, corpo, "PUT") : await chamarApi<{ id: string }>("v1/admin/products", corpo);
@@ -156,9 +178,31 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
             <div className="form-grid">
               <Campo name="composicao" rotulo="Composição (opcional)" maxLength={200} defaultValue={p?.composicao ?? ""} placeholder="100% algodão" />
               <Campo name="modelagem" rotulo="Modelagem (opcional)" maxLength={200} defaultValue={p?.modelagem ?? ""} placeholder="Tamanho único, veste do P ao 42" />
-              <div className="full"><Campo multilinha name="medidas" rotulo="Medidas (uma por linha, opcional)" maxLength={1200} defaultValue={campos.medidas} placeholder={"busto: 104\ncomprimento: 68"} /></div>
               <div className="full"><Campo multilinha name="cuidados" rotulo="Cuidados (opcional)" maxLength={500} defaultValue={p?.cuidados ?? ""} placeholder="Lavar do avesso…" /></div>
               <div className="full"><Marcar name="ativo" rotulo="Peça ativa (inativa, ela some da loja e não pode ser reservada)" defaultChecked={campos.ativo} /></div>
+            </div>
+          </article>
+
+          <article className="card">
+            <Cabeca titulo="Tamanhos e estoque" sub="O estoque é separado por tamanho, na mesma página da peça. O preço é o mesmo nos dois." tag={`${TAMANHOS.filter((t) => campos.tamanhos[t].ativa).length} à venda`} />
+            <div className="tamanhos">
+              {TAMANHOS.map((t) => {
+                const v = p?.variantes.find((x) => x.tamanho === t);
+                return (
+                  <fieldset key={t} className="tamanho">
+                    <legend>{v?.rotulo ?? NOME_TAMANHO[t]}</legend>
+                    <Marcar name={`ativa_${t}`} rotulo="À venda na loja" defaultChecked={campos.tamanhos[t].ativa} />
+                    <Campo name={`sku_${t}`} rotulo="SKU" maxLength={30} defaultValue={campos.tamanhos[t].sku} autoCapitalize="characters"
+                      placeholder={campos.codigo ? `${campos.codigo.trim().toUpperCase()}-${SUFIXO_SKU[t]}` : `LIM-01-${SUFIXO_SKU[t]}`}
+                      ajuda={campos.tamanhos[t].sku ? undefined : "Em branco, sai do código da peça."} />
+                    <Campo multilinha name={`medidas_${t}`} rotulo="Medidas (uma por linha)" maxLength={1200} defaultValue={campos.tamanhos[t].medidas}
+                      placeholder={t === "UNICO" ? "busto: 104\ncomprimento: 68" : "busto: 116\ncomprimento: 72"} />
+                    <p className="field-help" style={{ margin: 0 }}>
+                      {v ? `${v.estoque.disponivel} disponíveis · ${v.estoque.reservado} reservadas · ${v.estoque.vendido} vendidas` : "O estoque entra depois de salvar."}
+                    </p>
+                  </fieldset>
+                );
+              })}
             </div>
           </article>
         </form>
@@ -193,12 +237,13 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
             <article className="card">
               <h2>Estoque</h2>
               <div className="kv">
-                <div className="kv-row"><span>Total</span><b>{p.estoque.total}</b></div>
-                <div className="kv-row"><span>Reservadas</span><b>{p.estoque.reservado}</b></div>
-                <div className="kv-row"><span>Vendidas</span><b>{p.estoque.vendido}</b></div>
+                {p.variantes.map((v) => (
+                  <div key={v.id} className="kv-row"><span>{v.rotulo}{v.ativa ? "" : " (fora de venda)"}</span><b>{v.estoque.disponivel} de {v.estoque.total}</b></div>
+                ))}
+                <div className="kv-row"><span>Reservadas · vendidas</span><b>{p.estoque.reservado} · {p.estoque.vendido}</b></div>
                 <div className="kv-row"><span>Disponíveis na loja</span><b className="price-total">{p.estoque.disponivel}</b></div>
               </div>
-              <div style={{ marginTop: 14 }}><AjusteEstoque produtoId={p.id} nome={p.nome} aoAjustar={aoMudar} /></div>
+              <div style={{ marginTop: 14 }}><AjusteEstoque produtoId={p.id} nome={p.nome} variantes={p.variantes} aoAjustar={aoMudar} /></div>
             </article>
             <article className="card">
               <h2>Movimentos</h2>
@@ -207,7 +252,7 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
                   {p.movimentos.map((m, i) => (
                     <li key={i} className="event">
                       <span className={`event-dot${m.qtd < 0 ? " muted" : ""}`} aria-hidden="true" />
-                      <div><b>{m.qtd > 0 ? `+${m.qtd}` : m.qtd} · {m.tipo.toLowerCase()}</b><span>{dataHora(m.em)}{m.motivo ? ` · ${m.motivo}` : ""}</span></div>
+                      <div><b>{m.qtd > 0 ? `+${m.qtd}` : m.qtd} · {m.tipo.toLowerCase()}{m.tamanho ? ` · ${NOME_TAMANHO[m.tamanho]}` : ""}</b><span>{dataHora(m.em)}{m.motivo ? ` · ${m.motivo}` : ""}</span></div>
                     </li>
                   ))}
                 </ol>

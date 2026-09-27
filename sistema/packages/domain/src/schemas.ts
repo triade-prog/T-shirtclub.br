@@ -22,8 +22,10 @@ export const nomeClienteSchema = z
 
 export const idSchema = z.uuid();
 
+/** Um tamanho de uma peça (0370): o limite por peça soma os tamanhos. */
 export const itemCarrinhoSchema = z.object({
   produtoId: idSchema,
+  varianteId: idSchema,
   qtd: z.number().int().min(1).max(LIMITES_PADRAO.maxPorProduto),
 });
 
@@ -31,7 +33,7 @@ export const itensCarrinhoSchema = z
   .array(itemCarrinhoSchema)
   .min(1)
   .max(LIMITES_PADRAO.maxPecas)
-  .refine((itens) => new Set(itens.map((i) => i.produtoId)).size === itens.length, "VALIDATION_ERROR")
+  .refine((itens) => new Set(itens.map((i) => i.varianteId)).size === itens.length, "VALIDATION_ERROR")
   .refine((itens) => itens.reduce((s, i) => s + i.qtd, 0) <= LIMITES_PADRAO.maxPecas, "MAX_ITEMS");
 
 export const modalidadeEntregaSchema = z.enum(["RETIRADA", "MOTOBOY", "ENVIO"]);
@@ -100,6 +102,8 @@ export const verificarAutenticadorSchema = z.object({
 
 /** POST /v1/admin/products/:id/stock-adjustments */
 export const ajusteEstoqueSchema = z.object({
+  /** O tamanho ajustado (0370). */
+  varianteId: idSchema,
   delta: z.number().int().refine((v) => v !== 0 && Math.abs(v) <= 100_000, "VALIDATION_ERROR"),
   motivo: z.string().trim().min(3, "VALIDATION_ERROR").max(200, "VALIDATION_ERROR"),
   tipo: z.enum(["ENTRADA", "AJUSTE"]).default("AJUSTE"),

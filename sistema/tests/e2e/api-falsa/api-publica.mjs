@@ -17,10 +17,17 @@ const colecao = { id: "c0000000-0000-4000-8000-000000000001", nome: "Limone", sl
 const cartao = {
   id: "p0000000-0000-4000-8000-000000000001", slug: "limone-amalfi-coast", nome: "Limone Amalfi Coast", precoCentavos: PRECO, precoPromocionalCentavos: null, noClub: true,
   colecao: { slug: "limone", nome: "Limone", cor: "LIMAO" }, capa: { caminho: "produtos/10-limone-amalfi-coast.webp", alt: "Camiseta Limone Amalfi Coast" }, disponivel: 8, selo: "DISPONIVEL",
+  // Tamanhos (0370): os dois à venda, então o + do cartão leva à página para escolher
+  tamanhos: [
+    { id: "v0000000-0000-4000-8000-000000000001", tamanho: "UNICO", rotulo: "Único · P ao 42", disponivel: 5, selo: "DISPONIVEL" },
+    { id: "v0000000-0000-4000-8000-000000000002", tamanho: "PLUS", rotulo: "Plus · 44 ao 48", disponivel: 3, selo: "DISPONIVEL" },
+  ],
 };
+const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
+const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
   ...cartao, descricao: "O verão italiano no peito, e o resto do look fica por sua conta.", composicao: "100% algodão.", modelagem: "Modelagem confortável.",
-  medidas: "Largura 52 cm\nComprimento 70 cm", cuidados: "Lavar do avesso.", colecao: { nome: "Limone", slug: "limone", descricao: colecao.descricao, cor: "LIMAO", capa: colecao.capa },
+  tamanhos: cartao.tamanhos.map((t) => ({ ...t, medidas: medidas[t.tamanho] })), cuidados: "Lavar do avesso.", colecao: { nome: "Limone", slug: "limone", descricao: colecao.descricao, cor: "LIMAO", capa: colecao.capa },
   fotos: [
     { caminho: "produtos/10-limone-amalfi-coast.webp", alt: "Camiseta Limone Amalfi Coast, frente", tipo: "FRENTE" },
     { caminho: "limone-detalhe.webp", alt: "Detalhe da estampa Limone", tipo: "DETALHE" },
@@ -41,7 +48,7 @@ const pagamentos = new Map();
 let numero = 1040;
 
 function cotar(itens) {
-  const linhas = itens.map((i) => ({ produtoId: i.produtoId, qtd: i.qtd, precoTabelaCentavos: PRECO, subtotalCentavos: PRECO * i.qtd, descontoCentavos: 0, totalCentavos: PRECO * i.qtd }));
+  const linhas = itens.map((i) => ({ produtoId: i.produtoId, varianteId: i.varianteId, qtd: i.qtd, precoTabelaCentavos: PRECO, subtotalCentavos: PRECO * i.qtd, descontoCentavos: 0, totalCentavos: PRECO * i.qtd }));
   const total = linhas.reduce((s, l) => s + l.totalCentavos, 0);
   const pecas = linhas.reduce((s, l) => s + l.qtd, 0);
   return { linhas, pecas, subtotalCentavos: total, descontoCentavos: 0, totalCentavos: total, aplicada: null, cupom: null, proximoGrupo: pecas % 3 ? { faltam: 3 - (pecas % 3), qtd: 3, precoCentavos: club.precoCentavos, promocaoId: "club" } : null };
@@ -123,7 +130,8 @@ http.createServer(async (req, res) => {
         id: randomUUID(), numero: ++numero, status: "RESERVADO", motivoEncerramento: null, entrega: t.entrega,
         subtotalCentavos: cot.subtotalCentavos, descontoCentavos: 0, totalCentavos: cot.totalCentavos,
         criadaEm: new Date(agora).toISOString(), expiraEm: new Date(agora + 15 * 60_000).toISOString(), toleranciaAte: null, expiradaEm: null,
-        itens: t.itens.map((i) => ({ produtoId: i.produtoId, nome: cartao.nome, qtd: i.qtd, totalCentavos: PRECO * i.qtd })),
+        itens: t.itens.map((i) => ({ produtoId: i.produtoId, varianteId: i.varianteId, nome: cartao.nome, tamanho: rotuloDe(i.varianteId)?.tamanho,
+                                     rotuloTamanho: rotuloDe(i.varianteId)?.rotulo, qtd: i.qtd, totalCentavos: PRECO * i.qtd })),
         descontos: [], cancelamento: null, logistica: null,
       };
       reservas.set(r.id, r);

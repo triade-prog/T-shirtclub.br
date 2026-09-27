@@ -16,7 +16,7 @@ interface Detalhe {
   id: string; numero: number; status: string; motivoEncerramento?: string | null; nome: string; telefone: string; entrega?: string;
   subtotalCentavos: number; descontoCentavos: number; totalCentavos: number; cupom?: string | null;
   criadaEm: string; expiraEm: string; pagaEm?: string | null; expiradaEm?: string | null; entregueEm?: string | null; entreguePor?: string | null;
-  itens?: { produtoId: string; nome: string; qtd: number; totalCentavos: number }[];
+  itens?: { produtoId: string; varianteId?: string; nome: string; tamanho?: string; rotuloTamanho?: string; qtd: number; totalCentavos: number }[];
   descontos?: { tipo: string; valorCentavos: number; rotulo: string | null }[];
   logistica?: {
     modalidade?: string; substatus?: string; endereco?: Record<string, string>; codigoRetirada?: string; rastreio?: string;
@@ -100,7 +100,7 @@ export function DetalheReserva({ id }: { id: string }) {
               {(r.itens ?? []).map((i, n) => (
                 <div className="piece" key={i.produtoId}>
                   <div className="piece-img" style={{ background: FUNDOS_PECA[n % FUNDOS_PECA.length] }}><Icone>{CAMISETA}</Icone></div>
-                  <div><b>{i.nome} × {i.qtd}</b><small>Tamanho único</small></div>
+                  <div><b>{i.nome} × {i.qtd}</b><small>{i.rotuloTamanho ? `Tamanho ${i.rotuloTamanho}` : "Tamanho único"}</small></div>
                   <span className="piece-price">{formatarReais(i.totalCentavos)}</span>
                 </div>
               ))}

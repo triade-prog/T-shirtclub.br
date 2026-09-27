@@ -15,6 +15,8 @@ import { bancoPg } from "./banco_pg.ts";
 const url = Deno.env.get("PGURL_TESTE");
 const SEGREDO = "s3gredo";
 const PRODUTO = "6f1c2d3e-4b5a-4c6d-8e7f-000000000004";
+// O Único da peça (0370): o id é fixado depois de criar a peça, para os itens citarem direto
+const VARIANTE = "6f1c2d3e-4b5a-4c6d-8e7f-000000000f04";
 const ADMIN = "6f1c2d3e-4b5a-4c6d-8e7f-0000000000d8";
 const ENDERECO = { cep: "45000-000", rua: "Rua das Flores", numero: "12", bairro: "Centro", cidade: "Vitória da Conquista", uf: "BA" };
 const CARTAO = { forma: "CARTAO", cartao: { token: "tok_12345678", paymentMethodId: "master", email: "m@exemplo.com" } };
@@ -34,8 +36,9 @@ Deno.test({
         insert into auth.users (id) values ('${ADMIN}');
         insert into admin_users (id, name) values ('${ADMIN}', 'Loja');
         insert into collections (id, name, slug, color_key) values ('6f1c2d3e-4b5a-4c6d-8e7f-00000000c004', 'Entrega', 'entrega', 'MENTA');
-        insert into products (id, collection_id, code, slug, name, price_cents, qty_total)
-          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c004', 'ENT-01', 'entrega-1', 'Limone Entrega', 4999, 10);
+        insert into products (id, collection_id, code, slug, name, price_cents)
+          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c004', 'ENT-01', 'entrega-1', 'Limone Entrega', 4999);
+        update product_variants set id = '${VARIANTE}', qty_total = 10 where product_id = '${PRODUTO}' and size = 'UNICO';
         insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
           values ('${PRODUTO}', 'produtos/ent-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
         update products set published_at = now() where code = 'ENT-01';
@@ -48,12 +51,12 @@ Deno.test({
         const [s] = await banco.sql`insert into otp_sessions (phone_e164, purpose, status, verified_at) values (${telefone}, 'RESERVA', 'VERIFICADA', app_now()) returning id`;
         const [a] = await banco.sql`
           insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, expected_total_cents, otp_session_id, status, verified_until, browser_token_hash)
-          values (gen_attempt_ref(), 'Marina Souza', ${telefone}, ${entrega}, ${banco.sql.json([{ produtoId: PRODUTO, qtd: 1 }])}, 4999, ${s!.id},
+          values (gen_attempt_ref(), 'Marina Souza', ${telefone}, ${entrega}, ${banco.sql.json([{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }])}, 4999, ${s!.id},
                   'VERIFICADA', app_now() + interval '10 minutes', ${hash}) returning id`;
         const { reserva } = await banco.rpc<{ reserva: { id: string; numero: number } }>("create_reservation", {
           p_attempt_id: a!.id, p_token_hash: hash,
           p: {
-            linhas: [{ produtoId: PRODUTO, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
+            linhas: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1, precoTabelaCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999 }],
             subtotalCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999, aplicada: null, chaveHash: await sha256Hex(`${token}k`), link: "https://tshirtclub.pt/r#x",
           },
         });
@@ -100,7 +103,7 @@ Deno.test({
       assertEquals(address.cep, "45000000", "o painel tem o endereço completo, com o CEP normalizado");
 
       await banco.rpc("admin_shipping_quote", { p_reservation_id: r1.id, p_admin: ADMIN, p_amount_cents: 1200, p_days: 1 });
-      assertMatch(await enviar(), new RegExp(`^Frete do pedido #${r1.numero}: R\\$ 12,00\\. Pague até \\*\\d{2}:\\d{2}\\*`));
+      assertMatch(await enviar(), new RegExp(`^O frete do pedido #${r1.numero} ficou em \\*R\\$ 12,00\\*\\.`));
       const tela = await ver(r1);
       assertEquals([tela.logistica.substatus, tela.logistica.frete.valorCentavos], ["AGUARDANDO_PAGAMENTO_FRETE", 1200]);
       const frete = await (await chamarApi(r1.cookie, `${r1.id}/shipping-payments`, "POST", CARTAO)).json();
@@ -111,7 +114,7 @@ Deno.test({
       await banco.rpc("admin_set_substatus", { p_reservation_id: r1.id, p_admin: ADMIN, p_substatus: "SAIU_PARA_ENTREGA" });
       await banco.rpc("deliver_reservation", { p_reservation_id: r1.id, p_admin: ADMIN });
       assertEquals((await ver(r1)).status, "ENTREGUE");
-      const [{ qty_sold }] = await banco.sql`select qty_sold from products where code = 'ENT-01'`;
+      const [{ qty_sold }] = await banco.sql`select qty_sold from product_variants where sku = 'ENT-01-UNI'`;
       assertEquals(qty_sold, 1, "o frete não mexe no estoque");
 
       assert((await enviar()).startsWith(`Pedido #${r1.numero} entregue.`));

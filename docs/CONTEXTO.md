@@ -193,3 +193,6 @@ A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.ap
 - Dados da empresa para a política de privacidade (razão social, CNPJ, endereço, e-mail e nome do encarregado).
 - Endereço e horário de retirada na loja.
 - Conferir com as contas reais: remetente LID na Z-API (G4) e prazo mínimo de 30 min do PIX no Mercado Pago (G14).
+
+**Variantes Único e Plus (27/09, D28):** peça → variante → estoque. `product_variants` (0370) guarda, por tamanho, SKU, se está à venda, medidas e o estoque; a peça continua com preço, textos, fotos, promoções e looks. Toda peça nasce com o Único ativo e o Plus inativo (SKU `<código>-UNI` e `<código>-PLUS`, editáveis). A reserva trava as variantes em ordem de id; itens e movimentos guardam a variante e o tamanho; `max_por_produto` soma os tamanhos. Na loja, o item da sacola é `slug.tamanho:qtd` no cookie e `{produtoId, varianteId, qtd}` na API; a página da peça tem a escolha do tamanho (sem JavaScript) e o + do cartão só adiciona direto quando há um tamanho à venda. No painel, o cadastro tem Tamanhos e estoque; o ajuste de estoque pede o tamanho; os nomes dos tamanhos ficam em Minha conta (`tamanho_rotulo_unico` e `tamanho_rotulo_plus`) e a loja revalida ao mudar. Testes do banco usam `supabase/tests/ajudantes.sql` (schema `testes`).
+

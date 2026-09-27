@@ -2,9 +2,10 @@ begin;
 select plan(27);
 
 insert into collections (id, name, slug, color_key) values ('00000000-0000-4000-8000-00000000c001', 'Limone', 'limone', 'LIMAO');
-insert into products (id, collection_id, code, slug, name, price_cents, qty_total) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999, 5),
-  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'LIM-02', 'limone-2', 'Limone Capri', 4999, 1);
+insert into products (id, collection_id, code, slug, name, price_cents) values
+  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-00000000c001', 'LIM-01', 'limone-1', 'Limone Amalfi', 4999),
+  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-00000000c001', 'LIM-02', 'limone-2', 'Limone Capri', 4999);
+update product_variants v set qty_total = x.q from (values ('00000000-0000-4000-8000-00000000a001', 5), ('00000000-0000-4000-8000-00000000a002', 1)) x(p, q) where v.product_id = x.p::uuid and v.size = 'UNICO';
 insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
 select id, 'produtos/' || lower(code) || '.webp', 'FRENTE', name, 10, 10, 1 from products;
 update products set published_at = app_now();
@@ -17,7 +18,7 @@ begin
   insert into otp_sessions (phone_e164, purpose, status, verified_at) values (p_phone, 'RESERVA', 'VERIFICADA', app_now()) returning id into s;
   insert into reservation_attempts (ref, customer_name, phone_e164, delivery_intent, items, coupon_code, expected_total_cents,
                                     otp_session_id, status, verified_until, browser_token_hash)
-  values (gen_attempt_ref(), 'Marina Souza', p_phone, 'RETIRADA', p_itens, p_cupom, p_total, s, 'VERIFICADA',
+  values (gen_attempt_ref(), 'Marina Souza', p_phone, 'RETIRADA', testes.com_unico(p_itens), p_cupom, p_total, s, 'VERIFICADA',
           app_now() + interval '10 minutes', pg_temp.h(p_token))
   returning id into a;
   return a;
@@ -25,7 +26,7 @@ end $$;
 -- Linhas no formato do motor de preço, sem desconto
 create function pg_temp.linhas(p_itens jsonb, p_preco int default 4999, p_aplicada jsonb default null, p_desconto int default 0) returns jsonb language sql as $$
   select jsonb_build_object(
-    'linhas', (select jsonb_agg(jsonb_build_object('produtoId', x ->> 'produtoId', 'qtd', (x ->> 'qtd')::int, 'precoTabelaCentavos', p_preco,
+    'linhas', (select jsonb_agg(jsonb_build_object('produtoId', x ->> 'produtoId', 'varianteId', testes.unico((x ->> 'produtoId')::uuid), 'qtd', (x ->> 'qtd')::int, 'precoTabelaCentavos', p_preco,
                                                   'descontoCentavos', case when ord = 1 then p_desconto else 0 end,
                                                   'totalCentavos', p_preco * (x ->> 'qtd')::int - case when ord = 1 then p_desconto else 0 end))
                  from jsonb_array_elements(p_itens) with ordinality y(x, ord)),
@@ -46,7 +47,7 @@ insert into t select 'r1', create_reservation((select v #>> '{}' from t where no
 select is((select v -> 'reserva' ->> 'numero' from t where nome = 'r1'), '1001', 'primeira reserva é a #1001');
 select is((select v -> 'reserva' ->> 'status' from t where nome = 'r1'), 'RESERVADO', 'nasce em RESERVADO');
 select is((select (v -> 'reserva' ->> 'expiraEm')::timestamptz from t where nome = 'r1'), app_now() + interval '15 minutes', 'prazo de 15 minutos pelo relógio do banco');
-select is((select qty_reserved from products where code = 'LIM-01'), 2, 'estoque reservado');
+select is((testes.variante('LIM-01')).qty_reserved, 2, 'estoque reservado');
 select is((select sum(qty)::int from stock_movements where kind = 'RESERVA'), 2, 'movimento de reserva gravado');
 select is((select event from reservation_transitions), 'T1', 'linha do tempo começa em T1');
 select is((select params ->> 'link' from outbox_messages where template = 'reserva_criada'), 'https://tshirtclub.pt/r#chave', 'mensagem "reserva criada" na fila, com o link');
@@ -57,7 +58,7 @@ select is((select count(*)::int from audit_log where action = 'reserva.criada'),
 -- Duplo clique: a mesma reserva, sem reservar de novo
 select is(create_reservation((select v #>> '{}' from t where nome = 'a1')::uuid, pg_temp.h('n1'), pg_temp.linhas((select v from t where nome = 'itens1'))) ->> 'repetida',
   'true', 'confirmar de novo devolve a mesma reserva');
-select is((select qty_reserved from products where code = 'LIM-01'), 2, 'e não reserva de novo');
+select is((testes.variante('LIM-01')).qty_reserved, 2, 'e não reserva de novo');
 
 -- Uma ativa por telefone
 insert into t select 'a2', to_jsonb(pg_temp.verificada('+5577998128809', 'n2', '[{"produtoId": "00000000-0000-4000-8000-00000000a002", "qtd": 1}]', 4999));
@@ -73,10 +74,11 @@ insert into t select 'itens3', '[{"produtoId": "00000000-0000-4000-8000-00000000
 insert into t select 'a3', to_jsonb(pg_temp.verificada('+5571991112222', 'n3', (select v from t where nome = 'itens3'), 14997));
 insert into t select 'r3', create_reservation((select v #>> '{}' from t where nome = 'a3')::uuid, pg_temp.h('n3'), pg_temp.linhas((select v from t where nome = 'itens3')));
 select is((select v ->> 'erro' from t where nome = 'r3'), 'STOCK_UNAVAILABLE', 'item sem estoque: nenhuma reserva');
-select is((select v -> 'detalhes' -> 'produtos' from t where nome = 'r3'), '["Limone Capri"]'::jsonb, 'o erro diz qual peça acabou');
-select is((select qty_reserved from products where code = 'LIM-01'), 2, 'nenhum estoque alterado');
+select is((select v -> 'detalhes' -> 'produtos' from t where nome = 'r3'), '["Limone Capri · Único · P ao 42"]'::jsonb, 'o erro diz qual peça e tamanho acabou');
+select is((testes.variante('LIM-01')).qty_reserved, 2, 'nenhum estoque alterado');
 select is(attempt_update_items((select v #>> '{}' from t where nome = 'a3')::uuid, pg_temp.h('n3'),
-                               '{"itens": [{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}], "totalEsperadoCentavos": 4999}') ->> 'ok',
+                               jsonb_build_object('itens', testes.com_unico('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]'),
+                                                  'totalEsperadoCentavos', 4999)) ->> 'ok',
   'true', 'ajusta a sacola sem pedir outro código (R8)');
 select is(create_reservation((select v #>> '{}' from t where nome = 'a3')::uuid, pg_temp.h('n3'),
                              pg_temp.linhas('[{"produtoId": "00000000-0000-4000-8000-00000000a001", "qtd": 1}]')) -> 'reserva' ->> 'status',

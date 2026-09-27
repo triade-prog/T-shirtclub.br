@@ -15,6 +15,8 @@ const url = Deno.env.get("PGURL_TESTE");
 const SEGREDO = "s3gredo";
 const WEBHOOK = "w".repeat(40);
 const PRODUTO = "6f1c2d3e-4b5a-4c6d-8e7f-000000000001";
+// O Único da peça (0370): o id é fixado depois de criar a peça, para os itens citarem direto
+const VARIANTE = "6f1c2d3e-4b5a-4c6d-8e7f-000000000f01";
 const TELEFONE = "+5577998120001";
 
 Deno.test({
@@ -28,8 +30,9 @@ Deno.test({
     try {
       await banco.sql.unsafe(`
         insert into collections (id, name, slug, color_key) values ('6f1c2d3e-4b5a-4c6d-8e7f-00000000c001', 'Integração', 'integracao', 'LAVANDA');
-        insert into products (id, collection_id, code, slug, name, price_cents, qty_total)
-          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c001', 'INT-01', 'integracao-1', 'Teddy Integração', 4999, 1);
+        insert into products (id, collection_id, code, slug, name, price_cents)
+          values ('${PRODUTO}', '6f1c2d3e-4b5a-4c6d-8e7f-00000000c001', 'INT-01', 'integracao-1', 'Teddy Integração', 4999);
+        update product_variants set id = '${VARIANTE}', qty_total = 1 where product_id = '${PRODUTO}' and size = 'UNICO';
         insert into product_images (product_id, storage_path, kind, alt_text, width, height, position)
           values ('${PRODUTO}', 'produtos/int-01.webp', 'FRENTE', 'Frente', 10, 10, 1);
         update products set published_at = now() where code = 'INT-01';
@@ -62,13 +65,13 @@ Deno.test({
         });
 
       // Sacola
-      const cotacao = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, qtd: 1 }] })).json();
+      const cotacao = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }] })).json();
       assertEquals(cotacao.totalCentavos, 4999);
 
       // Seus dados → tentativa com referência e cookie
       const t = await pedir("/v1/reservation-attempts", {
         nome: "Marina Souza", telefone: "(77) 99812-0001", entrega: "RETIRADA",
-        itens: [{ produtoId: PRODUTO, qtd: 1 }], totalEsperadoCentavos: 4999, turnstileToken: "ok",
+        itens: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }], totalEsperadoCentavos: 4999, turnstileToken: "ok",
       });
       assertEquals(t.status, 201);
       const tentativa = await t.json();
@@ -125,20 +128,20 @@ Deno.test({
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and reservation_id <> ${reserva.id}`;
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
       assertEquals((await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 })).enviadas, 1);
-      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^A reserva #${reserva.numero} terminou às \\d{2}:\\d{2} sem pagamento`));
-      const disponivel = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, qtd: 1 }] })).json();
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^O prazo da reserva #${reserva.numero} terminou às \\*\\d{2}:\\d{2}\\* e nenhuma cobrança foi feita\\.`));
+      const disponivel = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }] })).json();
       assertEquals(disponivel.totalCentavos, 4999, "a peça voltou para a loja");
 
       // Com a unidade de novo presa numa reserva, outra cliente é avisada antes de pedir código
-      await banco.sql`update products set qty_reserved = 1 where code = 'INT-01'`;
+      await banco.sql`update product_variants set qty_reserved = 1 where sku = 'INT-01-UNI'`;
       cookies = "";
       const outra = await pedir("/v1/reservation-attempts", {
         nome: "Joana", telefone: "(77) 99812-0002", entrega: "RETIRADA",
-        itens: [{ produtoId: PRODUTO, qtd: 1 }], totalEsperadoCentavos: 4999, turnstileToken: "ok",
+        itens: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }], totalEsperadoCentavos: 4999, turnstileToken: "ok",
       });
       assertEquals((await outra.json()).erro.codigo, "INSUFFICIENT_STOCK");
       // Desfaz a unidade presa à mão: o verificador de invariantes (e o ensaio de restauração) confere o banco depois
-      await banco.sql`update products set qty_reserved = 0 where code = 'INT-01'`;
+      await banco.sql`update product_variants set qty_reserved = 0 where sku = 'INT-01-UNI'`;
     } finally {
       await banco.sql`select set_app_clock(interval '0')`;
       await banco.fechar();
