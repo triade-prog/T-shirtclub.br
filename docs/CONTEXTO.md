@@ -196,3 +196,15 @@ A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.ap
 
 **Variantes Único e Plus (27/09, D28):** peça → variante → estoque. `product_variants` (0370) guarda, por tamanho, SKU, se está à venda, medidas e o estoque; a peça continua com preço, textos, fotos, promoções e looks. Toda peça nasce com o Único ativo e o Plus inativo (SKU `<código>-UNI` e `<código>-PLUS`, editáveis). A reserva trava as variantes em ordem de id; itens e movimentos guardam a variante e o tamanho; `max_por_produto` soma os tamanhos. Na loja, o item da sacola é `slug.tamanho:qtd` no cookie e `{produtoId, varianteId, qtd}` na API; a página da peça tem a escolha do tamanho (sem JavaScript) e o + do cartão só adiciona direto quando há um tamanho à venda. No painel, o cadastro tem Tamanhos e estoque; o ajuste de estoque pede o tamanho; os nomes dos tamanhos ficam em Minha conta (`tamanho_rotulo_unico` e `tamanho_rotulo_plus`) e a loja revalida ao mudar. Testes do banco usam `supabase/tests/ajudantes.sql` (schema `testes`).
 
+**Desempenho das fontes (27/09, F2.6, investigação encerrada):** hipótese "o CSS disputa banda com 188 KB de fontes pré-carregadas; pré-carregar só as do topo baixa o LCP". Medido no container do CI (`scripts/lighthouse-container.sh`, 5 execuções, página inicial sem catálogo, onde o LCP é o título "3 escolhas. / Seu Club."), antes e depois de pré-carregar só a Poppins 700/800 e a Fraunces itálica:
+
+| Modo | LCP | FCP |
+|---|---|---|
+| HTTP/1.1, simulado (o CI) | 3,49 → 3,41 s | 1,08 → 1,68 s |
+| HTTP/2, simulado (como o PageSpeed na Vercel) | 2,86 → 2,88 s | 1,06 → 1,52 s |
+| HTTP/2, rede lenta real (devtools) | 2,15 → 1,94 s | 2,15 → 1,94 s |
+
+Conclusão: a disputa só existe no HTTP/1.1 do `next start` (6 conexões); na Vercel (HTTP/2) o ganho real é de ~0,2 s e o FCP simulado piora, porque as fontes descobertas pelo CSS entram na cadeia documento → CSS → fonte. A loja decidiu não publicar (o código ficou só numa branch local). Os 3,5 s do CI vêm em boa parte do HTTP/1.1 local; em HTTP/2 o LCP simulado fica em 2,86 s. A meta de 2,5 s fecha com a medição em produção, com catálogo e fotos reais (P18).
+
+**Regra de trabalho para desempenho (27/09, pedido da loja, para controlar o consumo de créditos):** (1) registrar o baseline; (2) definir a hipótese principal; (3) no máximo 1 ou 2 experimentos para validar ou rejeitar; (4) definir antes o ganho mínimo que justifica a mudança; (5) se o ganho não for relevante, encerrar e registrar a conclusão; (6) não criar infraestrutura de teste, proxy ou variação nova sem necessidade real para uma decisão. Reaproveitar os scripts e as medições já feitos (`lighthouse-container.sh`, `proxy-http2.mjs` e os números acima) em vez de reconstruir o ambiente.
+
