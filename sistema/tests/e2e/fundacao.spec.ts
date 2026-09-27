@@ -43,7 +43,8 @@ for (const [nome, base] of [["loja", LOJA], ["painel", PAINEL]] as const) {
 
     test("repasse /api responde no formato padrão e sem cache", async ({ request }) => {
       const r = await request.get(`${base}/api/v1/health`);
-      expect(r.headers()["cache-control"]).toBe("no-store");
+      // Na loja, o proxy reforça: /api tem dados da cliente (cabecalhosSeguranca)
+      expect(r.headers()["cache-control"]).toBe(nome === "loja" ? "private, no-store" : "no-store");
       const corpo = await r.json();
       expect(corpo.ok === true || typeof corpo.erro?.codigo === "string").toBe(true);
     });

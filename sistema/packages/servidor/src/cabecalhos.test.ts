@@ -59,4 +59,12 @@ describe("cabeçalhos fixos", () => {
     expect(p["X-Frame-Options"]).toBe("DENY");
     expect(p["X-Robots-Tag"]).toContain("noindex");
   });
+  it("sem cache nas rotas da loja com dados da cliente; o catálogo não leva a trava", () => {
+    for (const c of ["/sacola", "/reserva", "/reserva/TS-1234", "/reserva/codigo", "/r", "/consulta", "/api/v1/cart/quote", "/revalidar"]) {
+      expect(cabecalhosSeguranca("loja", c)["Cache-Control"], c).toBe("private, no-store");
+    }
+    for (const c of ["/", "/produto/limone", "/colecao/limone", "/offline", "/reservas-antigas", "/rosa"]) {
+      expect(cabecalhosSeguranca("loja", c)["Cache-Control"], c).toBeUndefined();
+    }
+  });
 });

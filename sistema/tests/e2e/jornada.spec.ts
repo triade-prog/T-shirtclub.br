@@ -84,7 +84,8 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
 test("alvos de toque de pelo menos 44 px nas telas da vitrine", async ({ page }) => {
   for (const caminho of ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/nao-existe"]) {
     await page.goto(`${LOJA}${caminho}`);
-    await page.waitForLoadState("networkidle").catch(() => undefined);
+    // Com prazo: na 404 (agora com os scripts rodando) a pré-carga do Next pode não fechar
+    await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
     const pequenos = await page.evaluate(() => {
       const saida: string[] = [];
       for (const e of document.querySelectorAll<HTMLElement>("a[href], button, input:not([type=hidden]), select, textarea, summary")) {

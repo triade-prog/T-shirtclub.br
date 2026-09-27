@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 
 export const metadata: Metadata = { title: "Página não encontrada", robots: { index: false } };
 
 // 404 da loja em português (a do Next é em inglês numa página pt-BR), no estilo da V4.
-export default function NaoEncontrada() {
+// Gerada a cada pedido: estática, sairia sem o nonce e a CSP bloquearia os scripts.
+export default async function NaoEncontrada() {
+  await connection();
   return (
     <section className="grid gap-4 px-4 pb-12 pt-8 md:px-5 md:pt-12">
       <h1 className="tc-titulo m-0 text-[clamp(40px,6vw,64px)]">Não achamos <em>esta página.</em></h1>
