@@ -39,6 +39,15 @@ export function rotasPainel(app: Hono<VarsAdmin>, deps: DepsPainel): void {
     return c.json({ ...painel, whatsapp: { conectado } });
   });
 
+  // Operação (Kanban do dia): as reservas pelo próximo passo, em 5 colunas (0350).
+  app.get("/v1/admin/operacao", async (c) => {
+    const [quadro, conectado] = await Promise.all([
+      chamar<Record<string, unknown>>(deps.banco, "admin_operation_board"),
+      deps.whatsapp.conectado(),
+    ]);
+    return c.json({ ...quadro, whatsapp: { conectado } });
+  });
+
   app.get("/v1/admin/reservations", async (c) => {
     const q = consulta(buscaReservasSchema, c.req.query());
     return c.json(await chamar(deps.banco, "admin_search_reservations", { p_status: q.status ?? null, p_q: q.q ?? null, p_page: q.page }));

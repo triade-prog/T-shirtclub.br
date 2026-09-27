@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { chamarApi, dataHora, mensagemDeErro } from "@/lib/api";
-import { Casca, Icone } from "./Casca";
-import { Aviso, Botao, Campo, Carregando } from "./ui";
+import { dataHora } from "@/lib/api";
+import { Alertas, AvisoWhatsApp, type Alerta } from "./Alertas";
+import { Casca } from "./Casca";
+import { Carregando } from "./ui";
 import { useDados } from "./useDados";
 import { useRepetir } from "./useRepetir";
 
@@ -20,7 +20,6 @@ interface Painel {
   fila: { pendentes: number; enviadasHoje: number; falhasHoje: number; descartadasHoje: number; maisAntigaPendente: string | null };
   whatsapp: { conectado: boolean };
 }
-interface Alerta { id: string; tipo: string; mensagem: string; abertoEm: string; ocorrencias?: number }
 
 const plural = (n: number, um: string, varios: string) => (n === 1 ? um : varios);
 
@@ -34,13 +33,7 @@ export function Inicio() {
     <Casca kicker="VISÃO GERAL" titulo="Início" sub="O que precisa da sua atenção agora, sem perder a linguagem visual da T-shirt Club.">
       {!p ? <Carregando erro={painel.erro} /> : (
         <>
-          {!p.whatsapp.conectado && (
-            <div style={{ marginBottom: 18 }}>
-              <Aviso tipo="error" titulo="O WhatsApp da loja está desconectado.">
-                <p>Sem ele, as clientes não recebem código nem avisos. Reconecte pelo celular da loja.</p>
-              </Aviso>
-            </div>
-          )}
+          {!p.whatsapp.conectado && <AvisoWhatsApp />}
           <section className="grid cards4" aria-label="Números do dia">
             <Metrica rotulo="Reservas ativas" valor={p.reservas.ativas} dica="em andamento agora" />
             <Metrica tom="green" rotulo="Pagas, a entregar" valor={p.reservas.pagas} dica="prontas para operação" />
@@ -103,55 +96,6 @@ export function WhatsApp({ fila }: { fila: Painel["fila"] }) {
           {fila.maisAntigaPendente && <p>A mais antiga na fila é de {dataHora(fila.maisAntigaPendente)}.</p>}
         </div>
       </div>
-    </article>
-  );
-}
-
-function Alertas({ alertas, aoResolver }: { alertas: Alerta[]; aoResolver: () => void }) {
-  const [resolvendo, setResolvendo] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [ocupado, setOcupado] = useState(false);
-
-  async function resolver(e: React.FormEvent<HTMLFormElement>, id: string) {
-    e.preventDefault();
-    const motivo = String(new FormData(e.currentTarget).get("motivo") ?? "").trim();
-    if (motivo.length < 3) return setErro("Escreva o que foi feito (pelo menos 3 letras).");
-    setOcupado(true);
-    const r = await chamarApi(`v1/admin/alerts/${id}/resolve`, { motivo });
-    setOcupado(false);
-    if (!r.ok) return setErro(mensagemDeErro(r.codigo, r.detalhes));
-    setErro(null);
-    setResolvendo(null);
-    aoResolver();
-  }
-
-  return (
-    <article className="card span2">
-      <h2>Alertas do sistema {alertas.length > 0 && <span className="pop" style={{ color: "var(--pink-dark)" }}>({alertas.length})</span>}</h2>
-      {alertas.length === 0 ? <p className="muted" style={{ fontSize: 11, margin: 0 }}>Nenhum alerta aberto.</p> : (
-        <div className="list">
-          {alertas.map((a) => (
-            <div key={a.id}>
-              <div className="alert-row">
-                <div className="copy">
-                  <div className="alert-icon"><Icone><path d="M12 4 3 20h18Z" /><path d="M12 9v4M12 17h.01" /></Icone></div>
-                  <div><b>{a.mensagem}</b><p>Desde {dataHora(a.abertoEm)}{a.ocorrencias && a.ocorrencias > 1 ? ` · ${a.ocorrencias} vezes` : ""}</p></div>
-                </div>
-                {resolvendo !== a.id && <Botao variante="citron" onClick={() => { setResolvendo(a.id); setErro(null); }}>Resolver</Botao>}
-              </div>
-              {resolvendo === a.id && (
-                <form onSubmit={(e) => resolver(e, a.id)} className="decision">
-                  <Campo multilinha name="motivo" rotulo="O que foi feito?" maxLength={500} erro={erro ?? undefined} />
-                  <div className="actions">
-                    <Botao type="submit" variante="citron" carregando={ocupado}>Marcar como resolvido</Botao>
-                    <Botao variante="link" onClick={() => setResolvendo(null)}>Voltar</Botao>
-                  </div>
-                </form>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </article>
   );
 }

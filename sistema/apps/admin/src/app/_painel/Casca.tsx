@@ -22,6 +22,7 @@ interface Contagem {
 
 const ICONES = {
   inicio: <path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" />,
+  operacao: <><rect x="3" y="4" width="5" height="16" rx="1.5" /><rect x="10" y="4" width="5" height="10" rx="1.5" /><rect x="17" y="4" width="4" height="13" rx="1.5" /></>,
   reservas: <><path d="M6 4h12a2 2 0 0 1 2 2v14H7a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2Z" /><path d="M7 20a3 3 0 0 1 0-6h13" /></>,
   cancelamentos: <path d="m6 6 12 12M18 6 6 18" />,
   entregas: <><path d="m4 7 8-4 8 4-8 4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></>,
@@ -70,6 +71,9 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
 
   const menu = [
     { href: "/", rotulo: "Início", icone: ICONES.inicio, n: 0 },
+    // O que precisa de ação na Operação: cancelamentos, análises, contestações e fretes (a calcular ou vencidos)
+    { href: "/operacao", rotulo: "Operação", icone: ICONES.operacao,
+      n: c ? c.acoes.cancelamentosPendentes + c.acoes.pagamentosEmAnalise + c.acoes.disputasAbertas + c.acoes.fretes.aguardandoCalculo + c.acoes.fretes.vencidos : 0 },
     { href: "/reservas", rotulo: "Reservas", icone: ICONES.reservas, n: c?.reservas.ativas ?? 0 },
     { href: "/cancelamentos", rotulo: "Cancelamentos", icone: ICONES.cancelamentos, n: c?.acoes.cancelamentosPendentes ?? 0 },
     { href: "/entregas", rotulo: "Entregas e frete", icone: ICONES.entregas, n: c ? c.acoes.fretes.aguardandoCalculo + c.acoes.fretes.vencidos + c.acoes.emPreparacao : 0 },
