@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { qrComoDataUrl } from "@tshirtclub/domain";
 import { chamarApi, dataHora, mensagemDeErro } from "@/lib/api";
+import { paraCentavos, paraReais } from "@/lib/catalogo";
 import { Casca } from "../_painel/Casca";
 import { Aviso, Botao, Campo, CampoCodigo, Carregando, Escolha, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 
 // Minha conta (tela 22 do protótipo; sem referência V4, no estilo do painel V4, D12, G7):
-// trocar a senha, aparelhos conectados e autenticadores. Para remover um autenticador, o
+// trocar a senha, aparelhos conectados, autenticadores e as metas de vendas da loja (D26). Para remover um autenticador, o
 // código vem de outro que continua cadastrado; a conta nunca fica sem o segundo fator.
 
 interface Fator { id: string; verificado: boolean; nome?: string; criadoEm?: string }
@@ -34,6 +35,7 @@ export function Conta() {
             <Aparelhos aparelhos={dados.aparelhos} aoEncerrar={() => void recarregar()} />
           </div>
           <div className="stack">
+            <Metas />
             <Autenticadores fatores={dados.autenticadores} aoMudar={() => void recarregar()} />
             <Aviso tipo="yellow" titulo="Esqueceu a senha?">
               <p>Na tela de login, use &quot;Esqueci minha senha&quot;: o link de redefinição chega no e-mail da conta.</p>
@@ -42,6 +44,49 @@ export function Conta() {
         </div>
       )}
     </Casca>
+  );
+}
+
+interface MetasVendas { diaCentavos: number; mesCentavos: number; anoCentavos: number }
+
+/** Metas de receita líquida da loja (D26): o Dashboard mostra o quanto já foi feito. */
+function Metas() {
+  const { dados, erro: erroLeitura, recarregar } = useDados<MetasVendas>("v1/admin/settings/metas");
+  const [feito, setFeito] = useState(false);
+  const { ocupado, erro, setErro, enviar } = useEnvio(() => { setFeito(true); void recarregar(); });
+
+  function salvar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setFeito(false);
+    const f = new FormData(e.currentTarget);
+    const metas: Partial<MetasVendas> = {};
+    for (const [campo, rotulo] of [["diaCentavos", "diária"], ["mesCentavos", "mensal"], ["anoCentavos", "anual"]] as const) {
+      const texto = String(f.get(campo) ?? "").trim();
+      const centavos = texto === "" ? 0 : paraCentavos(texto);
+      if (centavos === null) return setErro(`Confira a meta ${rotulo}: use só números, como 1.500,00.`);
+      if (centavos > 2_000_000_000) return setErro(`A meta ${rotulo} passa do limite de R$ 20 milhões.`);
+      metas[campo] = centavos;
+    }
+    void enviar(chamarApi("v1/admin/settings/metas", metas, "PUT"));
+  }
+
+  return (
+    <section className="card" id="metas" aria-labelledby="metas-titulo">
+      <h2 id="metas-titulo">Metas de vendas</h2>
+      <p className="field-help">Receita líquida da loja: peças e frete, menos descontos e estornos. Aparecem no Dashboard; 7 e 30 dias usam a meta diária. Deixe em branco para não ter meta.</p>
+      {!dados ? <Carregando erro={erroLeitura} /> : (
+        <form onSubmit={salvar} noValidate key={`${dados.diaCentavos}-${dados.mesCentavos}-${dados.anoCentavos}`}>
+          <div className="stack">
+            <Campo name="diaCentavos" rotulo="Meta diária (R$)" inputMode="decimal" placeholder="0,00" defaultValue={dados.diaCentavos ? paraReais(dados.diaCentavos) : ""} />
+            <Campo name="mesCentavos" rotulo="Meta mensal (R$)" inputMode="decimal" placeholder="0,00" defaultValue={dados.mesCentavos ? paraReais(dados.mesCentavos) : ""} />
+            <Campo name="anoCentavos" rotulo="Meta anual (R$)" inputMode="decimal" placeholder="0,00" defaultValue={dados.anoCentavos ? paraReais(dados.anoCentavos) : ""} />
+          </div>
+          {erro && <p className="field-error" role="alert">{erro}</p>}
+          <div className="actions mt"><Botao type="submit" carregando={ocupado}>Salvar metas</Botao></div>
+          {feito && <p className="field-help" role="status">Metas salvas.</p>}
+        </form>
+      )}
+    </section>
   );
 }
 

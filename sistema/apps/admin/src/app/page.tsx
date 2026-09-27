@@ -1,8 +1,9 @@
 import { connection } from "next/server";
-import { Inicio } from "./_painel/Inicio";
+import { Dashboard } from "./_painel/Dashboard";
 
-// Início do painel (tela 6, F10): o que pede ação agora, os números do dia e os alertas.
+// Dashboard comercial (protótipo 03 da V4, F12): como a loja está vendendo. O que pede ação
+// agora fica na Operação (/operacao).
 export default async function InicioPainel() {
   await connection();
-  return <Inicio />;
+  return <Dashboard />;
 }

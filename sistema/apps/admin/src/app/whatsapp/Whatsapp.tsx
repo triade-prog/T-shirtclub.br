@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
 import { Casca } from "../_painel/Casca";
-import { WhatsApp as FilaHoje } from "../_painel/Inicio";
+import { FilaHoje } from "../_painel/FilaHoje";
 import { Aviso, Botao, Campo, Carregando, Marcar, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";

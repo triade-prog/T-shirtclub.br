@@ -70,7 +70,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
   }
 
   const menu = [
-    { href: "/", rotulo: "Início", icone: ICONES.inicio, n: 0 },
+    { href: "/", rotulo: "Dashboard", icone: ICONES.inicio, n: 0 },
     // O que precisa de ação na Operação: cancelamentos, análises, contestações e fretes (a calcular ou vencidos)
     { href: "/operacao", rotulo: "Operação", icone: ICONES.operacao,
       n: c ? c.acoes.cancelamentosPendentes + c.acoes.pagamentosEmAnalise + c.acoes.disputasAbertas + c.acoes.fretes.aguardandoCalculo + c.acoes.fretes.vencidos : 0 },

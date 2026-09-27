@@ -49,7 +49,7 @@ const ACAO: Record<string, string> = {
   "colecao.criada": "Coleção criada", "colecao.editada": "Coleção editada", "look.criado": "Look criado", "look.editado": "Look editado", "look.apagado": "Look apagado",
   "inicio.reordenado": "Página inicial reordenada", "promocao.criada": "Promoção criada", "promocao.editada": "Promoção editada", "promocao.encerrada": "Promoção encerrada",
   "telefone.bloqueado": "Telefone bloqueado", "telefone.liberado": "Telefone liberado", "telefone.bloqueio_mantido": "Bloqueio mantido",
-  "whatsapp.configuracao": "Configuração do WhatsApp alterada", "whatsapp.teste": "Mensagem de teste enviada",
+  "whatsapp.configuracao": "Configuração do WhatsApp alterada", "metas.alteradas": "Metas de vendas alteradas", "whatsapp.teste": "Mensagem de teste enviada",
   "admin.login": "Entrou no painel", "admin.login.senha_errada": "Senha errada no login", "admin.login.bloqueado": "Login bloqueado por 15 minutos",
   "admin.senha.trocada": "Senha trocada", "admin.senha.atual_errada": "Senha atual errada ao trocar", "admin.aparelhos.encerrados": "Saiu dos outros aparelhos",
   "admin.autenticador.cadastrado": "Autenticador cadastrado", "admin.autenticador.removido": "Autenticador removido", "auth.sair": "Saiu do painel",
