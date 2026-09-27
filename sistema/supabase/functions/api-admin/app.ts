@@ -11,6 +11,7 @@ import { rotasPagamentosAdmin, type DepsPagamentosAdmin } from "./pagamentos.ts"
 import { rotasPainel, type DepsPainel } from "./painel.ts";
 import { rotasWhatsappAdmin } from "./whatsapp.ts";
 import { rotasConta } from "./conta.ts";
+import { rotasComercial } from "./comercial.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel;
 
@@ -35,6 +36,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasPainel(app, deps);
   rotasWhatsappAdmin(app, deps);
   rotasConta(app, deps);
+  rotasComercial(app, deps);
 
   return app;
 }

@@ -20,7 +20,7 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
   expect(erros).toEqual([]);
 });
 
-const TELAS = ["/operacao", "/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/whatsapp", "/auditoria", "/conta"];
+const TELAS = ["/", "/operacao", "/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/whatsapp", "/auditoria", "/conta"];
 
 test("sem sessão, as telas vão para o login e voltam depois", async ({ page }) => {
   await page.goto(`${PAINEL}/`);

@@ -230,6 +230,19 @@ export const configWhatsappSchema = z.object({
   notificacoes: z.record(z.string().max(40), z.boolean()).optional(),
 });
 
+/** Valor de meta em centavos: de zero (sem meta) a R$ 20 milhões. */
+const metaCentavosSchema = z.number().int("VALIDATION_ERROR").min(0, "VALIDATION_ERROR").max(2_000_000_000, "VALIDATION_ERROR");
+
+/** PUT /v1/admin/settings/metas (Minha conta, D26): metas de receita líquida. */
+export const metasVendasSchema = z.object({
+  diaCentavos: metaCentavosSchema.optional(),
+  mesCentavos: metaCentavosSchema.optional(),
+  anoCentavos: metaCentavosSchema.optional(),
+});
+
+/** GET /v1/admin/comercial: o período do Dashboard, até agora, no fuso da loja. */
+export const periodoComercialSchema = z.object({ periodo: z.enum(["HOJE", "7_DIAS", "30_DIAS", "MES", "ANO"]).default("HOJE") });
+
 /** POST /v1/admin/whatsapp/test: só para números da equipe. */
 export const mensagemTesteSchema = z.object({ telefone: telefoneSchema });
 
