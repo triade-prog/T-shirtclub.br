@@ -1,0 +1,4 @@
+# Arquivos pessoais do Claude Code e do plugin do Mercado Pago
+.claude/settings.local.json
+.claude/*.local.md
+.mp-integrate-progress.md
