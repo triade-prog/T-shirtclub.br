@@ -93,3 +93,26 @@ test("alvos de toque de pelo menos 44 px nas telas da vitrine", async ({ page })
     expect(pequenos, caminho).toEqual([]);
   }
 });
+
+// Revalidação ao publicar: a peça fica no cache da loja até o painel avisar (POST /revalidar,
+// que a api-admin chama depois de gravar o catálogo); aí a próxima visita já vem nova.
+test("revalidação ao publicar: o aviso do painel tira o catálogo do cache na hora", async ({ page, request }, info) => {
+  // O cache do catálogo é um só; um projeto basta (o outro revalidaria no meio deste teste).
+  test.skip(info.project.name !== "android", "roda uma vez");
+  const pagina = `${LOJA}/produto/revalidacao-${Date.now()}`;
+  await page.goto(pagina);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("busca 1");
+  await page.goto(pagina);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("busca 1");
+
+  // Sem o segredo, nada muda
+  expect((await request.post(`${LOJA}/revalidar`)).status()).toBe(401);
+  expect((await request.post(`${LOJA}/revalidar`, { headers: { "x-revalidar-segredo": "errado" } })).status()).toBe(401);
+  await page.goto(pagina);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("busca 1");
+
+  const r = await request.post(`${LOJA}/revalidar`, { headers: { "x-revalidar-segredo": "e2e-revalidar" }, data: { etiquetas: ["catalogo"] } });
+  expect(r.status()).toBe(200);
+  await page.goto(pagina);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("busca 2");
+});

@@ -7,6 +7,7 @@ import { bancoPostgrest } from "../_shared/banco.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
 import { comRegistroDeConexao, whatsappZapi } from "../_shared/whatsapp.ts";
+import { avisoLojaDesligado, avisoLojaHttp } from "../_shared/loja.ts";
 import { criarApiAdmin } from "./app.ts";
 import { monitorDoAmbiente } from "../_shared/monitor.ts";
 
@@ -21,6 +22,10 @@ function exigir(nome: string): string {
 const url = exigir("SUPABASE_URL");
 const chaveServico = exigir("SUPABASE_SERVICE_ROLE_KEY");
 const banco = bancoPostgrest(url, chaveServico);
+// Revalidação ao publicar: sem as duas variáveis, a loja segue com o cache de 60 s.
+const urlLoja = Deno.env.get("LOJA_URL");
+const segredoRevalidar = Deno.env.get("REVALIDAR_SEGREDO");
+if (!urlLoja || !segredoRevalidar) console.warn(JSON.stringify({ funcao: "api-admin", aviso: "sem LOJA_URL ou REVALIDAR_SEGREDO: a loja atualiza o catálogo em até 60 s" }));
 const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
   banco,
   armazenamento: storageSupabase(url, chaveServico),
@@ -40,6 +45,7 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
     whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
     banco,
   ),
+  loja: urlLoja && segredoRevalidar ? avisoLojaHttp({ urlLoja, segredo: segredoRevalidar }) : avisoLojaDesligado,
 });
 
 Deno.serve(app.fetch);

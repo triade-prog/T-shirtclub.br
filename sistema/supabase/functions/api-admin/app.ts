@@ -1,6 +1,7 @@
 // Monta a API do painel a partir das dependências (reais no index.ts, falsas nos testes).
 
 import { criarApp } from "../_shared/app.ts";
+import type { AvisoLoja } from "../_shared/loja.ts";
 import { exigirAdmin, rotasAuthAdmin, type DepsAuthAdmin, type VarsAdmin } from "./auth.ts";
 import { rotasEstoque } from "./estoque.ts";
 import { rotasCatalogoAdmin, type DepsCatalogo } from "./catalogo.ts";
@@ -13,7 +14,14 @@ import { rotasWhatsappAdmin } from "./whatsapp.ts";
 import { rotasConta } from "./conta.ts";
 import { rotasComercial } from "./comercial.ts";
 
-export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel;
+export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & {
+  /** Revalidação ao publicar; sem ela, a loja atualiza o catálogo em até 60 s. */
+  loja?: AvisoLoja;
+};
+
+// Rotas que mudam o que a loja mostra: peças (com fotos e estoque), coleções, looks, blocos da
+// página inicial e promoções.
+const CATALOGO = /^\/v1\/admin\/(products|collections|looks|home-blocks|promotions)(\/|$)/;
 
 export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   const app = criarApp<VarsAdmin>("api-admin", segredo);
@@ -27,6 +35,12 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
     return await exigirAdmin(deps)(c, next);
   });
   app.get("/v1/admin/me", (c) => c.json({ userId: c.get("admin").userId }));
+  // Gravação do catálogo que deu certo: avisa a loja para ela não esperar os 60 s do cache.
+  app.use("/v1/admin/*", async (c, next) => {
+    await next();
+    const rota = c.req.path.replace(/^\/api-admin/, "");
+    if (c.req.method !== "GET" && c.res.status < 300 && CATALOGO.test(rota)) await deps.loja?.catalogoMudou();
+  });
   rotasEstoque(app, deps.banco);
   rotasCatalogoAdmin(app, deps);
   rotasBloqueios(app, deps.banco);
