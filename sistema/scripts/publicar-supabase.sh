@@ -14,7 +14,8 @@ REF="woetzyiutwrpxgeiecsu"
 API="https://api.supabase.com/v1/projects/$REF"
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 FUNCOES=(api-public api-admin webhook-whatsapp webhook-payments worker)
-JA_EXISTENTES=(REPASSE_SEGREDO WEBHOOK_WHATSAPP_SEGREDO ZAPI_TOKEN ZAPI_CLIENT_TOKEN)
+# Gravados por este script (passo 2); o Supabase já entrega os SUPABASE_*.
+DESTE_SCRIPT=(WORKER_SEGREDO ZAPI_INSTANCIA LOJA_WHATSAPP LOJA_URL OTP_PEPPER IP_SAL)
 ZAPI_INSTANCIA="3F9C1155D634D15F62F75E00F85CEB2F"
 LOJA_WHATSAPP="5577998155772"
 LOJA_URL="${LOJA_URL:-https://tshirtclub.vercel.app}"
@@ -32,13 +33,22 @@ tem() { grep -qx "$1" <<<"$NOMES"; }
 
 echo "Segredos já cadastrados (só os nomes):"
 sed 's/^/  /' <<<"$NOMES"
+# Os obrigatórios saem do próprio código: todo exigir("NOME") dos index.ts. Sem um deles a
+# função quebra ao iniciar (500), então nada é publicado enquanto faltar algum.
+mapfile -t OBRIGATORIOS < <(cd "$RAIZ/supabase/functions" && for f in "${FUNCOES[@]}"; do cat "$f/index.ts"; done \
+  | grep -o 'exigir("[A-Z_]*")' | sed 's/exigir("\(.*\)")/\1/' | grep -v '^SUPABASE_' | sort -u)
+# Lido sem exigir(): sem ele as APIs recusam todo pedido da loja e do painel
+OBRIGATORIOS+=(REPASSE_SEGREDO)
 FALTAM=()
-for n in "${JA_EXISTENTES[@]}"; do tem "$n" || FALTAM+=("$n"); done
+for n in "${OBRIGATORIOS[@]}"; do
+  [[ " ${DESTE_SCRIPT[*]} " == *" $n "* ]] && continue
+  tem "$n" || FALTAM+=("$n")
+done
 if ((${#FALTAM[@]})); then
-  echo "Faltam no Supabase: ${FALTAM[*]}. Cadastre antes de publicar." >&2
+  echo "Faltam no Supabase: ${FALTAM[*]}. Cadastre antes de publicar (Edge Functions → Secrets)." >&2
   exit 1
 fi
-echo "OK: ${JA_EXISTENTES[*]} estão cadastrados."
+echo "OK: os segredos que as funções exigem estão cadastrados (os deste script são gravados a seguir)."
 [[ "${1:-}" == "conferir" ]] && exit 0
 
 # ─── 2. Segredos internos e da loja ─────────────────────────────────────────────────

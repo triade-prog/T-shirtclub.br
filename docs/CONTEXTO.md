@@ -146,6 +146,16 @@ Falta, com o token no ambiente e `api.supabase.com` liberado na rede (ou no comp
 
 No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que fica fora de `supabase/functions` (ADR 0001, item 6). Se não incluir, copiá-lo para `_shared` num passo de build.
 
+**Script rodado (27/09, numa sessão com o token):**
+- Gravou `WORKER_SEGREDO`, `ZAPI_INSTANCIA`, `LOJA_WHATSAPP`, `LOJA_URL`, `OTP_PEPPER` e `IP_SAL`.
+- Publicou as 5 funções: `ACTIVE`, versão 1, `verify_jwt=false`. O empacotamento incluiu o `packages/domain` sem precisar do passo extra.
+- Só o `webhook-whatsapp` inicia. As outras 4 quebram ao iniciar (HTTP 500) porque faltam segredos:
+  - `MP_ACCESS_TOKEN` e `MP_EMAIL_PIX` (as 4);
+  - `TURNSTILE_SECRET` (`api-public` e `api-admin`);
+  - `MP_WEBHOOK_SECRET` (`webhook-payments`).
+- Os segredos valem sem publicar de novo. Cadastrados os 4, conferir `https://woetzyiutwrpxgeiecsu.supabase.co/functions/v1/worker/saude` (200 ou 503; 500 é segredo faltando).
+- O script agora tira os obrigatórios dos `exigir(...)` de cada `index.ts` (mais o `REPASSE_SEGREDO`) e não publica enquanto faltar algum.
+
 Depois disso ainda faltam:
 - os segredos do Mercado Pago (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_EMAIL_PIX`) e o `TURNSTILE_SECRET`;
 - `mp_collector_id`, `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings`;
