@@ -1,6 +1,7 @@
 // Supabase Auth do painel (D12): e-mail e senha, depois o autenticador (TOTP). A api-admin
 // fala com o Auth por esta interface; os testes usam uma implementação falsa.
 
+import { qrComoDataUrl } from "@tshirtclub/domain";
 import { deBase64url } from "./cripto.ts";
 
 export interface SessaoAuth {
@@ -115,7 +116,7 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
         token,
         corpo: { factor_type: "totp", friendly_name: `Painel ${new Date().toISOString().slice(0, 16)}` },
       }))) as { id: string; totp: { qr_code: string; secret: string } };
-      return { factorId: f.id, qrCode: f.totp.qr_code, segredo: f.totp.secret };
+      return { factorId: f.id, qrCode: qrComoDataUrl(f.totp.qr_code), segredo: f.totp.secret };
     },
 
     async verificarTotp(token, factorId, codigo) {

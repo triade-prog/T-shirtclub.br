@@ -31,6 +31,15 @@ Deno.test("GoTrue: senha errada é null; aal vem do token validado", async () =>
   assertEquals(pedidos[0]!.url, "https://p.supabase.co/auth/v1/token?grant_type=password");
 });
 
+Deno.test("GoTrue: o QR do autenticador vem como SVG puro e sai como data URL", async () => {
+  const auth = authGoTrue("https://p.supabase.co", "anon", fetchFalso({
+    "/factors": { status: 200, corpo: { id: "f9", totp: { qr_code: '<svg><rect fill="#000"/></svg>', secret: "ABC" } } },
+  }));
+  const c = await auth.cadastrarTotp("t");
+  assertEquals(c.qrCode, `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg><rect fill="#000"/></svg>')}`);
+  assertEquals([c.factorId, c.segredo], ["f9", "ABC"]);
+});
+
 Deno.test("GoTrue: código do autenticador passa por desafio e verificação", async () => {
   const auth = authGoTrue("https://p.supabase.co", "anon", fetchFalso({
     "/factors/f1/challenge": { status: 200, corpo: { id: "c1" } },

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { textoErro } from "@tshirtclub/domain";
+import { qrComoDataUrl, textoErro } from "@tshirtclub/domain";
 import Image from "next/image";
 import { Turnstile } from "@tshirtclub/ui";
 import { Aviso, Botao, Campo, Seta } from "../_painel/ui";
@@ -121,7 +121,7 @@ export function Entrar() {
               {etapa === "CADASTRAR_AUTENTICADOR" && cadastro && (
                 <div className="qr">
                   {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo do Supabase Auth */}
-                  <img src={cadastro.qrCode} alt="QR code para cadastrar o autenticador" width={200} height={200} />
+                  <img src={qrComoDataUrl(cadastro.qrCode)} alt="QR code para cadastrar o autenticador" width={200} height={200} />
                   <p className="field-help">Sem câmera? Digite esta chave no app: <code>{cadastro.segredo}</code></p>
                 </div>
               )}
