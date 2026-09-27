@@ -5,7 +5,7 @@
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
-import { whatsappZapi } from "../_shared/whatsapp.ts";
+import { comRegistroDeConexao, whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarApiPublica } from "./app.ts";
 import { monitorDoAmbiente } from "../_shared/monitor.ts";
 
@@ -18,10 +18,14 @@ function exigir(nome: string): string {
 }
 
 const url = exigir("SUPABASE_URL");
+const banco = bancoPostgrest(url, exigir("SUPABASE_SERVICE_ROLE_KEY"));
 const app = criarApiPublica(Deno.env.get("REPASSE_SEGREDO"), {
-  banco: bancoPostgrest(url, exigir("SUPABASE_SERVICE_ROLE_KEY")),
+  banco,
   pagamentos: mercadoPago({ accessToken: exigir("MP_ACCESS_TOKEN"), urlWebhook: `${url}/functions/v1/webhook-payments`, emailPix: exigir("MP_EMAIL_PIX") }),
-  whatsapp: whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+  whatsapp: comRegistroDeConexao(
+    whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+    banco,
+  ),
   turnstile: turnstileCloudflare(exigir("TURNSTILE_SECRET")),
   pepper: exigir("OTP_PEPPER"),
   numeroLoja: exigir("LOJA_WHATSAPP"),

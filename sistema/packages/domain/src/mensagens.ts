@@ -1,6 +1,8 @@
 // Mensagens do WhatsApp (seção 10, textos aprovados na D4) e leitura do que a cliente
 // escreve. As essenciais têm 2 versões, sorteadas, para o texto não sair sempre igual (G5).
 // Só o primeiro nome; o link é sempre do domínio da loja. *negrito* é a marcação do WhatsApp.
+// O nome é "T-shirt Club", sem o .br: o WhatsApp transforma "Club.br" em link para club.br,
+// que não é da loja (27/09).
 
 import { formatarReais } from "./dinheiro.ts";
 
@@ -147,7 +149,7 @@ type Versoes<M extends Modelo> = ((p: ParametrosMensagem[M]) => string)[];
 
 const MODELOS: { [M in Modelo]: Versoes<M> } = {
   codigo_verificacao: [
-    (p) => `Seu código da T-shirt Club.br é *${p.codigo}*. Vale por ${p.minutos} minutos. Não passe para ninguém.`,
+    (p) => `Seu código da T-shirt Club é *${p.codigo}*. Vale por ${p.minutos} minutos. Não passe para ninguém.`,
     (p) => `Código de confirmação: *${p.codigo}*. Digite no site para garantir suas peças. Ele vence em ${p.minutos} minutos.`,
   ],
   numero_diferente: [() => "Este número não é o da reserva. Envie a mensagem pelo WhatsApp que você informou no site."],
@@ -189,7 +191,7 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   telefone_bloqueado: [
     () => "Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.",
   ],
-  telefone_liberado: [() => "Tudo certo: você já pode fazer reservas de novo na T-shirt Club.br."],
+  telefone_liberado: [() => "Tudo certo: você já pode fazer reservas de novo na T-shirt Club."],
   bloqueio_mantido: [
     () => "Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a gente por aqui se precisar.",
   ],
@@ -232,9 +234,9 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   ],
   // Resposta automática a mensagem comum (27/09): no máximo 1 vez a cada 24 h por número.
   boas_vindas: [
-    () => `Oi! 💖 Aqui é a T-shirt Club.br. Para ver as peças, reservar e pagar, acesse ${SITE}. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.`,
+    () => `Oi! 💖 Aqui é a T-shirt Club. Para ver as peças, reservar e pagar, acesse ${SITE}. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.`,
   ],
-  mensagem_teste: [() => "Mensagem de teste da T-shirt Club.br: o envio pelo sistema está funcionando."],
+  mensagem_teste: [() => "Mensagem de teste da T-shirt Club: o envio pelo sistema está funcionando."],
 };
 
 // ─── Notificações no painel (tela 18, G5) ────────────────────────────────────────────

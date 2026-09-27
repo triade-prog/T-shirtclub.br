@@ -1,6 +1,8 @@
 // WhatsAppProvider (W1): a Z-API hoje; a API oficial (Cloud API) é o plano B, e a falsa
 // serve aos testes. Trocar de ferramenta é trocar a implementação, não o fluxo.
 
+import type { Banco } from "./banco.ts";
+
 export interface EnvioWhatsApp {
   id: string;
 }
@@ -31,6 +33,26 @@ export type EventoWhatsApp =
   }
   | { tipo: "STATUS"; ids: string[]; status: "ENTREGUE" | "LIDA" }
   | { tipo: "OUTRO" };
+
+/**
+ * Conta ao banco cada conexão vista pelas APIs. Quando ela volta depois de cair, o banco
+ * libera na hora as mensagens que esperavam nova tentativa, em vez de deixá-las no intervalo
+ * de 1, 5 ou 15 min (27/09). Falha ao registrar não muda a resposta.
+ */
+export function comRegistroDeConexao(whatsapp: WhatsAppProvider, banco: Banco): WhatsAppProvider {
+  return {
+    ...whatsapp,
+    async conectado() {
+      const ok = await whatsapp.conectado();
+      try {
+        await banco.rpc("whatsapp_connection_seen", { p_connected: ok });
+      } catch (e) {
+        console.warn(`Conexão do WhatsApp não registrada: ${e instanceof Error ? e.message : e}`);
+      }
+      return ok;
+    },
+  };
+}
 
 // ─── Z-API ───────────────────────────────────────────────────────────────────────────
 

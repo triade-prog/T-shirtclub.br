@@ -86,7 +86,7 @@ Deno.test({
       assertEquals((await r.json()).tratamento, "CODIGO_ENVIADO");
       const enviado = whatsapp.enviadas.at(-1)!;
       assertEquals(enviado.telefone, TELEFONE);
-      assertMatch(enviado.texto, /^Seu código da T-shirt Club\.br é \*\d{6}\*/);
+      assertMatch(enviado.texto, /^Seu código da T-shirt Club é \*\d{6}\*/);
       assertEquals((await (await pedir(`/v1/reservation-attempts/${tentativa.id}`)).json()).situacao, "CODIGO_ENVIADO");
       assertEquals((await (await mensagem("557798120001", tentativa.whatsapp.texto, "int-2")).json()).tratamento, "REPETIDA");
 
