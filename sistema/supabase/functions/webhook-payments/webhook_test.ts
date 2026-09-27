@@ -67,6 +67,15 @@ Deno.test("assinado: grava na inbox, responde 200 e processa fora da requisiçã
   assertEquals(await repetido.json(), { ok: true, repetido: true });
 });
 
+Deno.test("aviso de um pagamento que o provedor não conhece (simulação do painel): encerrado, sem aplicar nem repetir", async () => {
+  const { enviar, rpcs, tarefas } = montar();
+  const r = await enviar("123456", await assinatura("123456", "req-1"));
+  assertEquals(r.status, 200);
+  await Promise.all(tarefas);
+  assertEquals(rpcs.some((x) => x.funcao === "apply_payment_result"), false);
+  assertEquals(rpcs.at(-1), { funcao: "payment_event_done", args: { p_id: 1 } });
+});
+
 Deno.test("outros tópicos são ignorados depois de conferir a assinatura", async () => {
   const { enviar, rpcs } = montar();
   const r = await enviar("123", await assinatura("123", "req-1"), { id: 1, type: "merchant_order", data: { id: "123" } }, "");

@@ -36,6 +36,14 @@ export interface NovoCartao {
   email: string;
 }
 
+/** O provedor não conhece o pagamento consultado (a simulação de aviso do painel do Mercado Pago). */
+export class PagamentoInexistente extends Error {
+  constructor(readonly providerPaymentId: string) {
+    super(`Pagamento ${providerPaymentId} não existe no provedor`);
+    this.name = "PagamentoInexistente";
+  }
+}
+
 export interface PaymentProvider {
   criarPix(p: NovoPix): Promise<ResultadoProvedor>;
   criarCartao(p: NovoCartao): Promise<ResultadoProvedor>;
@@ -115,7 +123,7 @@ function dataMp(d: Date): string {
 }
 
 export function mercadoPago(cfg: ConfigMercadoPago, buscar: typeof fetch = fetch): PaymentProvider {
-  async function chamar(caminho: string, init: { method: string; corpo?: unknown; idempotencia?: string }): Promise<PagamentoMp> {
+  async function chamar(caminho: string, init: { method: string; corpo?: unknown; idempotencia?: string; semPagamento?: string }): Promise<PagamentoMp> {
     const r = await buscar(`https://api.mercadopago.com${caminho}`, {
       method: init.method,
       headers: {
@@ -126,6 +134,7 @@ export function mercadoPago(cfg: ConfigMercadoPago, buscar: typeof fetch = fetch
       body: init.corpo === undefined ? undefined : JSON.stringify(init.corpo),
       signal: AbortSignal.timeout(15_000),
     });
+    if (r.status === 404 && init.semPagamento) throw new PagamentoInexistente(init.semPagamento);
     if (!r.ok) throw new Error(`Mercado Pago respondeu ${r.status}`);
     return (await r.json()) as PagamentoMp;
   }
@@ -165,7 +174,7 @@ export function mercadoPago(cfg: ConfigMercadoPago, buscar: typeof fetch = fetch
       }));
     },
     async consultar(id) {
-      return lerPagamentoMp(await chamar(`/v1/payments/${encodeURIComponent(id)}`, { method: "GET" }));
+      return lerPagamentoMp(await chamar(`/v1/payments/${encodeURIComponent(id)}`, { method: "GET", semPagamento: id }));
     },
     async cancelar(id) {
       return lerPagamentoMp(await chamar(`/v1/payments/${encodeURIComponent(id)}`, { method: "PUT", corpo: { status: "cancelled" } }));
@@ -257,7 +266,7 @@ export function pagamentosFalso(prefixo = "mp-falso"): PagamentosFalso {
     },
     consultar(id) {
       const p = falso.pagamentos.get(id);
-      return p ? Promise.resolve(p) : Promise.reject(new Error("pagamento não encontrado"));
+      return p ? Promise.resolve(p) : Promise.reject(new PagamentoInexistente(id));
     },
     cancelar(id) {
       const p = falso.pagamentos.get(id)!;

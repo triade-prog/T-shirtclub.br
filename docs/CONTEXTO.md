@@ -156,16 +156,17 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 - Os segredos valem sem publicar de novo. Cadastrados os 4, conferir `https://woetzyiutwrpxgeiecsu.supabase.co/functions/v1/worker/saude` (200 ou 503; 500 é segredo faltando).
 - O script agora tira os obrigatórios dos `exigir(...)` de cada `index.ts` (mais o `REPASSE_SEGREDO`) e não publica enquanto faltar algum.
 
-**Painel sem sessão (27/09):** o `proxy.ts` do painel manda para `/entrar?voltar=<tela>` quem chega sem o cookie `__Host-painel`. Antes, as telas abriam e só iam para o login quando a api-admin respondia 401; com a api-admin fora do ar, o menu aparecia com "Algo não saiu como esperado". Ficam abertos sem sessão: `/entrar`, o repasse `/api` e `/_componentes`. Quem confere a sessão de verdade continua sendo a api-admin. Primeira administradora: `carol54y38st@gmail.com` (em `admin_users`, nome Carol), ainda sem autenticador.
+**Painel sem sessão (27/09):** o `proxy.ts` do painel manda para `/entrar?voltar=<tela>` quem chega sem o cookie `__Host-painel`. Antes, as telas abriam e só iam para o login quando a api-admin respondia 401; com a api-admin fora do ar, o menu aparecia com "Algo não saiu como esperado". Ficam abertos sem sessão: `/entrar`, o repasse `/api` e `/_componentes`. Quem confere a sessão de verdade continua sendo a api-admin. Primeira administradora: `carol54y38st@gmail.com` (em `admin_users`, nome Carol), entrando com senha e autenticador desde 27/09.
 
 **QR do autenticador (27/09):** o Supabase Auth devolve o QR como SVG puro (é o supabase-js que o transforma em data URL), e a api-admin fala direto com o Auth, então a imagem não aparecia. `qrComoDataUrl` (packages/domain) converte na api-admin e nas telas de entrar e Minha conta; a tela corrige já no deploy da Vercel, a api-admin no próximo `publicar-supabase.sh`.
 
+**Mercado Pago (27/09):** aplicação de Checkout Transparente com a API Pagamentos. Os segredos (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_EMAIL_PIX`) e o `TURNSTILE_SECRET` estão no Supabase; `mp_collector_id` = `773782692` (o User ID da conta, não o número da aplicação). O webhook do painel aponta para `/functions/v1/webhook-payments`, com o evento Pagamentos; as simulações voltaram 200, então a assinatura confere. A simulação de pagamento consulta um id que não existe (`123456`): o aviso ficava sendo repetido para sempre e abriria o alerta de pagamentos parados em 10 min. Esse primeiro foi encerrado à mão no banco; agora o worker encerra sozinho o aviso de um pagamento que o Mercado Pago não conhece (`PagamentoInexistente`), e um pagamento da loja sem aviso segue coberto pela reconciliação. Vale na próxima publicação da `webhook-payments` e do `worker`.
+
 Depois disso ainda faltam:
-- os segredos do Mercado Pago (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_EMAIL_PIX`) e o `TURNSTILE_SECRET`;
-- `mp_collector_id`, `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings`;
-- o primeiro administrador (README);
-- os webhooks da Z-API e do Mercado Pago;
-- no Auth: a proteção contra senhas vazadas e o SMTP.
+- `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
+- `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings` e os produtos (pelo painel);
+- o webhook da Z-API;
+- no Auth: Site URL `https://admin-tshirtclub.vercel.app`, cadastro público desligado, proteção contra senhas vazadas e o SMTP.
 
 A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
 
