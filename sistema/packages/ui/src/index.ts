@@ -1,6 +1,7 @@
 export { Botao, type BotaoProps, type VarianteBotao } from "./Botao.tsx";
 export { Aviso, type AvisoProps, type TipoAviso } from "./Aviso.tsx";
 export { Campo, type CampoProps } from "./Campo.tsx";
+export { CardProduto, type CardProdutoProps } from "./CardProduto.tsx";
 export { Cronometro, type CronometroProps } from "./Cronometro.tsx";
 export { ProgressoClub, type ProgressoClubProps } from "./ProgressoClub.tsx";
 export { RELOGIO_ENCERRADO, calcularRelogio, formatarTempo, type FaseRelogio, type Relogio } from "./relogio.ts";
