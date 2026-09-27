@@ -156,6 +156,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 - Os segredos valem sem publicar de novo. Cadastrados os 4, conferir `https://woetzyiutwrpxgeiecsu.supabase.co/functions/v1/worker/saude` (200 ou 503; 500 é segredo faltando).
 - O script agora tira os obrigatórios dos `exigir(...)` de cada `index.ts` (mais o `REPASSE_SEGREDO`) e não publica enquanto faltar algum.
 
+**Painel sem sessão (27/09):** o `proxy.ts` do painel manda para `/entrar?voltar=<tela>` quem chega sem o cookie `__Host-painel`. Antes, as telas abriam e só iam para o login quando a api-admin respondia 401; com a api-admin fora do ar, o menu aparecia com "Algo não saiu como esperado". Ficam abertos sem sessão: `/entrar`, o repasse `/api` e `/_componentes`. Quem confere a sessão de verdade continua sendo a api-admin. Primeira administradora: `carol54y38st@gmail.com` (em `admin_users`, nome Carol), ainda sem autenticador.
+
 Depois disso ainda faltam:
 - os segredos do Mercado Pago (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_EMAIL_PIX`) e o `TURNSTILE_SECRET`;
 - `mp_collector_id`, `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings`;

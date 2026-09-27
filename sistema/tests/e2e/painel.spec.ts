@@ -20,8 +20,20 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
   expect(erros).toEqual([]);
 });
 
-for (const caminho of ["/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/whatsapp", "/auditoria", "/conta"]) {
-  test(`${caminho} sem a api-admin avisa sem quebrar`, async ({ page }) => {
+const TELAS = ["/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/whatsapp", "/auditoria", "/conta"];
+
+test("sem sessão, as telas vão para o login e voltam depois", async ({ page }) => {
+  await page.goto(`${PAINEL}/`);
+  await expect(page).toHaveURL(`${PAINEL}/entrar`);
+  await page.goto(`${PAINEL}/reservas?status=RESERVADO`);
+  await expect(page).toHaveURL(`${PAINEL}/entrar?voltar=${encodeURIComponent("/reservas?status=RESERVADO")}`);
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+});
+
+for (const caminho of TELAS) {
+  test(`${caminho} sem a api-admin avisa sem quebrar`, async ({ page, context }) => {
+    // Um cookie de sessão qualquer passa pelo proxy; quem confere a sessão é a api-admin.
+    await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
     await page.goto(`${PAINEL}${caminho}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("button", { name: "Abrir menu" })).toBeVisible();
