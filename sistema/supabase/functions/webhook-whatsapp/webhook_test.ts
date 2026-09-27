@@ -84,7 +84,7 @@ Deno.test("respostas: outro número, referência inválida e bloqueio", async ()
   assertEquals(outro.whatsapp.enviadas[0]!.telefone, "+5577998128809");
   const bloqueado = montar({ resultado: { acao: "BLOQUEADO", ate: "2026-10-10T12:30:00Z" } });
   await bloqueado.enviar(msg());
-  assertEquals(bloqueado.whatsapp.enviadas[0]!.texto, "Muitas tentativas com este número. Você pode pedir um código de novo às *09:30*.");
+  assertEquals(bloqueado.whatsapp.enviadas[0]!.texto, "Foram feitas muitas tentativas com este número.\n\nVocê poderá solicitar um novo código às *09:30*.");
   const aguarde = montar({ resultado: { acao: "AGUARDE" } });
   assertEquals((await aguarde.enviar(msg())).tratamento, "AGUARDE");
   assertEquals(aguarde.whatsapp.enviadas.length, 0);
@@ -150,9 +150,9 @@ Deno.test("minha reserva: sem o nono dígito, acha as reservas e responde no nú
   assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
   assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+5577998128809"]);
   assertEquals(whatsapp.enviadas.map((m) => [m.telefone, m.texto]), [
-    ["+5577998128809", "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.vercel.app"],
+    ["+5577998128809", "Esta é sua reserva recente:\n\n• #1049 · reservada até *09:15* · 1 peça · R$ 49,99\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app"],
   ], "vai para o número da reserva, sem o telefone no texto");
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "status" } }));
-  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Não achamos reservas recentes neste número/);
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Não encontramos reservas recentes neste número/);
 });

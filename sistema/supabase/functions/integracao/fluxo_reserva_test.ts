@@ -79,7 +79,7 @@ Deno.test({
 
       // Mensagem de outro número: nada de código
       await mensagem("5571999990000", tentativa.whatsapp.texto, "int-1");
-      assertEquals(whatsapp.enviadas.at(-1)?.texto, "Este número não é o da reserva. Envie a mensagem pelo WhatsApp que você informou no site.");
+      assertEquals(whatsapp.enviadas.at(-1)?.texto, "Esse não é o número informado na reserva.\n\nEnvie a mensagem pelo WhatsApp que você cadastrou no site para continuar.");
 
       // Do número dela, sem o nono dígito: recebe o código
       const r = await mensagem("557798120001", tentativa.whatsapp.texto, "int-2");
@@ -112,7 +112,7 @@ Deno.test({
       // "Reserva criada" sai da fila com o link da loja (as mensagens de outros testes saem do caminho)
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and reservation_id <> ${reserva.id}`;
       assertEquals(await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 }), { enviadas: 1, falhas: 0 });
-      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^Oi, Marina! Sua peça está guardada até \\*\\d{2}:\\d{2}\\* \\(reserva #${reserva.numero}, R\\$ 49,99\\)\\. Pague por aqui: https://tshirtclub\\.pt/r#[0-9A-Za-z]{22} 💖$`));
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^Oi, Marina! 💖 Sua T-shirt está reservada\\.\\n\\nEla fica guardada até \\*\\d{2}:\\d{2}\\*\\.\\n\\nReserva #${reserva.numero} · R\\$ 49,99\\n\\nFinalize o pagamento:\\nhttps://tshirtclub\\.pt/r#[0-9A-Za-z]{22}$`));
       const [fila] = await banco.sql`select params, status from outbox_messages where reservation_id = ${reserva.id}`;
       assertEquals(fila!.status, "ENVIADA");
       assertEquals(fila!.params.link, undefined, "o link com a chave saiu da fila depois do envio");

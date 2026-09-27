@@ -29,7 +29,7 @@ Deno.test("envia na ordem da fila, com intervalo sorteado entre o mínimo e o m�
   const esperas: number[] = [];
   const r = await despacharOutbox({ banco, whatsapp, sorteio: () => 0.5, orcamentoMs: 60_000, dormir: (ms) => { esperas.push(ms); return Promise.resolve(); } });
   assertEquals(r, { enviadas: 2, falhas: 0 });
-  assertEquals(whatsapp.enviadas[0]!.texto.startsWith("Reserva #1048 feita, Marina! Guardamos suas peças até *14:32*."), true);
+  assertEquals(whatsapp.enviadas[0]!.texto.startsWith("Oi, Marina! 💖 Suas 2 T-shirts estão reservadas.\n\nElas ficam guardadas até *14:32*."), true);
   assertEquals(esperas, [6500, 6500]);
   assertEquals(resultados.map((x) => x.p_ok), [true, true]);
 });

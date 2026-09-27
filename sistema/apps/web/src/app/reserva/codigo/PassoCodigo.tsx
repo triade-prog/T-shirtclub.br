@@ -132,7 +132,7 @@ export function PassoCodigo({ tentativaId, numeroLoja }: { tentativaId: string; 
             <div role="group" aria-label="Mensagem que você vai enviar" className="grid gap-2 rounded-[18px] border-2 border-tinta bg-[#e7f7dc] p-3.5">
               <span className="justify-self-end rounded-[14px] rounded-br-[4px] bg-[#d2f5bd] px-3 py-2 text-sm shadow-[0_1px_0_rgb(0_0_0/0.08)]">{texto || "…"}</span>
               <span className="justify-self-start rounded-[14px] rounded-bl-[4px] bg-branco px-3 py-2 text-sm text-tinta-suave shadow-[0_1px_0_rgb(0_0_0/0.08)]">
-                Seu código da T-shirt Club é <b>••••••</b>. Vale por 5 minutos.
+                Seu código da T-shirt Club é <b>••••••</b>. Ele vale por 5 minutos.
               </span>
             </div>
             <a
