@@ -8,8 +8,11 @@ import { Hono } from "hono";
 import {
   candidatosDoRemetente,
   ehPedidoMinhaReserva,
+  ehPedidoOfertas,
   lerPedidoDeCodigo,
   mensagemWhatsApp,
+  type Promocao,
+  promocaoDoBancoSchema,
   type ResumoReserva,
 } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
@@ -74,6 +77,18 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     return await marcar(id, "MINHA_RESERVA");
   }
 
+  /** "Ofertas": as promoções e cupons vigentes do painel, na conversa. Linha que não lê é pulada. */
+  async function ofertas(id: string, remetente: string | null): Promise<string> {
+    if (!remetente) return await marcar(id, "SEM_NUMERO");
+    const linhas = await deps.banco.rpc<unknown[]>("whatsapp_offers");
+    const promocoes = linhas.flatMap((l): Promocao[] => {
+      const r = promocaoDoBancoSchema.safeParse(l);
+      return r.success ? [r.data] : [];
+    });
+    await responder(remetente, mensagemWhatsApp("ofertas", { promocoes }));
+    return await marcar(id, "OFERTAS");
+  }
+
   /**
    * Mensagem comum: responde com o endereço da loja no máximo 1 vez a cada 24 h por número
    * (o banco decide e já marca, e a loja pode desligar no painel); a equipe segue
@@ -104,6 +119,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
 
     const pedido = lerPedidoDeCodigo(e.texto);
     if (!pedido) {
+      if (ehPedidoOfertas(e.texto)) return await ofertas(e.id, e.remetente);
       if (!ehPedidoMinhaReserva(e.texto)) return await conversa(e.id, e.remetente);
       return await minhaReserva(e.id, e.remetente);
     }

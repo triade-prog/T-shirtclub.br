@@ -6,7 +6,7 @@ import { criarWebhookWhatsApp } from "./app.ts";
 const SEGREDO = "s".repeat(40);
 const AGORA = new Date("2026-10-10T12:00:00Z");
 
-function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean } = {}) {
+function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean; ofertas?: unknown[] } = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const vistas = new Set<string>();
   const banco: Banco = {
@@ -27,6 +27,8 @@ function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: un
             return opcoes.reservas ?? [];
           case "inbound_welcome":
             return opcoes.boasVindas ?? false;
+          case "whatsapp_offers":
+            return opcoes.ofertas ?? [];
           default:
             return null;
         }
@@ -115,6 +117,23 @@ Deno.test("mensagem comum: resposta automática com o site quando o banco libera
   assertEquals((await lid.enviar(msg({ phone: "123456789012345@lid", text: { message: "Oi" } }))).tratamento, "CONVERSA");
   assertEquals(lid.rpcs.some((x) => x.funcao === "inbound_welcome"), false);
   assertEquals(lid.whatsapp.enviadas.length, 0);
+});
+
+Deno.test("ofertas: responde com as promoções vigentes do banco, pulando o que não lê", async () => {
+  const club = {
+    id: "6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f", tipo: "COMPRE_MAIS", modo: "PRECO_POR_GRUPO", nome: "Club", escopo: "TODOS", produtos: [],
+    inicio: "2026-09-01T00:00:00Z", fim: "2026-12-31T00:00:00Z", situacao: "ATIVA", grupo: { qtd: 3, precoCentavos: 11999 }, umaPorCliente: false,
+  };
+  const { enviar, whatsapp, rpcs } = montar({ ofertas: [club, { tipo: "OUTRA_COISA" }] });
+  assertEquals((await enviar(msg({ text: { message: "Promoções?" } }))).tratamento, "OFERTAS");
+  assertEquals(rpcs.some((x) => x.funcao === "inbound_welcome"), false, "não conta como mensagem comum");
+  assertEquals(whatsapp.enviadas.length, 1);
+  assertMatch(whatsapp.enviadas[0]!.texto, /^Ofertas de hoje na T-shirt Club ✦\n\n• \*Club\*: 3 peças por R\$ 119,99\n\n/);
+
+  const vazio = montar();
+  await vazio.enviar(msg({ text: { message: "oferta" } }));
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^No momento não temos ofertas ativas\./);
+  assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid", text: { message: "ofertas" } }))).tratamento, "SEM_NUMERO");
 });
 
 Deno.test("status de entrega atualiza a fila", async () => {

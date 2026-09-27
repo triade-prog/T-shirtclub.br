@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { Promocao } from "./preco.ts";
 import {
   candidatosDoRemetente,
   ehPedidoMinhaReserva,
+  ehPedidoOfertas,
   formatarHora,
   lerPedidoDeCodigo,
   linkWhatsApp,
@@ -18,6 +20,11 @@ describe("o que a cliente escreve", () => {
     expect(lerPedidoDeCodigo(textoPedidoCodigo("E5R2", "ENTREGA"))).toEqual({ ref: "E5R2", finalidade: "ENTREGA" });
     expect(lerPedidoDeCodigo("Oi, tem a camiseta Limone?")).toBeNull();
     expect(lerPedidoDeCodigo("ref. K0Q2")).toBeNull(); // 0 não existe na referência
+  });
+
+  it("reconhece o pedido de ofertas, sozinho na mensagem", () => {
+    for (const t of ["oferta", "Ofertas", "PROMOÇÃO", "promoções!", "promocoes?"]) expect(ehPedidoOfertas(t)).toBe(true);
+    for (const t of ["a promoção não funcionou no meu pedido", "tem oferta de moletom?", "minha reserva"]) expect(ehPedidoOfertas(t)).toBe(false);
   });
 
   it("reconhece o pedido de consulta", () => {
@@ -155,6 +162,31 @@ describe("o que a loja manda", () => {
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe(
       "Não encontramos reservas recentes neste número.\n\nPara escolher suas peças ou fazer uma nova reserva:\ntshirtclub.vercel.app",
     );
+  });
+
+  it("ofertas: promoções e cupons vigentes, uma linha cada, e a regra de não somar", () => {
+    const periodo = { inicio: new Date("2026-09-01T00:00:00Z"), fim: new Date("2026-12-31T00:00:00Z") };
+    const promocoes: Promocao[] = [
+      { ...periodo, id: "p1", nome: "Club", tipo: "COMPRE_MAIS", modo: "PRECO_POR_GRUPO", escopo: "TODOS", produtos: [], umaPorCliente: false, grupo: { qtd: 3, precoCentavos: 11999 } },
+      { ...periodo, id: "p2", nome: "Leve mais", tipo: "COMPRE_MAIS", modo: "NIVEIS", escopo: "ESPECIFICOS", produtos: ["x"], umaPorCliente: false, niveis: [{ qtdMin: 2, pct: 10 }, { qtdMin: 4, pct: 20 }] },
+      { ...periodo, id: "p3", nome: "Queima", tipo: "DESCONTO_PRODUTO", produtos: { a: { modo: "PERCENTUAL", valor: 20 }, b: { modo: "PERCENTUAL", valor: 30 } } },
+      { ...periodo, id: "p4", nome: "Boas-vindas", tipo: "CUPOM", escopo: "TODOS", produtos: [], codigo: "BEMVINDA10", modo: "VALOR", valor: 1000, gastoMinimoCentavos: 9000,
+        quantidadeTotal: 100, quantidadeUsada: 3, limitePorCliente: 1, validadeDias: 30 },
+      { ...periodo, id: "p5", nome: "Insta", tipo: "CUPOM", escopo: "TODOS", produtos: [], codigo: "INSTA15", modo: "PERCENTUAL", valor: 15, descontoMaximoCentavos: 3000,
+        quantidadeTotal: 100, quantidadeUsada: 0, limitePorCliente: 1, validadeDias: 30 },
+    ];
+    expect(mensagemWhatsApp("ofertas", { promocoes })).toBe(
+      "Ofertas de hoje na T-shirt Club ✦\n\n" +
+        "• *Club*: 3 peças por R$ 119,99\n" +
+        "• *Leve mais*: 2 peças com 10% de desconto · 4 peças com 20% de desconto em peças selecionadas\n" +
+        "• *Queima*: até 30% de desconto em peças selecionadas\n" +
+        "• Cupom *BEMVINDA10*: R$ 10,00 de desconto em compras a partir de R$ 90,00\n" +
+        "• Cupom *INSTA15*: 15% de desconto (até R$ 30,00)\n\n" +
+        "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.\n\n" +
+        "Para ver as peças e reservar:\ntshirtclub.vercel.app",
+    );
+    expect(mensagemWhatsApp("ofertas", { promocoes: promocoes.slice(0, 1) })).not.toContain("não se somam");
+    expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("No momento não temos ofertas ativas.\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app");
   });
 
   it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {
