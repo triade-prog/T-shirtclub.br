@@ -1,0 +1,5 @@
+# Achados do gitleaks já avaliados (formato: commit:arquivo:regra:linha).
+# ID da instância da Z-API no script de publicação (27/09): não é credencial (as chamadas exigem
+# o token e o client-token, que nunca estiveram no repositório) e saiu do script; o commit antigo
+# fica no histórico público, então só este registro é ignorado.
+547919e1d6c9d766f317f9ef46602ac732de49ea:sistema/scripts/publicar-supabase.sh:generic-api-key:18
