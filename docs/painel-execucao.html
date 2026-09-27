@@ -28,7 +28,7 @@
     "arquitetura_versao": 24,
     "situacao": "Sistema em produção desde 27/09: banco com 38 migrations, 5 Edge Functions, loja e painel na Vercel, login com autenticador, Mercado Pago ligado (conta recebedora travada, webhook conferido) e WhatsApp pela Z-API (webhook, resposta automática, ofertas e textos novos). F12 publicada: Operação (Kanban do dia), Dashboard comercial e metas de vendas. F1 aguarda o CI (GitHub sem minutos)",
     "fase_atual": "F12",
-    "proximo_passo": "Loja: cadastrar as metas de vendas em Minha conta. Para abrir a loja: assinar a Z-API (a conta em trial põe cabeçalho de teste nas mensagens), endereço e horário de retirada, produtos e promoções no painel, e no Supabase Auth o Site URL, o cadastro público desligado e a proteção contra senhas vazadas"
+    "proximo_passo": "Para abrir a loja: assinar a Z-API (a conta em trial põe cabeçalho de teste nas mensagens), endereço e horário de retirada, produtos e promoções no painel, e no Supabase Auth o Site URL, o cadastro público desligado e a proteção contra senhas vazadas; depois, o teste completo pelo celular com PIX de valor baixo (P7, P10 e P19)"
   },
   "fases": [
     {"id":"D","nome":"Design do frontend","sec":"frontend","objetivo":"Identidade, design system, telas finais, textos e imagens aprovados antes das telas de verdade (a F2 depende de D1 e D2).",
@@ -45,7 +45,7 @@
       {"id":"F1.1","texto":"Monorepo com apps/web, apps/admin, packages/domain e supabase/","sec":"codigo","refs":[],"status":"feito","evidencia":"sistema/ com pnpm: apps/web, apps/admin, packages/domain, packages/ui, packages/servidor e supabase/ (README e ADR 0001)"},
       {"id":"F1.2","texto":"CI: lint, typecheck, Vitest, pgTAP, axe e Lighthouse em cada push","sec":"testes","refs":["G19"],"status":"bloqueado","nota":"Workflow pronto e todos os testes passando localmente. O GitHub não inicia os jobs: \"account is locked due to a billing issue\" (run 36193392053) e, depois do pagamento em 25/09, startup_failure. Desbloqueio depende do suporte do GitHub"},
       {"id":"F1.3","texto":"Varredura de segredos no CI e Dependabot ligado","sec":"publicacao","refs":[],"status":"andamento","nota":"gitleaks no CI e Dependabot configurados; conferir na primeira execução do CI (bloqueada, ver F1.2)"},
-      {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"andamento","nota":"27/09: projeto Supabase de produção woetzyiutwrpxgeiecsu (sa-east-1) criado pela loja e com o banco publicado (32 migrations conferidas por md5, bucket catalogo, pg_cron, worker_url e worker_segredo no Vault). Projetos web e admin na Vercel (time triade-ai) prontos pela loja. 27/09: script rodado, 5 Edge Functions publicadas (ACTIVE, v1); só o webhook-whatsapp inicia, as outras esperam os segredos do Mercado Pago e do Turnstile. Não há projeto de teste separado (P3)"},
+      {"id":"F1.4","texto":"Projeto Supabase de desenvolvimento em sa-east-1 e projeto Vercel em gru1","sec":"stack","refs":["G9"],"status":"andamento","nota":"27/09: projeto Supabase de produção woetzyiutwrpxgeiecsu (sa-east-1) com o banco publicado (38 migrations), as 5 Edge Functions rodando com todos os segredos e os projetos web e admin na Vercel (time triade-ai). Não há projeto de teste separado (P3)"},
       {"id":"F1.5","texto":"Migrations 0001 a 0003: extensões, enums, app_settings, app_now() e rate_limits","sec":"dados","refs":["G18","G20"],"status":"feito","evidencia":"migrations 0001 a 0003; supabase/tests/pgtap/001_settings_test.sql (16 testes, relógio em 14min59s e 20min01s)"},
       {"id":"F1.6","texto":"Migration 0080: auditoria somente de inserção, sem dados pessoais","sec":"dados","refs":["G9"],"status":"feito","evidencia":"migration 0080; 002_audit_test.sql (9 testes: UPDATE, DELETE e TRUNCATE bloqueados; dado pessoal recusado)"},
       {"id":"F1.7","texto":"Migration 0100: gatilho guardião das transições de estado","sec":"estados","refs":[],"status":"feito","evidencia":"migration 0100; 003_transition_guard_test.sql (13 testes). O gatilho é ligado à tabela reservations na 0030 (F4)"},
@@ -188,17 +188,17 @@
       {"id":"P1","texto":"Supabase Pro em sa-east-1, backup diário ligado e restauração ensaiada","refs":["G10"],"status":"andamento","nota":"27/09: projeto woetzyiutwrpxgeiecsu em sa-east-1, Postgres 17, com o banco publicado. Falta conferir o plano Pro e o backup diário e ensaiar a restauração (runbook)"},
       {"id":"P2","texto":"Vercel Pro, funções em gru1, tshirtclub.pt e admin.tshirtclub.pt com HTTPS","refs":["G10"],"status":"andamento","nota":"27/09: projetos web e admin no time triade-ai, por enquanto em https://tshirtclub.vercel.app e https://admin-tshirtclub.vercel.app (HTTPS da Vercel). Falta o domínio próprio e conferir o plano Pro e a região gru1"},
       {"id":"P3","texto":"Ambientes de teste e de produção separados","refs":[],"status":"pendente"},
-      {"id":"P4","texto":"Segredos só nos Secrets do Supabase e da Vercel","refs":[],"status":"andamento","nota":"27/09: worker_segredo gerado dentro do banco e guardado no Vault (nunca saiu do banco). REPASSE_SEGREDO, WEBHOOK_WHATSAPP_SEGREDO, ZAPI_TOKEN e ZAPI_CLIENT_TOKEN cadastrados pela loja, com os nomes ainda não conferidos. OTP_PEPPER, IP_SAL, WORKER_SEGREDO, ZAPI_INSTANCIA, LOJA_WHATSAPP e LOJA_URL gravados pelo script em 27/09. Faltam TURNSTILE_SECRET, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e MP_EMAIL_PIX, sem os quais 4 funções não iniciam"},
+      {"id":"P4","texto":"Segredos só nos Secrets do Supabase e da Vercel","refs":[],"status":"feito","evidencia":"27/09: todos os segredos só nos Secrets do Supabase: internos (OTP_PEPPER, IP_SAL, WORKER_SEGREDO igual ao do Vault), Mercado Pago (MP_ACCESS_TOKEN, MP_EMAIL_PIX, MP_WEBHOOK_SECRET), Turnstile, Z-API (ZAPI_TOKEN regenerado e ZAPI_CLIENT_TOKEN com o token de segurança da conta ativo) e WEBHOOK_WHATSAPP_SEGREDO em hexadecimal; na Vercel só as chaves públicas (Turnstile e Mercado Pago). Nenhum valor passou pela conversa, a não ser o token da Z-API colado pela loja, que foi regenerado"},
       {"id":"P5","texto":"Segundo fator nas contas de Supabase, Vercel, Mercado Pago, Z-API e domínio","refs":[],"status":"pendente"}
     ]},
     {"grupo":"Pagamento","itens":[
-      {"id":"P6","texto":"Webhook de produção com chave secreta, tópicos payment e chargebacks","refs":["G3"],"status":"pendente"},
+      {"id":"P6","texto":"Webhook de produção com chave secreta, tópicos payment e chargebacks","refs":["G3"],"status":"andamento","nota":"27/09: webhook de produção em /functions/v1/webhook-payments com a assinatura conferida (simulações com 200, aviso de pagamento registrado e consultado) e o tópico Pagamentos; aviso de pagamento inexistente é encerrado sozinho. Falta confirmar o tópico de contestações (chargebacks) no painel do Mercado Pago"},
       {"id":"P7","texto":"PIX real de valor baixo pago e estornado em produção","refs":[],"status":"pendente"},
-      {"id":"P8","texto":"Reconciliação rodando e alerta de análise no painel","refs":[],"status":"pendente"}
+      {"id":"P8","texto":"Reconciliação rodando e alerta de análise no painel","refs":[],"status":"andamento","nota":"27/09: pg_cron e worker rodando em produção (saúde 200), com a reconciliação dos pendentes e o alerta de pagamentos parados; falta ver com o primeiro pagamento real"}
     ]},
     {"grupo":"WhatsApp","itens":[
-      {"id":"P9","texto":"Z-API conectada ao número da loja, com monitor de conexão","refs":[],"status":"pendente"},
-      {"id":"P10","texto":"Webhook testado com mensagem da equipe (ignorada) e de uma cliente real","refs":["G4"],"status":"pendente"},
+      {"id":"P9","texto":"Z-API conectada ao número da loja, com monitor de conexão","refs":[],"status":"feito","evidencia":"27/09: instância da Z-API conectada ao número da loja; o painel mostra a conexão (e o motivo no log quando a Z-API recusa), a fila volta sozinha quando a conexão retorna (0320). A conta ainda está em trial: cabeçalho de teste nas mensagens até a assinatura"},
+      {"id":"P10","texto":"Webhook testado com mensagem da equipe (ignorada) e de uma cliente real","refs":["G4"],"status":"andamento","nota":"27/09: webhook testado com mensagem da equipe (registrada como conversa e com a resposta automática), status de entrega e mensagem de teste entregues; falta uma cliente real pedindo o código"},
       {"id":"P11","texto":"Modo lançamento testado com a fila cheia","refs":["G5"],"status":"pendente"}
     ]},
     {"grupo":"Segurança","itens":[
@@ -219,8 +219,8 @@
     ]}
   ],
   "externos": [
-    {"id":"E1","texto":"Credenciais de teste do Mercado Pago","quem":"Loja","precisa_em":"F6","refs":[],"status":"pendente"},
-    {"id":"E2","texto":"Conta na Z-API com o número conectado","quem":"Loja","precisa_em":"F3","refs":[],"status":"pendente"},
+    {"id":"E1","texto":"Credenciais de teste do Mercado Pago","quem":"Loja","precisa_em":"F6","refs":[],"status":"feito","evidencia":"27/09: credenciais de produção configuradas direto (Checkout Transparente, API Pagamentos), conta recebedora 773782692 travada; o ambiente de teste não foi usado"},
+    {"id":"E2","texto":"Conta na Z-API com o número conectado","quem":"Loja","precisa_em":"F3","refs":[],"status":"feito","evidencia":"27/09: instância conectada ao número da loja e webhook recebendo; falta assinar (conta em trial)"},
     {"id":"E3","texto":"Confirmar como a Z-API entrega o remetente com identificador LID","quem":"Claude, com a conta da loja","precisa_em":"F3","refs":["G4"],"status":"pendente"},
     {"id":"E4","texto":"Confirmar o mínimo de 30 min do PIX no ambiente de teste","quem":"Claude, com as credenciais","precisa_em":"F6","refs":["G14"],"status":"pendente"},
     {"id":"E5","texto":"Conferir preços do Supabase Pro e do Vercel Pro e contratar","quem":"Loja","precisa_em":"Publicação","refs":["G10"],"status":"pendente"},
@@ -291,6 +291,7 @@
     ["D27", "Faturamento na confirmação do pagamento: receita bruta (peças pelo preço de tabela + frete cobrado), menos descontos e estornos, dá a receita líquida; impostos e taxas do Mercado Pago ficam de fora até o sistema guardá-los"]
   ],
   "historico": [
+    {"data":"27/09/2026","inicio":"18:35","fim":"18:45","texto":"Metas cadastradas pela loja em Minha conta (diária R$ 240, mensal R$ 2.000 e anual R$ 25.000, com registro na auditoria). Painel revisado: publicação e dependências externas atualizadas (segredos, webhook do Mercado Pago, Z-API conectada, credenciais) e próximo passo sem as metas.","ref":""},
     {"data":"27/09/2026","inicio":"18:20","fim":"18:30","texto":"Dashboard comercial e metas publicados (PR #20): migration 0360 aplicada em produção e registrada, api-admin publicada, painel na Vercel pela main. F12 concluída.","ref":"480b8c4"},
     {"data":"27/09/2026","inicio":"17:30","fim":"18:15","texto":"Dashboard comercial e metas (PR aberto): migration 0360 com as metas diária, mensal e anual (Minha conta), sales_totals() e admin_sales_dashboard() pelas regras de faturamento da D27; Dashboard em / no lugar do Início, com indicadores, meta, demonstrativo do período, coleções, mix, estoque em atenção e pulso da operação. Conferido em produção numa transação desfeita; pgTAP 026, vitest, Deno, e2e e axe.","ref":""},
     {"data":"27/09/2026","inicio":"17:15","fim":"17:25","texto":"Operação publicada (PR #19): migration 0350 aplicada em produção e registrada, api-admin publicada, painel na Vercel pela main.","ref":"e6f1915"},
