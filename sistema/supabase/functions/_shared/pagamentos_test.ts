@@ -1,5 +1,5 @@
-import { assertEquals } from "@std/assert";
-import { assinaturaMpValida, lerPagamentoMp, mercadoPago } from "./pagamentos.ts";
+import { assertEquals, assertRejects } from "@std/assert";
+import { assinaturaMpValida, lerPagamentoMp, mercadoPago, PagamentoInexistente } from "./pagamentos.ts";
 
 const SEGREDO = "segredo-do-webhook";
 const AGORA = new Date("2026-10-10T12:00:00Z");
@@ -62,4 +62,14 @@ Deno.test("PIX de 30 min e cartão em binary_mode, com a chave de idempotência"
 
   await mp.cancelar("9");
   assertEquals([pedidos[2]!.url, pedidos[2]!.init.method, String(pedidos[2]!.init.body)], ["https://api.mercadopago.com/v1/payments/9", "PUT", '{"status":"cancelled"}']);
+});
+
+Deno.test("consulta de pagamento que o Mercado Pago não conhece (404): PagamentoInexistente; outros erros seguem genéricos", async () => {
+  let status = 404;
+  const buscar: typeof fetch = () => Promise.resolve(new Response("{}", { status }));
+  const mp = mercadoPago({ accessToken: "TEST-1", urlWebhook: "https://p.supabase.co/functions/v1/webhook-payments", emailPix: "pagamentos@tshirtclub.pt" }, buscar);
+  await assertRejects(() => mp.consultar("123456"), PagamentoInexistente);
+  await assertRejects(() => mp.cancelar("123456"), Error, "Mercado Pago respondeu 404");
+  status = 500;
+  await assertRejects(() => mp.consultar("123456"), Error, "Mercado Pago respondeu 500");
 });

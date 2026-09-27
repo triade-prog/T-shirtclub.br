@@ -4,7 +4,7 @@
 
 import { relatarErro } from "../_shared/monitor.ts";
 import type { Banco } from "../_shared/banco.ts";
-import { paraAplicar, type PaymentProvider, type ResultadoProvedor } from "../_shared/pagamentos.ts";
+import { PagamentoInexistente, paraAplicar, type PaymentProvider, type ResultadoProvedor } from "../_shared/pagamentos.ts";
 
 export interface DepsPagamentos {
   banco: Banco;
@@ -36,6 +36,14 @@ export async function processarEvento(deps: DepsPagamentos, eventoId: number, re
     await aplicarDoProvedor(deps, ref);
     await deps.banco.rpc("payment_event_done", { p_id: eventoId });
   } catch (e) {
+    // Aviso de um pagamento que o provedor não conhece (a simulação do painel do Mercado
+    // Pago): encerra, porque repetir nunca vai achá-lo. Um pagamento da loja sem aviso
+    // processado segue coberto pela reconciliação dos pendentes.
+    if (e instanceof PagamentoInexistente) {
+      console.warn(`Aviso de pagamento encerrado sem aplicar: ${e.message}`);
+      await deps.banco.rpc("payment_event_done", { p_id: eventoId });
+      return;
+    }
     await deps.banco.rpc("payment_event_done", { p_id: eventoId, p_error: String(e) });
     throw e;
   }
