@@ -56,7 +56,8 @@ caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTAN
 `ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP`, `LOJA_URL`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` e `MP_EMAIL_PIX`. `SUPABASE_URL` e as chaves o Supabase já entrega.
 Opcionais, nas funções e nos apps: `SENTRY_DSN` (erros, sem dados pessoais) e `AMBIENTE` (`producao`
 ou `teste`).
-O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>`; o do
+O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (o segredo vai na
+URL: gere com `openssl rand -hex 32`, porque o `/` e o `+` do base64 quebram o caminho); o do
 Mercado Pago (só o tópico payment), para `…/functions/v1/webhook-payments`. A conta recebedora vai em
 `app_settings.mp_collector_id`: pagamento de outra conta nunca é aplicado.
 
