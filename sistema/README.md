@@ -45,6 +45,13 @@ npx lhci autorun --config=lighthouserc.cjs # metas de desempenho no celular
 bash scripts/subir-apps.sh parar
 ```
 
+Desempenho no container do CI, sem depender do GitHub Actions: `bash scripts/lighthouse-container.sh`
+(build da loja, `next start` e `lhci` com o `lighthouserc.cjs`; imprime mediana e cada execução de
+LCP, FCP, TBT, CLS e fontes, e o elemento do LCP). `RODADAS=5` para comparar antes e depois;
+`HTTP2=1` mede por um proxy HTTP/2 (`scripts/proxy-http2.mjs`), como na Vercel, porque o
+`next start` só fala HTTP/1.1; `ESTRANGULAMENTO=devtools` aplica rede e CPU lentas de verdade em vez
+da simulação. Para o "antes", rode num worktree limpo do commit base com os dois scripts copiados.
+
 As imagens de referência da comparação visual são geradas no container do CI: depois de
 mudar um componente de propósito, rode o workflow **Atualizar telas de referência** ou, com
 Docker, `bash scripts/e2e-container.sh --update-snapshots=all` (mesmo container). Fora dele,
