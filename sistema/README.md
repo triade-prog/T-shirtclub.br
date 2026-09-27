@@ -46,7 +46,9 @@ bash scripts/subir-apps.sh parar
 ```
 
 As imagens de referência da comparação visual são geradas no container do CI: depois de
-mudar um componente de propósito, rode o workflow **Atualizar telas de referência**.
+mudar um componente de propósito, rode o workflow **Atualizar telas de referência** ou, com
+Docker, `bash scripts/e2e-container.sh --update-snapshots=all` (mesmo container). Fora dele,
+as telas diferem na suavização do texto e a comparação visual falha; o resto passa igual.
 
 ## Variáveis
 

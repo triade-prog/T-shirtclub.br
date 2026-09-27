@@ -16,7 +16,9 @@ RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 FUNCOES=(api-public api-admin webhook-whatsapp webhook-payments worker)
 # Gravados por este script (passo 2); o Supabase já entrega os SUPABASE_*.
 DESTE_SCRIPT=(WORKER_SEGREDO ZAPI_INSTANCIA LOJA_WHATSAPP LOJA_URL OTP_PEPPER IP_SAL)
-ZAPI_INSTANCIA="3F9C1155D634D15F62F75E00F85CEB2F"
+# A instância da Z-API vem do ambiente (não fica no repositório, que é público): sem ela, o
+# valor que já está no Supabase continua valendo.
+ZAPI_INSTANCIA="${ZAPI_INSTANCIA:-}"
 LOJA_WHATSAPP="5577998155772"
 LOJA_URL="${LOJA_URL:-https://tshirtclub.vercel.app}"
 
@@ -46,6 +48,10 @@ for n in "${OBRIGATORIOS[@]}"; do
 done
 if ((${#FALTAM[@]})); then
   echo "Faltam no Supabase: ${FALTAM[*]}. Cadastre antes de publicar (Edge Functions → Secrets)." >&2
+  exit 1
+fi
+if ! tem ZAPI_INSTANCIA && [[ -z "$ZAPI_INSTANCIA" ]]; then
+  echo "Falta ZAPI_INSTANCIA: rode com ZAPI_INSTANCIA=<id da instância> no ambiente." >&2
   exit 1
 fi
 echo "OK: os segredos que as funções exigem estão cadastrados (os deste script são gravados a seguir)."
