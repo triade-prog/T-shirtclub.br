@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { formatarReais, textoErro } from "@tshirtclub/domain";
-import { Aviso, Botao, Campo, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
+import { Aviso, Botao, Campo, SeloStatus, Sobretitulo, cx } from "@tshirtclub/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
 import { guardar } from "@/lib/navegador";
 import { CodigoWhatsApp, type ConsultaCriada } from "../_verificacao/CodigoWhatsApp";
@@ -26,13 +26,6 @@ interface Resumo {
   modalidade?: string;
   cancelamentoPendente?: boolean;
 }
-
-const ROTULO: Record<Resumo["status"], string> = {
-  RESERVADO: "Reservado",
-  PAGAMENTO_CONFIRMADO: "Pago",
-  ENTREGUE: "Entregue",
-  EXPIRADO: "Expirado",
-};
 
 const SUBSTATUS: Record<string, string> = {
   AGUARDANDO_MODALIDADE: "Escolher a entrega",
@@ -158,7 +151,7 @@ function Lista({ reservas }: { reservas: Resumo[] }) {
             <>
               <div className="flex items-center justify-between gap-2">
                 <h2 className="m-0 font-display text-2xl font-extrabold">#{r.numero}</h2>
-                <Selo fundo={r.status === "RESERVADO" ? "citrino" : r.status === "EXPIRADO" ? "papel" : "rosa"} brilho={false}>{ROTULO[r.status]}</Selo>
+                <SeloStatus status={r.status} brilho={false} />
               </div>
               <p className="m-0 text-sm text-tinta-suave">
                 {r.pecas ? `${r.pecas} ${r.pecas === 1 ? "T-shirt" : "T-shirts"} · ` : ""}{formatarReais(r.totalCentavos)}

@@ -3,8 +3,11 @@
 import { Aviso } from "./Aviso.tsx";
 import { Botao } from "./Botao.tsx";
 import { Campo } from "./Campo.tsx";
+import { Cronometro } from "./Cronometro.tsx";
 import { ProgressoClub } from "./ProgressoClub.tsx";
+import { RELOGIO_ENCERRADO } from "./relogio.ts";
 import { Selo, Sobretitulo } from "./Selo.tsx";
+import { SeloStatus } from "./SeloStatus.tsx";
 
 const CORES = [
   ["papel", "Fundo"], ["algodao", "Áreas recuadas"], ["tinta", "Texto, contornos e sombras"], ["tinta-suave", "Texto secundário"],
@@ -81,9 +84,22 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
           <Selo fundo="citrino">Últimas 2</Selo>
           <Selo fundo="rosa">3 por R$ 119,99</Selo>
         </div>
+        <div className="flex flex-wrap gap-3">
+          <SeloStatus status="RESERVADO" />
+          <SeloStatus status="PAGAMENTO_CONFIRMADO" />
+          <SeloStatus status="ENTREGUE" />
+          <SeloStatus status="EXPIRADO" />
+        </div>
         <div className="grid max-w-md gap-4">
           <ProgressoClub pecas={2} titulo="Falta 1 para fechar." texto="A terceira ativa o preço do Club: cerca de R$ 40 por peça." />
           <ProgressoClub pecas={3} titulo="Club completo." rotulos={["Pomodoro", "Poodle", "Limone"]} />
+        </div>
+      </Secao>
+
+      <Secao titulo="Cronômetro da reserva">
+        <div className="grid max-w-md gap-3">
+          <Cronometro relogio={{ fase: "PRAZO", restanteMs: 684_000, fracao: 0.76 }} ate="14:32" />
+          <Cronometro relogio={RELOGIO_ENCERRADO} ate="14:32" />
         </div>
       </Secao>
 

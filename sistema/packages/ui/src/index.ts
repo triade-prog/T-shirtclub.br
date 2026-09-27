@@ -1,8 +1,12 @@
 export { Botao, type BotaoProps, type VarianteBotao } from "./Botao.tsx";
 export { Aviso, type AvisoProps, type TipoAviso } from "./Aviso.tsx";
 export { Campo, type CampoProps } from "./Campo.tsx";
+export { Cronometro, type CronometroProps } from "./Cronometro.tsx";
 export { ProgressoClub, type ProgressoClubProps } from "./ProgressoClub.tsx";
+export { RELOGIO_ENCERRADO, calcularRelogio, formatarTempo, type FaseRelogio, type Relogio } from "./relogio.ts";
 export { Selo, Sobretitulo, type FundoSelo, type SeloProps } from "./Selo.tsx";
+export { SeloStatus, type SeloStatusProps, type StatusSelo } from "./SeloStatus.tsx";
 export { cx } from "./classes.ts";
 export { Turnstile } from "./Turnstile.tsx";
+export { useRelogioDoServidor } from "./useRelogioDoServidor.ts";
 export { Vitrine } from "./Vitrine.tsx";

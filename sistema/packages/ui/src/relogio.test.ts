@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcularRelogio, formatarTempo } from "./reserva";
+import { calcularRelogio, formatarTempo } from "./relogio.ts";
 
 const criada = "2026-09-26T17:00:00.000Z";
 const expira = "2026-09-26T17:15:00.000Z";

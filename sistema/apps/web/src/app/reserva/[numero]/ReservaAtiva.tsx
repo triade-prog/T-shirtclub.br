@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatarReais } from "@tshirtclub/domain";
-import { Aviso, Botao, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
+import { Aviso, Botao, Cronometro, RELOGIO_ENCERRADO, SeloStatus, Sobretitulo, calcularRelogio, useRelogioDoServidor, type StatusSelo } from "@tshirtclub/ui";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
-import { calcularRelogio, formatarTempo } from "@/lib/reserva";
 import { BlocoCartao } from "./BlocoCartao";
 import { BlocoPix } from "./BlocoPix";
 import { Entrega } from "./Entrega";
@@ -16,8 +15,6 @@ const ESPERA_RESERVA_MS = 5000;
 export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoja: string }) {
   const [reserva, setReserva] = useState<Reserva | null>(null);
   const [problema, setProblema] = useState<"SEM_SESSAO" | "NAO_ACHOU" | "FORA_DO_AR" | null>(null);
-  const [desvio, setDesvio] = useState(0);
-  const [agora, setAgora] = useState(() => Date.now());
   const idRef = useRef<string | null>(null);
 
   const lerReserva = useCallback(async () => {
@@ -34,7 +31,6 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
     if (!r.ok) return setProblema(r.codigo === "UNAUTHORIZED" ? "SEM_SESSAO" : r.codigo === "NOT_FOUND" ? "NAO_ACHOU" : "FORA_DO_AR");
     setProblema(null);
     setReserva(r.dados);
-    setDesvio(Date.parse(r.dados.agora) - Date.now());
   }, [numero]);
 
   // Primeira leitura (depois do await, como as consultas seguintes).
@@ -44,7 +40,7 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
   // Pago: a entrega muda pelo painel (frete calculado, pronto, enviado); confere com calma.
   const pago = reserva?.status === "PAGAMENTO_CONFIRMADO";
   useRepetir(() => void lerReserva(), ativa ? ESPERA_RESERVA_MS : 20_000, ativa || pago);
-  useRepetir(() => setAgora(Date.now()), 1000, ativa);
+  const agora = useRelogioDoServidor(reserva?.agora, 1000, ativa);
 
   if (problema) return <Problema tipo={problema} />;
   if (!reserva) {
@@ -59,11 +55,11 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
   if (reserva.limitada) return <Limitada reserva={reserva} />;
   if (reserva.status === "PAGAMENTO_CONFIRMADO" || reserva.status === "ENTREGUE") return <Entrega reserva={reserva} numeroLoja={numeroLoja} aoMudar={() => void lerReserva()} />;
 
-  const relogio = calcularRelogio(reserva.criadaEm, reserva.expiraEm, reserva.toleranciaAte, agora + desvio);
+  const relogio = calcularRelogio(reserva.criadaEm, reserva.expiraEm, reserva.toleranciaAte, agora ?? Date.parse(reserva.agora));
 
   return (
-    <Moldura numero={numero} selo="Reservado">
-      <Cronometro relogio={relogio} expiraEm={reserva.expiraEm} />
+    <Moldura numero={numero} selo="RESERVADO">
+      <Cronometro relogio={relogio} ate={horario(reserva.expiraEm)} />
 
       {relogio.fase === "PRAZO"
         ? <Aviso tipo="marca" titulo="Suas peças estão guardadas para você.">
@@ -122,7 +118,7 @@ function Pagar({ reserva, podePagar, aoAprovar }: { reserva: Reserva; podePagar:
   );
 }
 
-function Moldura({ numero, selo, children }: { numero: number; selo?: string; children: React.ReactNode }) {
+function Moldura({ numero, selo, children }: { numero: number; selo?: StatusSelo; children: React.ReactNode }) {
   return (
     <section className="mx-auto grid w-full max-w-xl gap-5 px-3.5 pb-12 pt-8 md:pt-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -130,33 +126,10 @@ function Moldura({ numero, selo, children }: { numero: number; selo?: string; ch
           <Sobretitulo>Passo 3 de 3</Sobretitulo>
           <h1 className="m-0 mt-2 font-editorial text-[clamp(34px,5vw,48px)] font-bold leading-[0.95] tracking-[-0.05em]">Reserva #{numero}</h1>
         </div>
-        {selo && <Selo fundo="citrino">{selo}</Selo>}
+        {selo && <SeloStatus status={selo} />}
       </div>
       {children}
     </section>
-  );
-}
-
-function Cronometro({ relogio, expiraEm, terminou }: { relogio: ReturnType<typeof calcularRelogio>; expiraEm: string; terminou?: boolean }) {
-  const fim = terminou || relogio.fase !== "PRAZO";
-  // Leitor de tela (F4.3): o texto só muda aos 5 minutos e no fim, então só fala nessas horas.
-  const reta = relogio.restanteMs <= 5 * 60_000;
-  return (
-    <div className="grid gap-2 rounded-[18px] border-2 border-tinta bg-citrino p-4 text-no-citrino shadow-adesivo-sm">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className={cx("font-display text-[44px] font-extrabold leading-none tabular-nums", fim && "text-tinta-suave")} aria-hidden="true">
-          {fim ? "00:00" : formatarTempo(relogio.restanteMs)}
-        </span>
-        <span className="text-sm font-semibold">{fim ? `terminou às ${horario(expiraEm)}` : `guardado até ${horario(expiraEm)}`}</span>
-      </div>
-      <p className="sr-only" role="timer" aria-live="polite">
-        {fim ? "O prazo para pagar terminou." : reta ? `Faltam menos de 5 minutos para pagar, até ${horario(expiraEm)}.` : `Você tem até ${horario(expiraEm)} para pagar.`}
-      </p>
-      {/* A costura da V4: some da direita para a esquerda */}
-      <div className="h-2.5 overflow-hidden rounded-pilula border-[1.5px] border-tinta bg-papel">
-        <i className="block h-full bg-rosa transition-[width] duration-1000 ease-linear motion-reduce:transition-none" style={{ width: `${Math.round(relogio.fracao * 100)}%` }} />
-      </div>
-    </div>
   );
 }
 
@@ -229,7 +202,7 @@ function Cancelamento({ reserva, aoPedir }: { reserva: Reserva; aoPedir: () => P
 function Limitada({ reserva }: { reserva: Reserva }) {
   const texto = reserva.status === "ENTREGUE" ? "Este pedido foi entregue." : "Esta reserva foi encerrada.";
   return (
-    <Moldura numero={reserva.numero} selo={reserva.status === "ENTREGUE" ? "Entregue" : "Encerrada"}>
+    <Moldura numero={reserva.numero} selo={reserva.status === "ENTREGUE" ? "ENTREGUE" : "ENCERRADO"}>
       <p className="m-0 text-[15px]">{texto} Os detalhes ficam guardados por 30 dias pelo link; depois, só com o código no WhatsApp.</p>
       <Link href="/" className="tc-alvo relative font-bold underline decoration-rosa decoration-2 underline-offset-2">Voltar para a loja</Link>
     </Moldura>
@@ -240,8 +213,8 @@ function Expirada({ reserva }: { reserva: Reserva }) {
   const cancelada = reserva.motivoEncerramento === "CANCELAMENTO_APROVADO";
   const fim = reserva.expiradaEm ?? reserva.expiraEm;
   return (
-    <Moldura numero={reserva.numero} selo="Expirado">
-      <Cronometro relogio={{ fase: "FIM", restanteMs: 0, fracao: 0 }} expiraEm={fim} terminou />
+    <Moldura numero={reserva.numero} selo="EXPIRADO">
+      <Cronometro relogio={RELOGIO_ENCERRADO} ate={horario(fim)} />
       <p className="m-0 text-[15px]">
         {cancelada ? "Seu pedido de cancelamento foi aprovado e as peças voltaram para a loja." : "O pagamento não chegou a tempo e as peças voltaram para a loja."}{" "}
         <b>Nada foi cobrado.</b>
