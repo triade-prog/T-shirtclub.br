@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { AbrirLink } from "./AbrirLink";
 
-// Link da reserva (G6): tshirtclub.pt/r#chave. A chave fica no fragmento, que não vai ao
+// Link da reserva (G6): tshirtclub.vercel.app/r#chave. A chave fica no fragmento, que não vai ao
 // servidor nem aparece em logs; a página lê no navegador e manda no corpo do POST /v1/r.
 // O no-referrer desta rota está em cabecalhosSeguranca.
 

@@ -20,7 +20,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 
 - **Stack:** Supabase (projeto novo) + Next.js (React), mobile-first e PWA, na Vercel. Lógica crítica (estoque, transições, idempotência) em funções do PostgreSQL.
 - **Repositório:** este (`triade-prog/T-shirtclub.br`), com o sistema numa pasta separada do protótipo.
-- **Domínio:** `tshirtclub.pt`. **Volume:** menos de 50 pessoas simultâneas em lançamentos.
+- **Domínio:** por enquanto os da Vercel: loja em `https://tshirtclub.vercel.app` e painel em `https://admin-tshirtclub.vercel.app` (27/09). O domínio próprio (`tshirtclub.pt`) fica para depois. **Volume:** menos de 50 pessoas simultâneas em lançamentos.
 - **Pagamento:** Mercado Pago; PIX **ou** cartão, fixo na primeira cobrança da reserva. No celular, "Copiar código PIX" é a ação principal.
 - **Tolerância:** 15 + 5 min fixos; tentativa real = cobrança criada no provedor; sem pagamento novo após o minuto 15.
 - **Pagamento tardio:** vai para análise; o admin estorna ou converte em novo pedido. Reserva expirada nunca é reativada.
@@ -140,7 +140,7 @@ Feito:
 
 Falta, com o token no ambiente e `api.supabase.com` liberado na rede (ou no computador da loja), rodar `bash sistema/scripts/publicar-supabase.sh`. O script faz o seguinte:
 1. Lista só os nomes dos segredos e confere `REPASSE_SEGREDO`, `WEBHOOK_WHATSAPP_SEGREDO`, `ZAPI_TOKEN` e `ZAPI_CLIENT_TOKEN`. Com `conferir`, para aí.
-2. Grava `OTP_PEPPER` e `IP_SAL`, gerados só se ainda não existirem. Grava `WORKER_SEGREDO` lido do Vault (o mesmo valor que a varredura manda), `ZAPI_INSTANCIA`, `LOJA_WHATSAPP` (5577998155772) e `LOJA_URL`. O padrão do `LOJA_URL` é `https://tshirtclub.pt`: a loja precisa confirmar o endereço.
+2. Grava `OTP_PEPPER` e `IP_SAL`, gerados só se ainda não existirem. Grava `WORKER_SEGREDO` lido do Vault (o mesmo valor que a varredura manda), `ZAPI_INSTANCIA`, `LOJA_WHATSAPP` (5577998155772) e `LOJA_URL`. O `LOJA_URL` é `https://tshirtclub.vercel.app`, confirmado pela loja em 27/09.
 3. Publica as 5 funções (`api-public`, `api-admin`, `webhook-whatsapp`, `webhook-payments`, `worker`) com `verify_jwt = false`, pelo `config.toml`.
 4. Confere a lista de funções e o `GET /worker/saude`.
 
@@ -153,7 +153,7 @@ Depois disso ainda faltam:
 - os webhooks da Z-API e do Mercado Pago;
 - no Auth: a proteção contra senhas vazadas e o SMTP.
 
-A Vercel ficou como a loja deixou: projetos `web` e `admin` no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time.
+A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 
