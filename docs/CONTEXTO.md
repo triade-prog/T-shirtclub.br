@@ -168,6 +168,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Nome nas mensagens (27/09):** o WhatsApp faz link de "Club.br" para club.br, que não é da loja. As mensagens do WhatsApp (e a prévia do código no site) dizem "T-shirt Club"; o site, o painel e a descrição do pagamento seguem com "T-shirt Club.br". A conta da Z-API ainda está em trial: até a assinatura, cada mensagem sai com o cabeçalho "MENSAGEM DE TESTE… CONTA EM TRIAL".
 
+**Fila na volta da conexão (27/09):** mensagem que falha espera 1, 5 ou 15 min para tentar de novo; se a falha era a conexão, ela seguia esperando depois de a conexão voltar (as 2 de teste presas pelo token da Z-API). A api-admin e a api-public contam cada conexão vista (`comRegistroDeConexao` → `whatsapp_connection_seen`, migration 0320); na volta de desconectado para conectado, as pendentes que já falharam ficam prontas na hora. As que nunca tentaram seguem no horário delas.
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
 - assinatura da Z-API (a conta em trial põe cabeçalho de teste em toda mensagem);

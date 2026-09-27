@@ -6,7 +6,7 @@ import { storageSupabase } from "../_shared/armazenamento.ts";
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
-import { whatsappZapi } from "../_shared/whatsapp.ts";
+import { comRegistroDeConexao, whatsappZapi } from "../_shared/whatsapp.ts";
 import { criarApiAdmin } from "./app.ts";
 import { monitorDoAmbiente } from "../_shared/monitor.ts";
 
@@ -20,8 +20,9 @@ function exigir(nome: string): string {
 
 const url = exigir("SUPABASE_URL");
 const chaveServico = exigir("SUPABASE_SERVICE_ROLE_KEY");
+const banco = bancoPostgrest(url, chaveServico);
 const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
-  banco: bancoPostgrest(url, chaveServico),
+  banco,
   armazenamento: storageSupabase(url, chaveServico),
   pagamentos: mercadoPago({ accessToken: exigir("MP_ACCESS_TOKEN"), urlWebhook: `${url}/functions/v1/webhook-payments`, emailPix: exigir("MP_EMAIL_PIX") }),
   auth: authGoTrue(url, exigir("SUPABASE_ANON_KEY")),
@@ -35,7 +36,10 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
     console.warn(JSON.stringify({ funcao: "api-admin", aviso: "senha do painel trocada" }));
     return Promise.resolve();
   },
-  whatsapp: whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+  whatsapp: comRegistroDeConexao(
+    whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+    banco,
+  ),
 });
 
 Deno.serve(app.fetch);
