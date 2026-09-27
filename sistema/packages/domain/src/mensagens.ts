@@ -1,5 +1,6 @@
-// Mensagens do WhatsApp (seção 10, textos aprovados na D4) e leitura do que a cliente
-// escreve. As essenciais têm 2 versões, sorteadas, para o texto não sair sempre igual (G5).
+// Mensagens do WhatsApp (seção 10) e leitura do que a cliente escreve. Textos da loja de
+// 27/09: uma versão oficial por evento, a informação importante primeiro e a marca depois;
+// 💖 e ✦ só nos momentos bons, e código, erro e bloqueio ficam neutros.
 // Só o primeiro nome; o link é sempre do domínio da loja. *negrito* é a marcação do WhatsApp.
 // O nome é "T-shirt Club", sem o .br: o WhatsApp transforma "Club.br" em link para club.br,
 // que não é da loja (27/09).
@@ -82,11 +83,21 @@ export interface ParametrosMensagem {
   sem_numero: Record<string, never>;
   referencia_invalida: Record<string, never>;
   codigo_bloqueado: { ate: Date };
-  reserva_criada: { nome: string; pecas: number; numero: number; totalCentavos: number; expiraEm: Date; link: string };
-  reserva_lembrete_5min: { numero: number; expiraEm: Date };
+  /** grupo: o "compre mais" por grupo ativo quando falta 1 peça para ele (ex.: 3 por R$ 119,99). */
+  reserva_criada: {
+    nome: string;
+    pecas: number;
+    numero: number;
+    totalCentavos: number;
+    expiraEm: Date;
+    link: string;
+    grupo?: { qtd: number; precoCentavos: number };
+  };
+  /** nome e pecas: o banco completa a partir da reserva (0330). */
+  reserva_lembrete_5min: { numero: number; expiraEm: Date; nome?: string; pecas?: number };
   reserva_expirada: { numero: number; expiradaEm: Date };
-  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: "PIX" | "CARTAO" };
-  pagamento_em_analise: { numero: number; frete?: boolean };
+  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: "PIX" | "CARTAO"; pecas?: number };
+  pagamento_em_analise: { numero: number; frete?: boolean; valorDivergente?: boolean };
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
   bloqueio_mantido: Record<string, never>;
@@ -99,7 +110,7 @@ export interface ParametrosMensagem {
   pronto_retirada: { numero: number; codigo: string; endereco?: string; horario?: string };
   saiu_entrega: { numero: number };
   pedido_enviado: { numero: number; rastreio?: string };
-  pedido_entregue: { numero: number };
+  pedido_entregue: { numero: number; nome?: string };
   minhas_reservas: { reservas: ResumoReserva[] };
   boas_vindas: Record<string, never>;
   mensagem_teste: Record<string, never>;
@@ -129,17 +140,17 @@ const SUBSTATUS_CLIENTE: Record<string, string> = {
 };
 
 function linhaReserva(r: ResumoReserva): string {
-  const pecas = r.pecas === undefined ? "" : `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"}, `;
+  const pecas = r.pecas === undefined ? "" : `${r.pecas} ${r.pecas === 1 ? "peça" : "peças"} · `;
   switch (r.status) {
     case "RESERVADO":
-      return `• #${r.numero}: reservada até *${r.expiraEm ? formatarHora(r.expiraEm) : "--:--"}* · ${pecas}${formatarReais(r.totalCentavos)}` +
+      return `• #${r.numero} · reservada até *${r.expiraEm ? formatarHora(r.expiraEm) : "--:--"}* · ${pecas}${formatarReais(r.totalCentavos)}` +
         (r.cancelamentoPendente ? " · cancelamento pedido" : "");
     case "PAGAMENTO_CONFIRMADO":
-      return `• #${r.numero}: paga · ${SUBSTATUS_CLIENTE[r.substatus ?? ""] ?? "em preparação"}`;
+      return `• #${r.numero} · paga · ${SUBSTATUS_CLIENTE[r.substatus ?? ""] ?? "em preparação"}`;
     case "ENTREGUE":
-      return `• #${r.numero}: entregue`;
+      return `• #${r.numero} · entregue`;
     default:
-      return `• #${r.numero}: encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)" : " sem pagamento"}`;
+      return `• #${r.numero} · encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)" : " sem pagamento"}`;
   }
 }
 
@@ -147,96 +158,207 @@ export type Modelo = keyof ParametrosMensagem;
 
 type Versoes<M extends Modelo> = ((p: ParametrosMensagem[M]) => string)[];
 
+/** Blocos separados por uma linha em branco; os vazios saem. */
+const blocos = (...partes: (string | false | undefined)[]) => partes.filter(Boolean).join("\n\n");
+const nomeOuNada = (nome?: string) => (nome ? primeiroNome(nome) : "");
+
 const MODELOS: { [M in Modelo]: Versoes<M> } = {
+  // ─── Verificação: neutras ───
   codigo_verificacao: [
-    (p) => `Seu código da T-shirt Club é *${p.codigo}*. Vale por ${p.minutos} minutos. Não passe para ninguém.`,
-    (p) => `Código de confirmação: *${p.codigo}*. Digite no site para garantir suas peças. Ele vence em ${p.minutos} minutos.`,
+    (p) => blocos(`Seu código da T-shirt Club é *${p.codigo}*.`, `Ele vale por ${p.minutos} minutos. Não compartilhe este código com ninguém.`),
   ],
-  numero_diferente: [() => "Este número não é o da reserva. Envie a mensagem pelo WhatsApp que você informou no site."],
-  sem_numero: [() => "Não conseguimos confirmar o seu número por aqui. Envie a mensagem pelo WhatsApp que você informou no site."],
+  numero_diferente: [
+    () => blocos("Esse não é o número informado na reserva.", "Envie a mensagem pelo WhatsApp que você cadastrou no site para continuar."),
+  ],
+  sem_numero: [
+    () => blocos("Não conseguimos confirmar seu número por aqui.", "Envie a mensagem pelo mesmo WhatsApp informado no site para continuar."),
+  ],
   referencia_invalida: [
-    () => "Não achamos esse pedido de código. Volte ao site e toque em \"Receber código no WhatsApp\" de novo.",
+    () => blocos("Não encontramos esse pedido de código.", "Volte ao site e toque em *Receber código no WhatsApp* novamente."),
   ],
   codigo_bloqueado: [
-    (p) => `Muitas tentativas com este número. Você pode pedir um código de novo às *${formatarHora(p.ate)}*.`,
+    (p) => blocos("Foram feitas muitas tentativas com este número.", `Você poderá solicitar um novo código às *${formatarHora(p.ate)}*.`),
   ],
+
+  // ─── Reserva: T-shirt Club leve ───
+  // "Club" é o conjunto de 3; com 2 peças e o "compre mais" por grupo ativo, a oferta entra.
   reserva_criada: [
-    (p) =>
-      `Oi, ${primeiroNome(p.nome)}! ${p.pecas === 1 ? "Sua peça está guardada" : `Suas ${p.pecas} peças estão guardadas`} até *${formatarHora(p.expiraEm)}* (reserva #${p.numero}, ${formatarReais(p.totalCentavos)}). Pague por aqui: ${p.link} 💖`,
-    (p) =>
-      `Reserva #${p.numero} feita, ${primeiroNome(p.nome)}! Guardamos ${p.pecas === 1 ? "sua peça" : "suas peças"} até *${formatarHora(p.expiraEm)}*. Total ${formatarReais(p.totalCentavos)}. Para pagar: ${p.link}`,
+    (p) => {
+      const ate = formatarHora(p.expiraEm);
+      const resumo = `Reserva #${p.numero} · ${formatarReais(p.totalCentavos)}`;
+      if (p.pecas === 1) {
+        return blocos(`Oi, ${primeiroNome(p.nome)}! 💖 Sua T-shirt está reservada.`, `Ela fica guardada até *${ate}*.`, resumo,
+          `Finalize o pagamento:\n${p.link}`);
+      }
+      if (p.pecas >= 3) {
+        return blocos(`Oi, ${primeiroNome(p.nome)}! 💖 Seu Club está reservado.`, `As ${p.pecas} peças ficam guardadas até *${ate}*.`, resumo,
+          `Finalize o pagamento:\n${p.link}`);
+      }
+      const falta = p.grupo ? p.grupo.qtd - p.pecas : 0;
+      return blocos(
+        `Oi, ${primeiroNome(p.nome)}! 💖 Suas ${p.pecas} T-shirts estão reservadas.`,
+        `Elas ficam guardadas até *${ate}*.`,
+        resumo,
+        p.grupo && falta === 1 && `Com mais 1 peça você completa o Club: ${p.grupo.qtd} por ${formatarReais(p.grupo.precoCentavos)}.`,
+        p.grupo && falta === 1 ? `Finalize por aqui:\n${p.link}` : `Finalize o pagamento:\n${p.link}`,
+      );
+    },
   ],
   reserva_lembrete_5min: [
-    (p) => `Faltam 5 minutos: a reserva #${p.numero} fica guardada até *${formatarHora(p.expiraEm)}*. Se já pagou, pode ignorar.`,
-    (p) => `Lembrete: suas peças da reserva #${p.numero} ficam separadas só até *${formatarHora(p.expiraEm)}*.`,
+    (p) =>
+      blocos(
+        `${p.nome ? `${nomeOuNada(p.nome)}, faltam` : "Faltam"} só *5 minutos* para a reserva #${p.numero} expirar.`,
+        p.pecas === 1 ? `Sua peça fica separada até *${formatarHora(p.expiraEm)}*.` : `Suas peças ficam separadas até *${formatarHora(p.expiraEm)}*.`,
+        "Se você já pagou, pode ignorar esta mensagem. 💖",
+      ),
   ],
   reserva_expirada: [
     (p) =>
-      `A reserva #${p.numero} terminou às ${formatarHora(p.expiradaEm)} sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: ${SITE}`,
-    (p) => `O prazo da reserva #${p.numero} acabou e nada foi cobrado. As peças voltaram para a loja: ${SITE}`,
+      blocos(
+        `O prazo da reserva #${p.numero} terminou às *${formatarHora(p.expiradaEm)}* e nenhuma cobrança foi feita.`,
+        "As peças voltaram a ficar disponíveis no Club.",
+        `Se ainda quiser, você pode reservar novamente:\n${SITE}`,
+      ),
   ],
+
+  // ─── Pagamento: o momento mais emocional ───
   // A mensagem não leva o link com a chave: o banco guarda só o hash dela (G6). A cliente
   // vê o pedido no site, com a sessão do celular em que pagou ou pela consulta com código.
   pagamento_confirmado: [
     (p) =>
-      `Pagamento confirmado! Pedido #${p.numero}, ${formatarReais(p.totalCentavos)} ${p.forma === "PIX" ? "no PIX" : "no cartão"}. Agora escolha como quer receber, no site: ${SITE} ✨`,
-    (p) => `Recebemos seu pagamento, ${primeiroNome(p.nome)}! Pedido #${p.numero} garantido. Falta só escolher a entrega, no site: ${SITE}`,
+      blocos(
+        "Pagamento confirmado! ✦",
+        `${primeiroNome(p.nome)}, ${p.pecas === 1 ? "sua peça agora é sua" : "suas peças agora são suas"}. 💖`,
+        `Pedido #${p.numero}\n${formatarReais(p.totalCentavos)} · ${p.forma === "PIX" ? "PIX" : "Cartão"}`,
+        `Falta só escolher como você quer receber:\n${SITE}`,
+      ),
   ],
+  // "Não pague de novo" evita pagamento em dobro enquanto a loja confere.
   pagamento_em_analise: [
     (p) =>
       p.frete
-        ? `O pagamento do frete do pedido #${p.numero} chegou depois que a entrega mudou. A loja vai conferir e falar com você por aqui.`
-        : `Seu pagamento chegou depois do prazo da reserva #${p.numero}. A loja vai conferir e falar com você por aqui.`,
+        ? blocos(
+          `Recebemos o pagamento do frete do pedido #${p.numero}, mas a condição de entrega já havia mudado.`,
+          "Nossa equipe vai conferir e falar com você por aqui.",
+          "Não faça outro pagamento até receber nosso retorno.",
+        )
+        : blocos(
+          p.valorDivergente
+            ? `Recebemos um pagamento da reserva #${p.numero} com valor diferente do total.`
+            : `Recebemos um pagamento relacionado à reserva #${p.numero} depois do prazo.`,
+          "Nossa equipe vai conferir o pagamento e falar com você por aqui.",
+          "Não é necessário pagar novamente.",
+        ),
   ],
+
+  // ─── Bloqueio: neutras, sem tom de julgamento ───
   telefone_bloqueado: [
-    () => "Suas reservas estão pausadas porque 3 terminaram sem pagamento em 30 dias. Se quiser, fale com a gente por aqui.",
+    () =>
+      blocos(
+        "As reservas deste número estão temporariamente pausadas porque 3 reservas expiraram sem pagamento nos últimos 30 dias.",
+        "Se precisar de ajuda ou quiser solicitar uma análise, pode falar com a gente por aqui.",
+      ),
   ],
-  telefone_liberado: [() => "Tudo certo: você já pode fazer reservas de novo na T-shirt Club."],
+  telefone_liberado: [
+    () => blocos("Tudo certo! 💖", "As reservas deste número foram liberadas e você já pode reservar suas T-shirts novamente.", SITE),
+  ],
   bloqueio_mantido: [
-    () => "Analisamos seu caso e as reservas seguem pausadas por enquanto. Fale com a gente por aqui se precisar.",
+    () => blocos("Concluímos a análise e as reservas deste número continuam pausadas por enquanto.", "Se precisar de mais informações, pode responder esta mensagem."),
   ],
-  // O pedido não pausa o relógio (regra 12): as mensagens lembram até quando a reserva vale.
+
+  // ─── Cancelamento: o pedido não pausa o relógio (regra 12) ───
   cancelamento_recebido: [
-    (p) => `Recebemos seu pedido de cancelamento da reserva #${p.numero}. A loja responde em breve; o prazo continua correndo até *${formatarHora(p.expiraEm)}*.`,
+    (p) =>
+      blocos(
+        `Recebemos seu pedido de cancelamento da reserva #${p.numero}.`,
+        "Nossa equipe vai analisar e responder por aqui.",
+        `Enquanto o cancelamento não for aprovado, a reserva continua válida até *${formatarHora(p.expiraEm)}*.`,
+      ),
   ],
-  cancelamento_aprovado: [(p) => `Cancelamento aprovado: a reserva #${p.numero} foi encerrada e nada foi cobrado.`],
-  cancelamento_recusado: [(p) => `A loja manteve a reserva #${p.numero}. Ela segue valendo até *${formatarHora(p.expiraEm)}*.`],
-  // Pós-pagamento (regras 17 e 18): sem endereço nem telefone no texto (seção 10).
+  cancelamento_aprovado: [(p) => blocos("Cancelamento aprovado.", `A reserva #${p.numero} foi encerrada e nenhuma cobrança foi feita.`)],
+  cancelamento_recusado: [
+    (p) =>
+      blocos(
+        `O pedido de cancelamento da reserva #${p.numero} não foi aprovado.`,
+        `A reserva continua válida até *${formatarHora(p.expiraEm)}*.`,
+        "Se precisar entender o motivo, pode responder esta mensagem.",
+      ),
+  ],
+
+  // ─── Entrega (regras 17 e 18): sem telefone no texto; o endereço só na retirada ───
   entrega_confirmada: [
     (p) =>
       p.modalidade === "RETIRADA"
-        ? `Retirada confirmada para o pedido #${p.numero}. Avisamos por aqui quando ele estiver pronto.`
-        : `Recebemos o endereço do pedido #${p.numero}. A loja calcula o frete e manda o valor por aqui.`,
+        ? blocos("Combinado! 💖", `O pedido #${p.numero} será retirado na loja.`, "Avisamos por aqui assim que ele estiver pronto.")
+        : blocos("Endereço recebido! 💖", `Agora vamos calcular o frete do pedido #${p.numero}.`, "Assim que o valor estiver pronto, enviamos por aqui."),
   ],
   frete_calculado: [
-    (p) => `Frete do pedido #${p.numero}: ${formatarReais(p.valorCentavos)}. Pague até *${formatarHora(p.pagarAte)}* pelo site: ${SITE}`,
+    (p) =>
+      blocos(
+        `O frete do pedido #${p.numero} ficou em *${formatarReais(p.valorCentavos)}*.`,
+        `Para manter esta opção de entrega, pague até *${formatarHora(p.pagarAte)}*:`,
+        SITE,
+        "Depois da confirmação, começamos a preparar o envio. ✦",
+      ),
   ],
-  frete_confirmado: [(p) => `Frete pago! O pedido #${p.numero} já está em preparação.`],
+  frete_confirmado: [
+    (p) => blocos("Frete confirmado! ✦", `O pedido #${p.numero} já entrou em preparação.`, "Avisamos por aqui quando ele seguir para entrega. 💖"),
+  ],
+  // A cliente costuma abrir esta já chegando à loja: cada dado numa linha.
   pronto_retirada: [
     (p) =>
-      [
-        `O pedido #${p.numero} está pronto para retirada! Código: *${p.codigo}*. Leve também seu nome e este WhatsApp.`,
-        p.endereco ? `Endereço: ${p.endereco}.` : "",
-        p.horario ? `Horário: ${p.horario}.` : "",
-      ].filter(Boolean).join(" "),
+      blocos(
+        "Seu pedido está pronto! 💖",
+        `*Pedido:* #${p.numero}\n*Código de retirada:* *${p.codigo}*`,
+        p.endereco && `*Endereço:*\n${p.endereco}`,
+        p.horario && `*Horário:*\n${p.horario}`,
+        "Na retirada, informe seu nome, este WhatsApp e o código acima.",
+      ),
   ],
-  saiu_entrega: [(p) => `O pedido #${p.numero} saiu para entrega. Tenha alguém para receber.`],
+  saiu_entrega: [
+    (p) => blocos(`Seu pedido #${p.numero} saiu para entrega! ✦`, "Se puder, deixe alguém disponível para receber.", "Avisamos por aqui assim que a entrega for concluída."),
+  ],
   pedido_enviado: [
-    (p) => `O pedido #${p.numero} foi enviado.${p.rastreio ? ` Código de rastreio: *${p.rastreio}*.` : ""}`,
+    (p) =>
+      blocos(
+        `Seu pedido #${p.numero} foi enviado! 💖`,
+        p.rastreio && `*Código de rastreio:*\n*${p.rastreio}*`,
+        p.rastreio && "Você já pode acompanhar a entrega pelo rastreamento da transportadora.",
+      ),
   ],
-  pedido_entregue: [(p) => `Pedido #${p.numero} entregue. Obrigada pela compra! Trocas e devoluções são combinadas por aqui. 💖`],
-  // Resposta a "Minha reserva" (regra 22): sem código e sem link; detalhes no site.
+  pedido_entregue: [
+    (p) =>
+      blocos(
+        `Pedido #${p.numero} entregue. 💖`,
+        `Obrigada por fazer parte do Club${p.nome ? `, ${nomeOuNada(p.nome)}` : ""}!`,
+        "Se precisar falar sobre troca ou devolução, pode responder esta mensagem.",
+      ),
+  ],
+
+  // ─── Conversa ───
+  // Resposta a "Minha reserva" (regra 22): sem código e sem link de pagamento; detalhes no site.
   minhas_reservas: [
     (p) =>
       p.reservas.length === 0
-        ? `Não achamos reservas recentes neste número. Para reservar ou consultar: ${SITE}`
-        : [p.reservas.length === 1 ? "Sua reserva:" : "Suas reservas:", ...p.reservas.map(linhaReserva), `Detalhes e pagamento no site: ${SITE}`].join("\n"),
+        ? blocos("Não encontramos reservas recentes neste número.", `Para escolher suas peças ou fazer uma nova reserva:\n${SITE}`)
+        : blocos(
+          p.reservas.length === 1 ? "Esta é sua reserva recente:" : "Estas são suas reservas recentes:",
+          p.reservas.map(linhaReserva).join("\n"),
+          `Para ver todos os detalhes:\n${SITE}`,
+        ),
   ],
-  // Resposta automática a mensagem comum (27/09): no máximo 1 vez a cada 24 h por número.
+  // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310).
   boas_vindas: [
-    () => `Oi! 💖 Aqui é a T-shirt Club. Para ver as peças, reservar e pagar, acesse ${SITE}. Se precisar de ajuda, é só escrever: a equipe responde por aqui assim que puder.`,
+    () =>
+      blocos(
+        "Oi! 💖 Aqui é a T-shirt Club.",
+        `Para ver as peças, reservar ou acompanhar seus pedidos:\n${SITE}`,
+        "Se precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.",
+      ),
   ],
-  mensagem_teste: [() => "Mensagem de teste da T-shirt Club: o envio pelo sistema está funcionando."],
+  mensagem_teste: [
+    () => blocos("✦ Teste T-shirt Club", "O envio de mensagens pelo sistema está funcionando corretamente.", "Esta é apenas uma mensagem de teste."),
+  ],
 };
 
 // ─── Notificações no painel (tela 18, G5) ────────────────────────────────────────────

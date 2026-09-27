@@ -112,7 +112,7 @@ Deno.test({
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and template <> 'pagamento_confirmado'`;
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
       await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 });
-      assertMatch(whatsapp.enviadas.at(-1)!.texto, /^Pagamento confirmado! Pedido #\d+, R\$ 49,99 no PIX\./);
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, /^Pagamento confirmado! ✦\n\nMarina, sua peça agora é sua\. 💖\n\nPedido #\d+\nR\$ 49,99 · PIX\n/);
 
       // ── Cartão recusado, depois aprovado na hora (binary_mode) ──
       const r2 = await reservar("+5577998130002");

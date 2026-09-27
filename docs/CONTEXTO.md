@@ -170,6 +170,8 @@ No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que 
 
 **Fila na volta da conexão (27/09):** mensagem que falha espera 1, 5 ou 15 min para tentar de novo; se a falha era a conexão, ela seguia esperando depois de a conexão voltar (as 2 de teste presas pelo token da Z-API). A api-admin e a api-public contam cada conexão vista (`comRegistroDeConexao` → `whatsapp_connection_seen`, migration 0320); na volta de desconectado para conectado, as pendentes que já falharam ficam prontas na hora. As que nunca tentaram seguem no horário delas.
 
+**Textos do WhatsApp (27/09):** textos novos da loja, uma versão oficial por evento (antes havia 2 sorteadas nas essenciais, G5): informação primeiro, marca depois; 💖 e ✦ só nos momentos bons, código, erro e bloqueio neutros. "Club" é o conjunto de 3: a reserva de 2 peças com um "compre mais" por grupo ativo para todos (ex.: 3 por R$ 119,99) oferece a peça que falta. O enqueue completa nome e peças a partir da reserva e a oferta do grupo, e o pagamento em análise diz quando o valor veio diferente (migration 0330). Com a Z-API não oficial, texto sempre igual aumenta um pouco o risco de bloqueio do número; se aparecer, voltar a ter 2 versões nas mensagens de maior volume.
+
 Depois disso ainda faltam:
 - `NEXT_PUBLIC_MP_PUBLIC_KEY` no projeto `web` da Vercel (sem ela a loja só oferece PIX) e redeploy;
 - assinatura da Z-API (a conta em trial põe cabeçalho de teste em toda mensagem);
