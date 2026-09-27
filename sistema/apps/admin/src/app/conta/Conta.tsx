@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { qrComoDataUrl } from "@tshirtclub/domain";
 import { chamarApi, dataHora, mensagemDeErro } from "@/lib/api";
 import { Casca } from "../_painel/Casca";
-import { Aviso, Botao, Campo, Carregando, Escolha, Selo } from "../_painel/ui";
+import { Aviso, Botao, Campo, CampoCodigo, Carregando, Escolha, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 
@@ -147,7 +148,7 @@ function RemoverFator({ alvo, outros, aoCancelar, aoRemover }: { alvo: Fator; ou
   return (
     <form className="decision" onSubmit={remover} noValidate>
       <Escolha name="fator" rotulo="Código de qual autenticador" opcoes={outros.map((o, i) => [o.id, o.nome || `Outro autenticador ${i + 1}`] as const)} />
-      <Campo name="codigo" rotulo="Código de 6 números" inputMode="numeric" autoComplete="one-time-code" maxLength={7}
+      <CampoCodigo rotulo="Código de 6 números"
         erro={erro ? (erro === mensagemDeErro("MFA_INVALID") ? "Código errado ou vencido. Use o que aparece agora no app." : erro) : undefined} />
       <div className="actions">
         <Botao type="submit" variante="danger" carregando={ocupado}>Remover autenticador</Botao>
@@ -192,10 +193,10 @@ function NovoFator({ aoCadastrar }: { aoCadastrar: () => void }) {
     <form className="decision" onSubmit={confirmar} noValidate>
       <div className="qr">
         {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo do Supabase Auth */}
-        <img src={cadastro.qrCode} alt="QR code para cadastrar o autenticador" width={200} height={200} />
+        <img src={qrComoDataUrl(cadastro.qrCode)} alt="QR code para cadastrar o autenticador" width={200} height={200} />
         <p className="field-help">Sem câmera? Digite esta chave no app: <code>{cadastro.segredo}</code></p>
       </div>
-      <Campo name="codigo" rotulo="Código que aparece no app" inputMode="numeric" autoComplete="one-time-code" maxLength={7}
+      <CampoCodigo rotulo="Código que aparece no app"
         erro={erro ? (erro === mensagemDeErro("MFA_INVALID") ? "Código errado ou vencido. Use o que aparece agora no app." : erro) : undefined} />
       <div className="actions">
         <Botao type="submit" carregando={ocupado}>Confirmar autenticador</Botao>

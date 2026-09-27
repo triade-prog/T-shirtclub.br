@@ -35,6 +35,19 @@ export function Campo({ rotulo, ajuda, erro, multilinha, id, className, ...resto
   );
 }
 
+/** Código de 6 números do autenticador. Só aceita dígitos (digitados, colados ou
+ * preenchidos pelo navegador), para uma senha colada por engano nunca aparecer na tela, e
+ * pede aos gerenciadores de senha que não preencham o campo. Sem maxLength: o código colado
+ * como "123 456" precisa chegar inteiro ao filtro. */
+export function CampoCodigo(props: { rotulo: string; ajuda?: string; erro?: string; className?: string }) {
+  return (
+    <Campo name="codigo" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" placeholder="000000"
+      spellCheck={false} data-1p-ignore="true" data-lpignore="true" data-bwignore="true" data-form-type="other"
+      onInput={(e) => { const c = e.currentTarget; const so = c.value.replace(/\D/g, "").slice(0, 6); if (so !== c.value) c.value = so; }}
+      {...props} />
+  );
+}
+
 export function Aviso({ tipo = "rosa", titulo, tag, children }: { tipo?: "rosa" | "green" | "yellow" | "error"; titulo?: string; tag?: string; children?: React.ReactNode }) {
   return (
     <section className={`notice${tipo === "rosa" ? "" : ` ${tipo}`}`} role={tipo === "error" ? "alert" : undefined}>
