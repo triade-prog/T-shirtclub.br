@@ -125,7 +125,7 @@ Deno.test({
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and reservation_id <> ${reserva.id}`;
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
       assertEquals((await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 })).enviadas, 1);
-      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^A reserva #${reserva.numero} terminou às \\d{2}:\\d{2} sem pagamento`));
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^O prazo da reserva #${reserva.numero} terminou às \\*\\d{2}:\\d{2}\\* e nenhuma cobrança foi feita\\.`));
       const disponivel = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, qtd: 1 }] })).json();
       assertEquals(disponivel.totalCentavos, 4999, "a peça voltou para a loja");
 

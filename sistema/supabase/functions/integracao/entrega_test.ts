@@ -100,7 +100,7 @@ Deno.test({
       assertEquals(address.cep, "45000000", "o painel tem o endereço completo, com o CEP normalizado");
 
       await banco.rpc("admin_shipping_quote", { p_reservation_id: r1.id, p_admin: ADMIN, p_amount_cents: 1200, p_days: 1 });
-      assertMatch(await enviar(), new RegExp(`^Frete do pedido #${r1.numero}: R\\$ 12,00\\. Pague até \\*\\d{2}:\\d{2}\\*`));
+      assertMatch(await enviar(), new RegExp(`^O frete do pedido #${r1.numero} ficou em \\*R\\$ 12,00\\*\\.`));
       const tela = await ver(r1);
       assertEquals([tela.logistica.substatus, tela.logistica.frete.valorCentavos], ["AGUARDANDO_PAGAMENTO_FRETE", 1200]);
       const frete = await (await chamarApi(r1.cookie, `${r1.id}/shipping-payments`, "POST", CARTAO)).json();

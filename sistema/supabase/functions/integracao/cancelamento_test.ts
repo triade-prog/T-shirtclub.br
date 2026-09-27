@@ -95,7 +95,7 @@ Deno.test({
       // A loja recusa: a reserva segue no prazo
       await banco.rpc("reject_cancellation", { p_request_id: await pedidoPendente(), p_admin: ADMIN, p_reason: "Troca é na loja" });
       assertEquals((await ver()).status, "RESERVADO");
-      assertMatch(await enviar(), new RegExp(`^A loja manteve a reserva #${reserva.numero}\\. Ela segue valendo até \\*\\d{2}:\\d{2}\\*\\.$`));
+      assertMatch(await enviar(), new RegExp(`^O pedido de cancelamento da reserva #${reserva.numero} não foi aprovado\\.\\n\\nA reserva continua válida até \\*\\d{2}:\\d{2}\\*\\.`));
 
       // Novo pedido, e a loja aprova: T4, estoque de volta e o PIX cancelado no provedor
       assertEquals((await pedir()).status, 201);
@@ -110,7 +110,7 @@ Deno.test({
       const [{ provider_payment_id: mp }] = await banco.sql`select provider_payment_id from payments where id = ${pagamento.id}`;
       assertEquals((await processarPagamentos({ banco, pagamentos })).cancelados, 1);
       assertEquals(pagamentos.pagamentos.get(mp)!.status, "CANCELADO", "a cobrança não fica aberta depois do cancelamento");
-      assertEquals(await enviar(), `Cancelamento aprovado: a reserva #${reserva.numero} foi encerrada e nada foi cobrado.`);
+      assertEquals(await enviar(), `Cancelamento aprovado.\n\nA reserva #${reserva.numero} foi encerrada e nenhuma cobrança foi feita.`);
     } finally {
       // Não deixa envios recentes nem fila para os outros testes (o ritmo da fila é global)
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
