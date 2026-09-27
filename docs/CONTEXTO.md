@@ -184,7 +184,7 @@ Depois disso ainda faltam:
 - `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings` e os produtos (pelo painel);
 - no Auth: Site URL `https://admin-tshirtclub.vercel.app`, cadastro público desligado, proteção contra senhas vazadas e o SMTP.
 
-A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
+A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. **Limite de publicações (27/09):** a Vercel recusou as publicações dos PRs #26 a #29 ("Deployment rate limited — retry in 24 hours", com convite para o Pro): o time está no plano gratuito, não no Pro previsto. Banco e funções têm as variantes; a loja e o painel no ar são os do PR #25, que não mandam o tamanho que a API exige, então nenhuma peça deve ser cadastrada antes da publicação. Desde então, `apps/*/vercel.json` só publica a `main` (sem publicação de teste por branch). As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 
