@@ -54,9 +54,9 @@ describe("o que a loja manda", () => {
   it("reserva criada: primeiro nome, horário da loja e total", () => {
     const texto = mensagemWhatsApp("reserva_criada", {
       nome: "Marina Souza", pecas: 3, numero: 1048, totalCentavos: 11999,
-      expiraEm: new Date("2026-10-10T17:32:00Z"), link: "https://tshirtclub.pt/r#abc",
+      expiraEm: new Date("2026-10-10T17:32:00Z"), link: "https://tshirtclub.vercel.app/r#abc",
     }, 0);
-    expect(texto).toBe("Oi, Marina! Suas 3 peças estão guardadas até *14:32* (reserva #1048, R$ 119,99). Pague por aqui: https://tshirtclub.pt/r#abc 💖");
+    expect(texto).toBe("Oi, Marina! Suas 3 peças estão guardadas até *14:32* (reserva #1048, R$ 119,99). Pague por aqui: https://tshirtclub.vercel.app/r#abc 💖");
     expect(texto).not.toContain("Souza");
   });
 
@@ -66,11 +66,11 @@ describe("o que a loja manda", () => {
       "Faltam 5 minutos: a reserva #1048 fica guardada até *14:32*. Se já pagou, pode ignorar.",
     );
     expect(mensagemWhatsApp("reserva_expirada", { numero: 1048, expiradaEm: expira }, 0)).toBe(
-      "A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.pt",
+      "A reserva #1048 terminou às 14:32 sem pagamento, e as peças voltaram para a loja. Se ainda quiser, é só reservar de novo: tshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("telefone_bloqueado", {})).toContain("3 terminaram sem pagamento em 30 dias");
     expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1048, totalCentavos: 11999, forma: "PIX" }, 0)).toBe(
-      "Pagamento confirmado! Pedido #1048, R$ 119,99 no PIX. Agora escolha como quer receber, no site: tshirtclub.pt ✨",
+      "Pagamento confirmado! Pedido #1048, R$ 119,99 no PIX. Agora escolha como quer receber, no site: tshirtclub.vercel.app ✨",
     );
   });
 
@@ -85,7 +85,7 @@ describe("o que a loja manda", () => {
 
   it("pós-pagamento: frete, retirada com código, envio e entregue", () => {
     expect(mensagemWhatsApp("frete_calculado", { numero: 1048, valorCentavos: 1200, pagarAte: new Date("2026-10-10T19:32:00Z") })).toBe(
-      "Frete do pedido #1048: R$ 12,00. Pague até *16:32* pelo site: tshirtclub.pt",
+      "Frete do pedido #1048: R$ 12,00. Pague até *16:32* pelo site: tshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("pronto_retirada", { numero: 1048, codigo: "Q4K7MX" })).toBe(
       "O pedido #1048 está pronto para retirada! Código: *Q4K7MX*. Leve também seu nome e este WhatsApp.",
@@ -106,11 +106,11 @@ describe("o que a loja manda", () => {
       ],
     });
     expect(texto).toBe(
-      "Suas reservas:\n• #1049: reservada até *14:32* · 3 peças, R$ 119,99\n• #1048: paga · pronta para retirada\nDetalhes e pagamento no site: tshirtclub.pt",
+      "Suas reservas:\n• #1049: reservada até *14:32* · 3 peças, R$ 119,99\n• #1048: paga · pronta para retirada\nDetalhes e pagamento no site: tshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELAMENTO_APROVADO", totalCentavos: 4999 }] }))
       .toContain("• #1047: encerrada (cancelamento aprovado)");
-    expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe("Não achamos reservas recentes neste número. Para reservar ou consultar: tshirtclub.pt");
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe("Não achamos reservas recentes neste número. Para reservar ou consultar: tshirtclub.vercel.app");
   });
 
   it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {

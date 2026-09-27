@@ -1,6 +1,6 @@
 # Contexto do projeto — Sistema de Reserva T-shirt Club
 
-Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atualizado em 25/09/2026, depois da revisão geral.
+Resumo para quem continuar o trabalho (pessoa ou nova sessão do Claude). Atualizado em 27/09/2026, com a publicação do banco de produção.
 
 ## Onde está cada coisa
 
@@ -20,7 +20,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 
 - **Stack:** Supabase (projeto novo) + Next.js (React), mobile-first e PWA, na Vercel. Lógica crítica (estoque, transições, idempotência) em funções do PostgreSQL.
 - **Repositório:** este (`triade-prog/T-shirtclub.br`), com o sistema numa pasta separada do protótipo.
-- **Domínio:** `tshirtclub.pt`. **Volume:** menos de 50 pessoas simultâneas em lançamentos.
+- **Domínio:** por enquanto os da Vercel: loja em `https://tshirtclub.vercel.app` e painel em `https://admin-tshirtclub.vercel.app` (27/09). O domínio próprio (`tshirtclub.pt`) fica para depois. **Volume:** menos de 50 pessoas simultâneas em lançamentos.
 - **Pagamento:** Mercado Pago; PIX **ou** cartão, fixo na primeira cobrança da reserva. No celular, "Copiar código PIX" é a ação principal.
 - **Tolerância:** 15 + 5 min fixos; tentativa real = cobrança criada no provedor; sem pagamento novo após o minuto 15.
 - **Pagamento tardio:** vai para análise; o admin estorna ou converte em novo pedido. Reserva expirada nunca é reativada.
@@ -71,7 +71,7 @@ Pendências da loja: fotos com modelo, costas e looks; confirmar nomes e coleç�
 - **Logo:** aplicado sem fundo, com favicon e ícones do app.
 
 Pendências da F1:
-- **F1.4 (conta da loja):** criar o projeto Supabase em sa-east-1 e o projeto Vercel na região gru1.
+- **F1.4 (conta da loja):** projeto Supabase de produção e projetos Vercel criados pela loja; banco publicado em 27/09. Faltam as Edge Functions e os segredos delas (ver "Publicação").
 - **CI no GitHub:** a conta triade-prog está travada por cobrança ("account is locked due to a billing issue"); mesmo depois do pagamento, os jobs não iniciam. Depende do suporte do GitHub.
 - **Referências visuais:** gerar no container do CI (workflow "Atualizar telas de referência").
 
@@ -124,6 +124,36 @@ Com a F11, todas as fases de servidor do plano estão feitas. O que falta para a
 **Jornada e dependências (26/09):** `tests/e2e/jornada.spec.ts` percorre a loja inteira no celular (início, produto, sacola, Seus dados, código do WhatsApp, PIX, pago e retirada), com o axe em cada tela, contra a api-public falsa guardada em `tests/e2e/api-falsa/api-publica.mjs`. O `playwright.config` sobe a api falsa (porta 4010) e uma loja ligada a ela (porta 3003), também localmente; o build precisa de `ORIGEM_IMAGENS=http://127.0.0.1:4010`, já posto nos workflows. Dependências: produção sem vulnerabilidade; no Lighthouse CI, `tmp` e `uuid` vão por override (`pnpm-workspace.yaml`), e o `extract-zip` segue sem versão corrigida (só baixa o Chrome no CI).
 
 **Acessibilidade da loja (26/09, F2.7):** as 14 telas foram auditadas no celular e em 320 px (contraste, foco, alvos de toque, reflow, títulos, erros ligados aos campos, avisos ao vivo). Para os alvos de 44 px sem mexer no desenho da V4 existe a classe `tc-alvo` em `packages/ui/src/tema.css` (área invisível centrada; o elemento precisa estar `relative` ou `absolute`); o nome no cartão de produto usa padding com margem negativa, porque o título corta o que passa dele. A loja ganhou `app/error.tsx` e `app/not-found.tsx` em português. `jornada.spec.ts` tem um teste permanente de alvos de toque. Falta o teste com leitor de tela em aparelhos reais (P20).
+
+**Publicação do Supabase de produção (27/09):**
+
+Projeto `woetzyiutwrpxgeiecsu` (T-shirtclub.br, sa-east-1, Postgres 17). O `SUPABASE_ACCESS_TOKEN` e o `SUPABASE_DB_PASSWORD` não estavam no ambiente, e a rede do ambiente bloqueia `api.supabase.com`. Por isso o banco foi publicado pelo conector do Supabase, e o resto ficou num script.
+
+Feito:
+- **Migrations:** as 32 (0001 a 0300) foram aplicadas em ordem. O texto gravado de cada uma confere por md5 com o arquivo do repositório. As versões do histórico (`supabase_migrations.schema_migrations`) são as dos arquivos (`0001` … `0300`), então o `supabase db push` reconhece o que já está aplicado.
+- **Bucket `catalogo`:** criado pela migration nova `0210_storage_catalogo.sql`: público, só `image/webp`, até 15 MiB, sem políticas em `storage.objects`. O envio é só por URL assinada.
+- **Jobs:** pg_cron com os 7 jobs, e a varredura de 10 s já está rodando (pulso em `job_heartbeats`).
+- **Acesso:** RLS em todas as tabelas; a chave anon não executa nenhuma função.
+- **Configurações:** `app_settings.ambiente = producao` (o relógio de teste fica travado) e `worker_url = https://woetzyiutwrpxgeiecsu.supabase.co/functions/v1/worker`.
+- **Vault:** `worker_segredo` com 64 caracteres, gerado dentro do banco. O valor não saiu do banco.
+- **Avisos do Supabase:** "RLS sem política" (41, informativo) é o desenho, que nega tudo e deixa só a service role acessar. "search_path mutável" aparece em 20 funções, nenhuma `security definer` e nenhuma executável pela chave anon. Fixar o `search_path` delas fica como melhoria.
+
+Falta, com o token no ambiente e `api.supabase.com` liberado na rede (ou no computador da loja), rodar `bash sistema/scripts/publicar-supabase.sh`. O script faz o seguinte:
+1. Lista só os nomes dos segredos e confere `REPASSE_SEGREDO`, `WEBHOOK_WHATSAPP_SEGREDO`, `ZAPI_TOKEN` e `ZAPI_CLIENT_TOKEN`. Com `conferir`, para aí.
+2. Grava `OTP_PEPPER` e `IP_SAL`, gerados só se ainda não existirem. Grava `WORKER_SEGREDO` lido do Vault (o mesmo valor que a varredura manda), `ZAPI_INSTANCIA`, `LOJA_WHATSAPP` (5577998155772) e `LOJA_URL`. O `LOJA_URL` é `https://tshirtclub.vercel.app`, confirmado pela loja em 27/09.
+3. Publica as 5 funções (`api-public`, `api-admin`, `webhook-whatsapp`, `webhook-payments`, `worker`) com `verify_jwt = false`, pelo `config.toml`.
+4. Confere a lista de funções e o `GET /worker/saude`.
+
+No primeiro deploy, conferir se o empacotamento inclui o `packages/domain`, que fica fora de `supabase/functions` (ADR 0001, item 6). Se não incluir, copiá-lo para `_shared` num passo de build.
+
+Depois disso ainda faltam:
+- os segredos do Mercado Pago (`MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `MP_EMAIL_PIX`) e o `TURNSTILE_SECRET`;
+- `mp_collector_id`, `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings`;
+- o primeiro administrador (README);
+- os webhooks da Z-API e do Mercado Pago;
+- no Auth: a proteção contra senhas vazadas e o SMTP.
+
+A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 

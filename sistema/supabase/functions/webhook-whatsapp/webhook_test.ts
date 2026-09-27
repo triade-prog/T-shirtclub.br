@@ -129,7 +129,7 @@ Deno.test("minha reserva: sem o nono dígito, acha as reservas e responde no nú
   assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
   assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+5577998128809"]);
   assertEquals(whatsapp.enviadas.map((m) => [m.telefone, m.texto]), [
-    ["+5577998128809", "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.pt"],
+    ["+5577998128809", "Sua reserva:\n• #1049: reservada até *09:15* · 1 peça, R$ 49,99\nDetalhes e pagamento no site: tshirtclub.vercel.app"],
   ], "vai para o número da reserva, sem o telefone no texto");
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "status" } }));

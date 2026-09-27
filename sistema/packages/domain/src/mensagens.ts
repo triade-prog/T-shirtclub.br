@@ -5,8 +5,8 @@
 import { formatarReais } from "./dinheiro.ts";
 
 const FUSO = "America/Bahia";
-/** Endereço da loja nas mensagens sem link de reserva (E10 ainda decide .pt ou .com.br). */
-const SITE = "tshirtclub.pt";
+/** Endereço da loja nas mensagens sem link de reserva (27/09: o da Vercel, até existir o domínio próprio). */
+const SITE = "tshirtclub.vercel.app";
 const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, hour: "2-digit", minute: "2-digit" });
 
 /** 14:32, no horário da loja. */
