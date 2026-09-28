@@ -35,6 +35,7 @@ export const CORES: readonly (readonly [string, string, string])[] = [
 export const TIPOS_FOTO: readonly (readonly [string, string])[] = [["FRENTE", "Frente"], ["COSTAS", "Costas"], ["DETALHE", "Detalhe"], ["VESTIDA", "Vestida"], ["CAMPANHA", "Campanha"]];
 export const TIPOS_BLOCO: Record<string, string> = {
   CAMPANHA: "Campanha (um look)", NOVIDADES: "Novidades", COLECOES: "Coleções", LOOKS: "Looks", MONTE_SEU_CLUB: "Monte seu Club", PRODUTOS: "Produtos de uma coleção",
+  QUASE_ESGOTADAS: "Almost Gone (peças acabando)",
 };
 
 export type TipoPromocao = "DESCONTO_PRODUTO" | "COMPRE_MAIS" | "CUPOM";
