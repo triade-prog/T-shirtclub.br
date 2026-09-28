@@ -27,6 +27,8 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
 
+  // O axe mede o contraste com a opacidade do momento: espera o slide terminar de aparecer (0,7 s)
+  await expect(carrossel.getByRole("group", { name: "2 de 3: Riviera" })).toHaveCSS("opacity", "1");
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
