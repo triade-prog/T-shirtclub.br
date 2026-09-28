@@ -126,11 +126,13 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
 // Prévia na loja (etapa 1) com a api-admin simulada: coleções e looks desenhados com os componentes da
 // loja numa janela na largura do celular ou do computador, mudando enquanto o formulário muda.
 test("prévia na loja: coleção e look mudam com o formulário, no celular e no computador", async ({ page, context }) => {
+  const C1 = "55555555-5555-4555-8555-555555555551";
+  const C2 = "55555555-5555-4555-8555-555555555552";
   const colecoes = [
-    { id: "c1", nome: "Limone", slug: "limone", descricao: "Sol e limão.", chamada: null, cor: "LIMAO", capa: { caminho: "colecoes/limone.webp", alt: "Limões" }, posicao: 1, ativa: true, produtos: 2,
+    { id: C1, nome: "Limone", slug: "limone", descricao: "Sol e limão.", chamada: null, cor: "LIMAO", capa: { caminho: "colecoes/limone.webp", alt: "Limões" }, posicao: 1, ativa: true, produtos: 2,
       campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01", capaCelular: null, paleta: "ESTATE_ITALIANA", campanhaAtiva: false, capitulos: [], fotoStory: null,
       pecaMaisNova: { caminho: "produtos/lim-01/1.webp", alt: "Limone" } },
-    { id: "c2", nome: "Riviera", slug: "riviera", descricao: null, chamada: null, cor: "MEDITERRANEO", capa: null, posicao: 2, ativa: true, produtos: 0,
+    { id: C2, nome: "Riviera", slug: "riviera", descricao: null, chamada: null, cor: "MEDITERRANEO", capa: null, posicao: 2, ativa: true, produtos: 0,
       campanha: null, temporada: null, edicao: null, capaCelular: null, paleta: "CLUB", campanhaAtiva: false, capitulos: [], fotoStory: null, pecaMaisNova: null },
   ];
   const produto = { id: "p1", codigo: "LIM-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
@@ -143,11 +145,17 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
   await page.route("**/api/v1/admin/**", async (rota) => {
     const caminho = new URL(rota.request().url()).pathname.replace(/^\/api\//, "");
+    if (rota.request().method() !== "GET") return rota.fulfill({ json: { id: C1 } });
     return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
   });
 
+  // A aba lista as coleções; cada uma abre a sua página, e "Nova coleção" abre a página vazia
   await page.goto(`${PAINEL}/catalogo?aba=colecoes`);
-  await page.getByRole("button", { name: "Editar Limone" }).click();
+  await expect(page.getByRole("link", { name: "Nova coleção" })).toHaveAttribute("href", "/catalogo/colecoes/nova");
+  await expect(page.getByRole("link", { name: /Riviera/ })).toContainText("Sem capa");
+  await page.getByRole("link", { name: /Limone/ }).click();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Limone");
   const computador = page.frameLocator('iframe[title="Prévia na loja (computador)"]');
   // Pick your story com as coleções ativas na ordem, o slide do carrossel e o topo da campanha
   await expect(computador.locator("#inicio-colecoes")).toHaveText("Pick your story.");
@@ -176,6 +184,13 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  // Salvar fica na página, com o aviso; voltar leva à lista
+  await page.getByRole("button", { name: "Salvar coleção" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Coleção salva." })).toBeVisible();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
+  await page.getByRole("link", { name: "← Coleções" }).click();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo?aba=colecoes`);
 
   // Look novo: entra na seção do Shop the Look, depois do que já existe, com as peças marcadas
   await page.goto(`${PAINEL}/catalogo?aba=looks`);
