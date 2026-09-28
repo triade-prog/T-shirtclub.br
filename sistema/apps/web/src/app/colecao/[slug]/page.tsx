@@ -77,7 +77,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
             )}
           </div>
           {colecao.capa ? (
-            <div className="relative h-[360px] overflow-hidden rounded-[26px] border-3 border-tinta shadow-[8px_8px_0_var(--tc-rosa)] md:h-[540px]">
+            <div className="relative aspect-video overflow-hidden rounded-[26px] border-3 border-tinta shadow-[8px_8px_0_var(--tc-rosa)]">
               <Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 768px) 55vw, 100vw" className="object-cover" />
             </div>
           ) : (
