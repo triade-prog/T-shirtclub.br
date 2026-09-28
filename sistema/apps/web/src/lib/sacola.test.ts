@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adicionarNaSacola, gravarSacola, lerSacola, lerTamanho, ordinalClub, pecasNaSacola, removerDaSacola, textoAviso } from "./sacola";
+import { adicionarNaSacola, gravarSacola, lerSacola, lerTamanho, ordinalClub, pecasNaSacola, progressoTrio, removerDaSacola, textoAviso } from "./sacola";
 
 describe("sacola no cookie", () => {
   it("lê e grava o formato slug.tamanho:qtd", () => {
@@ -43,5 +43,15 @@ describe("sacola no cookie", () => {
     expect(textoAviso("MAX_PER_MODEL")).toMatch(/somando os tamanhos/);
     expect(textoAviso("OUTRO")).toBeNull();
     expect([0, 2, 3, 5, 6].map((p) => ordinalClub(p, 3))).toEqual(["1º Club", "3º Club", "1º Club", "3º Club", "1º Club"]);
+  });
+
+  it("progresso do trio: 1/3 começou, 2/3 falta só uma, 3/3 completo, e recomeça no próximo", () => {
+    const f = (n: number, q = 3) => { const p = progressoTrio(n, q); return `${p.noTrio}/${q} ${p.titulo}`; };
+    expect([0, 1, 2, 3, 4, 5, 6].map((n) => f(n))).toEqual([
+      "0/3 null", "1/3 Começou o seu trio.", "2/3 Falta só uma 👀", "3/3 Seu trio está completo ✓",
+      "1/3 Começou o próximo trio.", "2/3 Falta só uma 👀", "3/3 Seu trio está completo ✓",
+    ]);
+    expect(f(2, 5)).toBe("2/5 Faltam 3 para o Club.");
+    expect(progressoTrio(3, 3).completo).toBe(true);
   });
 });

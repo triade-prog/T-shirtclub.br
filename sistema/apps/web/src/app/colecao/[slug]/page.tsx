@@ -3,11 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
+import { Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type CartaoProduto, type Colecao } from "@/lib/catalogo";
+import { COOKIE_SACOLA } from "@/lib/sacola";
 import { filtrarProdutos, lerFiltro, textoOferta, type Filtro } from "@/lib/vitrine";
+import { ProgressoDaSacola } from "../../_sacola/ProgressoDaSacola";
 import { CardProduto } from "../../_vitrine/CardProduto";
 
 // Página de coleção (F2.6; V4 em docs/design/v4/colecao.html). A coleção vem de
@@ -118,7 +121,8 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
 
         {club && (
           <div className="mb-10 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
-            <ProgressoClub pecas={0} titulo={`Escolha ${club.qtd} peças.`} texto="Desta coleção ou misturando com outro drop: o preço do Club entra sozinho." />
+            <ProgressoDaSacola qtd={club.qtd} preco={formatarReais(club.precoCentavos)} inicial={(await cookies()).get(COOKIE_SACOLA)?.value}
+              titulo={`Escolha ${club.qtd} peças.`} texto="Desta coleção ou misturando com outro drop: o preço do Club entra sozinho." />
             <div className="grid content-center gap-2 rounded-cartao border-2 border-tinta bg-rosa p-6 text-no-rosa shadow-adesivo-lg">
               <span className="text-[10px] font-extrabold uppercase tracking-[0.12em]">Condição do Club</span>
               <p className="m-0 font-display text-[32px] font-extrabold leading-none tracking-[-0.045em]">{oferta}</p>

@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
-import { ordinalClub, textoAviso } from "@/lib/sacola";
+import { ordinalClub, progressoTrio, textoAviso } from "@/lib/sacola";
 import { montarSacola } from "@/lib/sacola-servidor";
 import { removerPeca } from "./acoes";
 
@@ -78,9 +78,9 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
                 pecas={total}
                 rotulos={rotulos}
                 className={cx("mb-4.5", completo && "shadow-[6px_6px_0_var(--tc-rosa)]")}
-                titulo={completo ? `Suas ${total} peças saem por ${formatarReais(cotacao.totalCentavos)}.` : `Falta${qtdClub - noTrio > 1 ? "m" : ""} ${qtdClub - noTrio} para o ${total > qtdClub ? "próximo " : ""}Club.`}
+                titulo={progressoTrio(total, qtdClub).titulo ?? ""}
                 texto={completo
-                  ? `O desconto do Club foi aplicado automaticamente. Economia total de ${formatarReais(cotacao.descontoCentavos)} em relação ao preço avulso.`
+                  ? `Suas ${total} peças saem por ${formatarReais(cotacao.totalCentavos)}: o desconto do Club entrou sozinho, economia de ${formatarReais(cotacao.descontoCentavos)} em relação ao preço avulso.`
                   : `Com mais ${qtdClub - noTrio === 1 ? "uma peça" : `${qtdClub - noTrio} peças`}, de qualquer coleção, ${qtdClub} saem por ${formatarReais(club.precoCentavos)}.`}
               />
             )}

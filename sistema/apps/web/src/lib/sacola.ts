@@ -79,3 +79,19 @@ export function textoAviso(codigo: string | string[] | undefined): string | null
 export function ordinalClub(posicao: number, qtd: number): string {
   return `${(posicao % qtd) + 1}º Club`;
 }
+
+/**
+ * Progresso do trio (estratégia do Drop 01): em qual peça do grupo atual a sacola está e a frase
+ * do momento ("Começou o seu trio.", "Falta só uma 👀", "Seu trio está completo ✓"). Conta dentro
+ * do grupo atual, como o ProgressoClub (4 peças = 1 de 3 no próximo trio).
+ */
+export function progressoTrio(pecas: number, qtd: number): { noTrio: number; completo: boolean; titulo: string | null } {
+  if (pecas <= 0 || qtd <= 0) return { noTrio: 0, completo: false, titulo: null };
+  const noTrio = pecas % qtd === 0 ? qtd : pecas % qtd;
+  const nome = qtd === 3 ? "trio" : "Club";
+  const proximo = pecas > qtd;
+  if (noTrio === qtd) return { noTrio, completo: true, titulo: `Seu ${nome} está completo ✓` };
+  if (qtd - noTrio === 1) return { noTrio, completo: false, titulo: "Falta só uma 👀" };
+  if (noTrio === 1) return { noTrio, completo: false, titulo: `Começou o ${proximo ? "próximo" : "seu"} ${nome}.` };
+  return { noTrio, completo: false, titulo: `Faltam ${qtd - noTrio} para o ${proximo ? "próximo " : ""}${nome}.` };
+}

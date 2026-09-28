@@ -3,6 +3,7 @@ import { baloo, fraunces, poppins } from "./fontes";
 import { Cabecalho } from "./_layout/Cabecalho";
 import { Rodape } from "./_layout/Rodape";
 import { RegistrarServiceWorker } from "./_pwa/RegistrarServiceWorker";
+import { AvisoSacola } from "./_sacola/AvisoSacola";
 import { TagGoogle } from "./_anuncios/TagGoogle";
 import { idAnuncios } from "@/lib/anuncios";
 import "./globals.css";
@@ -31,6 +32,7 @@ export default function LayoutLoja({ children }: { children: React.ReactNode }) 
         <main id="conteudo" className="mx-auto w-full max-w-7xl">{children}</main>
         <Rodape />
         <RegistrarServiceWorker />
+        <AvisoSacola />
         {anuncios && <TagGoogle id={anuncios} />}
       </body>
     </html>
