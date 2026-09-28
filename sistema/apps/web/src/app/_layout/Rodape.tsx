@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, Bike, CreditCard, MessageCircle, Package, Store, Tag, type LucideIcon } from "lucide-react";
 import { condicaoBeneficioVip, formatarReais, textoBeneficioVip } from "@tshirtclub/domain";
@@ -26,13 +27,13 @@ export async function Rodape() {
   ];
 
   return (
-    <footer className="mt-16 border-t-4 border-tinta">
-      <section aria-label="Vantagens da loja" className="bg-rosa-bruma px-3.5 py-10 md:px-5">
+    <footer className="mt-12 border-t-4 border-tinta">
+      <section aria-label="Vantagens da loja" className="bg-rosa-bruma px-3.5 py-6 md:px-5">
         <ul className="mx-auto m-0 grid max-w-7xl list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-6">
-          {vantagens.map(({ Icone, titulo, texto }, i) => (
-            <li key={titulo} className={`grid content-start justify-items-center gap-2 rounded-[22px] border-2 border-tinta bg-papel px-3 pb-5 pt-4 text-center shadow-adesivo-sm ${i % 2 ? "lg:translate-y-4" : ""}`}>
-              <span className="grid size-11 place-items-center rounded-full border-[1.5px] border-tinta bg-citrino text-no-citrino">
-                <Icone aria-hidden="true" className="size-5" strokeWidth={1.8} />
+          {vantagens.map(({ Icone, titulo, texto }) => (
+            <li key={titulo} className="grid content-start justify-items-center gap-1.5 rounded-[18px] border-2 border-tinta bg-papel px-3 py-3 text-center shadow-adesivo-sm">
+              <span className="grid size-9 place-items-center rounded-full border-[1.5px] border-tinta bg-citrino text-no-citrino">
+                <Icone aria-hidden="true" className="size-4.5" strokeWidth={1.8} />
               </span>
               <span className="text-[11px] font-extrabold uppercase tracking-[0.1em]">{titulo}</span>
               <span className="text-xs leading-snug text-tinta-suave">{texto}</span>
@@ -41,11 +42,11 @@ export async function Rodape() {
         </ul>
       </section>
 
-      <section aria-labelledby="rodape-vip" className="border-t-2 border-tinta bg-citrino px-3.5 py-10 text-no-citrino md:px-5">
-        <div className="mx-auto grid max-w-7xl items-start gap-7 md:grid-cols-[0.8fr_1.2fr] md:gap-12">
+      <section aria-labelledby="rodape-vip" className="border-t-2 border-tinta bg-citrino px-3.5 py-7 text-no-citrino md:px-5">
+        <div className="mx-auto grid max-w-7xl items-start gap-5 md:grid-cols-[0.8fr_1.2fr] md:gap-12">
           <div className="grid gap-3">
             <Selo fundo="papel" className="justify-self-start">Lista VIP</Selo>
-            <h2 id="rodape-vip" className="tc-titulo m-0 text-[clamp(38px,4.6vw,60px)]">Drops novos <em className="text-tinta">primeiro.</em></h2>
+            <h2 id="rodape-vip" className="tc-titulo m-0 text-[clamp(32px,3.6vw,48px)]">Drops novos <em className="text-tinta">primeiro.</em></h2>
             <p className="m-0 max-w-[42ch] text-sm leading-relaxed">
               {vip
                 ? <>Ganhe <b>{textoBeneficioVip(vip)} {condicaoBeneficioVip(vip)}</b> e receba no WhatsApp quando chegar estampa nova.</>
@@ -57,31 +58,35 @@ export async function Rodape() {
       </section>
 
       <div className="bg-verde-escuro text-no-verde">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-9 px-3.5 pb-10 pt-14 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:px-5">
-          <div className="col-span-2 grid content-start gap-4 md:col-span-1">
-            <p className="tc-titulo m-0 text-[clamp(38px,4vw,62px)] text-rosa-bruma">T-SHIRT<br />CLUB.</p>
-            <p className="m-0 max-w-[33ch] text-[13px] leading-relaxed">
+        {/* Rodapé enxuto (28/09): o logo no lugar do nome escrito, links mais juntos (o alvo de 44 px
+            vem do tc-alvo, sem aumentar a altura da linha) e as coleções em duas colunas */}
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-7 px-3.5 pb-8 pt-9 md:grid-cols-[1fr_1.5fr_0.9fr_1fr] md:gap-y-0 md:px-5">
+          <div className="col-span-2 grid content-start gap-3 md:col-span-1">
+            <Link href="/" aria-label="T-shirt Club.br" className="justify-self-start rounded-campo">
+              <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-14 w-auto md:h-16" />
+            </Link>
+            <p className="m-0 max-w-[30ch] text-[13px] leading-relaxed">
               Uma camiseta não determina o seu estilo. Você determina. Vista, misture, repita.
             </p>
           </div>
-          <Coluna titulo="Coleções">
-            {(colecoes ?? []).map((c) => <li key={c.id}><Link href={`/colecao/${c.slug}`} className="inline-flex min-h-11 items-center">{c.nome}</Link></li>)}
-            <li><Link href="/#monte-club" className="inline-flex min-h-11 items-center">Monte seu Club</Link></li>
+          <Coluna titulo="Coleções" duasColunas>
+            {(colecoes ?? []).map((c) => <li key={c.id}><Link href={`/colecao/${c.slug}`} className="tc-alvo relative inline-flex min-h-7 items-center">{c.nome}</Link></li>)}
+            <li><Link href="/#monte-club" className="tc-alvo relative inline-flex min-h-7 items-center">Monte seu Club</Link></li>
           </Coluna>
           <Coluna titulo="Ajuda">
-            <li><Link href="/consulta" className="inline-flex min-h-11 items-center">Minhas reservas</Link></li>
-            <li><Link href="/sacola" className="inline-flex min-h-11 items-center">Minha sacola</Link></li>
-            <li><Link href="/privacidade" className="inline-flex min-h-11 items-center">Privacidade</Link></li>
+            <li><Link href="/consulta" className="tc-alvo relative inline-flex min-h-7 items-center">Minhas reservas</Link></li>
+            <li><Link href="/sacola" className="tc-alvo relative inline-flex min-h-7 items-center">Minha sacola</Link></li>
+            <li><Link href="/privacidade" className="tc-alvo relative inline-flex min-h-7 items-center">Privacidade</Link></li>
           </Coluna>
           <Coluna titulo="Atendimento" largo>
             <li>
-              <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2">
+              <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
                 <MessageCircle aria-hidden="true" className="size-4.5" strokeWidth={1.8} /> WhatsApp {EMPRESA.whatsapp}
               </a>
             </li>
             {redes.map((r) => (
               <li key={r.rede}>
-                <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2">
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
                   <IconeRede rede={r.rede} /> <span>{r.rede} <span className="opacity-80">@{r.usuario}</span></span>
                 </a>
               </li>
@@ -89,11 +94,11 @@ export async function Rodape() {
           </Coluna>
         </div>
         <div className="border-t border-no-verde/20">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-3.5 py-5 text-[11px] leading-relaxed md:px-5">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-3.5 py-3 text-[11px] leading-relaxed md:px-5">
             <p className="m-0 max-w-[80ch]">
               © 2026 T-shirt Club.br · {EMPRESA.razaoSocial} · CNPJ {EMPRESA.cnpj} · {EMPRESA.endereco}. Preços e estoque podem mudar sem aviso.
             </p>
-            <a href="#" className="inline-flex min-h-11 items-center gap-1.5 font-bold uppercase tracking-[0.1em]">
+            <a href="#" className="tc-alvo relative inline-flex min-h-7 items-center gap-1.5 font-bold uppercase tracking-[0.1em]">
               <ArrowUp aria-hidden="true" className="size-4" strokeWidth={2} /> Voltar ao topo
             </a>
           </div>
@@ -103,11 +108,11 @@ export async function Rodape() {
   );
 }
 
-function Coluna({ titulo, largo = false, children }: { titulo: string; largo?: boolean; children: React.ReactNode }) {
+function Coluna({ titulo, largo = false, duasColunas = false, children }: { titulo: string; largo?: boolean; duasColunas?: boolean; children: React.ReactNode }) {
   return (
-    <nav aria-label={titulo} className={largo ? "col-span-2 md:col-span-1" : undefined}>
+    <nav aria-label={titulo} className={largo || duasColunas ? "col-span-2 md:col-span-1" : undefined}>
       <h2 className="m-0 mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-citrino">{titulo}</h2>
-      <ul className="m-0 grid list-none gap-0.5 p-0 text-[13px]">{children}</ul>
+      <ul className={`m-0 grid list-none gap-y-1.5 p-0 text-[13px]${duasColunas ? " grid-cols-2 gap-x-6" : ""}`}>{children}</ul>
     </nav>
   );
 }
