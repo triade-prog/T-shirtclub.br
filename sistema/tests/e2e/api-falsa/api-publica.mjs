@@ -24,6 +24,7 @@ const cartao = {
   ],
 };
 colecao.fotos = [cartao.capa];
+colecao.slugsAntigos = ["limone-club"];
 // Segunda coleção com capa de campanha (sem peças): o carrossel do início tem 2 slides.
 const colecao2 = { id: "c0000000-0000-4000-8000-000000000002", nome: "Sardines Club", slug: "sardines-club", descricao: "A little salty.", chamada: null, cor: "MEDITERRANEO",
   capa: { caminho: "campanha-limone.webp", alt: "Mare, Amore! Riviera SS26" }, produtos: 0, fotos: [] };

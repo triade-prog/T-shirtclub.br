@@ -39,3 +39,13 @@ test("coleção: sacola vazia convida a misturar; uma peça começa o trio", asy
   await page.goto(`${LOJA}/colecao/limone`);
   await expect(page.getByRole("region", { name: "Monte seu Club: 1 de 3" })).toContainText("Começou o seu trio.");
 });
+
+test("coleção: o endereço antigo leva ao novo, com o filtro", async ({ page, request }) => {
+  const r = await request.get(`${LOJA}/colecao/limone-club?filtro=ultimas`, { maxRedirects: 0 });
+  expect(r.status()).toBe(308);
+  expect(r.headers()["location"]).toBe("/colecao/limone?filtro=ultimas");
+  await page.goto(`${LOJA}/colecao/limone-club`);
+  await expect(page).toHaveURL(`${LOJA}/colecao/limone`);
+  await expect(page.getByRole("heading", { level: 1, name: "Limone." })).toBeVisible();
+  expect((await request.get(`${LOJA}/colecao/nunca-existiu`)).status()).toBe(404);
+});

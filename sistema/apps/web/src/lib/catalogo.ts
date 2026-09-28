@@ -34,6 +34,8 @@ export interface Colecao {
   chamada?: string | null;
   /** Até 4 capas das peças, a mais recente primeiro (0400): capa e cartão da coleção sem foto própria. */
   fotos?: Foto[];
+  /** Endereços antigos da coleção (0410): a loja redireciona para o atual. */
+  slugsAntigos?: string[];
 }
 export interface Look { id: string; titulo: string; foto: Foto; produtos: CartaoProduto[] }
 /** Página do produto (/v1/catalog/products/:slug): o cartão mais fotos, textos e looks. */

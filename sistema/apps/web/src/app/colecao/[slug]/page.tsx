@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
@@ -25,6 +25,12 @@ async function buscarColecao(slug: string): Promise<Colecao | undefined> {
   return colecoes?.find((c) => c.slug === slug);
 }
 
+/** A coleção que já usou este endereço (0410), para redirecionar os links antigos. */
+async function colecaoDoEnderecoAntigo(slug: string): Promise<Colecao | undefined> {
+  const colecoes = await buscarCatalogo<Colecao[]>("v1/catalog/collections");
+  return colecoes?.find((c) => c.slugsAntigos?.includes(slug));
+}
+
 export async function generateMetadata({ params }: PageProps<"/colecao/[slug]">): Promise<Metadata> {
   const colecao = await buscarColecao((await params).slug);
   return colecao ? { title: colecao.nome, description: colecao.descricao ?? undefined } : {};
@@ -45,9 +51,14 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
     buscarCatalogo<CartaoProduto[]>(`v1/catalog/products?collection=${slug}`),
     buscarOfertaClub(),
   ]);
+  const filtro = lerFiltro((await searchParams).filtro);
+  if (!colecao) {
+    // Endereço antigo (a coleção mudou de nome): 308 para o atual, mantendo o filtro
+    const atual = await colecaoDoEnderecoAntigo(slug);
+    if (atual) permanentRedirect(`/colecao/${atual.slug}${filtro === "todas" ? "" : `?filtro=${filtro}`}`);
+  }
   if (!colecao || !produtos) notFound();
 
-  const filtro = lerFiltro((await searchParams).filtro);
   const visiveis = filtrarProdutos(produtos, filtro);
   const oferta = textoOferta(club);
   // A nota do fim usa a foto da última peça da coleção (na V4, uma foto editorial da coleção).
