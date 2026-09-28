@@ -137,6 +137,8 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   ];
   const produto = { id: "p1", codigo: "LIM-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
     capa: null, fotos: 1, estoque: { total: 5, reservado: 0, vendido: 0, disponivel: 5 } };
+  // A 2ª página da lista de peças (de 1 em 1 aqui): os capítulos precisam ver a coleção inteira
+  const produto2 = { ...produto, id: "p2", codigo: "LIM-02", slug: "limoncello", nome: "Limoncello" };
   const respostas: Record<string, unknown> = {
     "v1/admin/collections": colecoes,
     "v1/admin/looks": [{ id: "l1", titulo: "Praia", foto: { caminho: "looks/praia.webp", alt: "Praia" }, posicao: 1, ativo: true, produtos: [] }],
@@ -146,6 +148,10 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await page.route("**/api/v1/admin/**", async (rota) => {
     const caminho = new URL(rota.request().url()).pathname.replace(/^\/api\//, "");
     if (rota.request().method() !== "GET") return rota.fulfill({ json: { id: C1 } });
+    if (caminho === "v1/admin/products" && new URL(rota.request().url()).searchParams.get("colecao")) {
+      const pagina = Number(new URL(rota.request().url()).searchParams.get("pagina") ?? "1");
+      return rota.fulfill({ json: { itens: pagina === 1 ? [produto] : pagina === 2 ? [produto2] : [], total: 2, pagina, porPagina: 1 } });
+    }
     return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
   });
 
@@ -190,6 +196,27 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await expect(computador.getByText("Coleção · 2 estampas", { exact: true })).toHaveCount(0);
   await page.getByLabel("Paleta da página").selectOption("RIVIERA");
   await expect(computador.locator(".paleta-riviera")).toHaveCount(1);
+  // Ligada sem as fotos: o painel avisa o que falta (não impede)
+  const aviso = page.getByRole("status").filter({ hasText: "Campanha ligada sem" });
+  await expect(aviso).toContainText("a foto do celular 4:5");
+  await expect(aviso).toContainText("os capítulos");
+  await expect(aviso).not.toContainText("a capa 16:9");
+
+  // Capítulos: as peças de todas as páginas, e uma estampa num capítulo só
+  await page.getByRole("button", { name: "Adicionar capítulo" }).click();
+  await page.getByRole("button", { name: "Adicionar capítulo" }).click();
+  const cap1 = page.getByRole("group", { name: "Capítulo 1" });
+  const cap2 = page.getByRole("group", { name: "Capítulo 2" });
+  await expect(cap1.getByLabel("Limoncello")).toBeVisible();
+  await cap1.getByLabel("Limone Amalfi", { exact: true }).check();
+  await expect(cap2.getByLabel("Limone Amalfi (no capítulo 1)")).toBeDisabled();
+  await expect(cap2.getByLabel("Limoncello")).toBeEnabled();
+  // O capítulo 2 ainda está vazio (não é salvo): só o 1 conta
+  await expect(aviso).toContainText("a foto do capítulo 1.");
+  await expect(aviso).not.toContainText("os capítulos");
+  // Um capítulo com estampa precisa de nome e título para salvar
+  await cap1.getByLabel("Nome do capítulo", { exact: true }).fill("Mattina — Mercato");
+  await cap1.getByLabel("Título", { exact: true }).fill("Il mercato apre cedo.");
 
   // No celular, a janela tem a largura do celular (e os tamanhos de celular da loja valem)
   await page.getByRole("button", { name: "Celular" }).click();
