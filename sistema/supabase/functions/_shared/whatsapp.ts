@@ -77,13 +77,10 @@ export function whatsappZapi(cfg: ConfigZapi, buscar: typeof fetch = fetch): Wha
 
   return {
     enviarTexto: (telefone, texto) => enviar("send-text", { phone: numero(telefone), message: texto }),
-    async enviarCodigo(telefone, texto, codigo) {
-      try {
-        return await enviar("send-button-otp", { phone: numero(telefone), message: texto, code: codigo, buttonText: "Copiar código" });
-      } catch {
-        return await enviar("send-text", { phone: numero(telefone), message: texto });
-      }
-    },
+    // Texto simples, com o código escrito. O botão "Copiar código" (send-button-otp) era aceito
+    // pela Z-API (200) mas o WhatsApp não o entregava em conta não oficial: o site dizia
+    // "Código enviado" e nada chegava (27/09).
+    enviarCodigo: (telefone, texto) => enviar("send-text", { phone: numero(telefone), message: texto }),
     // O motivo vai para o log: sem ele, token ou Client-Token recusados aparecem só como
     // "desconectado". Nunca a URL nem a mensagem do erro de rede: elas levam o token.
     async conectado() {
