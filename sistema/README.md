@@ -86,7 +86,10 @@ select vault.create_secret('<WORKER_SEGREDO>', 'worker_segredo');
 Os projetos `web` e `admin` publicam a cada merge na `main`. As outras branches não geram
 publicação de teste (`git.deploymentEnabled` em `apps/*/vercel.json`): no plano gratuito, cada
 envio gastava duas publicações do limite diário, e em 27/09 o limite travou a publicação da
-`main`. Quando a Vercel recusa por limite ("rate limited"), passadas as 24 h use "Redeploy" na
+`main`. Cada projeto também pula a publicação quando nada do build dele mudou desde a última publicação
+que deu certo (`ignoreCommand` → `scripts/vercel-ignorar.sh`): merge só de documentação, testes,
+banco, scripts ou do outro app não gasta o limite. Na dúvida (sem a referência), publica.
+Quando a Vercel recusa por limite ("rate limited"), passadas as 24 h use "Redeploy" na
 última publicação da `main` de cada projeto.
 
 ## Primeiro administrador do painel
