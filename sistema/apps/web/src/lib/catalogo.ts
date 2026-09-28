@@ -36,7 +36,16 @@ export interface Colecao {
   fotos?: Foto[];
   /** Endereços antigos da coleção (0410): a loja redireciona para o atual. */
   slugsAntigos?: string[];
+  /** Campanha (0420, D35 e D36): com o nome da campanha, a página vira capítulo de campanha. */
+  campanha?: string | null;
+  temporada?: string | null;
+  edicao?: string | null;
+  capaCelular?: Foto | null;
+  paleta?: "CLUB" | "ESTATE_ITALIANA";
+  capitulos?: CapituloColecao[];
 }
+/** Capítulo editorial da coleção (ex.: Mattina — Mercato): foto e as estampas dele (ids). */
+export interface CapituloColecao { rotulo: string; titulo: string; foto: Foto | null; produtos: string[] }
 export interface Look { id: string; titulo: string; foto: Foto; produtos: CartaoProduto[] }
 /** Página do produto (/v1/catalog/products/:slug): o cartão mais fotos, textos e looks. */
 export interface ProdutoDetalhe extends Omit<CartaoProduto, "colecao"> {

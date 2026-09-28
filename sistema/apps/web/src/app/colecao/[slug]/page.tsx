@@ -13,12 +13,15 @@ import { filtrarProdutos, lerFiltro, textoOferta, tituloEmDuasLinhas, type Filtr
 import { FaixaTrio } from "../../_sacola/FaixaTrio";
 import { CardProduto } from "../../_vitrine/CardProduto";
 import { MosaicoPecas } from "../../_vitrine/MosaicoPecas";
+import { BotaoCampanha, CapitulosCampanha, TopoCampanha, classePaleta } from "./Campanha";
 
 // Página de coleção (F2.6; V4 em docs/design/v4/colecao.html). A coleção vem de
 // /v1/catalog/collections e as peças de /v1/catalog/products?collection=; o filtro é um link
 // (funciona sem JavaScript) aplicado sobre a lista inteira. Pedido da loja (28/09): com banner
 // de campanha, ele inteiro no topo e o nome embaixo; sem, 45% texto e 55% as peças reais (sem
-// nenhuma, só o texto); faixa verde com a chamada da coleção e as peças logo depois do título, com o Club numa faixa compacta.
+// nenhuma, só o texto); faixa verde com a chamada da coleção e as peças logo depois do título,
+// com o Club numa faixa compacta. Com o nome da campanha (0420, D35 e D36), a página vira capítulo
+// de campanha na paleta da coleção: foto limpa, campanha, coleção, The Club Edit e capítulos.
 
 async function buscarColecao(slug: string): Promise<Colecao | undefined> {
   const colecoes = await buscarCatalogo<Colecao[]>("v1/catalog/collections");
@@ -72,10 +75,16 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
     </Link>
   );
   const qtdEstampas = produtos.length === 1 ? "1 estampa" : `${produtos.length} estampas`;
+  const emCampanha = Boolean(colecao.campanha);
 
   return (
-    <div className={`col-${colecao.cor.toLowerCase()}`}>
-      {colecao.capa ? (
+    <div className={cx(`col-${colecao.cor.toLowerCase()}`, emCampanha && `${classePaleta(colecao)} bg-camp-base text-camp-tinta`)}>
+      {emCampanha ? (
+        <>
+          <TopoCampanha colecao={colecao} qtdEstampas={qtdEstampas} botao={<BotaoCampanha produtos={produtos.length} />} />
+          <CapitulosCampanha capitulos={colecao.capitulos ?? []} produtos={produtos} oferta={oferta} />
+        </>
+      ) : colecao.capa ? (
         // Com banner de campanha (28/09): o banner inteiro no topo, como no carrossel do início, e
         // o nome, a descrição e o botão numa faixa menor logo abaixo (o banner já tem o título dele)
         <section className="border-b-3 border-tinta bg-colecao-fundo px-3.5 pb-9 pt-5 md:px-5 md:pb-12 md:pt-7">
@@ -115,7 +124,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         </section>
       )}
 
-      {colecao.chamada && (
+      {!emCampanha && colecao.chamada && (
         <section className="border-b-3 border-tinta bg-verde-escuro px-3.5 py-8 text-no-verde md:px-5 md:py-10">
           <div className="mx-auto grid max-w-7xl items-center gap-2 md:grid-cols-[auto_1fr] md:gap-8">
             <span className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-citrino">The Club edit</span>
@@ -124,11 +133,18 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         </section>
       )}
 
-      <section id="pecas" className="scroll-mt-32 px-3.5 py-12 md:px-5 md:py-20">
-        <div className="mb-6">
-          <Sobretitulo>{colecao.nome} · {qtdEstampas}</Sobretitulo>
-          <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
-        </div>
+      <section id="pecas" className={cx("scroll-mt-32 px-3.5 py-12 md:px-5 md:py-20", emCampanha && "border-t border-camp-tinta/15")}>
+        {emCampanha ? (
+          <div className="mb-6 grid gap-3">
+            <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.24em] text-camp-terracota">Shop {colecao.nome} · {qtdEstampas}</p>
+            <h2 className="m-0 font-editorial text-[clamp(40px,5.4vw,72px)] font-semibold leading-[0.95] tracking-[-0.04em] text-camp-azul">Escolha <em className="text-camp-tomate">as suas.</em></h2>
+          </div>
+        ) : (
+          <div className="mb-6">
+            <Sobretitulo>{colecao.nome} · {qtdEstampas}</Sobretitulo>
+            <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
+          </div>
+        )}
 
         {produtos.length > 0 && (
           <nav aria-label="Filtrar peças" className="mb-6 flex flex-wrap gap-2">
@@ -139,8 +155,10 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
                 scroll={false}
                 aria-current={filtro === f.valor ? "page" : undefined}
                 className={cx(
-                  "inline-flex min-h-11 items-center rounded-pilula border-[1.5px] border-tinta px-4 text-[11px] font-extrabold uppercase tracking-[0.08em]",
-                  filtro === f.valor ? "bg-rosa text-no-rosa shadow-adesivo-sm" : "bg-papel",
+                  "inline-flex min-h-11 items-center rounded-pilula border-[1.5px] px-4 text-[11px] font-extrabold uppercase tracking-[0.08em]",
+                  emCampanha
+                    ? (filtro === f.valor ? "border-camp-azul bg-camp-azul text-camp-base" : "border-camp-tinta/40 bg-transparent")
+                    : (filtro === f.valor ? "border-tinta bg-rosa text-no-rosa shadow-adesivo-sm" : "border-tinta bg-papel"),
                 )}
               >
                 {f.rotulo}{f.valor === "todas" && ` · ${produtos.length}`}
@@ -150,7 +168,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         )}
 
         {club && oferta && (
-          <FaixaTrio qtd={club.qtd} preco={formatarReais(club.precoCentavos)} oferta={oferta} inicial={(await cookies()).get(COOKIE_SACOLA)?.value} />
+          <FaixaTrio qtd={club.qtd} preco={formatarReais(club.precoCentavos)} oferta={oferta} inicial={(await cookies()).get(COOKIE_SACOLA)?.value} campanha={emCampanha} />
         )}
 
         {visiveis.length > 0 ? (
@@ -164,7 +182,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         )}
       </section>
 
-      {fotoFim && (
+      {!emCampanha && fotoFim && (
         <section className="grid items-center gap-7.5 border-t-3 border-tinta bg-rosa-bruma px-3.5 py-15.5 md:grid-cols-2 md:px-5">
           <div>
             <Sobretitulo>Editorial note</Sobretitulo>

@@ -17,7 +17,8 @@ export function EnvioFoto({ destino, caminho, aoEnviar, rotulo }: {
     if (!arquivo) return;
     setEstado("Enviando…");
     try {
-      const { blob } = await paraWebp(arquivo);
+      // Capa e capítulos de campanha ocupam a largura toda da loja: até 2400 px (peças: 1600)
+      const { blob } = await paraWebp(arquivo, destino === "colecao" ? 2400 : 1600);
       const r = await chamarApi<{ caminho: string; envio: { url: string } }>("v1/admin/uploads", { destino });
       if (!r.ok) return setEstado(mensagemDeErro(r.codigo, r.detalhes));
       if (!(await enviarArquivo(r.dados.envio.url, blob))) return setEstado("Não conseguimos enviar a foto. Tente de novo.");

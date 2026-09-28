@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { cx } from "@tshirtclub/ui";
@@ -10,9 +10,35 @@ import { cx } from "@tshirtclub/ui";
 // 16:9 da loja, inteiros, sem corte). O slide inteiro leva à coleção; o botão desenhado na foto
 // não é clicável, então há um "Ver a coleção" de verdade. Troca a cada 6 s, com pausa (WCAG
 // 2.2.2), e para com o mouse ou o foco em cima; com movimento reduzido, começa parado. Só o
-// primeiro slide carrega com a página; os outros entram depois (LCP).
+// primeiro slide carrega com a página; os outros entram depois (LCP). Campanha (D35 e D36): com o
+// nome da campanha, a foto é limpa e a legenda vem do HTML (campanha, coleção e temporada); com
+// foto do celular (4:5) em todos os slides, o carrossel fica vertical no celular. Moldura mínima:
+// a campanha deve parecer fotografia, não componente.
 
-export interface SlideCapa { slug: string; nome: string; foto: string; alt: string }
+export interface SlideCapa {
+  slug: string; nome: string; foto: string; alt: string;
+  /** Foto 4:5 do celular (0420). */
+  fotoCelular?: string | null;
+  /** Nome da campanha ("Ciao, Estate!") e a linha da coleção ("Estate Italiana · SS26"). */
+  campanha?: string | null;
+  linha?: string | null;
+}
+
+const TAMANHOS = "(min-width: 1280px) 1240px, 100vw";
+
+function FotoSlide({ s, prioridade }: { s: SlideCapa; prioridade: boolean }) {
+  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} sizes={TAMANHOS} className="object-cover" />;
+  const { props: { srcSet: computador } } = getImageProps({ src: s.foto, alt: "", width: 2400, height: 1350, sizes: TAMANHOS });
+  const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
+  return (
+    <picture>
+      <source media="(min-width: 768px)" srcSet={computador} />
+      <source srcSet={celular} />
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- o alt vem de getImageProps */}
+      <img {...img} className="absolute inset-0 size-full object-cover" />
+    </picture>
+  );
+}
 
 const INTERVALO = 6000;
 const MOVIMENTO_REDUZIDO = "(prefers-reduced-motion: reduce)";
@@ -34,6 +60,9 @@ export function CarrosselCapas({ slides }: { slides: SlideCapa[] }) {
   const tocando = escolha ?? !reduzido;
   const inicioToque = useRef<number | null>(null);
   const total = slides.length;
+  // Vertical no celular só quando todos os slides têm a foto 4:5; no 16:9 do celular, a legenda
+  // da campanha não cabe ao lado do botão e fica só no computador.
+  const vertical = slides.every((s) => s.fotoCelular);
   const ir = useCallback((i: number) => setAtual(((i % total) + total) % total), [total]);
 
   useEffect(() => {
@@ -54,7 +83,7 @@ export function CarrosselCapas({ slides }: { slides: SlideCapa[] }) {
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEmCima(false); }}
     >
       <div
-        className="relative aspect-video overflow-hidden rounded-[26px] border-3 border-tinta bg-rosa-bruma shadow-[8px_8px_0_var(--tc-rosa)]"
+        className={cx("relative overflow-hidden rounded-[24px] bg-rosa-bruma ring-1 ring-tinta/15", vertical ? "aspect-[4/5] md:aspect-video" : "aspect-video")}
         onTouchStart={(e) => { inicioToque.current = e.touches[0]?.clientX ?? null; }}
         onTouchEnd={(e) => {
           const x0 = inicioToque.current;
@@ -73,7 +102,13 @@ export function CarrosselCapas({ slides }: { slides: SlideCapa[] }) {
                 inert={!ativo} aria-hidden={!ativo}
                 className={cx("absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none", ativo ? "opacity-100" : "opacity-0")}>
                 <Link href={`/colecao/${s.slug}`} className="group block size-full">
-                  <Image src={s.foto} alt={s.alt} fill priority={i === 0} sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />
+                  <FotoSlide s={s} prioridade={i === 0} />
+                  {s.campanha && (
+                    <span className={cx(!vertical && "max-md:hidden", "absolute inset-x-0 bottom-0 grid gap-1.5 bg-linear-to-t from-black/55 to-transparent px-4 pb-16 pt-24 text-[#fbf5ea] md:px-8 md:pb-8 md:pt-32")}>
+                      <span className="font-display text-[clamp(34px,5.4vw,76px)] font-extrabold uppercase leading-[0.92] tracking-[-0.02em]">{s.campanha}</span>
+                      {s.linha && <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">{s.linha}</span>}
+                    </span>
+                  )}
                   <span className="absolute bottom-2.5 right-2.5 inline-flex min-h-8 items-center gap-1.5 rounded-pilula border-2 border-tinta bg-tinta px-3 text-xs font-bold text-papel shadow-adesivo group-hover:bg-rosa-press md:bottom-5 md:right-5 md:min-h-13 md:gap-2 md:px-6 md:text-[15px]">
                     Ver {s.nome}
                     <ArrowRight aria-hidden="true" className="size-4 md:size-5" strokeWidth={1.8} />

@@ -10,7 +10,7 @@ export function Cabecalho() {
   return (
     <header className="sticky top-0 z-30">
       <p className="m-0 border-b-2 border-tinta bg-rosa px-4 py-2 text-center text-[11px] font-extrabold uppercase tracking-[0.11em] text-no-rosa">
-        Monte seu Club: <b className="rounded-[4px] bg-citrino px-1.5 py-0.5 text-no-citrino">3 camisetas por R$ 119,99</b>
+        Monte seu Club <span aria-hidden="true">✦</span> <b className="rounded-[4px] bg-citrino px-1.5 py-0.5 text-no-citrino">3 T-shirts · R$ 119,99</b>
       </p>
       <div className="border-b-2 border-tinta bg-papel/95 backdrop-blur-md">
         <div className="mx-auto grid h-18 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-3.5 md:h-21.5 md:px-5">

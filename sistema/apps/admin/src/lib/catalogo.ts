@@ -61,9 +61,9 @@ export const TEXTO_SEM_WEBP = "Este navegador não converte fotos para WebP (o S
  * Foto escolhida → WebP de até 1600 px no lado maior (as fotos do catálogo são WebP, 4:5,
  * cerca de 35 KB na loja). Só no navegador.
  */
-export async function paraWebp(arquivo: File): Promise<{ blob: Blob; largura: number; altura: number }> {
+export async function paraWebp(arquivo: File, maiorLado = 1600): Promise<{ blob: Blob; largura: number; altura: number }> {
   const bitmap = await createImageBitmap(arquivo);
-  const escala = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const escala = Math.min(1, maiorLado / Math.max(bitmap.width, bitmap.height));
   const largura = Math.round(bitmap.width * escala);
   const altura = Math.round(bitmap.height * escala);
   const tela = document.createElement("canvas");

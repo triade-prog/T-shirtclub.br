@@ -27,7 +27,11 @@ export default async function Inicio() {
   const temCampanha = blocos.some((b) => b.tipo === "CAMPANHA" && b.conteudo);
   const primeiraVitrine = blocos.findIndex((b) => (b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS") && b.conteudo.length > 0);
   const colecoes = (await buscarCatalogo<Colecao[]>("v1/catalog/collections")) ?? [];
-  const slides = temCampanha ? [] : colecoes.filter((c) => c.capa).map((c) => ({ slug: c.slug, nome: c.nome, foto: urlFoto(c.capa!.caminho), alt: c.capa!.alt ?? c.nome }));
+  const slides = temCampanha ? [] : colecoes.filter((c) => c.capa).map((c) => ({
+    slug: c.slug, nome: c.nome, foto: urlFoto(c.capa!.caminho), alt: c.capa!.alt ?? c.nome,
+    fotoCelular: c.capaCelular ? urlFoto(c.capaCelular.caminho) : null,
+    campanha: c.campanha ?? null, linha: [c.nome, c.temporada].filter(Boolean).join(" · "),
+  }));
   const pecasDaCapa = temCampanha || slides.length > 0 ? [] : fotosDasVitrines(blocos);
 
   return (

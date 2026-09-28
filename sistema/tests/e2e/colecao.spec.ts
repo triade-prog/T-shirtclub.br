@@ -49,3 +49,27 @@ test("coleção: o endereço antigo leva ao novo, com o filtro", async ({ page, 
   await expect(page.getByRole("heading", { level: 1, name: "Limone." })).toBeVisible();
   expect((await request.get(`${LOJA}/colecao/nunca-existiu`)).status()).toBe(404);
 });
+
+// Coleção de campanha (0420, D35 e D36): marca, campanha, coleção e capítulos, na paleta própria.
+test("coleção de campanha: foto limpa, campanha, coleção, The Club Edit, capítulo e shop, com axe", async ({ page }) => {
+  await page.goto(`${LOJA}/colecao/estate-italiana`);
+  await expect(page.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
+  await expect(page.getByText("Estate Italiana · SS26", { exact: true })).toBeVisible();
+  await expect(page.getByText("Coleção 01 · 1 estampa", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Estate Italiana." })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Ver a estampa/ })).toHaveAttribute("href", "#pecas");
+  await expect(page.getByText("Limões, listras e o verão italiano que não acaba.")).toBeVisible();
+
+  const capitulo = page.getByRole("region", { name: "Il mercato apre cedo." });
+  await expect(capitulo).toContainText("01 · Mattina — Mercato");
+  await expect(capitulo.getByRole("img", { name: "Mercado de manhã" })).toBeVisible();
+  await expect(capitulo.getByText("Limone Amalfi Coast")).toBeVisible();
+
+  await expect(page.getByText("Shop Estate Italiana · 1 estampa")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
+  // Sem a nota editorial do Club: na campanha, os capítulos fazem esse papel
+  await expect(page.getByText("Editorial note")).toHaveCount(0);
+
+  const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
