@@ -39,6 +39,15 @@ export default async function Inicio() {
               </Secao>
             );
           }
+          case "QUASE_ESGOTADAS":
+            // Almost Gone: as peças acabando, com o selo da quantidade real (vazio, some)
+            return b.conteudo.length > 0 ? (
+              <Secao key={i} id="quase-esgotadas" sobretitulo="Poucas unidades no Club" titulo={b.titulo ?? "Almost Gone"}>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-4 md:gap-x-4">
+                  {b.conteudo.map((p) => <CardProduto key={p.id} produto={p} oferta={oferta} />)}
+                </div>
+              </Secao>
+            ) : null;
           case "COLECOES":
             return b.conteudo.length > 0 ? <Colecoes key={i} titulo={b.titulo} colecoes={b.conteudo} /> : null;
           case "LOOKS":

@@ -35,8 +35,15 @@ const produto = {
   looks: [],
 };
 const club = { nome: "Monte seu Club", qtd: 3, precoCentavos: 11999, fim: "2027-01-01T00:00:00Z" };
+// Uma peça acabando, para o bloco Almost Gone (0380) e o selo com a quantidade real
+const acabando = {
+  ...cartao, id: "p0000000-0000-4000-8000-000000000009", slug: "dog-parisienne", nome: "Dog Parisienne", disponivel: 1, selo: "ULTIMAS_UNIDADES",
+  capa: { ...cartao.capa, alt: "Camiseta Dog Parisienne" },
+  tamanhos: [{ id: "v0000000-0000-4000-8000-000000000009", tamanho: "UNICO", rotulo: "Único · P ao 42", disponivel: 1, selo: "ULTIMAS_UNIDADES" }],
+};
 const home = [
   { tipo: "NOVIDADES", titulo: "Club Picks", conteudo: [cartao] },
+  { tipo: "QUASE_ESGOTADAS", titulo: "Almost Gone", conteudo: [acabando] },
   { tipo: "COLECOES", titulo: null, conteudo: [colecao] },
   { tipo: "MONTE_SEU_CLUB", titulo: null, conteudo: club },
 ];

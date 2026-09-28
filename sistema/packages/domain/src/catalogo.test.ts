@@ -56,6 +56,7 @@ describe("painel: catálogo", () => {
   it("página inicial: tipos conhecidos", () => {
     expect(blocosInicioSchema.parse({ blocos: [{ tipo: "MONTE_SEU_CLUB" }] }).blocos[0]).toEqual({ tipo: "MONTE_SEU_CLUB", refId: null, titulo: null, ativo: true });
     expect(blocosInicioSchema.safeParse({ blocos: [{ tipo: "BANNER" }] }).success).toBe(false);
+    expect(blocosInicioSchema.parse({ blocos: [{ tipo: "QUASE_ESGOTADAS", titulo: "Almost Gone" }] }).blocos[0]!.tipo).toBe("QUASE_ESGOTADAS");
   });
 });
 

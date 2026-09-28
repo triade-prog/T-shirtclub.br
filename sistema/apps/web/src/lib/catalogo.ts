@@ -44,7 +44,7 @@ export interface OfertaClub { nome: string; qtd: number; precoCentavos: number; 
 
 export type BlocoInicio =
   | { tipo: "CAMPANHA"; titulo: string | null; conteudo: Look | null }
-  | { tipo: "NOVIDADES" | "PRODUTOS"; titulo: string | null; conteudo: CartaoProduto[] }
+  | { tipo: "NOVIDADES" | "PRODUTOS" | "QUASE_ESGOTADAS"; titulo: string | null; conteudo: CartaoProduto[] }
   | { tipo: "COLECOES"; titulo: string | null; conteudo: Colecao[] }
   | { tipo: "LOOKS"; titulo: string | null; conteudo: Look[] }
   | { tipo: "MONTE_SEU_CLUB"; titulo: string | null; conteudo: OfertaClub };

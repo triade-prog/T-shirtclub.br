@@ -20,6 +20,11 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   // Início → produto
   await page.goto(`${LOJA}/`);
   await semViolacoes(page, "início");
+  // Almost Gone: as peças acabando, com o selo da quantidade real
+  const acabando = page.locator("#quase-esgotadas");
+  await expect(acabando.getByRole("heading", { name: "Almost Gone" })).toBeVisible();
+  await expect(acabando.getByText("Última unidade")).toBeVisible();
+  await expect(acabando.getByRole("button", { name: "Adicionar Dog Parisienne (Único · P ao 42) à sacola" })).toBeVisible();
   // Com os dois tamanhos à venda, o + do cartão leva à escolha do tamanho
   await expect(page.getByRole("link", { name: "Escolher o tamanho de Limone Amalfi Coast" }).first()).toHaveAttribute("href", "/produto/limone-amalfi-coast?escolha=tamanho#tamanho");
   await page.getByRole("link", { name: "Limone Amalfi Coast", exact: true }).first().click();
@@ -28,6 +33,8 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   const foto = page.getByRole("img", { name: "Camiseta Limone Amalfi Coast, frente" });
   await expect.poll(() => foto.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBeGreaterThan(0);
   await semViolacoes(page, "produto");
+  // 8 peças no total: sem selo na peça; o Plus, com 3, mostra "Últimas 3" na escolha do tamanho
+  await expect(page.locator("#tamanho").getByText("Últimas 3")).toBeVisible();
 
   // Tamanho (0370): o Único vem marcado; a cliente escolhe o Plus. As medidas são de cada tamanho.
   await expect(page.getByRole("radio", { name: "Único · P ao 42" })).toBeChecked();
