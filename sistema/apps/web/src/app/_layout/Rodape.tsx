@@ -7,10 +7,12 @@ import { buscarCatalogo, buscarOfertaClub, buscarOfertaVip, type Colecao } from 
 import { EMPRESA, redesDaLoja } from "@/lib/empresa";
 import { FormVip } from "../_vip/FormVip";
 import { IconeRede } from "./IconeRede";
+import { RodapeTroca } from "./RodapeTroca";
 
 // Rodapé (27/09, referência Le Lis no estilo V4): as vantagens da loja em cartões, a Lista VIP,
 // os links (coleções, ajuda, atendimento e redes) e a linha com os dados da empresa. Coleções,
 // oferta do Club e cupom VIP vêm do catálogo (cache da loja); sem catálogo, o rodapé segue sem eles.
+// Na página de uma coleção (28/09), um rodapé curto na cor dela, sem as vantagens e a Lista VIP.
 export async function Rodape() {
   const [colecoes, club, vip] = await Promise.all([
     buscarCatalogo<Colecao[]>("v1/catalog/collections"), buscarOfertaClub(), buscarOfertaVip(),
@@ -26,7 +28,9 @@ export async function Rodape() {
     { Icone: MessageCircle, titulo: "WhatsApp", texto: "Atendimento de gente" },
   ];
 
-  return (
+  const empresa = `© 2026 T-shirt Club.br · ${EMPRESA.razaoSocial} · CNPJ ${EMPRESA.cnpj} · ${EMPRESA.endereco}. Preços e estoque podem mudar sem aviso.`;
+
+  const completo = (
     <footer className="mt-12 border-t-4 border-tinta">
       <section aria-label="Vantagens da loja" className="bg-rosa-bruma px-3.5 py-6 md:px-5">
         <ul className="mx-auto m-0 grid max-w-7xl list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-6">
@@ -95,9 +99,7 @@ export async function Rodape() {
         </div>
         <div className="border-t border-no-verde/20">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-3.5 py-3 text-[11px] leading-relaxed md:px-5">
-            <p className="m-0 max-w-[80ch]">
-              © 2026 T-shirt Club.br · {EMPRESA.razaoSocial} · CNPJ {EMPRESA.cnpj} · {EMPRESA.endereco}. Preços e estoque podem mudar sem aviso.
-            </p>
+            <p className="m-0 max-w-[80ch]">{empresa}</p>
             <a href="#" className="tc-alvo relative inline-flex min-h-7 items-center gap-1.5 font-bold uppercase tracking-[0.1em]">
               <ArrowUp aria-hidden="true" className="size-4" strokeWidth={2} /> Voltar ao topo
             </a>
@@ -105,6 +107,11 @@ export async function Rodape() {
         </div>
       </div>
     </footer>
+  );
+  // Na página de uma coleção, o rodapé curto na cor dela (RodapeTroca decide no navegador)
+  return (
+    <RodapeTroca completo={completo} numero={numero} whatsapp={EMPRESA.whatsapp} empresa={empresa}
+      colecoes={(colecoes ?? []).map((c) => ({ slug: c.slug, nome: c.nome, cor: c.cor, paleta: c.paleta, campanhaLigada: Boolean(c.campanha && c.campanhaAtiva) }))} />
   );
 }
 

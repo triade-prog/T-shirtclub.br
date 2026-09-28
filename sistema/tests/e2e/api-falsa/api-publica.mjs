@@ -25,6 +25,8 @@ const cartao = {
 };
 colecao.fotos = [cartao.capa];
 colecao.slugsAntigos = ["limone-club"];
+// Foto do círculo do Pick your story escolhida no painel (0440), no lugar da peça mais nova
+colecao.fotoStory = { caminho: "limone-detalhe.webp" };
 // Campanha gravada e desligada (0430): a página segue a da coleção, sem nada da campanha.
 colecao.campanha = "Limone, Amore!";
 colecao.campanhaAtiva = false;

@@ -29,6 +29,10 @@ export interface Colecao {
   /** Campanha (0420, D35 e D36) */
   campanha: string | null; temporada: string | null; edicao: string | null; capaCelular: { caminho: string; alt: string } | null;
   paleta: (typeof PALETAS)[number][0]; campanhaAtiva: boolean; capitulos: Capitulo[];
+  /** Foto do círculo do Pick your story no início (0440) */
+  fotoStory: { caminho: string } | null;
+  /** Foto da peça mais nova na loja (0450): o círculo sem foto escolhida, na prévia. */
+  pecaMaisNova?: { caminho: string; alt: string } | null;
 }
 /** Paletas de coleção (D36): a do Club e as das campanhas. */
 export const PALETAS = [

@@ -11,8 +11,10 @@ import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 import { useTodosProdutos } from "../_painel/useTodosProdutos";
 import { EnvioFoto } from "./EnvioFoto";
+import { PreviaLook } from "./PreviaLook";
 
-// Looks (D20): uma foto com as peças que aparecem nela ("Você faz o look" e a campanha).
+// Looks (D20): uma foto com as peças que aparecem nela ("Você faz o look" e a campanha), com a
+// prévia na loja ao lado.
 export function Looks() {
   const { dados, erro, recarregar } = useDados<Look[]>("v1/admin/looks");
   const [editando, setEditando] = useState<Look | "novo" | null>(null);
@@ -23,7 +25,7 @@ export function Looks() {
   return (
     <>
       <div className="actions" style={{ marginBottom: 16 }}><Botao onClick={() => setEditando("novo")}>Novo look</Botao></div>
-      {editando && <FormLook look={editando === "novo" ? null : editando} aoFechar={() => setEditando(null)} aoSalvar={() => { setEditando(null); void recarregar(); }} />}
+      {editando && <FormLook look={editando === "novo" ? null : editando} looks={dados} aoFechar={() => setEditando(null)} aoSalvar={() => { setEditando(null); void recarregar(); }} />}
       {dados.length === 0 && <p className="muted" style={{ fontSize: 12 }}>Nenhum look ainda.</p>}
       <ul className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {dados.map((l) => (
@@ -49,11 +51,14 @@ export function Looks() {
   );
 }
 
-function FormLook({ look, aoFechar, aoSalvar }: { look: Look | null; aoFechar: () => void; aoSalvar: () => void }) {
+function FormLook({ look, looks, aoFechar, aoSalvar }: { look: Look | null; looks: Look[]; aoFechar: () => void; aoSalvar: () => void }) {
   const { produtos, erro: erroProdutos } = useTodosProdutos();
   const [foto, setFoto] = useState<string | null>(look?.foto.caminho ?? null);
   const [marcados, setMarcados] = useState<string[]>(look?.produtos.map((p) => p.id) ?? []);
   const { ocupado, erro, setErro, enviar } = useEnvio(aoSalvar);
+  // Título, ordem e ativo como estão no formulário, para a prévia na loja
+  const [campos, setCampos] = useState({ titulo: look?.titulo ?? "", posicao: look?.posicao ?? 0, ativo: look?.ativo ?? true });
+  const lerCampos = (f: FormData) => setCampos({ titulo: String(f.get("titulo") ?? ""), posicao: Number(f.get("posicao") ?? 0) || 0, ativo: f.get("ativo") === "on" });
 
   function salvar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,19 +79,24 @@ function FormLook({ look, aoFechar, aoSalvar }: { look: Look | null; aoFechar: (
   return (
     <section className="card" style={{ marginBottom: 16 }} aria-label={look ? `Editar ${look.titulo}` : "Novo look"}>
       <h2>{look ? `Editar ${look.titulo}` : "Novo look"}</h2>
-      <form className="form-grid" onSubmit={salvar} noValidate>
-        <Campo name="titulo" rotulo="Título" maxLength={60} defaultValue={look?.titulo ?? ""} placeholder="Ex.: Denim" />
-        <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(look?.posicao ?? 0)} />
-        <div className="full"><EnvioFoto destino="look" caminho={foto} aoEnviar={setFoto} rotulo="Foto do look" /></div>
-        <div className="full"><Campo name="alt" rotulo="Descrição da foto" maxLength={200} defaultValue={look?.foto.alt ?? ""} placeholder="Ex.: Limone Amalfi Coast com jeans e sandália" /></div>
-        <div className="full"><SeletorProdutos produtos={produtos} erro={erroProdutos} marcados={marcados} aoMudar={setMarcados} legenda="Peças do look" /></div>
-        <div className="full"><Marcar name="ativo" rotulo="Look ativo" defaultChecked={look?.ativo ?? true} /></div>
-        {erro && <p role="alert" className="field-error full">{erro}</p>}
-        <div className="actions full">
-          <Botao type="submit" carregando={ocupado}>Salvar look</Botao>
-          <Botao variante="link" onClick={aoFechar}>Cancelar</Botao>
+      <div className="com-previa">
+        <form className="form-grid" onSubmit={salvar} onChange={(e) => lerCampos(new FormData(e.currentTarget))} noValidate>
+          <Campo name="titulo" rotulo="Título" maxLength={60} defaultValue={look?.titulo ?? ""} placeholder="Ex.: Denim" />
+          <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(look?.posicao ?? 0)} />
+          <div className="full"><EnvioFoto destino="look" caminho={foto} aoEnviar={setFoto} rotulo="Foto do look" /></div>
+          <div className="full"><Campo name="alt" rotulo="Descrição da foto" maxLength={200} defaultValue={look?.foto.alt ?? ""} placeholder="Ex.: Limone Amalfi Coast com jeans e sandália" /></div>
+          <div className="full"><SeletorProdutos produtos={produtos} erro={erroProdutos} marcados={marcados} aoMudar={setMarcados} legenda="Peças do look" /></div>
+          <div className="full"><Marcar name="ativo" rotulo="Look ativo" defaultChecked={look?.ativo ?? true} /></div>
+          {erro && <p role="alert" className="field-error full">{erro}</p>}
+          <div className="actions full">
+            <Botao type="submit" carregando={ocupado}>Salvar look</Botao>
+            <Botao variante="link" onClick={aoFechar}>Cancelar</Botao>
+          </div>
+        </form>
+        <div className="com-previa-lado">
+          <PreviaLook r={{ ...campos, id: look?.id ?? null, foto, produtos: marcados }} outros={looks} produtos={produtos} />
         </div>
-      </form>
+      </div>
     </section>
   );
 }

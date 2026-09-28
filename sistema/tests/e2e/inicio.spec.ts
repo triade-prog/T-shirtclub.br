@@ -26,9 +26,12 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
 
   const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
+  // Pick your story (0440): a foto escolhida no painel, no lugar da peça mais nova da coleção
+  await expect(colecoes.getByRole("link", { name: "Limone" }).locator("img")).toHaveAttribute("src", /limone-detalhe\.webp/);
 
-  // O axe mede o contraste com a opacidade do momento: espera o slide terminar de aparecer (0,7 s)
-  await expect(carrossel.getByRole("group", { name: "2 de 3: Riviera" })).toHaveCSS("opacity", "1");
+  // O axe mede o contraste do slide da vez depois da troca (0,7 s): no meio dela, o botão ainda está
+  // meio transparente e o contraste sai errado (falhava de vez em quando no iPhone)
+  await expect(carrossel.getByRole("group", { name: /Riviera/ })).toHaveCSS("opacity", "1");
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });

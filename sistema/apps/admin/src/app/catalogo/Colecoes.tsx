@@ -1,160 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { chamarApi } from "@/lib/api";
-import { paraSlug, urlFoto } from "@/lib/catalogo";
-import { CORES, PALETAS, type Colecao, type PaginaProdutos } from "@/lib/tiposCatalogo";
+import Link from "next/link";
+import { urlFoto } from "@/lib/catalogo";
+import { CORES, type Colecao } from "@/lib/tiposCatalogo";
 import { Icone } from "../_painel/Casca";
-import { Botao, Campo, Carregando, Escolha, Marcar, Selo } from "../_painel/ui";
+import { Carregando, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
-import { useEnvio } from "../_painel/useEnvio";
-import { EnvioFoto } from "./EnvioFoto";
 
-// Coleções (D20): nome, slug, texto curto, cor entre as 5 aprovadas, capa, ordem e ativa. Campanha
-// (0420, D35 e D36): nome da campanha, edição, temporada, paleta, foto do celular (4:5) e até 3
-// capítulos editoriais com foto e as estampas de cada um.
+// Coleções (D20): a lista, na ordem da loja. Cada coleção abre a sua página
+// (/catalogo/colecoes/[id], com o formulário e a prévia na loja), e "Nova coleção" abre a página
+// vazia (28/09).
 export function Colecoes() {
-  const { dados, erro, recarregar } = useDados<Colecao[]>("v1/admin/collections");
-  const [editando, setEditando] = useState<Colecao | "nova" | null>(null);
+  const { dados, erro } = useDados<Colecao[]>("v1/admin/collections");
 
   if (!dados) return <Carregando erro={erro} />;
   return (
     <>
-      <div className="actions" style={{ marginBottom: 16 }}>
-        <Botao onClick={() => setEditando("nova")}>Nova coleção</Botao>
-      </div>
-      {editando && <FormColecao colecao={editando === "nova" ? null : editando} aoFechar={() => setEditando(null)} aoSalvar={() => { setEditando(null); void recarregar(); }} />}
-      <ul className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
-        {dados.map((c) => (
-          <li key={c.id} className="row">
-            {c.capa
-              // eslint-disable-next-line @next/next/no-img-element -- miniatura do Storage
-              ? <img className="thumb" src={urlFoto(c.capa.caminho)} alt="" />
-              : <span className="thumb"><Icone><path d="M4 6h16v12H4Z" /></Icone></span>}
-            <div style={{ minWidth: 0 }}>
-              <b><span className="swatch" style={{ background: CORES.find((x) => x[0] === c.cor)?.[2] }} aria-hidden="true" />{c.nome}</b>
-              <div className="meta">/colecao/{c.slug} · {CORES.find((x) => x[0] === c.cor)?.[1]} · {c.produtos} {c.produtos === 1 ? "peça" : "peças"} · ordem {c.posicao}</div>
-              <div style={{ marginTop: 7 }}>{c.ativa ? <Selo tom="paid">Ativa</Selo> : <Selo tom="expired">Inativa</Selo>}</div>
-            </div>
-            <Botao variante="ghost" onClick={() => setEditando(c)} aria-label={`Editar ${c.nome}`}>Editar</Botao>
-          </li>
-        ))}
-      </ul>
+      <div className="section-title"><h2>{dados.length} {dados.length === 1 ? "coleção" : "coleções"}</h2><span>Na ordem da loja</span></div>
+      {dados.length === 0 ? <p className="muted" style={{ fontSize: 12 }}>Nenhuma coleção ainda.</p> : (
+        <ul className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {dados.map((c) => (
+            <li key={c.id}>
+              <Link className="row" href={`/catalogo/colecoes/${c.id}`}>
+                {c.capa
+                  // eslint-disable-next-line @next/next/no-img-element -- miniatura do Storage
+                  ? <img className="thumb" src={urlFoto(c.capa.caminho)} alt="" />
+                  : <span className="thumb"><Icone><path d="M4 6h16v12H4Z" /></Icone></span>}
+                <div style={{ minWidth: 0 }}>
+                  <b><span className="swatch" style={{ background: CORES.find((x) => x[0] === c.cor)?.[2] }} aria-hidden="true" />{c.nome}</b>
+                  <div className="meta">/colecao/{c.slug} · {CORES.find((x) => x[0] === c.cor)?.[1]} · {c.produtos} {c.produtos === 1 ? "peça" : "peças"} · ordem {c.posicao}</div>
+                  <div style={{ display: "flex", gap: 7, marginTop: 7, flexWrap: "wrap" }}>
+                    <SelosColecao colecao={c} />
+                    {!c.capa && <Selo tom="issue">Sem capa</Selo>}
+                  </div>
+                </div>
+                <div className="res-side">
+                  {c.campanha
+                    ? <><div className="amount">{c.campanha}</div><div className="date">{c.campanhaAtiva ? "Campanha ligada" : "Campanha desligada"}</div></>
+                    : <div className="date">Sem campanha</div>}
+                  <div className="date">{c.fotoStory ? "Pick your story: foto escolhida" : "Pick your story: peça mais nova"}</div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
 
-function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null; aoFechar: () => void; aoSalvar: () => void }) {
-  const [nome, setNome] = useState(colecao?.nome ?? "");
-  const [slug, setSlug] = useState(colecao?.slug ?? "");
-  const [capa, setCapa] = useState<string | null>(colecao?.capa?.caminho ?? null);
-  const [capaCelular, setCapaCelular] = useState<string | null>(colecao?.capaCelular?.caminho ?? null);
-  const [capitulos, setCapitulos] = useState<CapituloForm[]>(
-    (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, texto: k.texto ?? "", foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
-  const { ocupado, erro, setErro, enviar } = useEnvio(aoSalvar);
-
-  function salvar(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const alt = String(f.get("alt") ?? "").trim();
-    if (!nome.trim() || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return setErro("Confira o nome e o endereço (só letras sem acento, números e hífen).");
-    if (capa && !alt) return setErro("Descreva a capa para quem usa leitor de tela.");
-    const altCelular = String(f.get("altCelular") ?? "").trim();
-    if (capaCelular && !altCelular) return setErro("Descreva a foto do celular para quem usa leitor de tela.");
-    const preenchidos = capitulos.filter((k) => k.rotulo.trim() || k.titulo.trim() || k.foto || k.produtos.length);
-    if (preenchidos.some((k) => !k.rotulo.trim() || !k.titulo.trim())) return setErro("Cada capítulo precisa do nome (ex.: Mattina — Mercato) e do título.");
-    if (preenchidos.some((k) => k.foto && !k.alt.trim())) return setErro("Descreva a foto de cada capítulo para quem usa leitor de tela.");
-    const campanhaAtiva = f.get("campanhaAtiva") === "on";
-    if (campanhaAtiva && !String(f.get("campanha") ?? "").trim()) return setErro("Para ligar a campanha, preencha o nome dela.");
-    const corpo = {
-      nome: nome.trim(), slug, descricao: String(f.get("descricao") ?? "").trim() || null,
-      chamada: String(f.get("chamada") ?? "").trim() || null, cor: String(f.get("cor")),
-      capa: capa ? { caminho: capa, alt } : null, posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
-      campanha: String(f.get("campanha") ?? "").trim() || null, edicao: String(f.get("edicao") ?? "").trim() || null,
-      temporada: String(f.get("temporada") ?? "").trim() || null, paleta: String(f.get("paleta") ?? "CLUB"), campanhaAtiva,
-      capaCelular: capaCelular ? { caminho: capaCelular, alt: altCelular } : null,
-      capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), texto: k.texto.trim() || null, foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
-    };
-    void enviar(colecao ? chamarApi(`v1/admin/collections/${colecao.id}`, corpo, "PUT") : chamarApi("v1/admin/collections", corpo));
-  }
-
+/**
+ * Selos da coleção (28/09): se ela está na loja e, quando tem campanha, se a campanha está ligada.
+ * São duas chaves diferentes: coleção ativa mostra a coleção; campanha ligada troca a página comum
+ * pela de campanha.
+ */
+export function SelosColecao({ colecao: c }: { colecao: Colecao }) {
   return (
-    <section className="card" style={{ marginBottom: 16 }} aria-label={colecao ? `Editar ${colecao.nome}` : "Nova coleção"}>
-      <h2>{colecao ? `Editar ${colecao.nome}` : "Nova coleção"}</h2>
-      <form className="form-grid" onSubmit={salvar} noValidate>
-        <Campo name="nome" rotulo="Nome" maxLength={60} value={nome} onChange={(e) => { setNome(e.target.value); if (!colecao) setSlug(paraSlug(e.target.value)); }} />
-        <Campo name="slug" rotulo="Endereço (/colecao/…)" maxLength={80} value={slug} onChange={(e) => setSlug(paraSlug(e.target.value))} />
-        <div className="full"><Campo name="descricao" rotulo="Texto curto (opcional)" maxLength={160} defaultValue={colecao?.descricao ?? ""} /></div>
-        <div className="full"><Campo name="chamada" rotulo="Chamada da faixa verde (opcional)" maxLength={120} defaultValue={colecao?.chamada ?? ""}
-          ajuda="Uma frase sobre o universo da coleção, sem repetir o nome. Ex.: Limões, listras e o verão italiano que não acaba." /></div>
-        <Escolha name="cor" rotulo="Cor da coleção" defaultValue={colecao?.cor ?? "LIMAO"} opcoes={CORES.map(([v, t]) => [v, t] as const)} ajuda="Só as 5 cores aprovadas (D18)." />
-        <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(colecao?.posicao ?? 0)} />
-        <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa" /></div>
-        {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
-        <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
-
-        <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
-        <p className="field-help full" style={{ marginTop: -6 }}>
-          Grave tudo com a campanha desligada e ligue quando as fotos limpas (sem texto dentro) estiverem aprovadas: aí a página da coleção vira capítulo de campanha, com a foto, a campanha, a coleção, o manifesto e os capítulos.
-        </p>
-        <div className="full"><Marcar name="campanhaAtiva" rotulo="Campanha ligada na loja" defaultChecked={colecao?.campanhaAtiva ?? false} /></div>
-        <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
-        <Escolha name="paleta" rotulo="Paleta da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Cada campanha pode ter a sua (D36)." />
-        <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
-        <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="SS26" />
-        <div className="full"><EnvioFoto destino="colecao" caminho={capaCelular} aoEnviar={setCapaCelular} rotulo="Foto do celular (4:5, sem texto)" /></div>
-        {capaCelular && <div className="full"><Campo name="altCelular" rotulo="Descrição da foto do celular" maxLength={200} defaultValue={colecao?.capaCelular?.alt ?? ""} /></div>}
-
-        <h3 className="full" style={{ marginTop: 10 }}>Capítulos (até 3)</h3>
-        {colecao
-          ? <Capitulos colecaoId={colecao.id} capitulos={capitulos} mudar={setCapitulos} />
-          : <p className="field-help full">Salve a coleção e cadastre as peças; depois os capítulos aparecem aqui.</p>}
-        {erro && <p role="alert" className="field-error full">{erro}</p>}
-        <div className="actions full">
-          <Botao type="submit" carregando={ocupado}>Salvar coleção</Botao>
-          <Botao variante="link" onClick={aoFechar}>Cancelar</Botao>
-        </div>
-      </form>
-    </section>
-  );
-}
-
-interface CapituloForm { rotulo: string; titulo: string; texto: string; foto: string | null; alt: string; produtos: string[] }
-const CAPITULO_VAZIO: CapituloForm = { rotulo: "", titulo: "", texto: "", foto: null, alt: "", produtos: [] };
-
-// Até 3 capítulos (ex.: Mattina — Mercato · Il mercato apre cedo.), cada um com foto e as
-// estampas da própria coleção que aparecem junto dele na loja.
-function Capitulos({ colecaoId, capitulos, mudar }: { colecaoId: string; capitulos: CapituloForm[]; mudar: (c: CapituloForm[]) => void }) {
-  const { dados } = useDados<PaginaProdutos>(`v1/admin/products?colecao=${colecaoId}`);
-  const trocar = (i: number, parte: Partial<CapituloForm>) => mudar(capitulos.map((k, j) => (j === i ? { ...k, ...parte } : k)));
-  return (
-    <div className="full" style={{ display: "grid", gap: 14 }}>
-      {capitulos.map((k, i) => (
-        <fieldset key={i} className="card flat" style={{ margin: 0 }}>
-          <legend style={{ fontWeight: 800, fontSize: 12 }}>Capítulo {i + 1}</legend>
-          <div className="form-grid">
-            <Campo rotulo="Nome do capítulo" maxLength={40} value={k.rotulo} placeholder="Mattina — Mercato" onChange={(e) => trocar(i, { rotulo: e.target.value })} />
-            <Campo rotulo="Título" maxLength={80} value={k.titulo} placeholder="Il mercato apre cedo." onChange={(e) => trocar(i, { titulo: e.target.value })} />
-            <div className="full"><Campo rotulo="Frase (opcional)" maxLength={160} value={k.texto} placeholder="Sol alto, sal na pele e absolutamente nenhuma pressa." onChange={(e) => trocar(i, { texto: e.target.value })} /></div>
-            <div className="full"><EnvioFoto destino="colecao" caminho={k.foto} aoEnviar={(foto) => trocar(i, { foto })} rotulo="Foto do capítulo" /></div>
-            {k.foto && <div className="full"><Campo rotulo="Descrição da foto" maxLength={200} value={k.alt} onChange={(e) => trocar(i, { alt: e.target.value })} /></div>}
-            <div className="full">
-              <span className="field-help">Estampas deste capítulo (até 8)</span>
-              {!dados ? <p className="field-help">Carregando as peças…</p> : (
-                <div style={{ display: "flex", flexWrap: "wrap", columnGap: 16 }}>
-                  {dados.itens.map((p) => (
-                    <Marcar key={p.id} rotulo={p.nome} checked={k.produtos.includes(p.id)}
-                      disabled={!k.produtos.includes(p.id) && k.produtos.length >= 8}
-                      onChange={(e) => trocar(i, { produtos: e.target.checked ? [...k.produtos, p.id] : k.produtos.filter((x) => x !== p.id) })} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <Botao variante="link" onClick={() => mudar(capitulos.filter((_, j) => j !== i))}>Tirar o capítulo {i + 1}</Botao>
-        </fieldset>
-      ))}
-      {capitulos.length < 3 && <div><Botao variante="ghost" onClick={() => mudar([...capitulos, { ...CAPITULO_VAZIO }])}>Adicionar capítulo</Botao></div>}
-    </div>
+    <>
+      {c.ativa ? <Selo tom="paid">Coleção ativa</Selo> : <Selo tom="expired">Coleção oculta</Selo>}
+      {c.campanha && (c.campanhaAtiva ? <Selo tom="ship">Campanha ligada</Selo> : <Selo tom="reserved">Campanha desligada</Selo>)}
+    </>
   );
 }

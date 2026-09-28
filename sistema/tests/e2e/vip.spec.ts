@@ -71,3 +71,32 @@ test("rodapé: vantagens, Lista VIP e dados da loja", async ({ page }) => {
   await vip.getByRole("button", { name: "Quero ser VIP" }).click();
   await expect(vip.getByText("VIP10")).toBeVisible();
 });
+
+// Na página de uma coleção (28/09): rodapé curto na cor dela, sem as vantagens e a Lista VIP; com a
+// campanha ligada, na paleta da campanha. Navegando pelos links, o rodapé troca sem recarregar.
+test("rodapé na coleção: curto, na cor da coleção, e volta ao completo fora dela", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("tc-vip-fechado", String(Date.now())));
+  await page.goto(`${LOJA}/`);
+  const rodape = page.getByRole("contentinfo");
+  await rodape.getByRole("navigation", { name: "Coleções" }).getByRole("link", { name: "Limone" }).click();
+  await expect(page).toHaveURL(`${LOJA}/colecao/limone`);
+  await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toHaveCount(0);
+  await expect(rodape.getByRole("region", { name: /Drops novos/ })).toHaveCount(0);
+  await expect(rodape.getByRole("link", { name: "Limone" })).toHaveAttribute("aria-current", "page");
+  await expect(rodape).toContainText("CNPJ 60.814.144/0001-03");
+  await expect(rodape).toHaveClass(/col-limao/);
+  await rodape.scrollIntoViewIfNeeded();
+  await semViolacoes(page, "rodapé da coleção");
+
+  // Campanha ligada (Estate Italiana na api falsa): a paleta da campanha
+  await rodape.getByRole("link", { name: "Estate Italiana" }).click();
+  await expect(page).toHaveURL(`${LOJA}/colecao/estate-italiana`);
+  await expect(rodape).toHaveClass(/paleta-estate-italiana/);
+  await rodape.scrollIntoViewIfNeeded();
+  await semViolacoes(page, "rodapé da campanha");
+
+  // De volta ao início, o rodapé completo
+  await rodape.getByRole("link", { name: "T-SHIRT CLUB." }).click();
+  await expect(page).toHaveURL(`${LOJA}/`);
+  await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toBeVisible();
+});

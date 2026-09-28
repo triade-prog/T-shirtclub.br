@@ -123,6 +123,104 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
   expect(enviados[1]!.corpo).toMatchObject({ escopo: "ESPECIFICOS", produtos: [{ produtoId: OUTRA }, { produtoId: PECA }], grupo: { qtd: 3, precoCentavos: 11999 } });
 });
 
+// Prévia na loja (etapa 1) com a api-admin simulada: coleções e looks desenhados com os componentes da
+// loja numa janela na largura do celular ou do computador, mudando enquanto o formulário muda.
+test("prévia na loja: coleção e look mudam com o formulário, no celular e no computador", async ({ page, context }) => {
+  const C1 = "55555555-5555-4555-8555-555555555551";
+  const C2 = "55555555-5555-4555-8555-555555555552";
+  const colecoes = [
+    { id: C1, nome: "Limone", slug: "limone", descricao: "Sol e limão.", chamada: null, cor: "LIMAO", capa: { caminho: "colecoes/limone.webp", alt: "Limões" }, posicao: 1, ativa: true, produtos: 2,
+      campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01", capaCelular: null, paleta: "ESTATE_ITALIANA", campanhaAtiva: false, capitulos: [], fotoStory: null,
+      pecaMaisNova: { caminho: "produtos/lim-01/1.webp", alt: "Limone" } },
+    { id: C2, nome: "Riviera", slug: "riviera", descricao: null, chamada: null, cor: "MEDITERRANEO", capa: null, posicao: 2, ativa: true, produtos: 0,
+      campanha: null, temporada: null, edicao: null, capaCelular: null, paleta: "CLUB", campanhaAtiva: false, capitulos: [], fotoStory: null, pecaMaisNova: null },
+  ];
+  const produto = { id: "p1", codigo: "LIM-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
+    capa: null, fotos: 1, estoque: { total: 5, reservado: 0, vendido: 0, disponivel: 5 } };
+  const respostas: Record<string, unknown> = {
+    "v1/admin/collections": colecoes,
+    "v1/admin/looks": [{ id: "l1", titulo: "Praia", foto: { caminho: "looks/praia.webp", alt: "Praia" }, posicao: 1, ativo: true, produtos: [] }],
+    "v1/admin/products": { itens: [produto], total: 1, pagina: 1, porPagina: 20 },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const caminho = new URL(rota.request().url()).pathname.replace(/^\/api\//, "");
+    if (rota.request().method() !== "GET") return rota.fulfill({ json: { id: C1 } });
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  // A aba lista as coleções; cada uma abre a sua página, e "Nova coleção" abre a página vazia
+  await page.goto(`${PAINEL}/catalogo?aba=colecoes`);
+  await expect(page.getByRole("link", { name: "Nova coleção" })).toHaveAttribute("href", "/catalogo/colecoes/nova");
+  await expect(page.getByRole("link", { name: /Riviera/ })).toContainText("Sem capa");
+  // Selos: coleção ativa ou oculta e, com campanha, se ela está ligada (Limone: campanha desligada)
+  await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Coleção ativa");
+  await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Campanha desligada");
+  await expect(page.getByRole("link", { name: /Riviera/ })).not.toContainText("Campanha");
+  await page.getByRole("link", { name: /Limone/ }).click();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Limone");
+  await expect(page.locator(".status").filter({ hasText: "Campanha desligada" })).toBeVisible();
+  const computador = page.frameLocator('iframe[title="Prévia na loja (computador)"]');
+  // Pick your story com as coleções ativas na ordem, o slide do carrossel e o topo da campanha
+  await expect(computador.locator("#inicio-colecoes")).toHaveText("Pick your story.");
+  await expect(computador.getByText("Riviera", { exact: true })).toBeVisible();
+  // Em 3 partes com título; no Pick your story, as outras coleções ficam apagadas
+  await expect(computador.getByText(/o Pick your story, com esta coleção em destaque/)).toBeVisible();
+  await expect(computador.getByText(/A página desta coleção/)).toBeVisible();
+  await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Riviera" })).toHaveCSS("opacity", "0.3");
+  await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Limone" })).toHaveCSS("opacity", "1");
+  await expect(computador.getByText("Ver Limone", { exact: true })).toBeVisible();
+  // Parte 3: a página como a loja mostra hoje (campanha desligada: o banner, o nome e a faixa verde
+  // da página comum); parte 4: como fica quando a campanha for ligada
+  await expect(computador.getByText(/A página desta coleção hoje: o topo$/)).toBeVisible();
+  await expect(computador.getByText("Coleção · 2 estampas", { exact: true })).toBeVisible();
+  await expect(computador.getByText(/Quando a campanha for ligada/)).toBeVisible();
+  await expect(computador.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
+  await expect(computador.locator(".paleta-estate-italiana")).toHaveCount(1);
+  // Sem foto escolhida, o círculo usa a peça mais nova
+  await expect(computador.locator('#inicio-colecoes + ul img[src*="produtos/lim-01"]')).toHaveCount(1);
+
+  // Muda com o formulário, sem salvar
+  await page.getByLabel("Nome", { exact: true }).fill("Limone Nuovo");
+  await expect(computador.getByText("Ver Limone Nuovo", { exact: true })).toBeVisible();
+  await page.getByLabel("Campanha ligada na loja").check();
+  await expect(computador.getByText(/Quando a campanha for ligada/)).toHaveCount(0);
+  await expect(computador.getByText(/o topo, com a campanha ligada/)).toBeVisible();
+  await expect(computador.getByText("Coleção · 2 estampas", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Paleta da página").selectOption("RIVIERA");
+  await expect(computador.locator(".paleta-riviera")).toHaveCount(1);
+
+  // No celular, a janela tem a largura do celular (e os tamanhos de celular da loja valem)
+  await page.getByRole("button", { name: "Celular" }).click();
+  const quadro = page.locator('iframe[title="Prévia na loja (celular)"]');
+  await expect(quadro).toHaveCSS("width", "390px");
+  const celular = page.frameLocator('iframe[title="Prévia na loja (celular)"]');
+  await expect(celular.locator("#inicio-colecoes + ul li span").first()).toHaveCSS("width", "80px");
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  // Salvar fica na página, com o aviso; voltar leva à lista
+  await page.getByRole("button", { name: "Salvar coleção" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Coleção salva." })).toBeVisible();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
+  await page.getByRole("link", { name: "← Coleções" }).click();
+  await expect(page).toHaveURL(`${PAINEL}/catalogo?aba=colecoes`);
+
+  // Look novo: entra na seção do Shop the Look, depois do que já existe, com as peças marcadas
+  await page.goto(`${PAINEL}/catalogo?aba=looks`);
+  await page.getByRole("button", { name: "Novo look" }).click();
+  const looks = page.frameLocator('iframe[title="Prévia na loja (computador)"]');
+  await expect(looks.getByText("Shop the Look", { exact: true })).toBeVisible();
+  await page.getByLabel("Título").fill("Denim");
+  await page.getByLabel("Ordem").fill("5");
+  await expect(looks.getByText("Look 02", { exact: true })).toBeVisible();
+  await expect(looks.getByText("Denim", { exact: true })).toBeVisible();
+  await page.getByLabel(/Limone Amalfi/).check();
+  await expect(looks.getByText("Limone Amalfi", { exact: true })).toBeVisible();
+});
+
 // Lista VIP (0390) com a api-admin simulada: lista, cupom de boas-vindas, exportar e tirar da lista.
 test("Lista VIP: contatos, cupom de boas-vindas, exportar planilha e tirar da lista", async ({ page, context }) => {
   const ID = "44444444-4444-4444-8444-444444444444";
