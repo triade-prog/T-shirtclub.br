@@ -10,9 +10,10 @@ import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 import { EnvioFoto } from "./EnvioFoto";
 
-// Coleções (D20): nome, slug, texto curto, cor entre as 5 aprovadas, capa, ordem e ativa. Campanha
-// (0420, D35 e D36): nome da campanha, edição, temporada, paleta, foto do celular (4:5) e até 3
-// capítulos editoriais com foto e as estampas de cada um.
+// Coleções (D20): nome, slug, texto curto, cor entre as 5 aprovadas, capa, ordem, ativa e a foto
+// do círculo do Pick your story no início (0440). Campanha (0420, D35 e D36): nome da campanha,
+// edição, temporada, paleta, foto do celular (4:5) e até 3 capítulos editoriais com foto e as
+// estampas de cada um.
 export function Colecoes() {
   const { dados, erro, recarregar } = useDados<Colecao[]>("v1/admin/collections");
   const [editando, setEditando] = useState<Colecao | "nova" | null>(null);
@@ -49,6 +50,7 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
   const [slug, setSlug] = useState(colecao?.slug ?? "");
   const [capa, setCapa] = useState<string | null>(colecao?.capa?.caminho ?? null);
   const [capaCelular, setCapaCelular] = useState<string | null>(colecao?.capaCelular?.caminho ?? null);
+  const [fotoStory, setFotoStory] = useState<string | null>(colecao?.fotoStory?.caminho ?? null);
   const [capitulos, setCapitulos] = useState<CapituloForm[]>(
     (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, texto: k.texto ?? "", foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
   const { ocupado, erro, setErro, enviar } = useEnvio(aoSalvar);
@@ -73,6 +75,7 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
       campanha: String(f.get("campanha") ?? "").trim() || null, edicao: String(f.get("edicao") ?? "").trim() || null,
       temporada: String(f.get("temporada") ?? "").trim() || null, paleta: String(f.get("paleta") ?? "CLUB"), campanhaAtiva,
       capaCelular: capaCelular ? { caminho: capaCelular, alt: altCelular } : null,
+      fotoStory: fotoStory ? { caminho: fotoStory } : null,
       capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), texto: k.texto.trim() || null, foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
     };
     void enviar(colecao ? chamarApi(`v1/admin/collections/${colecao.id}`, corpo, "PUT") : chamarApi("v1/admin/collections", corpo));
@@ -92,6 +95,11 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
         <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa" /></div>
         {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
         <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
+        <div className="full">
+          <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início, quadrada)" />
+          <p className="field-help">{fotoStory ? "O círculo mostra o centro desta foto." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
+          {fotoStory && <Botao variante="link" onClick={() => setFotoStory(null)}>Voltar para a peça mais nova</Botao>}
+        </div>
 
         <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
         <p className="field-help full" style={{ marginTop: -6 }}>

@@ -148,8 +148,9 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
   );
 }
 
-// Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a peça
-// mais nova da coleção (a foto de campanha não cabe no círculo); com a campanha ligada, o nome
+// Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a foto
+// escolhida no painel (0440) ou, sem ela, a peça mais nova da coleção (a foto de campanha não cabe
+// no círculo); com a campanha ligada, o nome
 // dela aparece em cima do da coleção. No celular, a linha desliza para o lado. O título vem do
 // painel (bloco de coleções).
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
@@ -158,7 +159,7 @@ function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colec
       <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Pick your story."}</h2>
       <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
         {colecoes.map((c) => {
-          const foto = c.fotos?.[0] ?? c.capa;
+          const foto = c.fotoStory ?? c.fotos?.[0] ?? c.capa;
           return (
             <li key={c.id} className="shrink-0 snap-start">
               <Link href={`/colecao/${c.slug}`} className="group grid w-24 justify-items-center gap-2 text-center md:w-32">
