@@ -55,7 +55,8 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
     if (!nome.trim() || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return setErro("Confira o nome e o endereço (só letras sem acento, números e hífen).");
     if (capa && !alt) return setErro("Descreva a capa para quem usa leitor de tela.");
     const corpo = {
-      nome: nome.trim(), slug, descricao: String(f.get("descricao") ?? "").trim() || null, cor: String(f.get("cor")),
+      nome: nome.trim(), slug, descricao: String(f.get("descricao") ?? "").trim() || null,
+      chamada: String(f.get("chamada") ?? "").trim() || null, cor: String(f.get("cor")),
       capa: capa ? { caminho: capa, alt } : null, posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
     };
     void enviar(colecao ? chamarApi(`v1/admin/collections/${colecao.id}`, corpo, "PUT") : chamarApi("v1/admin/collections", corpo));
@@ -68,6 +69,8 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
         <Campo name="nome" rotulo="Nome" maxLength={60} value={nome} onChange={(e) => { setNome(e.target.value); if (!colecao) setSlug(paraSlug(e.target.value)); }} />
         <Campo name="slug" rotulo="Endereço (/colecao/…)" maxLength={80} value={slug} onChange={(e) => setSlug(paraSlug(e.target.value))} />
         <div className="full"><Campo name="descricao" rotulo="Texto curto (opcional)" maxLength={160} defaultValue={colecao?.descricao ?? ""} /></div>
+        <div className="full"><Campo name="chamada" rotulo="Chamada da faixa verde (opcional)" maxLength={120} defaultValue={colecao?.chamada ?? ""}
+          ajuda="Uma frase sobre o universo da coleção, sem repetir o nome. Ex.: Limões, listras e o verão italiano que não acaba." /></div>
         <Escolha name="cor" rotulo="Cor da coleção" defaultValue={colecao?.cor ?? "LIMAO"} opcoes={CORES.map(([v, t]) => [v, t] as const)} ajuda="Só as 5 cores aprovadas (D18)." />
         <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(colecao?.posicao ?? 0)} />
         <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa" /></div>

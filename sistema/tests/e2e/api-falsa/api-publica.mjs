@@ -13,7 +13,7 @@ const FOTOS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../
 const CODIGO = "123456";
 const PRECO = 4999;
 
-const colecao = { id: "c0000000-0000-4000-8000-000000000001", nome: "Limone", slug: "limone", descricao: "Sol, limão e aquele ar de férias que funciona até numa terça-feira.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Campanha Limone" }, produtos: 1 };
+const colecao = { id: "c0000000-0000-4000-8000-000000000001", nome: "Limone", slug: "limone", descricao: "Sol, limão e aquele ar de férias que funciona até numa terça-feira.", chamada: "Limões, listras e o verão italiano que não acaba.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Campanha Limone" }, produtos: 1 };
 const cartao = {
   id: "p0000000-0000-4000-8000-000000000001", slug: "limone-amalfi-coast", nome: "Limone Amalfi Coast", precoCentavos: PRECO, precoPromocionalCentavos: null, noClub: true,
   colecao: { slug: "limone", nome: "Limone", cor: "LIMAO" }, capa: { caminho: "produtos/10-limone-amalfi-coast.webp", alt: "Camiseta Limone Amalfi Coast" }, disponivel: 8, selo: "DISPONIVEL",
@@ -23,6 +23,7 @@ const cartao = {
     { id: "v0000000-0000-4000-8000-000000000002", tamanho: "PLUS", rotulo: "Plus · 44 ao 48", disponivel: 3, selo: "DISPONIVEL" },
   ],
 };
+colecao.fotos = [cartao.capa];
 const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
 const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
