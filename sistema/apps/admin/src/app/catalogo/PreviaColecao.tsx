@@ -31,8 +31,9 @@ function FotoDupla({ capa, celular }: { capa: Foto; celular: Foto | null }) {
 }
 
 /**
- * Prévia da coleção na loja, com o que está no formulário: o slide do carrossel do início, a linha
- * do Pick your story (com as outras coleções ativas, na ordem) e o topo da página de campanha.
+ * Prévia da coleção na loja, com o que está no formulário, em 3 partes com título: o slide do
+ * carrossel do início, a linha do Pick your story (com as outras coleções ativas apagadas, na
+ * ordem, para mostrar onde esta entra) e o topo da página de campanha.
  * Os desenhos são os da loja (packages/ui); as fotos, as miniaturas do Storage.
  */
 export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colecao[] }) {
@@ -46,13 +47,14 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
   const linhaStory = [
     ...outras.filter((c) => c.ativa && c.id !== r.id).map((c) => ({
       id: c.id, nome: c.nome, posicao: c.posicao, cor: c.cor, campanha: c.campanhaAtiva ? c.campanha : null,
-      foto: c.fotoStory ?? c.pecaMaisNova ?? c.capa,
+      foto: c.fotoStory ?? c.pecaMaisNova ?? c.capa, apagado: true,
     })),
-    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, campanha: campanhaLigada ? r.campanha : null, foto: r.fotoStory ?? r.pecaMaisNova ?? r.capa }] : []),
+    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, campanha: campanhaLigada ? r.campanha : null, foto: r.fotoStory ?? r.pecaMaisNova ?? r.capa, apagado: false }] : []),
   ].sort((a, b) => a.posicao - b.posicao || a.nome.localeCompare(b.nome, "pt-BR"));
 
   return (
     <JanelaPrevia rotulo="Prévia na loja">
+      <Parte numero={1} titulo="No início: o slide desta coleção no carrossel" />
       {r.capa ? (
         <section className="px-3.5 pt-5 md:px-5 md:pt-7">
           <div className={classeMolduraCarrossel(vertical)}>
@@ -65,13 +67,15 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
         </section>
       ) : <Nota>Sem capa, a coleção não entra no carrossel do início.</Nota>}
 
+      <Parte numero={2} titulo="No início: o Pick your story, com esta coleção em destaque e as outras apagadas" />
       {r.ativa
         ? <PickYourStory titulo={null} itens={linhaStory.map((c) => ({
-            id: c.id, nome: c.nome, href: "#", cor: c.cor, campanha: c.campanha,
+            id: c.id, nome: c.nome, href: "#", cor: c.cor, campanha: c.campanha, apagado: c.apagado,
             foto: c.foto && <Img foto={c.foto} className="absolute inset-0 size-full object-cover" />,
           }))} />
         : <Nota>Coleção inativa: não aparece no Pick your story nem na loja.</Nota>}
 
+      <Parte numero={3} titulo="A página desta coleção: o topo" />
       {r.campanha ? (
         <>
           {!campanhaLigada && <Nota>Campanha desligada: a loja ainda mostra a página comum da coleção. Assim ela fica quando for ligada:</Nota>}
@@ -86,6 +90,15 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
         </>
       ) : <Nota>Sem nome de campanha, a página da coleção é a comum.</Nota>}
     </JanelaPrevia>
+  );
+}
+
+/** Título de cada parte da prévia, para não parecer que as outras coleções estão dentro desta. */
+function Parte({ numero, titulo }: { numero: number; titulo: string }) {
+  return (
+    <p className="m-0 mt-6 flex items-center gap-2 border-y border-tinta/15 bg-algodao px-5 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tinta-suave first:mt-0">
+      <span className="grid size-5 place-items-center rounded-full bg-tinta text-[10px] text-papel">{numero}</span>{titulo}
+    </p>
   );
 }
 

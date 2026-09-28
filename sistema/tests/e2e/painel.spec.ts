@@ -160,6 +160,11 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   // Pick your story com as coleções ativas na ordem, o slide do carrossel e o topo da campanha
   await expect(computador.locator("#inicio-colecoes")).toHaveText("Pick your story.");
   await expect(computador.getByText("Riviera", { exact: true })).toBeVisible();
+  // Em 3 partes com título; no Pick your story, as outras coleções ficam apagadas
+  await expect(computador.getByText(/o Pick your story, com esta coleção em destaque/)).toBeVisible();
+  await expect(computador.getByText(/A página desta coleção/)).toBeVisible();
+  await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Riviera" })).toHaveCSS("opacity", "0.3");
+  await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Limone" })).toHaveCSS("opacity", "1");
   await expect(computador.getByText("Ver Limone", { exact: true })).toBeVisible();
   await expect(computador.getByText(/Campanha desligada/)).toBeVisible();
   await expect(computador.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
