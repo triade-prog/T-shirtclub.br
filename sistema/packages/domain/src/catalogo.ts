@@ -19,6 +19,10 @@ const imagemSchema = z.object({ caminho: caminhoSchema, alt: altSchema });
 
 // ─── Painel: catálogo ────────────────────────────────────────────────────────────────
 
+/** Paletas de coleção (D36): a do Club e as das campanhas (a primeira, Estate Italiana). */
+export const PALETAS_COLECAO = ["CLUB", "ESTATE_ITALIANA"] as const;
+export type PaletaColecao = (typeof PALETAS_COLECAO)[number];
+
 export const colecaoEntradaSchema = z.object({
   nome: z.string().trim().min(1).max(60),
   slug: slugSchema,
@@ -29,6 +33,18 @@ export const colecaoEntradaSchema = z.object({
   capa: imagemSchema.nullish().transform((v) => v ?? null),
   posicao: z.number().int().min(0).max(1000).default(0),
   ativa: z.boolean().default(true),
+  // Campanha (0420, D35 e D36): opcionais; um painel antigo que não manda "paleta" não apaga nada
+  campanha: textoOpcional(60),
+  temporada: textoOpcional(20),
+  edicao: textoOpcional(30),
+  capaCelular: imagemSchema.nullish().transform((v) => v ?? null),
+  paleta: z.enum(PALETAS_COLECAO).optional(),
+  capitulos: z.array(z.object({
+    rotulo: z.string().trim().min(1).max(40),
+    titulo: z.string().trim().min(1).max(80),
+    foto: imagemSchema.nullish().transform((v) => v ?? null),
+    produtos: z.array(z.string().uuid()).max(8).default([]),
+  })).max(3).optional(),
 });
 
 /** Tamanhos da loja (0370): fixos; o nome de cada um é da loja inteira (Minha conta). */

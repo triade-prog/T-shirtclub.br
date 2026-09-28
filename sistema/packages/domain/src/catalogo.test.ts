@@ -20,6 +20,14 @@ describe("painel: catálogo", () => {
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "ROSA" }).success).toBe(false);
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", capa: { caminho: "colecoes/x.webp", alt: "" } }).success).toBe(false);
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "com espaço", cor: "MENTA" }).success).toBe(false);
+    // Campanha (0420): sem os campos, nada muda; com eles, até 3 capítulos de até 8 estampas
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA" })).not.toHaveProperty("paleta");
+    const estate = colecaoEntradaSchema.parse({ nome: "Estate Italiana", slug: "estate-italiana", cor: "LIMAO", campanha: " Ciao, Estate! ", paleta: "ESTATE_ITALIANA",
+      capitulos: [{ rotulo: "Mattina — Mercato", titulo: "Il mercato apre cedo.", produtos: ["00000000-0000-4000-8000-00000000a001"] }] });
+    expect(estate).toMatchObject({ campanha: "Ciao, Estate!", paleta: "ESTATE_ITALIANA", capaCelular: null, capitulos: [{ foto: null }] });
+    expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", paleta: "NEON" }).success).toBe(false);
+    const capitulo = { rotulo: "A", titulo: "B" };
+    expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", capitulos: [capitulo, capitulo, capitulo, capitulo] }).success).toBe(false);
   });
 
   it("produto: código em maiúsculas, preço em centavos inteiros e medidas curtas", () => {

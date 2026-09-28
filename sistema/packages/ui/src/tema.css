@@ -59,6 +59,17 @@
   --shadow-adesivo-lg: 5px 5px 0 var(--tc-tinta);
 }
 
+/* Paleta da campanha (D36): definida por .paleta-* na página da coleção. "inline" põe o var()
+   direto no utilitário; sem ele, a cor seria resolvida na raiz, onde --p-* ainda não existe. */
+@theme inline {
+  --color-camp-base: var(--p-base);
+  --color-camp-tinta: var(--p-tinta);
+  --color-camp-azul: var(--p-azul);
+  --color-camp-tomate: var(--p-tomate);
+  --color-camp-limao: var(--p-limao);
+  --color-camp-terracota: var(--p-terracota);
+}
+
 /*
  * Paleta V4 (D24, docs/design/v4). Ajustes de contraste sobre a referência:
  * - rosa (#E8478A) como texto só em título grande (3,5:1); texto rosa pequeno usa rosa-press (5,7:1);
@@ -137,6 +148,13 @@
 .col-mediterraneo { --c-cor: #2f6fd0; --c-fundo: #e4eefc; --c-tinta: #1d4e9a; --c-sobre: #ffffff; }
 .col-lavanda { --c-cor: #a77be0; --c-fundo: #f1eafb; --c-tinta: #5e3b99; --c-sobre: #26191e; }
 .col-menta { --c-cor: #2fa58a; --c-fundo: #e0f4ee; --c-tinta: #1c6b58; --c-sobre: #26191e; }
+
+/* Paletas de campanha (D36). A do Club repete as cores da marca; a Estate Italiana é a primeira
+   própria: creme quente de base, azul mediterrâneo estrutural, tomate de contraste, limão só de
+   acento (não é cor de texto sobre o creme) e terracota de apoio. Contraste conferido: azul 7,2,
+   tomate 4,7 e terracota 4,6 sobre o creme; creme 7,2 e limão 5,6 sobre o azul. */
+.paleta-club { --p-base: var(--tc-papel); --p-tinta: var(--tc-tinta); --p-azul: var(--tc-verde-escuro); --p-tomate: var(--tc-rosa-press); --p-limao: var(--tc-citrino); --p-terracota: var(--tc-rosa-press); }
+.paleta-estate-italiana { --p-base: #f7efe1; --p-tinta: #1f2a3d; --p-azul: #1d4f8c; --p-tomate: #c23a26; --p-limao: #f2d43d; --p-terracota: #a9542f; }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
