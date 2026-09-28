@@ -12,6 +12,8 @@ export interface ItemPickYourStory {
   campanha?: string | null;
   /** A foto, preenchendo o círculo (a loja usa o next/image; o painel, a miniatura). */
   foto?: ReactNode;
+  /** Na prévia do painel: as outras coleções ficam apagadas, para a editada se destacar. */
+  apagado?: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | 
       <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Pick your story."}</h2>
       <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
         {itens.map((c) => (
-          <li key={c.id} className="shrink-0 snap-start">
+          <li key={c.id} className={c.apagado ? "shrink-0 snap-start opacity-30" : "shrink-0 snap-start"}>
             <Link href={c.href} className="group grid w-24 justify-items-center gap-2 text-center md:w-32">
               <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
                 {c.foto}
