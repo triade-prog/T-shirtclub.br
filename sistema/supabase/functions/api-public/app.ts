@@ -4,6 +4,7 @@ import { criarApp } from "../_shared/app.ts";
 import { rotasCatalogo } from "./catalogo.ts";
 import { rotasConsulta } from "./consultas.ts";
 import { rotasReserva, type DepsReserva } from "./reservas.ts";
+import { rotasVip } from "./vip.ts";
 
 export function criarApiPublica(segredo: string | undefined, deps: DepsReserva) {
   const app = criarApp("api-public", segredo);
@@ -11,5 +12,6 @@ export function criarApiPublica(segredo: string | undefined, deps: DepsReserva) 
   rotasCatalogo(app, deps);
   rotasReserva(app, deps);
   rotasConsulta(app, deps);
+  rotasVip(app, deps);
   return app;
 }

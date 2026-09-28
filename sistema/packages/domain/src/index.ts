@@ -10,3 +10,5 @@ export * from "./mensagens.ts";
 export * from "./monitor.ts";
 export * from "./cookies.ts";
 export * from "./autenticador.ts";
+export * from "./vip-textos.ts";
+export * from "./vip.ts";

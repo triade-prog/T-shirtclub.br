@@ -3,16 +3,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
+import { Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type CartaoProduto, type Colecao } from "@/lib/catalogo";
-import { filtrarProdutos, lerFiltro, textoOferta, type Filtro } from "@/lib/vitrine";
+import { COOKIE_SACOLA } from "@/lib/sacola";
+import { filtrarProdutos, lerFiltro, textoOferta, tituloEmDuasLinhas, type Filtro } from "@/lib/vitrine";
+import { FaixaTrio } from "../../_sacola/FaixaTrio";
 import { CardProduto } from "../../_vitrine/CardProduto";
+import { MosaicoPecas } from "../../_vitrine/MosaicoPecas";
 
 // Página de coleção (F2.6; V4 em docs/design/v4/colecao.html). A coleção vem de
 // /v1/catalog/collections e as peças de /v1/catalog/products?collection=; o filtro é um link
-// (funciona sem JavaScript) aplicado sobre a lista inteira.
+// (funciona sem JavaScript) aplicado sobre a lista inteira. Pedido da loja (28/09): capa em
+// 45% texto e 55% imagem (sem foto de campanha, as peças reais; sem nenhuma, só o texto), faixa
+// verde com a chamada da coleção e as peças logo depois do título, com o Club numa faixa compacta.
 
 async function buscarColecao(slug: string): Promise<Colecao | undefined> {
   const colecoes = await buscarCatalogo<Colecao[]>("v1/catalog/collections");
@@ -46,19 +52,22 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
   const oferta = textoOferta(club);
   // A nota do fim usa a foto da última peça da coleção (na V4, uma foto editorial da coleção).
   const fotoFim = [...produtos].reverse().find((p) => p.capa)?.capa ?? null;
-  const preco = produtos[0] ? formatarReais(produtos[0].precoCentavos) : null;
+  const linhas = tituloEmDuasLinhas(colecao.nome);
+  const mosaico = colecao.capa ? [] : (colecao.fotos ?? []);
+  const temImagem = Boolean(colecao.capa) || mosaico.length > 0;
+  const qtdEstampas = produtos.length === 1 ? "1 estampa" : `${produtos.length} estampas`;
 
   return (
     <div className={`col-${colecao.cor.toLowerCase()}`}>
-      <section className="relative overflow-hidden border-b-3 border-tinta bg-colecao-fundo px-3.5 pt-10 md:px-5 md:pt-11">
-        <div className="grid items-end gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-10">
-          <div className="grid justify-items-start gap-5 pb-4 md:pb-13">
-            <Selo>Coleção · {colecao.nome}</Selo>
-            <h1 className="m-0 font-editorial text-[clamp(64px,10vw,150px)] font-bold italic leading-[0.8] tracking-[-0.06em] text-rosa-press [text-shadow:5px_5px_0_var(--tc-rosa-bruma)]">
-              {colecao.nome}.
+      <section className="overflow-x-clip border-b-3 border-tinta bg-colecao-fundo px-3.5 py-10 md:px-5 md:py-14">
+        <div className={cx("mx-auto grid max-w-7xl items-center gap-9 md:gap-12", temImagem && "md:grid-cols-[45fr_55fr]")}>
+          <div className="grid justify-items-start gap-5">
+            <Selo>Coleção · {qtdEstampas}</Selo>
+            <h1 className="m-0 font-editorial text-[clamp(56px,9vw,124px)] font-bold italic leading-[0.86] tracking-[-0.055em] text-rosa-press [text-shadow:5px_5px_0_var(--tc-rosa-bruma)]">
+              {linhas.map((l) => <span key={l} className="block whitespace-nowrap">{l}</span>)}
             </h1>
             {colecao.descricao && (
-              <p className="m-0 max-w-[24ch] font-editorial text-[22px] italic leading-tight text-tinta-suave">{colecao.descricao}</p>
+              <p className="m-0 max-w-[30ch] font-editorial text-[22px] italic leading-tight text-tinta-suave">{colecao.descricao}</p>
             )}
             {produtos.length > 0 && (
               <Link href="#pecas" className="inline-flex min-h-13 items-center gap-2 rounded-pilula border-2 border-tinta bg-tinta px-6 text-[15px] font-bold text-papel shadow-adesivo">
@@ -67,34 +76,29 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
               </Link>
             )}
           </div>
-          {colecao.capa && (
-            <div className="relative h-[430px] overflow-hidden rounded-t-[26px] border-3 border-b-0 border-tinta shadow-[-8px_0_0_var(--tc-rosa)] md:h-[560px]">
-              <Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 768px) 60vw, 100vw" className="object-cover" />
+          {colecao.capa ? (
+            <div className="relative h-[360px] overflow-hidden rounded-[26px] border-3 border-tinta shadow-[8px_8px_0_var(--tc-rosa)] md:h-[540px]">
+              <Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 768px) 55vw, 100vw" className="object-cover" />
             </div>
+          ) : (
+            <MosaicoPecas fotos={mosaico} selo={oferta} prioridade tamanhos="(min-width: 768px) 30vw, 55vw" className="h-[360px] md:h-[540px]" />
           )}
         </div>
       </section>
 
-      <section className="border-b-3 border-tinta bg-verde-escuro px-3.5 py-7 text-no-verde md:px-5">
-        <div className="grid items-center gap-2 md:grid-cols-[auto_1fr] md:gap-7.5">
-          <strong className="font-display text-lg font-extrabold uppercase tracking-[-0.015em] text-citrino">The {colecao.nome} edit</strong>
-          <p className="m-0 text-xs leading-relaxed">
-            {colecao.nome} é mais um drop para misturar com os outros. A T-shirt Club continua reconhecível pelo sistema: Club Tags, fotografia editorial e o progresso {club ? `${club.qtd}/${club.qtd}` : "do Club"}.
-          </p>
-        </div>
-      </section>
+      {colecao.chamada && (
+        <section className="border-b-3 border-tinta bg-verde-escuro px-3.5 py-8 text-no-verde md:px-5 md:py-10">
+          <div className="mx-auto grid max-w-7xl items-center gap-2 md:grid-cols-[auto_1fr] md:gap-8">
+            <span className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-citrino">The Club edit</span>
+            <p className="m-0 font-editorial text-[clamp(24px,3vw,38px)] font-bold italic leading-tight tracking-[-0.02em]">{colecao.chamada}</p>
+          </div>
+        </section>
+      )}
 
       <section id="pecas" className="scroll-mt-32 px-3.5 py-12 md:px-5 md:py-20">
-        <div className="mb-7 grid items-end gap-4 md:grid-cols-[1fr_auto]">
-          <div>
-            <Sobretitulo>{colecao.nome} · {produtos.length} {produtos.length === 1 ? "estampa" : "estampas"}</Sobretitulo>
-            <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
-          </div>
-          {preco && club && (
-            <p className="m-0 max-w-[36ch] text-sm text-tinta-suave">
-              Uma por {preco}. {club.qtd} por {formatarReais(club.precoCentavos)}, misturando com qualquer coleção.
-            </p>
-          )}
+        <div className="mb-6">
+          <Sobretitulo>{colecao.nome} · {qtdEstampas}</Sobretitulo>
+          <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
         </div>
 
         {produtos.length > 0 && (
@@ -116,15 +120,8 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
           </nav>
         )}
 
-        {club && (
-          <div className="mb-10 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
-            <ProgressoClub pecas={0} titulo={`Escolha ${club.qtd} peças.`} texto="Desta coleção ou misturando com outro drop: o preço do Club entra sozinho." />
-            <div className="grid content-center gap-2 rounded-cartao border-2 border-tinta bg-rosa p-6 text-no-rosa shadow-adesivo-lg">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.12em]">Condição do Club</span>
-              <p className="m-0 font-display text-[32px] font-extrabold leading-none tracking-[-0.045em]">{oferta}</p>
-              <p className="m-0 text-xs leading-relaxed">Sem cupom. O preço entra automaticamente a cada {club.qtd} peças.</p>
-            </div>
-          </div>
+        {club && oferta && (
+          <FaixaTrio qtd={club.qtd} preco={formatarReais(club.precoCentavos)} oferta={oferta} inicial={(await cookies()).get(COOKIE_SACOLA)?.value} />
         )}
 
         {visiveis.length > 0 ? (

@@ -1,27 +1,34 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { ProgressoClub, Selo, Sobretitulo } from "@tshirtclub/ui";
-import { buscarCatalogo, urlFoto, type BlocoInicio, type Colecao, type Look, type OfertaClub } from "@/lib/catalogo";
+import { Selo, Sobretitulo } from "@tshirtclub/ui";
+import { buscarCatalogo, urlFoto, type BlocoInicio, type CartaoProduto, type Colecao, type Foto, type Look, type OfertaClub } from "@/lib/catalogo";
+import { COOKIE_SACOLA } from "@/lib/sacola";
 import { textoOferta } from "@/lib/vitrine";
+import { ProgressoDaSacola } from "./_sacola/ProgressoDaSacola";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
+import { MosaicoPecas } from "./_vitrine/MosaicoPecas";
 
 // Início editorial (F2.9, tela 1; V4 em docs/design/v4/home.html). A ordem e o conteúdo dos
-// blocos vêm do painel (/v1/catalog/home); sem catálogo, fica a apresentação da marca.
+// blocos vêm do painel (/v1/catalog/home); sem catálogo, fica a apresentação da marca. Sem foto
+// de campanha, a capa mostra as peças mais novas (28/09: a metade direita ficava vazia).
 export default async function Inicio() {
   await connection();
   const blocos = (await buscarCatalogo<BlocoInicio[]>("v1/catalog/home")) ?? [];
   const club = blocos.find((b) => b.tipo === "MONTE_SEU_CLUB")?.conteudo as OfertaClub | undefined;
   const oferta = textoOferta(club);
+  const sacola = (await cookies()).get(COOKIE_SACOLA)?.value;
   const temCampanha = blocos.some((b) => b.tipo === "CAMPANHA" && b.conteudo);
   const primeiraVitrine = blocos.findIndex((b) => (b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS") && b.conteudo.length > 0);
+  const pecasDaCapa = temCampanha ? [] : fotosDasVitrines(blocos);
 
   return (
     <>
       <AvisoInstalarIphone />
-      {!temCampanha && <Capa oferta={oferta} />}
+      {!temCampanha && <Capa oferta={oferta} fotos={pecasDaCapa} />}
       {blocos.map((b, i) => {
         switch (b.tipo) {
           case "CAMPANHA":
@@ -29,7 +36,7 @@ export default async function Inicio() {
           case "NOVIDADES":
           case "PRODUTOS": {
             if (b.conteudo.length === 0) return null;
-            const prioridade = i === primeiraVitrine && !temCampanha;
+            const prioridade = i === primeiraVitrine && !temCampanha && pecasDaCapa.length === 0;
             const id = i === primeiraVitrine ? "novidades" : undefined;
             return (
               <Secao key={i} id={id} sobretitulo={b.tipo === "NOVIDADES" ? "Curadoria da semana" : "Coleção"} titulo={b.titulo ?? "Club Picks"}>
@@ -39,17 +46,44 @@ export default async function Inicio() {
               </Secao>
             );
           }
+          case "QUASE_ESGOTADAS":
+            // Almost Gone: as peças acabando, com o selo da quantidade real (vazio, some); uma fileira
+            // só, as que têm menos primeiro, para o início não repetir a vitrine inteira
+            return b.conteudo.length > 0 ? (
+              <Secao key={i} id="quase-esgotadas" sobretitulo="Poucas unidades no Club" titulo={b.titulo ?? "Almost Gone"}>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-4 md:gap-x-4">
+                  {b.conteudo.slice(0, 4).map((p) => <CardProduto key={p.id} produto={p} oferta={oferta} />)}
+                </div>
+              </Secao>
+            ) : null;
           case "COLECOES":
             return b.conteudo.length > 0 ? <Colecoes key={i} titulo={b.titulo} colecoes={b.conteudo} /> : null;
           case "LOOKS":
             return b.conteudo.length > 0 ? <Looks key={i} titulo={b.titulo} looks={b.conteudo} /> : null;
           case "MONTE_SEU_CLUB":
-            return <MonteSeuClub key={i} oferta={b.conteudo} />;
+            return <MonteSeuClub key={i} oferta={b.conteudo} sacola={sacola} />;
         }
       })}
-      {!club && <MonteSeuClub />}
+      {!club && <MonteSeuClub sacola={sacola} />}
     </>
   );
+}
+
+/**
+ * Capas para a capa do início sem foto de campanha: até 3 peças das vitrines (Drop 01 antes),
+ * uma de cada coleção, para mostrar a variedade e não repetir a primeira fileira logo abaixo.
+ */
+function fotosDasVitrines(blocos: BlocoInicio[]): Foto[] {
+  const pecas = blocos.flatMap((b) => b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS" || b.tipo === "QUASE_ESGOTADAS" ? b.conteudo : []);
+  const escolhidas: CartaoProduto[] = [];
+  for (const p of pecas) {
+    if (p.capa && !escolhidas.some((e) => e.id === p.id || e.colecao?.slug === p.colecao?.slug)) escolhidas.push(p);
+  }
+  for (const p of pecas) {
+    if (escolhidas.length >= 3) break;
+    if (p.capa && !escolhidas.some((e) => e.id === p.id)) escolhidas.push(p);
+  }
+  return escolhidas.slice(0, 3).map((p) => p.capa!);
 }
 
 function Secao({ id, sobretitulo, titulo, children }: { id?: string; sobretitulo: string; titulo: string; children: React.ReactNode }) {
@@ -62,7 +96,7 @@ function Secao({ id, sobretitulo, titulo, children }: { id?: string; sobretitulo
   );
 }
 
-function Capa({ look, selo, oferta }: { look?: Look; selo?: string | null; oferta?: string }) {
+function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string | null; oferta?: string; fotos?: Foto[] }) {
   return (
     <section className="grid border-b-3 border-tinta md:min-h-[600px] md:grid-cols-[0.82fr_1.18fr]">
       <div className="grid content-center justify-items-start gap-6 bg-rosa-bruma px-4 py-12 md:px-10">
@@ -89,6 +123,11 @@ function Capa({ look, selo, oferta }: { look?: Look; selo?: string | null; ofert
           {oferta && <Selo fundo="citrino" brilho={false} className="absolute bottom-5 right-5 rotate-2">{oferta}</Selo>}
         </div>
       )}
+      {!look && fotos.length > 0 && (
+        <div className="grid content-center bg-papel px-4 py-8 max-md:border-t-3 max-md:border-tinta md:border-l-3 md:border-tinta md:px-10 md:py-12">
+          <MosaicoPecas fotos={fotos} selo={oferta} prioridade tamanhos="(min-width: 768px) 32vw, 55vw" className="h-[300px] md:h-[500px]" />
+        </div>
+      )}
     </section>
   );
 }
@@ -96,20 +135,25 @@ function Capa({ look, selo, oferta }: { look?: Look; selo?: string | null; ofert
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
   return (
     <Secao sobretitulo="Drops com universo próprio" titulo={titulo ?? "Coleções"}>
-      <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 md:grid-cols-4">
-        {colecoes.map((c) => (
-          <li key={c.id}>
-            <Link
-              href={`/colecao/${c.slug}`}
-              className={`col-${c.cor.toLowerCase()} relative block min-h-[250px] overflow-hidden rounded-cartao border-2 border-tinta bg-colecao-fundo shadow-adesivo md:min-h-[340px]`}
-            >
-              {c.capa && <Image src={urlFoto(c.capa.caminho)} alt="" fill sizes="(min-width: 768px) 25vw, 50vw" className="object-cover" />}
-              <span className="absolute inset-x-0 bottom-0 grid gap-0.5 bg-linear-to-t from-tinta/75 to-transparent px-4 pb-4 pt-16 text-papel">
-                <span className="font-editorial text-[26px] font-bold leading-none tracking-[-0.04em]">{c.nome}</span>
-              </span>
-            </Link>
-          </li>
-        ))}
+      {/* 3 ou 6 coleções em fileiras de 3; o resto, de 4 (sem sobrar um cartão sozinho na fileira) */}
+      <ul className={`m-0 grid list-none grid-cols-2 gap-4 p-0 ${colecoes.length % 3 === 0 && colecoes.length % 4 !== 0 ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
+        {colecoes.map((c) => {
+          // Sem foto de campanha, a peça mais nova da coleção (0400)
+          const foto = c.capa ?? c.fotos?.[0];
+          return (
+            <li key={c.id}>
+              <Link
+                href={`/colecao/${c.slug}`}
+                className={`col-${c.cor.toLowerCase()} relative block min-h-[250px] overflow-hidden rounded-cartao border-2 border-tinta bg-colecao-fundo shadow-adesivo md:min-h-[340px]`}
+              >
+                {foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 25vw, 50vw" className="object-cover" />}
+                <span className="absolute inset-x-0 bottom-0 grid gap-0.5 bg-linear-to-t from-tinta/75 to-transparent px-4 pb-4 pt-16 text-papel">
+                  <span className="font-editorial text-[26px] font-bold leading-none tracking-[-0.04em]">{c.nome}</span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </Secao>
   );
@@ -140,7 +184,7 @@ function Looks({ titulo, looks }: { titulo: string | null; looks: Look[] }) {
   );
 }
 
-function MonteSeuClub({ oferta }: { oferta?: OfertaClub }) {
+function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string }) {
   const preco = oferta ? formatarReais(oferta.precoCentavos) : "R$ 119,99";
   const qtd = oferta?.qtd ?? 3;
   return (
@@ -157,7 +201,7 @@ function MonteSeuClub({ oferta }: { oferta?: OfertaClub }) {
             Escolher minhas {qtd}
           </Link>
         </div>
-        <ProgressoClub pecas={0} titulo={`Escolha ${qtd} peças.`} texto={`A cada ${qtd}, o preço do Club entra sozinho: ${preco} pelas ${qtd}.`} />
+        <ProgressoDaSacola qtd={qtd} preco={preco} inicial={sacola} titulo={`Escolha ${qtd} peças.`} texto={`A cada ${qtd}, o preço do Club entra sozinho: ${preco} pelas ${qtd}.`} />
       </div>
     </section>
   );

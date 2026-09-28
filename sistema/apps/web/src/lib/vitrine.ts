@@ -15,6 +15,20 @@ export function filtrarProdutos(produtos: readonly CartaoProduto[], filtro: Filt
   return [...produtos];
 }
 
+/** Até quantas unidades o selo mostra a quantidade (estratégia do Drop 01: a escassez é real). */
+export const SELO_ATE = 4;
+
+/**
+ * Selo de estoque com a quantidade de verdade: "Última unidade", "Só 2 no Club", "Últimas 3" e
+ * "Últimas 4"; acima disso, nada; sem estoque, "Esgotado". Vale para a peça e para cada tamanho.
+ */
+export function textoSelo(disponivel: number): string | null {
+  if (disponivel <= 0) return "Esgotado";
+  if (disponivel === 1) return "Última unidade";
+  if (disponivel === 2) return "Só 2 no Club";
+  return disponivel <= SELO_ATE ? `Últimas ${disponivel}` : null;
+}
+
 /** "3 por R$ 119,99", o texto curto da oferta no cartão e no preço. */
 export function textoOferta(oferta: OfertaClub | null | undefined): string | undefined {
   return oferta ? `${oferta.qtd} por ${formatarReais(oferta.precoCentavos)}` : undefined;
@@ -42,4 +56,20 @@ export function tamanhoRapido(produto: Pick<CartaoProduto, "tamanhos">): Tamanho
 export function textoMedidas(medidas: Record<string, string | number> | undefined): string | null {
   const partes = Object.entries(medidas ?? {}).map(([k, v]) => `${k} ${typeof v === "number" ? `${String(v).replace(".", ",")} cm` : v}`);
   return partes.length > 0 ? partes.join(" · ") : null;
+}
+
+/**
+ * Título da coleção em até duas linhas equilibradas ("La Dolce" / "Vita Club."): a quebra que
+ * deixa a linha mais longa o mais curta possível, contando o ponto final; uma palavra só fica
+ * numa linha.
+ */
+export function tituloEmDuasLinhas(nome: string): [string] | [string, string] {
+  const palavras = nome.trim().split(/\s+/);
+  if (palavras.length < 2) return [`${nome.trim()}.`];
+  let melhor: [string, string] = [palavras[0]!, `${palavras.slice(1).join(" ")}.`];
+  for (let i = 2; i < palavras.length; i++) {
+    const par: [string, string] = [palavras.slice(0, i).join(" "), `${palavras.slice(i).join(" ")}.`];
+    if (Math.max(par[0].length, par[1].length) < Math.max(melhor[0].length, melhor[1].length)) melhor = par;
+  }
+  return melhor;
 }

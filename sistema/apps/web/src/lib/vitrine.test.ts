@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CartaoProduto } from "./catalogo";
-import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta } from "./vitrine";
+import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta, textoSelo, tituloEmDuasLinhas } from "./vitrine";
 
 const produto = (slug: string, selo: CartaoProduto["selo"]): CartaoProduto => ({
   id: slug, slug, nome: slug, precoCentavos: 4999, precoPromocionalCentavos: null, noClub: true,
@@ -15,6 +15,10 @@ describe("vitrine", () => {
     expect(filtrarProdutos(lista, "todas").map((p) => p.slug)).toEqual(["a", "b", "c"]);
     expect(filtrarProdutos(lista, "disponiveis").map((p) => p.slug)).toEqual(["a", "b"]);
     expect(filtrarProdutos(lista, "ultimas").map((p) => p.slug)).toEqual(["b"]);
+  });
+
+  it("selo com a quantidade real: última, só 2, últimas 3 e 4, e nada acima", () => {
+    expect([0, 1, 2, 3, 4, 5, 12].map(textoSelo)).toEqual(["Esgotado", "Última unidade", "Só 2 no Club", "Últimas 3", "Últimas 4", null, null]);
   });
 
   it("filtro desconhecido ou repetido na URL vira todas", () => {
@@ -51,5 +55,17 @@ describe("tamanhos (0370)", () => {
     expect(textoMedidas({ caimento: "amplo" })).toBe("caimento amplo");
     expect(textoMedidas({})).toBeNull();
     expect(textoMedidas(undefined)).toBeNull();
+  });
+});
+
+describe("título da coleção em duas linhas", () => {
+  it("quebra onde a linha mais longa fica mais curta, sem deixar Club. sozinho", () => {
+    expect(tituloEmDuasLinhas("La Dolce Vita Club")).toEqual(["La Dolce", "Vita Club."]);
+    expect(tituloEmDuasLinhas("Good Mood Club")).toEqual(["Good Mood", "Club."]);
+    expect(tituloEmDuasLinhas("Sardines Club")).toEqual(["Sardines", "Club."]);
+    expect(tituloEmDuasLinhas("Girl Things")).toEqual(["Girl", "Things."]);
+  });
+  it("uma palavra fica numa linha", () => {
+    expect(tituloEmDuasLinhas(" Fé ")).toEqual(["Fé."]);
   });
 });

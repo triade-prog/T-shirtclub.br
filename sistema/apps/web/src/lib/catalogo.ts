@@ -1,7 +1,7 @@
 // Leitura do catálogo no servidor (páginas geradas no servidor, G17): chama a api-public
 // direto, com o segredo de repasse, sem passar pelo /api do navegador. Falha vira null e a
 // página mostra o estado sem dados, nunca um erro 500.
-import type { ItemCarrinho, ResultadoPreco, Tamanho } from "@tshirtclub/domain";
+import type { BeneficioVip, ItemCarrinho, ResultadoPreco, Tamanho } from "@tshirtclub/domain";
 import { ipReal, opcoesLoja } from "@tshirtclub/servidor/repasse";
 
 export type Selo = "DISPONIVEL" | "ULTIMAS_UNIDADES" | "ESGOTADO";
@@ -28,7 +28,13 @@ export interface CartaoProduto {
   selo: Selo;
   tamanhos: TamanhoLoja[];
 }
-export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: Foto | null }
+export interface Colecao {
+  id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: Foto | null;
+  /** Frase da faixa verde (0400); só em /v1/catalog/collections. */
+  chamada?: string | null;
+  /** Até 4 capas das peças, a mais recente primeiro (0400): capa e cartão da coleção sem foto própria. */
+  fotos?: Foto[];
+}
 export interface Look { id: string; titulo: string; foto: Foto; produtos: CartaoProduto[] }
 /** Página do produto (/v1/catalog/products/:slug): o cartão mais fotos, textos e looks. */
 export interface ProdutoDetalhe extends Omit<CartaoProduto, "colecao"> {
@@ -44,7 +50,7 @@ export interface OfertaClub { nome: string; qtd: number; precoCentavos: number; 
 
 export type BlocoInicio =
   | { tipo: "CAMPANHA"; titulo: string | null; conteudo: Look | null }
-  | { tipo: "NOVIDADES" | "PRODUTOS"; titulo: string | null; conteudo: CartaoProduto[] }
+  | { tipo: "NOVIDADES" | "PRODUTOS" | "QUASE_ESGOTADAS"; titulo: string | null; conteudo: CartaoProduto[] }
   | { tipo: "COLECOES"; titulo: string | null; conteudo: Colecao[] }
   | { tipo: "LOOKS"; titulo: string | null; conteudo: Look[] }
   | { tipo: "MONTE_SEU_CLUB"; titulo: string | null; conteudo: OfertaClub };
@@ -111,4 +117,9 @@ export async function buscarOfertaClub(): Promise<OfertaClub | null> {
 /** URL pública da foto no bucket catalogo (leitura pública, envio só por URL assinada). */
 export function urlFoto(caminho: string): string {
   return `${process.env.ORIGEM_IMAGENS ?? ""}/storage/v1/object/public/catalogo/${caminho}`;
+}
+
+/** Benefício do cupom de boas-vindas da Lista VIP (sem o código), para o pop-up e o rodapé. */
+export async function buscarOfertaVip(): Promise<BeneficioVip | null> {
+  return (await buscarCatalogo<{ beneficio: BeneficioVip | null }>("v1/catalog/vip"))?.beneficio ?? null;
 }

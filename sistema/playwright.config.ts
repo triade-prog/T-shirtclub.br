@@ -9,6 +9,9 @@ const JORNADA = { SUPABASE_FUNCTIONS_URL: "http://127.0.0.1:4010", REPASSE_SEGRE
 const servidoresJornada = [
   { command: "node tests/e2e/api-falsa/api-publica.mjs 4010", url: "http://127.0.0.1:4010/saude", reuseExistingServer: !process.env.CI },
   { command: "pnpm --filter @tshirtclub/web exec next start --port 3003", url: "http://localhost:3003/offline", reuseExistingServer: !process.env.CI, env: JORNADA },
+  // A mesma loja com a conta do Google Ads configurada (anuncios.spec.ts): aviso de cookies, tag e conversão
+  { command: "pnpm --filter @tshirtclub/web exec next start --port 3004", url: "http://localhost:3004/offline", reuseExistingServer: !process.env.CI,
+    env: { ...JORNADA, GOOGLE_ADS_ID: "AW-123456789", GOOGLE_ADS_ROTULO_COMPRA: "compraTeste1" } },
 ];
 const chromiumLocal = process.env.PW_CHROMIUM_PATH ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } } : {};
 
@@ -20,7 +23,8 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   snapshotPathTemplate: "tests/e2e/__telas__/{testFilePath}/{arg}-{projectName}{ext}",
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001, animations: "disabled" } },
-  use: { trace: "retain-on-failure", ...chromiumLocal },
+  // O pop-up da Lista VIP fica "fechado há pouco" em todos os testes; vip.spec.ts começa sem isso
+  use: { trace: "retain-on-failure", storageState: "tests/e2e/estado-inicial.json", ...chromiumLocal },
   projects: [
     { name: "android", use: { ...devices["Pixel 7"], ...chromiumLocal } },
     { name: "iphone", use: { ...devices["iPhone 14"], browserName: "chromium", ...chromiumLocal } },

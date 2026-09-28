@@ -67,6 +67,10 @@ Revalidação ao publicar: `REVALIDAR_SEGREDO` (`openssl rand -hex 32`) com o me
 Functions e no projeto da loja na Vercel; a api-admin usa também o `LOJA_URL` para chamar o
 `POST /revalidar` da loja depois de cada gravação do catálogo. Sem ele, a loja atualiza o
 catálogo em até 60 s.
+Google Ads (opcional, só na loja): `GOOGLE_ADS_ID` (AW-…) liga o aviso de cookies de anúncio e a
+tag, que só carrega depois do aceite; `GOOGLE_ADS_ROTULO_COMPRA` registra a compra com valor na
+página `/pagamento-aprovado`, aberta uma vez quando o pagamento é aprovado. No Google Ads, use a
+conversão por evento (com o rótulo) ou a por página (`/pagamento-aprovado`), não as duas.
 Opcionais, nas funções e nos apps: `SENTRY_DSN` (erros, sem dados pessoais) e `AMBIENTE` (`producao`
 ou `teste`).
 O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (o segredo vai na

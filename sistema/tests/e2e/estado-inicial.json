@@ -1,0 +1,32 @@
+{
+ "cookies": [],
+ "origins": [
+  {
+   "origin": "http://localhost:3000",
+   "localStorage": [
+    {
+     "name": "tc-vip-fechado",
+     "value": "9999999999999"
+    }
+   ]
+  },
+  {
+   "origin": "http://localhost:3003",
+   "localStorage": [
+    {
+     "name": "tc-vip-fechado",
+     "value": "9999999999999"
+    }
+   ]
+  },
+  {
+   "origin": "http://localhost:3004",
+   "localStorage": [
+    {
+     "name": "tc-vip-fechado",
+     "value": "9999999999999"
+    }
+   ]
+  }
+ ]
+}

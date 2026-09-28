@@ -13,7 +13,7 @@ const centavos = z.number().int().min(1).max(10_000_000);
 
 export const CORES_COLECAO = ["TOMATE", "LIMAO", "MEDITERRANEO", "LAVANDA", "MENTA"] as const;
 export const TIPOS_FOTO = ["FRENTE", "COSTAS", "DETALHE", "VESTIDA", "CAMPANHA"] as const;
-export const TIPOS_BLOCO = ["CAMPANHA", "NOVIDADES", "COLECOES", "LOOKS", "MONTE_SEU_CLUB", "PRODUTOS"] as const;
+export const TIPOS_BLOCO = ["CAMPANHA", "NOVIDADES", "COLECOES", "LOOKS", "MONTE_SEU_CLUB", "PRODUTOS", "QUASE_ESGOTADAS"] as const;
 
 const imagemSchema = z.object({ caminho: caminhoSchema, alt: altSchema });
 
@@ -23,6 +23,8 @@ export const colecaoEntradaSchema = z.object({
   nome: z.string().trim().min(1).max(60),
   slug: slugSchema,
   descricao: textoOpcional(160),
+  /** Frase curta sobre o universo da coleção (faixa verde da página da coleção, 0400). */
+  chamada: textoOpcional(120),
   cor: z.enum(CORES_COLECAO),
   capa: imagemSchema.nullish().transform((v) => v ?? null),
   posicao: z.number().int().min(0).max(1000).default(0),

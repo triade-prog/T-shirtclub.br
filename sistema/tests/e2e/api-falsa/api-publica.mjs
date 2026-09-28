@@ -13,7 +13,7 @@ const FOTOS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../
 const CODIGO = "123456";
 const PRECO = 4999;
 
-const colecao = { id: "c0000000-0000-4000-8000-000000000001", nome: "Limone", slug: "limone", descricao: "Sol, limão e aquele ar de férias que funciona até numa terça-feira.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Campanha Limone" }, produtos: 1 };
+const colecao = { id: "c0000000-0000-4000-8000-000000000001", nome: "Limone", slug: "limone", descricao: "Sol, limão e aquele ar de férias que funciona até numa terça-feira.", chamada: "Limões, listras e o verão italiano que não acaba.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Campanha Limone" }, produtos: 1 };
 const cartao = {
   id: "p0000000-0000-4000-8000-000000000001", slug: "limone-amalfi-coast", nome: "Limone Amalfi Coast", precoCentavos: PRECO, precoPromocionalCentavos: null, noClub: true,
   colecao: { slug: "limone", nome: "Limone", cor: "LIMAO" }, capa: { caminho: "produtos/10-limone-amalfi-coast.webp", alt: "Camiseta Limone Amalfi Coast" }, disponivel: 8, selo: "DISPONIVEL",
@@ -23,6 +23,7 @@ const cartao = {
     { id: "v0000000-0000-4000-8000-000000000002", tamanho: "PLUS", rotulo: "Plus · 44 ao 48", disponivel: 3, selo: "DISPONIVEL" },
   ],
 };
+colecao.fotos = [cartao.capa];
 const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
 const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
@@ -35,8 +36,15 @@ const produto = {
   looks: [],
 };
 const club = { nome: "Monte seu Club", qtd: 3, precoCentavos: 11999, fim: "2027-01-01T00:00:00Z" };
+// Uma peça acabando, para o bloco Almost Gone (0380) e o selo com a quantidade real
+const acabando = {
+  ...cartao, id: "p0000000-0000-4000-8000-000000000009", slug: "dog-parisienne", nome: "Dog Parisienne", disponivel: 1, selo: "ULTIMAS_UNIDADES",
+  capa: { ...cartao.capa, alt: "Camiseta Dog Parisienne" },
+  tamanhos: [{ id: "v0000000-0000-4000-8000-000000000009", tamanho: "UNICO", rotulo: "Único · P ao 42", disponivel: 1, selo: "ULTIMAS_UNIDADES" }],
+};
 const home = [
   { tipo: "NOVIDADES", titulo: "Club Picks", conteudo: [cartao] },
+  { tipo: "QUASE_ESGOTADAS", titulo: "Almost Gone", conteudo: [acabando] },
   { tipo: "COLECOES", titulo: null, conteudo: [colecao] },
   { tipo: "MONTE_SEU_CLUB", titulo: null, conteudo: club },
 ];
@@ -93,6 +101,13 @@ http.createServer(async (req, res) => {
 
     if (m === "GET" && p === "v1/catalog/home") return responder(res, 200, home);
     if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao]);
+    // Lista VIP (0390): cupom de boas-vindas de 10% valendo
+    if (m === "GET" && p === "v1/catalog/vip") return responder(res, 200, { beneficio: { modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
+    if (m === "POST" && p === "v1/vip") {
+      const b = await lerCorpo(req);
+      if (!b?.consentimento || !b?.privacidade || String(b?.telefone ?? "").replace(/\D/g, "").length < 10) return erro(res, 400, "VALIDATION_ERROR");
+      return responder(res, 201, { novo: true, cupom: { codigo: "VIP10", modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
+    }
     if (m === "GET" && p === "v1/catalog/products") return responder(res, 200, url.searchParams.get("collection") === "limone" || !url.searchParams.get("collection") ? [cartao] : []);
     // Peça só do teste da revalidação: o nome traz quantas vezes a loja buscou a peça aqui
     // (fora das listas, para não mexer nos outros testes).

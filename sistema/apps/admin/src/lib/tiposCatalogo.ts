@@ -23,7 +23,7 @@ export interface ProdutoCompleto extends Omit<ProdutoLinha, "fotos"> {
   movimentos: { tipo: string; qtd: number; motivo: string | null; em: string; tamanho?: Tamanho }[];
 }
 export const NOME_TAMANHO: Record<Tamanho, string> = { UNICO: "Único", PLUS: "Plus" };
-export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; cor: string; capa: { caminho: string; alt: string } | null; posicao: number; ativa: boolean; produtos: number }
+export interface Colecao { id: string; nome: string; slug: string; descricao: string | null; chamada: string | null; cor: string; capa: { caminho: string; alt: string } | null; posicao: number; ativa: boolean; produtos: number }
 export interface Look { id: string; titulo: string; foto: { caminho: string; alt: string }; posicao: number; ativo: boolean; produtos: { id: string; nome: string; x: number; y: number }[] }
 export interface Bloco { id?: string; tipo: string; refId: string | null; titulo: string | null; ativo: boolean }
 export interface PaginaProdutos { itens: ProdutoLinha[]; total: number; pagina: number; porPagina: number }
@@ -35,6 +35,7 @@ export const CORES: readonly (readonly [string, string, string])[] = [
 export const TIPOS_FOTO: readonly (readonly [string, string])[] = [["FRENTE", "Frente"], ["COSTAS", "Costas"], ["DETALHE", "Detalhe"], ["VESTIDA", "Vestida"], ["CAMPANHA", "Campanha"]];
 export const TIPOS_BLOCO: Record<string, string> = {
   CAMPANHA: "Campanha (um look)", NOVIDADES: "Novidades", COLECOES: "Coleções", LOOKS: "Looks", MONTE_SEU_CLUB: "Monte seu Club", PRODUTOS: "Produtos de uma coleção",
+  QUASE_ESGOTADAS: "Almost Gone (peças acabando)",
 };
 
 export type TipoPromocao = "DESCONTO_PRODUTO" | "COMPRE_MAIS" | "CUPOM";

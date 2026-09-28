@@ -20,6 +20,11 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   // Início → produto
   await page.goto(`${LOJA}/`);
   await semViolacoes(page, "início");
+  // Almost Gone: as peças acabando, com o selo da quantidade real
+  const acabando = page.locator("#quase-esgotadas");
+  await expect(acabando.getByRole("heading", { name: "Almost Gone" })).toBeVisible();
+  await expect(acabando.getByText("Última unidade")).toBeVisible();
+  await expect(acabando.getByRole("button", { name: "Adicionar Dog Parisienne (Único · P ao 42) à sacola" })).toBeVisible();
   // Com os dois tamanhos à venda, o + do cartão leva à escolha do tamanho
   await expect(page.getByRole("link", { name: "Escolher o tamanho de Limone Amalfi Coast" }).first()).toHaveAttribute("href", "/produto/limone-amalfi-coast?escolha=tamanho#tamanho");
   await page.getByRole("link", { name: "Limone Amalfi Coast", exact: true }).first().click();
@@ -28,6 +33,8 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   const foto = page.getByRole("img", { name: "Camiseta Limone Amalfi Coast, frente" });
   await expect.poll(() => foto.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBeGreaterThan(0);
   await semViolacoes(page, "produto");
+  // 8 peças no total: sem selo na peça; o Plus, com 3, mostra "Últimas 3" na escolha do tamanho
+  await expect(page.locator("#tamanho").getByText("Últimas 3")).toBeVisible();
 
   // Tamanho (0370): o Único vem marcado; a cliente escolhe o Plus. As medidas são de cada tamanho.
   await expect(page.getByRole("radio", { name: "Único · P ao 42" })).toBeChecked();
@@ -35,8 +42,15 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await expect(page.getByRole("radio", { name: "Plus · 44 ao 48" })).toBeChecked();
   await expect(page.getByText("Plus · 44 ao 48: busto 116 cm · comprimento 72 cm")).toBeAttached();
 
-  // Produto → sacola
+  // Produto → sacola: a peça entra sem sair da página; o aviso mostra o progresso do trio
   await page.getByRole("button", { name: "Adicionar ao Club" }).click();
+  const aviso = page.getByRole("status", { name: "Aviso da sacola" });
+  await expect(aviso).toContainText("Limone Amalfi Coast entrou na sacola.");
+  await expect(aviso).toContainText("1/3 · Começou o seu trio.");
+  await expect(page).toHaveURL(`${LOJA}/produto/limone-amalfi-coast`);
+  await expect(page.getByRole("region", { name: "Monte seu Club: 1 de 3" })).toBeVisible();
+  await semViolacoes(page, "peça adicionada");
+  await aviso.getByRole("link", { name: "Ver sacola" }).click();
   await expect(page).toHaveURL(`${LOJA}/sacola`);
   await expect(page.getByText("Limone Amalfi Coast").first()).toBeVisible();
   await expect(page.getByText("Tamanho Plus · 44 ao 48")).toBeVisible();
@@ -48,8 +62,8 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();
   await expect(page.getByText("Escreva seu nome.")).toBeVisible();
   await semViolacoes(page, "seus dados com erros");
-  await page.getByLabel("Nome").fill("Carol Teste");
-  await page.getByLabel("WhatsApp").fill("(77) 99812-8809");
+  await page.getByLabel("Nome", { exact: true }).fill("Carol Teste");
+  await page.getByLabel("WhatsApp", { exact: true }).first().fill("(77) 99812-8809");
   await page.getByText("Retirar na loja").click();
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();
 
@@ -69,14 +83,43 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await page.getByRole("button", { name: "Gerar código PIX" }).click();
   await expect(page.getByRole("button", { name: /Copiar código PIX/ })).toBeVisible();
   await semViolacoes(page, "PIX");
-  await expect(page.getByRole("heading", { name: "Suas peças são suas." })).toBeVisible({ timeout: 15_000 });
+  // Pago: a reserva abre uma vez na página de pagamento aprovado (conversão do tráfego pago)
+  await expect(page).toHaveURL(/\/pagamento-aprovado\?reserva=\d+$/, { timeout: 15_000 });
+  const numero = new URL(page.url()).searchParams.get("reserva");
+  await expect(page.getByRole("heading", { name: "Suas peças são suas." })).toBeVisible();
   await semViolacoes(page, "pago");
 
   // Meu pedido: retirada confirmada, pedido em preparação
   await page.getByRole("button", { name: "Confirmar retirada" }).click();
   await expect(page.locator('[aria-current="step"]')).toContainText("Em preparação");
   await semViolacoes(page, "meu pedido");
+  // Uma vez só: voltando para a reserva, ela não abre de novo a página de aprovado
+  await page.goto(`${LOJA}/reserva/${numero}`);
+  await expect(page.locator('[aria-current="step"]')).toContainText("Em preparação");
+  await expect(page).toHaveURL(`${LOJA}/reserva/${numero}`);
   expect(erros).toEqual([]);
+});
+
+// O + do cartão adiciona sem sair da página: o aviso e o progresso contam 1/3, 2/3, e o limite
+// de 2 por estampa aparece no aviso, sem mexer na sacola.
+test("+ do cartão: entra na sacola sem sair do início, com o progresso do trio", async ({ page }) => {
+  await page.goto(`${LOJA}/`);
+  const mais = page.locator("#quase-esgotadas").getByRole("button", { name: "Adicionar Dog Parisienne (Único · P ao 42) à sacola" });
+  const aviso = page.getByRole("status", { name: "Aviso da sacola" });
+  await mais.click();
+  await expect(aviso).toContainText("Dog Parisienne entrou na sacola.");
+  await expect(aviso).toContainText("1/3 · Começou o seu trio.");
+  await expect(page.getByRole("region", { name: "Monte seu Club: 1 de 3" })).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("link", { name: /Sacola/ })).toContainText("1");
+  await mais.click();
+  await expect(aviso).toContainText("2/3 · Falta só uma 👀");
+  await expect(page.getByRole("region", { name: "Monte seu Club: 2 de 3" })).toBeVisible();
+  await mais.click();
+  await expect(aviso).toContainText("Cada estampa pode entrar no máximo 2 vezes, somando os tamanhos.");
+  await expect(page.getByRole("region", { name: "Monte seu Club: 2 de 3" })).toBeVisible();
+  await expect(page).toHaveURL(`${LOJA}/`);
+  await aviso.getByRole("button", { name: "Fechar aviso" }).click();
+  await expect(aviso).toBeEmpty();
 });
 
 // Alvos de toque de 44 px (F2.7): botões e links soltos, ou a área invisível .tc-alvo. Ficam

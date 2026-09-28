@@ -3,11 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { Botao, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
+import { Botao, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
-import { dividirNome, textoMedidas, textoOferta } from "@/lib/vitrine";
+import { COOKIE_SACOLA } from "@/lib/sacola";
+import { dividirNome, textoMedidas, textoOferta, textoSelo } from "@/lib/vitrine";
+import { FormSacola } from "../../_sacola/FormSacola";
+import { ProgressoDaSacola } from "../../_sacola/ProgressoDaSacola";
 import { BotaoFavorito } from "../../_vitrine/BotaoFavorito";
 import { Galeria } from "./Galeria";
 
@@ -29,8 +33,6 @@ export async function generateMetadata({ params }: PageProps<"/produto/[slug]">)
   };
 }
 
-const SELO: Record<ProdutoDetalhe["selo"], string | null> = { DISPONIVEL: null, ULTIMAS_UNIDADES: "Últimas peças", ESGOTADO: "Esgotado" };
-
 export default async function PaginaProduto({ params, searchParams }: PageProps<"/produto/[slug]">) {
   await connection();
   const [produto, club] = await Promise.all([buscarProduto((await params).slug), buscarOfertaClub()]);
@@ -39,7 +41,8 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
   const pedirTamanho = (await searchParams).escolha === "tamanho";
 
   const { destaque, resto } = dividirNome(produto.nome, produto.colecao?.nome);
-  const selo = SELO[produto.selo];
+  // Selo com a quantidade real (Última unidade, Só 2 no Club, Últimas 4, Esgotado)
+  const selo = textoSelo(produto.disponivel);
   const esgotado = produto.selo === "ESGOTADO";
   const promo = produto.precoPromocionalCentavos;
   const oferta = produto.noClub ? textoOferta(club) : undefined;
@@ -91,11 +94,12 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
           </p>
 
           {oferta && club && (
-            <ProgressoClub nivel={2} pecas={0} titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
+            <ProgressoDaSacola nivel={2} qtd={club.qtd} preco={formatarReais(club.precoCentavos)} inicial={(await cookies()).get(COOKIE_SACOLA)?.value}
+              titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
           )}
 
-          {/* A sacola (fatia 3) recebe a peça e o tamanho por aqui; sem JavaScript também funciona. */}
-          <form action="/sacola" method="get" className="grid gap-4">
+          {/* A peça e o tamanho entram na sacola sem sair da página; sem JavaScript, o GET /sacola de sempre. */}
+          <FormSacola nome={produto.nome} className="grid gap-4">
             <input type="hidden" name="adicionar" value={produto.slug} />
             <fieldset id="tamanho" className="m-0 grid scroll-mt-40 gap-2.5 border-0 p-0" aria-describedby={pedirTamanho ? "pedir-tamanho" : undefined}>
               <div className="flex items-center justify-between gap-3">
@@ -114,7 +118,7 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
                         className="size-5 accent-rosa" />
                       <span className="text-sm font-bold">{t.rotulo}</span>
                     </span>
-                    {t.selo !== "DISPONIVEL" && <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-tinta-suave">{SELO[t.selo]}</span>}
+                    {textoSelo(t.disponivel) && <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-tinta-suave">{textoSelo(t.disponivel)}</span>}
                   </label>
                 ))}
               </div>
@@ -126,7 +130,7 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
               </Botao>
               <BotaoFavorito slug={produto.slug} nome={produto.nome} className="size-13 bg-transparent" />
             </div>
-          </form>
+          </FormSacola>
 
           {detalhes.length > 0 && (
             <div className="border-b border-linha">

@@ -48,4 +48,7 @@ export interface Pagamento {
 
 export const ENTREGA: Record<Modalidade, string> = { RETIRADA: "Retirar na loja", MOTOBOY: "Entrega local (motoboy)", ENVIO: "Envio para outra cidade" };
 
-export { guardado, guardar, useRepetir } from "@/lib/navegador";
+export { guardado, guardar, lembrado, lembrar, useRepetir } from "@/lib/navegador";
+
+/** Marca, neste aparelho, que a reserva já passou pela página de pagamento aprovado. */
+export const chaveAprovado = (id: string) => `tc-aprovado-${id}`;
