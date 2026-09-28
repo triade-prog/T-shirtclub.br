@@ -57,3 +57,19 @@ export function textoMedidas(medidas: Record<string, string | number> | undefine
   const partes = Object.entries(medidas ?? {}).map(([k, v]) => `${k} ${typeof v === "number" ? `${String(v).replace(".", ",")} cm` : v}`);
   return partes.length > 0 ? partes.join(" · ") : null;
 }
+
+/**
+ * Título da coleção em até duas linhas equilibradas ("La Dolce" / "Vita Club."): a quebra que
+ * deixa a linha mais longa o mais curta possível, contando o ponto final; uma palavra só fica
+ * numa linha.
+ */
+export function tituloEmDuasLinhas(nome: string): [string] | [string, string] {
+  const palavras = nome.trim().split(/\s+/);
+  if (palavras.length < 2) return [`${nome.trim()}.`];
+  let melhor: [string, string] = [palavras[0]!, `${palavras.slice(1).join(" ")}.`];
+  for (let i = 2; i < palavras.length; i++) {
+    const par: [string, string] = [palavras.slice(0, i).join(" "), `${palavras.slice(i).join(" ")}.`];
+    if (Math.max(par[0].length, par[1].length) < Math.max(melhor[0].length, melhor[1].length)) melhor = par;
+  }
+  return melhor;
+}

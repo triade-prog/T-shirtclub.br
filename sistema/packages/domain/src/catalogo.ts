@@ -23,6 +23,8 @@ export const colecaoEntradaSchema = z.object({
   nome: z.string().trim().min(1).max(60),
   slug: slugSchema,
   descricao: textoOpcional(160),
+  /** Frase curta sobre o universo da coleção (faixa verde da página da coleção, 0400). */
+  chamada: textoOpcional(120),
   cor: z.enum(CORES_COLECAO),
   capa: imagemSchema.nullish().transform((v) => v ?? null),
   posicao: z.number().int().min(0).max(1000).default(0),

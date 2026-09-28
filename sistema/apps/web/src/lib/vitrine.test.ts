@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CartaoProduto } from "./catalogo";
-import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta, textoSelo } from "./vitrine";
+import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta, textoSelo, tituloEmDuasLinhas } from "./vitrine";
 
 const produto = (slug: string, selo: CartaoProduto["selo"]): CartaoProduto => ({
   id: slug, slug, nome: slug, precoCentavos: 4999, precoPromocionalCentavos: null, noClub: true,
@@ -55,5 +55,17 @@ describe("tamanhos (0370)", () => {
     expect(textoMedidas({ caimento: "amplo" })).toBe("caimento amplo");
     expect(textoMedidas({})).toBeNull();
     expect(textoMedidas(undefined)).toBeNull();
+  });
+});
+
+describe("título da coleção em duas linhas", () => {
+  it("quebra onde a linha mais longa fica mais curta, sem deixar Club. sozinho", () => {
+    expect(tituloEmDuasLinhas("La Dolce Vita Club")).toEqual(["La Dolce", "Vita Club."]);
+    expect(tituloEmDuasLinhas("Good Mood Club")).toEqual(["Good Mood", "Club."]);
+    expect(tituloEmDuasLinhas("Sardines Club")).toEqual(["Sardines", "Club."]);
+    expect(tituloEmDuasLinhas("Girl Things")).toEqual(["Girl", "Things."]);
+  });
+  it("uma palavra fica numa linha", () => {
+    expect(tituloEmDuasLinhas(" Fé ")).toEqual(["Fé."]);
   });
 });
