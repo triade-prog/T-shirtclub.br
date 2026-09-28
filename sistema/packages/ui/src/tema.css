@@ -155,6 +155,14 @@
    tomate 4,7 e terracota 4,6 sobre o creme; creme 7,2 e limão 5,6 sobre o azul. */
 .paleta-club { --p-base: var(--tc-papel); --p-tinta: var(--tc-tinta); --p-azul: var(--tc-verde-escuro); --p-tomate: var(--tc-rosa-press); --p-limao: var(--tc-citrino); --p-terracota: var(--tc-rosa-press); }
 .paleta-estate-italiana { --p-base: #f7efe1; --p-tinta: #1f2a3d; --p-azul: #1d4f8c; --p-tomate: #c23a26; --p-limao: #f2d43d; --p-terracota: #a9542f; }
+/* Universos das outras campanhas (0430), com o mesmo papel de cada cor: base, tinta, estrutural
+   ("azul"), contraste ("tomate"), acento que não é texto sobre a base ("limao") e apoio dos textos
+   pequenos ("terracota"). Contraste conferido: tudo que é texto passa 4,5:1 sobre a base, e a base
+   e o acento passam 4,5:1 sobre a cor estrutural. */
+.paleta-riviera { --p-base: #f4ebdd; --p-tinta: #13213a; --p-azul: #1c3fa0; --p-tomate: #b53d28; --p-limao: #7ed3c8; --p-terracota: #1d6863; }
+.paleta-girlhood { --p-base: #fbf1d6; --p-tinta: #2b1a14; --p-azul: #9b1c31; --p-tomate: #a3213a; --p-limao: #f4c6cf; --p-terracota: #7a4a35; }
+.paleta-dog-stories { --p-base: #f5eee2; --p-tinta: #1e1b18; --p-azul: #1f4e9c; --p-tomate: #b8372a; --p-limao: #e7c27d; --p-terracota: #7c5028; }
+.paleta-fe { --p-base: #f7f2e8; --p-tinta: #2a2a2e; --p-azul: #6b1f2e; --p-tomate: #6b1f2e; --p-limao: #d9c7a7; --p-terracota: #5b5a60; }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }

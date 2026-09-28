@@ -23,15 +23,22 @@ export interface ProdutoCompleto extends Omit<ProdutoLinha, "fotos"> {
   movimentos: { tipo: string; qtd: number; motivo: string | null; em: string; tamanho?: Tamanho }[];
 }
 export const NOME_TAMANHO: Record<Tamanho, string> = { UNICO: "Único", PLUS: "Plus" };
-export interface Capitulo { rotulo: string; titulo: string; foto: { caminho: string; alt: string } | null; produtos: string[] }
+export interface Capitulo { rotulo: string; titulo: string; texto: string | null; foto: { caminho: string; alt: string } | null; produtos: string[] }
 export interface Colecao {
   id: string; nome: string; slug: string; descricao: string | null; chamada: string | null; cor: string; capa: { caminho: string; alt: string } | null; posicao: number; ativa: boolean; produtos: number;
   /** Campanha (0420, D35 e D36) */
   campanha: string | null; temporada: string | null; edicao: string | null; capaCelular: { caminho: string; alt: string } | null;
-  paleta: "CLUB" | "ESTATE_ITALIANA"; capitulos: Capitulo[];
+  paleta: (typeof PALETAS)[number][0]; campanhaAtiva: boolean; capitulos: Capitulo[];
 }
 /** Paletas de coleção (D36): a do Club e as das campanhas. */
-export const PALETAS = [["CLUB", "T-shirt Club (rosa e citrino)"], ["ESTATE_ITALIANA", "Estate Italiana (creme, azul, tomate e limão)"]] as const;
+export const PALETAS = [
+  ["CLUB", "T-shirt Club (rosa e citrino)"],
+  ["ESTATE_ITALIANA", "Estate Italiana (creme, azul mediterrâneo, tomate e limão)"],
+  ["RIVIERA", "Riviera (areia, cobalto, coral e aqua)"],
+  ["GIRLHOOD", "Girlhood (manteiga, cereja, blush e espresso)"],
+  ["DOG_STORIES", "Dog Stories (creme, tabaco, azul francês e vermelho)"],
+  ["FE", "Fé (marfim, vinho, areia e grafite)"],
+] as const;
 export interface Look { id: string; titulo: string; foto: { caminho: string; alt: string }; posicao: number; ativo: boolean; produtos: { id: string; nome: string; x: number; y: number }[] }
 export interface Bloco { id?: string; tipo: string; refId: string | null; titulo: string | null; ativo: boolean }
 export interface PaginaProdutos { itens: ProdutoLinha[]; total: number; pagina: number; porPagina: number }

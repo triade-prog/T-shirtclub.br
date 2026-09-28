@@ -30,7 +30,8 @@ export default async function Inicio() {
   const slides = temCampanha ? [] : colecoes.filter((c) => c.capa).map((c) => ({
     slug: c.slug, nome: c.nome, foto: urlFoto(c.capa!.caminho), alt: c.capa!.alt ?? c.nome,
     fotoCelular: c.capaCelular ? urlFoto(c.capaCelular.caminho) : null,
-    campanha: c.campanha ?? null, linha: [c.nome, c.temporada].filter(Boolean).join(" · "),
+    // A legenda da campanha só com a campanha ligada no painel (0430)
+    campanha: c.campanhaAtiva ? (c.campanha ?? null) : null, linha: [c.nome, c.temporada].filter(Boolean).join(" · "),
   }));
   const pecasDaCapa = temCampanha || slides.length > 0 ? [] : fotosDasVitrines(blocos);
 
@@ -147,13 +148,14 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
   );
 }
 
-// Atalhos para cada Club logo abaixo da capa (28/09, no lugar dos cartões grandes): círculos
-// com a peça mais nova da coleção (a capa de campanha tem texto e não cabe no círculo); no
-// celular, a linha desliza para o lado.
+// Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a peça
+// mais nova da coleção (a foto de campanha não cabe no círculo); com a campanha ligada, o nome
+// dela aparece em cima do da coleção. No celular, a linha desliza para o lado. O título vem do
+// painel (bloco de coleções).
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
   return (
     <section aria-labelledby="inicio-colecoes" className="px-3.5 py-8 md:px-5 md:py-12">
-      <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Coleções"}</h2>
+      <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Pick your story."}</h2>
       <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
         {colecoes.map((c) => {
           const foto = c.fotos?.[0] ?? c.capa;
@@ -163,6 +165,8 @@ function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colec
                 <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
                   {foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 112px, 80px" className="object-cover" />}
                 </span>
+                {/* Pick your story (0430): a campanha ligada em cima, a coleção embaixo */}
+                {c.campanhaAtiva && c.campanha && <span className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-tinta-suave">{c.campanha}</span>}
                 <span className="font-editorial text-[15px] font-bold leading-tight tracking-[-0.02em] md:text-lg">{c.nome}</span>
               </Link>
             </li>
