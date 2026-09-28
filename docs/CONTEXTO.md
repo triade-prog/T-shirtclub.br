@@ -35,7 +35,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 - **Sessão:** o navegador só chama o próprio domínio (`/api`, repasse no Next.js), para o cookie funcionar no iPhone (G1).
 - **Publicação:** Supabase Pro (`sa-east-1`) e Vercel Pro (`gru1`); checklist na seção 17 do desenho técnico.
 - **Frontend e design (D16):** frente de design D1 a D6 antes e junto da F1; o Claude cria e a loja aprova. Marca oficial T-shirt Club.br (D17): paleta da prancha 2, Baloo 2 + Poppins; rosa e verde como tempero e cores de coleção (D18); descoberta editorial antes da reserva e loja pública só no tema claro (D21); referências em `docs/design/marca/`. `packages/ui` com os tokens, critério de pronto de cada tela na seção 18 do desenho técnico.
-- **LGPD:** aviso no formulário e política em texto-modelo (`20-privacidade.html`), dados da empresa entre colchetes.
+- **LGPD:** aviso no formulário e política em `/privacidade` (27/09, `apps/web/src/app/privacidade/page.tsx`, a partir do texto-modelo `20-privacidade.html`); dados da empresa e prazo fiscal entre colchetes na constante `EMPRESA` até a loja informar (E6), e revisão jurídica pendente (P15).
 
 ## Situação
 
@@ -184,7 +184,7 @@ Depois disso ainda faltam:
 - `loja_endereco_retirada` e `loja_horario_retirada` em `app_settings` e os produtos (pelo painel);
 - no Auth: Site URL `https://admin-tshirtclub.vercel.app`, cadastro público desligado, proteção contra senhas vazadas e o SMTP.
 
-A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. **Limite de publicações (27/09):** a Vercel recusou as publicações dos PRs #26 a #29 ("Deployment rate limited — retry in 24 hours", com convite para o Pro): o time está no plano gratuito, não no Pro previsto. Banco e funções têm as variantes; a loja e o painel no ar são os do PR #25, que não mandam o tamanho que a API exige, então nenhuma peça deve ser cadastrada antes da publicação. Desde então, `apps/*/vercel.json` só publica a `main` (sem publicação de teste por branch). As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
+A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.app`) e `admin` (`https://admin-tshirtclub.vercel.app`) no time triade-ai, sem ligar `ENABLE_EXPERIMENTAL_COREPACK`. O conector da Vercel desta sessão não tinha acesso ao time. **Limite de publicações (27/09):** a Vercel recusou as publicações dos PRs #26 a #29 ("Deployment rate limited — retry in 24 hours", com convite para o Pro): o time está no plano gratuito, não no Pro previsto. Banco e funções têm as variantes; a loja e o painel no ar são os do PR #25, que não mandam o tamanho que a API exige, então nenhuma peça deve ser cadastrada antes da publicação. Desde então, `apps/*/vercel.json` só publica a `main` (sem publicação de teste por branch). Em 27/09, com o limite liberado, a Vercel publicou a `main` (PR #32) na loja e no painel: as variantes estão no ar nos dois e as peças já podem ser cadastradas. As mensagens do WhatsApp sem link citam `tshirtclub.vercel.app` (`SITE` em `packages/domain/src/mensagens.ts`); trocar ali e no `LOJA_URL` quando o domínio próprio chegar.
 
 ## Dados que ainda faltam (não bloqueiam a revisão)
 
