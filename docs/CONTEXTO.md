@@ -35,7 +35,7 @@ O protótipo **não é código de produção**: serve para validar fluxo, telas 
 - **Sessão:** o navegador só chama o próprio domínio (`/api`, repasse no Next.js), para o cookie funcionar no iPhone (G1).
 - **Publicação:** Supabase Pro (`sa-east-1`) e Vercel Pro (`gru1`); checklist na seção 17 do desenho técnico.
 - **Frontend e design (D16):** frente de design D1 a D6 antes e junto da F1; o Claude cria e a loja aprova. Marca oficial T-shirt Club.br (D17): paleta da prancha 2, Baloo 2 + Poppins; rosa e verde como tempero e cores de coleção (D18); descoberta editorial antes da reserva e loja pública só no tema claro (D21); referências em `docs/design/marca/`. `packages/ui` com os tokens, critério de pronto de cada tela na seção 18 do desenho técnico.
-- **LGPD:** aviso no formulário e política em `/privacidade` (27/09, `apps/web/src/app/privacidade/page.tsx`, a partir do texto-modelo `20-privacidade.html`); dados da empresa e prazo fiscal entre colchetes na constante `EMPRESA` até a loja informar (E6), e revisão jurídica pendente (P15).
+- **LGPD:** aviso no formulário e política em `/privacidade` (27/09, `apps/web/src/app/privacidade/page.tsx`, a partir do texto-modelo `20-privacidade.html`); razão social (Carolina Soares Santana), CNPJ 60.814.144/0001-03 e endereço do cadastro (2ª Travessa Palestina, Centro, Caetité-BA) preenchidos; e-mail e nome do encarregado e prazo fiscal ainda entre colchetes na constante `EMPRESA` (E6), e revisão jurídica pendente (P15).
 
 ## Situação
 
