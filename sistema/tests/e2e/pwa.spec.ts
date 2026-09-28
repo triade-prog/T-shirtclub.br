@@ -21,6 +21,11 @@ test.describe("PWA da loja", () => {
     });
     expect(guardados).toContain("/offline");
     expect(guardados.filter((u) => u.startsWith("/api/") || u === "/r" || u === "/")).toEqual([]);
+    // A casca (arquivos com hash) fica guardada: com o clone() depois de devolver a resposta,
+    // o navegador já tinha lido o corpo e nada entrava no cache
+    await expect
+      .poll(() => page.evaluate(async () => (await (await caches.open("casca-v1")).keys()).some((r) => new URL(r.url).pathname.startsWith("/_next/static/"))))
+      .toBe(true);
 
     await context.setOffline(true);
     await page.goto(`${LOJA}/qualquer-pagina`);
