@@ -4,6 +4,8 @@ import { Cabecalho } from "./_layout/Cabecalho";
 import { Rodape } from "./_layout/Rodape";
 import { RegistrarServiceWorker } from "./_pwa/RegistrarServiceWorker";
 import { AvisoSacola } from "./_sacola/AvisoSacola";
+import { PopupVip } from "./_vip/PopupVip";
+import { buscarOfertaVip } from "@/lib/catalogo";
 import { TagGoogle } from "./_anuncios/TagGoogle";
 import { idAnuncios } from "@/lib/anuncios";
 import "./globals.css";
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#FFF9F5", colorScheme: "light" };
 
-export default function LayoutLoja({ children }: { children: React.ReactNode }) {
+export default async function LayoutLoja({ children }: { children: React.ReactNode }) {
   // Lido a cada pedido (as páginas são dinâmicas por causa do nonce): ligar ou trocar a conta não pede build novo
   const anuncios = idAnuncios(process.env.GOOGLE_ADS_ID);
   return (
@@ -33,6 +35,7 @@ export default function LayoutLoja({ children }: { children: React.ReactNode }) 
         <Rodape />
         <RegistrarServiceWorker />
         <AvisoSacola />
+        <PopupVip beneficio={await buscarOfertaVip()} />
         {anuncios && <TagGoogle id={anuncios} />}
       </body>
     </html>
