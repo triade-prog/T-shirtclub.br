@@ -26,6 +26,10 @@ describe("painel: catálogo", () => {
       capitulos: [{ rotulo: "Mattina — Mercato", titulo: "Il mercato apre cedo.", produtos: ["00000000-0000-4000-8000-00000000a001"] }] });
     expect(estate).toMatchObject({ campanha: "Ciao, Estate!", paleta: "ESTATE_ITALIANA", capaCelular: null, capitulos: [{ foto: null }] });
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", paleta: "NEON" }).success).toBe(false);
+    // Pick your story (0440): sem o campo, não apaga; null volta para a peça mais nova
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA" })).not.toHaveProperty("fotoStory");
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA", fotoStory: null })).toHaveProperty("fotoStory", null);
+    expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", fotoStory: { caminho: "../fora.webp" } }).success).toBe(false);
     const capitulo = { rotulo: "A", titulo: "B" };
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", capitulos: [capitulo, capitulo, capitulo, capitulo] }).success).toBe(false);
   });
