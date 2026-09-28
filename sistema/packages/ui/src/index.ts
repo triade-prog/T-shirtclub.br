@@ -5,6 +5,7 @@ export { CardProduto, type CardProdutoProps } from "./CardProduto.tsx";
 export { CartaoLook, classeCartaoLook, classeGradeLooks } from "./CartaoLook.tsx";
 export { PickYourStory, type ItemPickYourStory } from "./PickYourStory.tsx";
 export { SecaoVitrine } from "./SecaoVitrine.tsx";
+export { BotaoPecas, FaixaChamada, TopoColecaoBanner, TopoColecaoSimples, tituloEmDuasLinhas } from "./TopoColecao.tsx";
 export { ConteudoSlide, SetaDireita, classeMolduraCarrossel } from "./SlideCapa.tsx";
 export {
   BotaoCampanha, MICRO_CAMPANHA, NomeCampanha, TopoCampanha, universoDaPaleta,
