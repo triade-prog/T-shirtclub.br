@@ -7,9 +7,10 @@ import { chamarApi } from "@/lib/api";
 import { paraSlug } from "@/lib/catalogo";
 import { CORES, PALETAS, type Colecao, type PaginaProdutos } from "@/lib/tiposCatalogo";
 import { Casca } from "../../../_painel/Casca";
-import { Botao, Campo, Carregando, Escolha, Marcar, Selo } from "../../../_painel/ui";
+import { Botao, Campo, Carregando, Escolha, Marcar } from "../../../_painel/ui";
 import { useDados } from "../../../_painel/useDados";
 import { useEnvio } from "../../../_painel/useEnvio";
+import { SelosColecao } from "../../Colecoes";
 import { EnvioFoto } from "../../EnvioFoto";
 import { PreviaColecao, type RascunhoColecao } from "../../PreviaColecao";
 
@@ -39,7 +40,7 @@ export function PaginaColecao({ id }: { id: string | null }) {
       sub={colecao ? `/colecao/${colecao.slug} · ${colecao.produtos} ${colecao.produtos === 1 ? "peça" : "peças"} · ordem ${colecao.posicao}` : "O universo que agrupa as estampas na loja: nome, cor, capa, Pick your story e campanha."}
       acoes={<>
         <Link className="btn btn-ghost" href={LISTA}>← Coleções</Link>
-        {colecao && (colecao.ativa ? <Selo tom="paid">Ativa</Selo> : <Selo tom="expired">Inativa</Selo>)}
+        {colecao && <SelosColecao colecao={colecao} />}
       </>}
     >
       {salvo && <p role="status" className="field-help" style={{ marginTop: 0 }}>Coleção salva.</p>}

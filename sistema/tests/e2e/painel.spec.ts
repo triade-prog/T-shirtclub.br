@@ -153,9 +153,14 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await page.goto(`${PAINEL}/catalogo?aba=colecoes`);
   await expect(page.getByRole("link", { name: "Nova coleção" })).toHaveAttribute("href", "/catalogo/colecoes/nova");
   await expect(page.getByRole("link", { name: /Riviera/ })).toContainText("Sem capa");
+  // Selos: coleção ativa ou oculta e, com campanha, se ela está ligada (Limone: campanha desligada)
+  await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Coleção ativa");
+  await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Campanha desligada");
+  await expect(page.getByRole("link", { name: /Riviera/ })).not.toContainText("Campanha");
   await page.getByRole("link", { name: /Limone/ }).click();
   await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Limone");
+  await expect(page.locator(".status").filter({ hasText: "Campanha desligada" })).toBeVisible();
   const computador = page.frameLocator('iframe[title="Prévia na loja (computador)"]');
   // Pick your story com as coleções ativas na ordem, o slide do carrossel e o topo da campanha
   await expect(computador.locator("#inicio-colecoes")).toHaveText("Pick your story.");
