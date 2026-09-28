@@ -7,7 +7,11 @@ import AxeBuilder from "@axe-core/playwright";
 const LOJA = "http://localhost:3003";
 
 async function semViolacoes(page: Page, tela: string) {
-  const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  // O Next manda o <title> das páginas dinâmicas pelo streaming, depois do conteúdo: sem esperar,
+  // o axe às vezes via a página sem título (falhava de vez em quando no PIX). Sem título nenhum,
+  // a espera falha do mesmo jeito.
+  await expect(page).toHaveTitle(/\S/);
+  const r =await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(r.violations.map((v) => `${tela} · ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 }
 
