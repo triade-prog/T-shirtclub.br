@@ -23,7 +23,8 @@ export function Catalogo() {
   return (
     <Casca kicker="LOJA" titulo={<>Catálogo <em style={{ color: "var(--pink-dark)" }}>da loja</em></>}
       sub="Peças, coleções, looks e o que aparece na página inicial."
-      acoes={aba === "produtos" ? <Link className="btn btn-dark" href="/catalogo/produtos/novo">Nova peça</Link> : undefined}>
+      acoes={aba === "produtos" ? <Link className="btn btn-dark" href="/catalogo/produtos/novo">Nova peça</Link>
+        : aba === "colecoes" ? <Link className="btn btn-dark" href="/catalogo/colecoes/nova">Nova coleção</Link> : undefined}>
       <nav className="tabs" aria-label="Partes do catálogo">
         {ABAS.map(([v, rotulo]) => (
           <button key={v} type="button" className={`tab${aba === v ? " active" : ""}`} aria-pressed={aba === v}
