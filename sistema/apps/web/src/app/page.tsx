@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { Selo, Sobretitulo } from "@tshirtclub/ui";
+import { CartaoLook, PickYourStory, SecaoVitrine, Selo, Sobretitulo, classeCartaoLook, classeGradeLooks } from "@tshirtclub/ui";
 import { buscarCatalogo, urlFoto, type BlocoInicio, type CartaoProduto, type Colecao, type Foto, type Look, type OfertaClub } from "@/lib/catalogo";
 import { COOKIE_SACOLA } from "@/lib/sacola";
 import { textoOferta } from "@/lib/vitrine";
@@ -102,15 +102,8 @@ function fotosDasVitrines(blocos: BlocoInicio[]): Foto[] {
   return escolhidas.slice(0, 3).map((p) => p.capa!);
 }
 
-function Secao({ id, sobretitulo, titulo, children }: { id?: string; sobretitulo: string; titulo: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="px-3.5 py-12 md:px-5 md:py-20">
-      <Sobretitulo>{sobretitulo}</Sobretitulo>
-      <h2 className="tc-titulo m-0 mb-7 mt-2 text-[clamp(38px,5.2vw,68px)]">{titulo}</h2>
-      {children}
-    </section>
-  );
-}
+// A seção do início está em packages/ui (a prévia do painel usa a mesma)
+const Secao = SecaoVitrine;
 
 function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string | null; oferta?: string; fotos?: Foto[] }) {
   return (
@@ -148,54 +141,30 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
   );
 }
 
-// Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a foto
-// escolhida no painel (0440) ou, sem ela, a peça mais nova da coleção (a foto de campanha não cabe
-// no círculo); com a campanha ligada, o nome
-// dela aparece em cima do da coleção. No celular, a linha desliza para o lado. O título vem do
-// painel (bloco de coleções).
+// Pick your story (28/09): o desenho está em packages/ui (o mesmo da prévia do painel); aqui, a
+// foto de cada círculo: a escolhida no painel (0440) ou, sem ela, a peça mais nova da coleção (a
+// foto de campanha não cabe no círculo). O título vem do painel (bloco de coleções).
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
   return (
-    <section aria-labelledby="inicio-colecoes" className="px-3.5 py-8 md:px-5 md:py-12">
-      <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Pick your story."}</h2>
-      <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
-        {colecoes.map((c) => {
-          const foto = c.fotoStory ?? c.fotos?.[0] ?? c.capa;
-          return (
-            <li key={c.id} className="shrink-0 snap-start">
-              <Link href={`/colecao/${c.slug}`} className="group grid w-24 justify-items-center gap-2 text-center md:w-32">
-                <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
-                  {foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 112px, 80px" className="object-cover" />}
-                </span>
-                {/* Pick your story (0430): a campanha ligada em cima, a coleção embaixo */}
-                {c.campanhaAtiva && c.campanha && <span className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-tinta-suave">{c.campanha}</span>}
-                <span className="font-editorial text-[15px] font-bold leading-tight tracking-[-0.02em] md:text-lg">{c.nome}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <PickYourStory titulo={titulo} Link={Link} itens={colecoes.map((c) => {
+      const foto = c.fotoStory ?? c.fotos?.[0] ?? c.capa;
+      return {
+        id: c.id, nome: c.nome, href: `/colecao/${c.slug}`, cor: c.cor, campanha: c.campanhaAtiva ? c.campanha : null,
+        foto: foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 112px, 80px" className="object-cover" />,
+      };
+    })} />
   );
 }
 
 function Looks({ titulo, looks }: { titulo: string | null; looks: Look[] }) {
   return (
     <Secao sobretitulo="A mesma T-shirt, outra você" titulo={titulo ?? "Shop the Look"}>
-      <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3">
+      <ul className={classeGradeLooks}>
         {looks.map((l, i) => (
-          <li key={l.id} className="relative min-h-[430px] overflow-hidden rounded-cartao border-2 border-tinta">
-            <Image src={urlFoto(l.foto.caminho)} alt={l.foto.alt ?? l.titulo} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
-            <Selo fundo="citrino" brilho={false} className="absolute left-3 top-3">Look {String(i + 1).padStart(2, "0")}</Selo>
-            <div className="absolute inset-x-3.5 bottom-3.5 rounded-campo border-[1.5px] border-tinta bg-papel/95 px-3.5 py-3">
-              <p className="m-0 font-editorial text-base font-bold">{l.titulo}</p>
-              {l.produtos.length > 0 && (
-                <p className="m-0 mt-0.5 text-xs text-tinta-suave">
-                  {l.produtos.map((p, j) => (
-                    <span key={p.id}>{j > 0 && " · "}<Link href={`/produto/${p.slug}`} className="underline decoration-rosa decoration-2 underline-offset-2">{p.nome}</Link></span>
-                  ))}
-                </p>
-              )}
-            </div>
+          <li key={l.id} className={classeCartaoLook}>
+            <CartaoLook numero={i + 1} titulo={l.titulo} Link={Link}
+              produtos={l.produtos.map((p) => ({ id: p.id, nome: p.nome, href: `/produto/${p.slug}` }))}
+              foto={<Image src={urlFoto(l.foto.caminho)} alt={l.foto.alt ?? l.titulo} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />} />
           </li>
         ))}
       </ul>

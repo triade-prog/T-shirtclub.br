@@ -214,6 +214,9 @@ ol.list{list-style:none;margin:0;padding:0}
 .tag-cadastro{flex:none;border-radius:999px;background:var(--pink-soft);color:var(--pink-dark);padding:5px 10px;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
 .previa{padding:14px}.previa-rotulo{margin:0 0 10px;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.previa-cartao{max-width:260px;margin:0 auto}
 .previa-sem-foto{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.previa-loja{display:grid;gap:10px}.previa-loja-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.previa-loja-topo .tabs{margin:0}
+.previa-loja-caixa{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fffaf4}.previa-loja-quadro{display:block;margin-inline:auto;border:0;transform-origin:top left}
+.previa-loja-vazia{margin:0;padding:18px;font-size:12px;color:var(--muted)}
 .checklist{background:var(--green-soft);border-color:#d9e4bc}.checklist ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}.checklist li{display:flex;gap:9px;font-size:11.5px;line-height:1.45}
 .checklist-marca{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;font-size:11px;font-weight:800;background:#fff;color:var(--green);border:1.5px solid currentColor}
 .checklist .item-falta .checklist-marca{color:#9d2f18}.checklist .item-falta{font-weight:700}.checklist .item-sugestao .checklist-marca{color:var(--muted)}
@@ -232,3 +235,6 @@ ol.list{list-style:none;margin:0;padding:0}
 .tamanhos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tamanho{margin:0;border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px;background:var(--paper2)}
 .tamanho legend{padding:0 6px;font-family:var(--font-fraunces);font-size:17px;font-weight:700;letter-spacing:-.02em}
 @media(max-width:640px){.tamanhos{grid-template-columns:1fr}}
+/* Formulário com a prévia na loja ao lado (Coleções e Looks); no celular, a prévia vai para baixo */
+.com-previa{display:grid;gap:22px;align-items:start}.com-previa-lado{min-width:0}
+@media (min-width:1100px){.com-previa{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}.com-previa-lado{position:sticky;top:18px}}
