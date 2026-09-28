@@ -15,7 +15,7 @@ const EMPRESA = {
   emailEncarregado: "[e-mail do encarregado]",
   nomeEncarregado: "[nome do encarregado]",
   prazoFiscal: "[prazo confirmado pela contabilidade]",
-  atualizadaEm: "28/09/2026",
+  atualizadaEm: "27/09/2026",
 };
 
 export default async function Privacidade() {
