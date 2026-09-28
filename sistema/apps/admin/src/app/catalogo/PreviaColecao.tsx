@@ -1,6 +1,9 @@
 "use client";
 
-import { BotaoCampanha, ConteudoSlide, PickYourStory, TopoCampanha, classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha } from "@tshirtclub/ui";
+import {
+  BotaoCampanha, BotaoPecas, ConteudoSlide, FaixaChamada, PickYourStory, TopoCampanha, TopoColecaoBanner, TopoColecaoSimples,
+  classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha,
+} from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import type { Colecao } from "@/lib/tiposCatalogo";
 import { JanelaPrevia } from "../_painel/JanelaPrevia";
@@ -31,16 +34,16 @@ function FotoDupla({ capa, celular }: { capa: Foto; celular: Foto | null }) {
 }
 
 /**
- * Prévia da coleção na loja, com o que está no formulário, em 3 partes com título: o slide do
+ * Prévia da coleção na loja, com o que está no formulário, em partes com título: o slide do
  * carrossel do início, a linha do Pick your story (com as outras coleções ativas apagadas, na
- * ordem, para mostrar onde esta entra) e o topo da página de campanha.
+ * ordem, para mostrar onde esta entra) e o topo da página como a loja mostra hoje (a de campanha
+ * só com ela ligada). Com a campanha gravada e desligada, uma 4ª parte mostra como ela vai ficar.
  * Os desenhos são os da loja (packages/ui); as fotos, as miniaturas do Storage.
  */
 export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colecao[] }) {
   const campanhaLigada = Boolean(r.campanha && r.campanhaAtiva);
   const linha = [r.nome, r.temporada].filter(Boolean).join(" · ");
   const vertical = Boolean(r.capaCelular);
-  const u = universoDaPaleta(r.paleta);
   const qtdEstampas = r.produtos === 1 ? "1 estampa" : `${r.produtos} estampas`;
   const nome = r.nome.trim() || "Nome da coleção";
 
@@ -75,21 +78,39 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
           }))} />
         : <Nota>Coleção inativa: não aparece no Pick your story nem na loja.</Nota>}
 
-      <Parte numero={3} titulo="A página desta coleção: o topo" />
-      {r.campanha ? (
+      <Parte numero={3} titulo={campanhaLigada ? "A página desta coleção hoje: o topo, com a campanha ligada" : "A página desta coleção hoje: o topo"} />
+      {campanhaLigada ? <TopoDaCampanha r={r} nome={nome} qtdEstampas={qtdEstampas} /> : (
+        <div className={`col-${r.cor.toLowerCase()}`}>
+          {r.capa
+            ? <TopoColecaoBanner nome={nome} qtdEstampas={qtdEstampas} descricao={r.descricao} botao={<BotaoPecas produtos={r.produtos} />}
+                foto={<Img foto={r.capa} className="absolute inset-0 size-full object-cover" />} />
+            : <TopoColecaoSimples nome={nome} qtdEstampas={qtdEstampas} descricao={r.descricao} botao={<BotaoPecas produtos={r.produtos} />} />}
+          {r.chamada && <FaixaChamada chamada={r.chamada} />}
+          {!r.capa && r.produtos > 0 && <Nota>Na loja, ao lado do nome aparecem fotos de até 3 peças da coleção.</Nota>}
+        </div>
+      )}
+
+      {r.campanha && !campanhaLigada && (
         <>
-          {!campanhaLigada && <Nota>Campanha desligada: a loja ainda mostra a página comum da coleção. Assim ela fica quando for ligada:</Nota>}
-          <div className={cx(`col-${r.cor.toLowerCase()}`, u.classe, "bg-camp-base text-camp-tinta")}>
-            <TopoCampanha colecao={{ ...r, nome }} qtdEstampas={qtdEstampas} botao={<BotaoCampanha produtos={r.produtos} />}
-              foto={r.capa && (
-                <div className={cx("relative overflow-hidden rounded-[24px] ring-1 ring-camp-tinta/15", r.capaCelular ? "aspect-[4/5] md:aspect-video" : "aspect-video")}>
-                  <FotoDupla capa={r.capa} celular={r.capaCelular} />
-                </div>
-              )} />
-          </div>
+          <Parte numero={4} titulo="Quando a campanha for ligada, o topo fica assim (hoje ainda não aparece na loja)" />
+          <TopoDaCampanha r={r} nome={nome} qtdEstampas={qtdEstampas} />
         </>
-      ) : <Nota>Sem nome de campanha, a página da coleção é a comum.</Nota>}
+      )}
     </JanelaPrevia>
+  );
+}
+
+/** Topo da página de campanha, na paleta da coleção. */
+function TopoDaCampanha({ r, nome, qtdEstampas }: { r: RascunhoColecao; nome: string; qtdEstampas: string }) {
+  return (
+    <div className={cx(`col-${r.cor.toLowerCase()}`, universoDaPaleta(r.paleta).classe, "bg-camp-base text-camp-tinta")}>
+      <TopoCampanha colecao={{ ...r, nome }} qtdEstampas={qtdEstampas} botao={<BotaoCampanha produtos={r.produtos} />}
+        foto={r.capa && (
+          <div className={cx("relative overflow-hidden rounded-[24px] ring-1 ring-camp-tinta/15", r.capaCelular ? "aspect-[4/5] md:aspect-video" : "aspect-video")}>
+            <FotoDupla capa={r.capa} celular={r.capaCelular} />
+          </div>
+        )} />
+    </div>
   );
 }
 

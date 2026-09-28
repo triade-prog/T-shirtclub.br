@@ -166,7 +166,11 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Riviera" })).toHaveCSS("opacity", "0.3");
   await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Limone" })).toHaveCSS("opacity", "1");
   await expect(computador.getByText("Ver Limone", { exact: true })).toBeVisible();
-  await expect(computador.getByText(/Campanha desligada/)).toBeVisible();
+  // Parte 3: a página como a loja mostra hoje (campanha desligada: o banner, o nome e a faixa verde
+  // da página comum); parte 4: como fica quando a campanha for ligada
+  await expect(computador.getByText(/A página desta coleção hoje: o topo$/)).toBeVisible();
+  await expect(computador.getByText("Coleção · 2 estampas", { exact: true })).toBeVisible();
+  await expect(computador.getByText(/Quando a campanha for ligada/)).toBeVisible();
   await expect(computador.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
   await expect(computador.locator(".paleta-estate-italiana")).toHaveCount(1);
   // Sem foto escolhida, o círculo usa a peça mais nova
@@ -176,7 +180,9 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await page.getByLabel("Nome", { exact: true }).fill("Limone Nuovo");
   await expect(computador.getByText("Ver Limone Nuovo", { exact: true })).toBeVisible();
   await page.getByLabel("Campanha ligada na loja").check();
-  await expect(computador.getByText(/Campanha desligada/)).toHaveCount(0);
+  await expect(computador.getByText(/Quando a campanha for ligada/)).toHaveCount(0);
+  await expect(computador.getByText(/o topo, com a campanha ligada/)).toBeVisible();
+  await expect(computador.getByText("Coleção · 2 estampas", { exact: true })).toHaveCount(0);
   await page.getByLabel("Paleta da página").selectOption("RIVIERA");
   await expect(computador.locator(".paleta-riviera")).toHaveCount(1);
 
