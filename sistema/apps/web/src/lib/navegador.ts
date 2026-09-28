@@ -11,6 +11,14 @@ export function guardar(chave: string, valor: string) {
   try { sessionStorage.setItem(chave, valor); } catch { /* sem armazenamento: a tela refaz a busca */ }
 }
 
+/** Como guardado/guardar, mas no localStorage: vale para as próximas visitas neste aparelho. */
+export function lembrado(chave: string): string | null {
+  try { return localStorage.getItem(chave); } catch { return null; }
+}
+export function lembrar(chave: string, valor: string) {
+  try { localStorage.setItem(chave, valor); } catch { /* sem armazenamento: no pior caso, a página de aprovado abre de novo */ }
+}
+
 /** Repete `fn` a cada `ms` com a aba visível (e na volta para a aba). */
 export function useRepetir(fn: () => void, ms: number, ligado: boolean) {
   const ref = useRef(fn);

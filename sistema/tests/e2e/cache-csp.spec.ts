@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 // ainda a trava explícita "private, no-store". Roda na loja com catálogo (3003, api falsa).
 const LOJA = "http://localhost:3003";
 
-const PAGINAS = ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/offline", "/privacidade", "/pagina-que-nao-existe"];
+const PAGINAS = ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/offline", "/privacidade", "/pagamento-aprovado?reserva=1", "/pagina-que-nao-existe"];
 
 for (const caminho of PAGINAS) {
   test(`${caminho}: scripts com nonce e nenhum bloqueio da CSP`, async ({ page }) => {
@@ -36,7 +36,7 @@ for (const caminho of PAGINAS) {
 }
 
 test("rotas com dados da cliente: sem cache, nem na CDN nem no navegador", async ({ request }) => {
-  for (const caminho of ["/sacola", "/consulta", "/r", "/reserva", "/api/v1/health"]) {
+  for (const caminho of ["/sacola", "/consulta", "/r", "/reserva", "/pagamento-aprovado?reserva=1", "/api/v1/health"]) {
     const r = await request.get(`${LOJA}${caminho}`, { maxRedirects: 0, failOnStatusCode: false });
     const cache = r.headers()["cache-control"] ?? "";
     expect(cache, caminho).toContain("no-store");
@@ -48,6 +48,9 @@ test("rotas com dados da cliente: sem cache, nem na CDN nem no navegador", async
   expect(r.headers()["set-cookie"]).toBeTruthy();
   expect(r.headers()["cache-control"]).toBe("private, no-store");
   expect(r.headers()["x-content-type-options"]).toBe("nosniff");
+  // Pagamento aprovado sem reserva não é página (nem conversão): volta para o início
+  const semReserva = await request.get(`${LOJA}/pagamento-aprovado`, { maxRedirects: 0 });
+  expect([semReserva.status(), semReserva.headers()["location"]]).toEqual([307, "/"]);
   // A revalidação só aceita POST com o segredo; a recusa também não fica em cache
   const rv = await request.post(`${LOJA}/revalidar`, { failOnStatusCode: false });
   expect(rv.status()).toBe(401);

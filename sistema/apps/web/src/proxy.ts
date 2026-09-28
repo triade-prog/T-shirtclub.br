@@ -2,6 +2,7 @@
 // segurança (G16). O nonce exige renderização dinâmica das páginas.
 import { NextResponse, type NextRequest } from "next/server";
 import { cabecalhosSeguranca, gerarNonce, montarCsp } from "@tshirtclub/servidor/cabecalhos";
+import { idAnuncios } from "@/lib/anuncios";
 import { COOKIE_SACOLA, SLUG, adicionarNaSacola, gravarSacola, lerSacola, lerTamanho, opcoesCookieSacola } from "@/lib/sacola";
 
 // "Adicionar ao Club" é um GET /sacola?adicionar=<slug>&tamanho=<unico|plus> (funciona sem
@@ -35,6 +36,8 @@ export function proxy(request: NextRequest) {
     nonce,
     dev: process.env.NODE_ENV === "development",
     origemImagens: process.env.ORIGEM_IMAGENS,
+    // Domínios do Google Ads só com a conta configurada (a tag ainda espera o aceite dos cookies)
+    googleAds: idAnuncios(process.env.GOOGLE_ADS_ID) !== null,
   });
 
   const headers = new Headers(request.headers);

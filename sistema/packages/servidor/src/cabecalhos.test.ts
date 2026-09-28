@@ -38,6 +38,20 @@ describe("CSP", () => {
     expect(montarCsp({ app: "loja", nonce: "n", origemImagens: "https://x.supabase.co" })).toContain("img-src 'self' data: blob: https://x.supabase.co");
   });
 
+  it("Google Ads: só na loja, só quando configurado, e o script continua preso ao nonce", () => {
+    const sem = montarCsp({ app: "loja", nonce: "n" });
+    expect(sem).not.toMatch(/google|doubleclick/);
+    const com = montarCsp({ app: "loja", nonce: "n", googleAds: true });
+    expect(com).toMatch(/script-src 'self' 'nonce-n' 'strict-dynamic' [^;]*https:\/\/www\.googletagmanager\.com/);
+    expect(com).toMatch(/connect-src [^;]*https:\/\/googleads\.g\.doubleclick\.net/);
+    expect(com).toMatch(/img-src [^;]*https:\/\/www\.google\.com\.br/);
+    expect(com).toMatch(/frame-src [^;]*https:\/\/td\.doubleclick\.net/);
+    // 'unsafe-inline' continua só no style-src-attr, como antes
+    expect(com.match(/'unsafe-inline'/g)).toHaveLength(1);
+    expect(com).toContain("style-src-attr 'unsafe-inline'");
+    expect(montarCsp({ app: "painel", nonce: "n", googleAds: true })).not.toMatch(/google|doubleclick/);
+  });
+
   it("nonce novo e imprevisível a cada chamada", () => {
     const a = gerarNonce(), b = gerarNonce();
     expect(a).not.toBe(b);
@@ -60,7 +74,7 @@ describe("cabeçalhos fixos", () => {
     expect(p["X-Robots-Tag"]).toContain("noindex");
   });
   it("sem cache nas rotas da loja com dados da cliente; o catálogo não leva a trava", () => {
-    for (const c of ["/sacola", "/reserva", "/reserva/TS-1234", "/reserva/codigo", "/r", "/consulta", "/api/v1/cart/quote", "/revalidar"]) {
+    for (const c of ["/sacola", "/reserva", "/reserva/TS-1234", "/reserva/codigo", "/r", "/consulta", "/pagamento-aprovado", "/api/v1/cart/quote", "/revalidar"]) {
       expect(cabecalhosSeguranca("loja", c)["Cache-Control"], c).toBe("private, no-store");
     }
     for (const c of ["/", "/produto/limone", "/colecao/limone", "/offline", "/reservas-antigas", "/rosa"]) {
