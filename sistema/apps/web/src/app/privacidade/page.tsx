@@ -6,12 +6,13 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 
 // Política de privacidade (P15, LGPD), a partir do texto-modelo do protótipo (20-privacidade.html),
 // com o que o sistema faz de verdade (sacola em cookie, favoritos só no navegador, prazos de guarda
-// da F11). Os dados da empresa (E6) e o prazo fiscal ficam entre colchetes até a loja informar;
+// da F11). Dados da empresa (E6) do cadastro do CNPJ, informados pela loja em 27/09; o e-mail e o
+// nome do encarregado e o prazo fiscal ficam entre colchetes até a loja informar;
 // o texto final passa pela revisão jurídica antes de a P15 fechar.
 const EMPRESA = {
-  razaoSocial: "[razão social]",
-  cnpj: "[CNPJ]",
-  endereco: "[endereço]",
+  razaoSocial: "Carolina Soares Santana",
+  cnpj: "60.814.144/0001-03",
+  endereco: "2ª Travessa Palestina, Centro, Caetité (BA), CEP 46400-153",
   emailEncarregado: "[e-mail do encarregado]",
   nomeEncarregado: "[nome do encarregado]",
   prazoFiscal: "[prazo confirmado pela contabilidade]",
