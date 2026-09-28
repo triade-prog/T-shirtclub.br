@@ -9,6 +9,7 @@ import { Botao, Campo, Carregando, Escolha, Marcar, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 import { EnvioFoto } from "./EnvioFoto";
+import { PreviaColecao, type RascunhoColecao } from "./PreviaColecao";
 
 // Coleções (D20): nome, slug, texto curto, cor entre as 5 aprovadas, capa, ordem, ativa e a foto
 // do círculo do Pick your story no início (0440). Campanha (0420, D35 e D36): nome da campanha,
@@ -24,7 +25,7 @@ export function Colecoes() {
       <div className="actions" style={{ marginBottom: 16 }}>
         <Botao onClick={() => setEditando("nova")}>Nova coleção</Botao>
       </div>
-      {editando && <FormColecao colecao={editando === "nova" ? null : editando} aoFechar={() => setEditando(null)} aoSalvar={() => { setEditando(null); void recarregar(); }} />}
+      {editando && <FormColecao colecao={editando === "nova" ? null : editando} colecoes={dados} aoFechar={() => setEditando(null)} aoSalvar={() => { setEditando(null); void recarregar(); }} />}
       <ul className="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {dados.map((c) => (
           <li key={c.id} className="row">
@@ -45,7 +46,20 @@ export function Colecoes() {
   );
 }
 
-function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null; aoFechar: () => void; aoSalvar: () => void }) {
+type Campos = Pick<RascunhoColecao, "descricao" | "chamada" | "cor" | "posicao" | "ativa" | "campanha" | "edicao" | "temporada" | "paleta" | "campanhaAtiva">;
+
+/** Os campos sem estado próprio, como estão no formulário (para salvar e para a prévia). */
+function lerCampos(f: FormData): Campos {
+  const texto = (nome: string) => String(f.get(nome) ?? "").trim() || null;
+  return {
+    descricao: texto("descricao"), chamada: texto("chamada"), cor: String(f.get("cor") ?? "LIMAO"),
+    posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
+    campanha: texto("campanha"), edicao: texto("edicao"), temporada: texto("temporada"),
+    paleta: String(f.get("paleta") ?? "CLUB") as Campos["paleta"], campanhaAtiva: f.get("campanhaAtiva") === "on",
+  };
+}
+
+function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao: Colecao | null; colecoes: Colecao[]; aoFechar: () => void; aoSalvar: () => void }) {
   const [nome, setNome] = useState(colecao?.nome ?? "");
   const [slug, setSlug] = useState(colecao?.slug ?? "");
   const [capa, setCapa] = useState<string | null>(colecao?.capa?.caminho ?? null);
@@ -54,10 +68,17 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
   const [capitulos, setCapitulos] = useState<CapituloForm[]>(
     (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, texto: k.texto ?? "", foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
   const { ocupado, erro, setErro, enviar } = useEnvio(aoSalvar);
+  // O resto do formulário, lido a cada mudança, para a prévia na loja
+  const [campos, setCampos] = useState<Campos>(() => ({
+    descricao: colecao?.descricao ?? null, chamada: colecao?.chamada ?? null, cor: colecao?.cor ?? "LIMAO",
+    posicao: colecao?.posicao ?? 0, ativa: colecao?.ativa ?? true, campanha: colecao?.campanha ?? null, edicao: colecao?.edicao ?? null,
+    temporada: colecao?.temporada ?? null, paleta: colecao?.paleta ?? "CLUB", campanhaAtiva: colecao?.campanhaAtiva ?? false,
+  }));
 
   function salvar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const c = lerCampos(f);
     const alt = String(f.get("alt") ?? "").trim();
     if (!nome.trim() || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return setErro("Confira o nome e o endereço (só letras sem acento, números e hífen).");
     if (capa && !alt) return setErro("Descreva a capa para quem usa leitor de tela.");
@@ -66,14 +87,11 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
     const preenchidos = capitulos.filter((k) => k.rotulo.trim() || k.titulo.trim() || k.foto || k.produtos.length);
     if (preenchidos.some((k) => !k.rotulo.trim() || !k.titulo.trim())) return setErro("Cada capítulo precisa do nome (ex.: Mattina — Mercato) e do título.");
     if (preenchidos.some((k) => k.foto && !k.alt.trim())) return setErro("Descreva a foto de cada capítulo para quem usa leitor de tela.");
-    const campanhaAtiva = f.get("campanhaAtiva") === "on";
-    if (campanhaAtiva && !String(f.get("campanha") ?? "").trim()) return setErro("Para ligar a campanha, preencha o nome dela.");
+    if (c.campanhaAtiva && !c.campanha) return setErro("Para ligar a campanha, preencha o nome dela.");
     const corpo = {
-      nome: nome.trim(), slug, descricao: String(f.get("descricao") ?? "").trim() || null,
-      chamada: String(f.get("chamada") ?? "").trim() || null, cor: String(f.get("cor")),
-      capa: capa ? { caminho: capa, alt } : null, posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
-      campanha: String(f.get("campanha") ?? "").trim() || null, edicao: String(f.get("edicao") ?? "").trim() || null,
-      temporada: String(f.get("temporada") ?? "").trim() || null, paleta: String(f.get("paleta") ?? "CLUB"), campanhaAtiva,
+      nome: nome.trim(), slug, descricao: c.descricao, chamada: c.chamada, cor: c.cor,
+      capa: capa ? { caminho: capa, alt } : null, posicao: c.posicao, ativa: c.ativa,
+      campanha: c.campanha, edicao: c.edicao, temporada: c.temporada, paleta: c.paleta, campanhaAtiva: c.campanhaAtiva,
       capaCelular: capaCelular ? { caminho: capaCelular, alt: altCelular } : null,
       fotoStory: fotoStory ? { caminho: fotoStory } : null,
       capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), texto: k.texto.trim() || null, foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
@@ -84,45 +102,54 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
   return (
     <section className="card" style={{ marginBottom: 16 }} aria-label={colecao ? `Editar ${colecao.nome}` : "Nova coleção"}>
       <h2>{colecao ? `Editar ${colecao.nome}` : "Nova coleção"}</h2>
-      <form className="form-grid" onSubmit={salvar} noValidate>
-        <Campo name="nome" rotulo="Nome" maxLength={60} value={nome} onChange={(e) => { setNome(e.target.value); if (!colecao) setSlug(paraSlug(e.target.value)); }} />
-        <Campo name="slug" rotulo="Endereço (/colecao/…)" maxLength={80} value={slug} onChange={(e) => setSlug(paraSlug(e.target.value))} />
-        <div className="full"><Campo name="descricao" rotulo="Texto curto (opcional)" maxLength={160} defaultValue={colecao?.descricao ?? ""} /></div>
-        <div className="full"><Campo name="chamada" rotulo="Chamada da faixa verde (opcional)" maxLength={120} defaultValue={colecao?.chamada ?? ""}
-          ajuda="Uma frase sobre o universo da coleção, sem repetir o nome. Ex.: Limões, listras e o verão italiano que não acaba." /></div>
-        <Escolha name="cor" rotulo="Cor da coleção" defaultValue={colecao?.cor ?? "LIMAO"} opcoes={CORES.map(([v, t]) => [v, t] as const)} ajuda="Só as 5 cores aprovadas (D18)." />
-        <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(colecao?.posicao ?? 0)} />
-        <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa" /></div>
-        {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
-        <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
-        <div className="full">
-          <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início, quadrada)" />
-          <p className="field-help">{fotoStory ? "O círculo mostra o centro desta foto." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
-          {fotoStory && <Botao variante="link" onClick={() => setFotoStory(null)}>Voltar para a peça mais nova</Botao>}
-        </div>
+      <div className="com-previa">
+        <form className="form-grid" onSubmit={salvar} onChange={(e) => setCampos(lerCampos(new FormData(e.currentTarget)))} noValidate>
+          <Campo name="nome" rotulo="Nome" maxLength={60} value={nome} onChange={(e) => { setNome(e.target.value); if (!colecao) setSlug(paraSlug(e.target.value)); }} />
+          <Campo name="slug" rotulo="Endereço (/colecao/…)" maxLength={80} value={slug} onChange={(e) => setSlug(paraSlug(e.target.value))} />
+          <div className="full"><Campo name="descricao" rotulo="Texto curto (opcional)" maxLength={160} defaultValue={colecao?.descricao ?? ""} /></div>
+          <div className="full"><Campo name="chamada" rotulo="Chamada da faixa verde (opcional)" maxLength={120} defaultValue={colecao?.chamada ?? ""}
+            ajuda="Uma frase sobre o universo da coleção, sem repetir o nome. Ex.: Limões, listras e o verão italiano que não acaba." /></div>
+          <Escolha name="cor" rotulo="Cor da coleção" defaultValue={colecao?.cor ?? "LIMAO"} opcoes={CORES.map(([v, t]) => [v, t] as const)} ajuda="Só as 5 cores aprovadas (D18)." />
+          <Campo name="posicao" rotulo="Ordem" inputMode="numeric" maxLength={4} defaultValue={String(colecao?.posicao ?? 0)} />
+          <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa" /></div>
+          {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
+          <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
+          <div className="full">
+            <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início, quadrada)" />
+            <p className="field-help">{fotoStory ? "O círculo mostra o centro desta foto." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
+            {fotoStory && <Botao variante="link" onClick={() => setFotoStory(null)}>Voltar para a peça mais nova</Botao>}
+          </div>
 
-        <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
-        <p className="field-help full" style={{ marginTop: -6 }}>
-          Grave tudo com a campanha desligada e ligue quando as fotos limpas (sem texto dentro) estiverem aprovadas: aí a página da coleção vira capítulo de campanha, com a foto, a campanha, a coleção, o manifesto e os capítulos.
-        </p>
-        <div className="full"><Marcar name="campanhaAtiva" rotulo="Campanha ligada na loja" defaultChecked={colecao?.campanhaAtiva ?? false} /></div>
-        <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
-        <Escolha name="paleta" rotulo="Paleta da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Cada campanha pode ter a sua (D36)." />
-        <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
-        <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="SS26" />
-        <div className="full"><EnvioFoto destino="colecao" caminho={capaCelular} aoEnviar={setCapaCelular} rotulo="Foto do celular (4:5, sem texto)" /></div>
-        {capaCelular && <div className="full"><Campo name="altCelular" rotulo="Descrição da foto do celular" maxLength={200} defaultValue={colecao?.capaCelular?.alt ?? ""} /></div>}
+          <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
+          <p className="field-help full" style={{ marginTop: -6 }}>
+            Grave tudo com a campanha desligada e ligue quando as fotos limpas (sem texto dentro) estiverem aprovadas: aí a página da coleção vira capítulo de campanha, com a foto, a campanha, a coleção, o manifesto e os capítulos.
+          </p>
+          <div className="full"><Marcar name="campanhaAtiva" rotulo="Campanha ligada na loja" defaultChecked={colecao?.campanhaAtiva ?? false} /></div>
+          <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
+          <Escolha name="paleta" rotulo="Paleta da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Cada campanha pode ter a sua (D36)." />
+          <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
+          <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="SS26" />
+          <div className="full"><EnvioFoto destino="colecao" caminho={capaCelular} aoEnviar={setCapaCelular} rotulo="Foto do celular (4:5, sem texto)" /></div>
+          {capaCelular && <div className="full"><Campo name="altCelular" rotulo="Descrição da foto do celular" maxLength={200} defaultValue={colecao?.capaCelular?.alt ?? ""} /></div>}
 
-        <h3 className="full" style={{ marginTop: 10 }}>Capítulos (até 3)</h3>
-        {colecao
-          ? <Capitulos colecaoId={colecao.id} capitulos={capitulos} mudar={setCapitulos} />
-          : <p className="field-help full">Salve a coleção e cadastre as peças; depois os capítulos aparecem aqui.</p>}
-        {erro && <p role="alert" className="field-error full">{erro}</p>}
-        <div className="actions full">
-          <Botao type="submit" carregando={ocupado}>Salvar coleção</Botao>
-          <Botao variante="link" onClick={aoFechar}>Cancelar</Botao>
+          <h3 className="full" style={{ marginTop: 10 }}>Capítulos (até 3)</h3>
+          {colecao
+            ? <Capitulos colecaoId={colecao.id} capitulos={capitulos} mudar={setCapitulos} />
+            : <p className="field-help full">Salve a coleção e cadastre as peças; depois os capítulos aparecem aqui.</p>}
+          {erro && <p role="alert" className="field-error full">{erro}</p>}
+          <div className="actions full">
+            <Botao type="submit" carregando={ocupado}>Salvar coleção</Botao>
+            <Botao variante="link" onClick={aoFechar}>Cancelar</Botao>
+          </div>
+        </form>
+        <div className="com-previa-lado">
+          <PreviaColecao outras={colecoes} r={{
+            ...campos, id: colecao?.id ?? null, nome, slug,
+            capa: capa ? { caminho: capa } : null, capaCelular: capaCelular ? { caminho: capaCelular } : null, fotoStory: fotoStory ? { caminho: fotoStory } : null,
+            produtos: colecao?.produtos ?? 0, pecaMaisNova: colecao?.pecaMaisNova ?? null,
+          }} />
         </div>
-      </form>
+      </div>
     </section>
   );
 }
