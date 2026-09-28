@@ -24,6 +24,9 @@ const cartao = {
   ],
 };
 colecao.fotos = [cartao.capa];
+// Segunda coleção com capa de campanha (sem peças): o carrossel do início tem 2 slides.
+const colecao2 = { id: "c0000000-0000-4000-8000-000000000002", nome: "Sardines Club", slug: "sardines-club", descricao: "A little salty.", chamada: null, cor: "MEDITERRANEO",
+  capa: { caminho: "campanha-limone.webp", alt: "Mare, Amore! Riviera SS26" }, produtos: 0, fotos: [] };
 const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
 const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
@@ -100,7 +103,7 @@ http.createServer(async (req, res) => {
     let x;
 
     if (m === "GET" && p === "v1/catalog/home") return responder(res, 200, home);
-    if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao]);
+    if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao, colecao2]);
     // Lista VIP (0390): cupom de boas-vindas de 10% valendo
     if (m === "GET" && p === "v1/catalog/vip") return responder(res, 200, { beneficio: { modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
     if (m === "POST" && p === "v1/vip") {

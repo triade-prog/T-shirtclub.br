@@ -10,11 +10,14 @@ import { textoOferta } from "@/lib/vitrine";
 import { ProgressoDaSacola } from "./_sacola/ProgressoDaSacola";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
+import { CarrosselCapas } from "./_vitrine/CarrosselCapas";
 import { MosaicoPecas } from "./_vitrine/MosaicoPecas";
 
 // Início editorial (F2.9, tela 1; V4 em docs/design/v4/home.html). A ordem e o conteúdo dos
 // blocos vêm do painel (/v1/catalog/home); sem catálogo, fica a apresentação da marca. Sem foto
-// de campanha, a capa mostra as peças mais novas (28/09: a metade direita ficava vazia).
+// de campanha, a capa mostra as peças mais novas (28/09: a metade direita ficava vazia). Com
+// coleções com capa (os banners de campanha), a capa vira um carrossel com um slide por coleção,
+// e o bloco de coleções vira uma linha compacta de atalhos (28/09).
 export default async function Inicio() {
   await connection();
   const blocos = (await buscarCatalogo<BlocoInicio[]>("v1/catalog/home")) ?? [];
@@ -23,12 +26,20 @@ export default async function Inicio() {
   const sacola = (await cookies()).get(COOKIE_SACOLA)?.value;
   const temCampanha = blocos.some((b) => b.tipo === "CAMPANHA" && b.conteudo);
   const primeiraVitrine = blocos.findIndex((b) => (b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS") && b.conteudo.length > 0);
-  const pecasDaCapa = temCampanha ? [] : fotosDasVitrines(blocos);
+  const colecoes = (await buscarCatalogo<Colecao[]>("v1/catalog/collections")) ?? [];
+  const slides = temCampanha ? [] : colecoes.filter((c) => c.capa).map((c) => ({ slug: c.slug, nome: c.nome, foto: urlFoto(c.capa!.caminho), alt: c.capa!.alt ?? c.nome }));
+  const pecasDaCapa = temCampanha || slides.length > 0 ? [] : fotosDasVitrines(blocos);
 
   return (
     <>
       <AvisoInstalarIphone />
-      {!temCampanha && <Capa oferta={oferta} fotos={pecasDaCapa} />}
+      {!temCampanha && (slides.length > 0 ? (
+        <>
+          {/* O título da capa está nos banners; o da página fica para o leitor de tela */}
+          <h1 className="sr-only">T-shirt Club.br: você faz o Club</h1>
+          <CarrosselCapas slides={slides} />
+        </>
+      ) : <Capa oferta={oferta} fotos={pecasDaCapa} />)}
       {blocos.map((b, i) => {
         switch (b.tipo) {
           case "CAMPANHA":
@@ -36,7 +47,7 @@ export default async function Inicio() {
           case "NOVIDADES":
           case "PRODUTOS": {
             if (b.conteudo.length === 0) return null;
-            const prioridade = i === primeiraVitrine && !temCampanha && pecasDaCapa.length === 0;
+            const prioridade = i === primeiraVitrine && !temCampanha && slides.length === 0 && pecasDaCapa.length === 0;
             const id = i === primeiraVitrine ? "novidades" : undefined;
             return (
               <Secao key={i} id={id} sobretitulo={b.tipo === "NOVIDADES" ? "Curadoria da semana" : "Coleção"} titulo={b.titulo ?? "Club Picks"}>
@@ -132,30 +143,29 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
   );
 }
 
+// Atalhos para cada Club logo abaixo da capa (28/09, no lugar dos cartões grandes): círculos
+// com a peça mais nova da coleção (a capa de campanha tem texto e não cabe no círculo); no
+// celular, a linha desliza para o lado.
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
   return (
-    <Secao sobretitulo="Drops com universo próprio" titulo={titulo ?? "Coleções"}>
-      {/* 3 ou 6 coleções em fileiras de 3; o resto, de 4 (sem sobrar um cartão sozinho na fileira) */}
-      <ul className={`m-0 grid list-none grid-cols-2 gap-4 p-0 ${colecoes.length % 3 === 0 && colecoes.length % 4 !== 0 ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
+    <section aria-labelledby="inicio-colecoes" className="px-3.5 py-8 md:px-5 md:py-12">
+      <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Coleções"}</h2>
+      <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
         {colecoes.map((c) => {
-          // Sem foto de campanha, a peça mais nova da coleção (0400)
-          const foto = c.capa ?? c.fotos?.[0];
+          const foto = c.fotos?.[0] ?? c.capa;
           return (
-            <li key={c.id}>
-              <Link
-                href={`/colecao/${c.slug}`}
-                className={`col-${c.cor.toLowerCase()} relative block min-h-[250px] overflow-hidden rounded-cartao border-2 border-tinta bg-colecao-fundo shadow-adesivo md:min-h-[340px]`}
-              >
-                {foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 25vw, 50vw" className="object-cover" />}
-                <span className="absolute inset-x-0 bottom-0 grid gap-0.5 bg-linear-to-t from-tinta/75 to-transparent px-4 pb-4 pt-16 text-papel">
-                  <span className="font-editorial text-[26px] font-bold leading-none tracking-[-0.04em]">{c.nome}</span>
+            <li key={c.id} className="shrink-0 snap-start">
+              <Link href={`/colecao/${c.slug}`} className="group grid w-24 justify-items-center gap-2 text-center md:w-32">
+                <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
+                  {foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 112px, 80px" className="object-cover" />}
                 </span>
+                <span className="font-editorial text-[15px] font-bold leading-tight tracking-[-0.02em] md:text-lg">{c.nome}</span>
               </Link>
             </li>
           );
         })}
       </ul>
-    </Secao>
+    </section>
   );
 }
 
