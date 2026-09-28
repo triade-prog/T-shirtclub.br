@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { ProgressoClub, Selo, Sobretitulo } from "@tshirtclub/ui";
+import { Selo, Sobretitulo } from "@tshirtclub/ui";
 import { buscarCatalogo, urlFoto, type BlocoInicio, type Colecao, type Look, type OfertaClub } from "@/lib/catalogo";
+import { COOKIE_SACOLA } from "@/lib/sacola";
 import { textoOferta } from "@/lib/vitrine";
+import { ProgressoDaSacola } from "./_sacola/ProgressoDaSacola";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
 
@@ -15,6 +18,7 @@ export default async function Inicio() {
   const blocos = (await buscarCatalogo<BlocoInicio[]>("v1/catalog/home")) ?? [];
   const club = blocos.find((b) => b.tipo === "MONTE_SEU_CLUB")?.conteudo as OfertaClub | undefined;
   const oferta = textoOferta(club);
+  const sacola = (await cookies()).get(COOKIE_SACOLA)?.value;
   const temCampanha = blocos.some((b) => b.tipo === "CAMPANHA" && b.conteudo);
   const primeiraVitrine = blocos.findIndex((b) => (b.tipo === "NOVIDADES" || b.tipo === "PRODUTOS") && b.conteudo.length > 0);
 
@@ -53,10 +57,10 @@ export default async function Inicio() {
           case "LOOKS":
             return b.conteudo.length > 0 ? <Looks key={i} titulo={b.titulo} looks={b.conteudo} /> : null;
           case "MONTE_SEU_CLUB":
-            return <MonteSeuClub key={i} oferta={b.conteudo} />;
+            return <MonteSeuClub key={i} oferta={b.conteudo} sacola={sacola} />;
         }
       })}
-      {!club && <MonteSeuClub />}
+      {!club && <MonteSeuClub sacola={sacola} />}
     </>
   );
 }
@@ -149,7 +153,7 @@ function Looks({ titulo, looks }: { titulo: string | null; looks: Look[] }) {
   );
 }
 
-function MonteSeuClub({ oferta }: { oferta?: OfertaClub }) {
+function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string }) {
   const preco = oferta ? formatarReais(oferta.precoCentavos) : "R$ 119,99";
   const qtd = oferta?.qtd ?? 3;
   return (
@@ -166,7 +170,7 @@ function MonteSeuClub({ oferta }: { oferta?: OfertaClub }) {
             Escolher minhas {qtd}
           </Link>
         </div>
-        <ProgressoClub pecas={0} titulo={`Escolha ${qtd} peças.`} texto={`A cada ${qtd}, o preço do Club entra sozinho: ${preco} pelas ${qtd}.`} />
+        <ProgressoDaSacola qtd={qtd} preco={preco} inicial={sacola} titulo={`Escolha ${qtd} peças.`} texto={`A cada ${qtd}, o preço do Club entra sozinho: ${preco} pelas ${qtd}.`} />
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { formatarReais } from "@tshirtclub/domain";
 import { CardProduto as Cartao } from "@tshirtclub/ui";
 import { urlFoto, type CartaoProduto } from "@/lib/catalogo";
 import { tamanhoRapido, textoSelo } from "@/lib/vitrine";
+import { FormSacola } from "../_sacola/FormSacola";
 import { BotaoFavorito } from "./BotaoFavorito";
 
 /** O cartão da vitrine (packages/ui) com a foto otimizada, o favoritar e o adicionar à sacola. */
@@ -35,14 +36,14 @@ export function CardProduto({ produto, oferta, prioridade }: { produto: CartaoPr
       )}
       favorito={<BotaoFavorito slug={produto.slug} nome={produto.nome} className="tc-alvo absolute right-2.5 top-2.5 size-9.5" />}
       acao={produto.selo !== "ESGOTADO" && (rapido ? (
-        // A sacola (fatia 3) recebe a peça por aqui; sem JavaScript também funciona.
-        <form action="/sacola" method="get" className="absolute bottom-2.5 right-2.5">
+        // Entra na sacola sem sair da página; sem JavaScript, o GET /sacola de sempre.
+        <FormSacola nome={produto.nome} className="absolute bottom-2.5 right-2.5">
           <input type="hidden" name="adicionar" value={produto.slug} />
           <input type="hidden" name="tamanho" value={rapido.tamanho.toLowerCase()} />
           <button type="submit" aria-label={`Adicionar ${produto.nome} (${rapido.rotulo}) à sacola`} className={estiloMais}>
             <Plus aria-hidden="true" className="size-5" strokeWidth={1.8} />
           </button>
-        </form>
+        </FormSacola>
       ) : (
         <Link href={`/produto/${produto.slug}?escolha=tamanho#tamanho`} aria-label={`Escolher o tamanho de ${produto.nome}`} className={`${estiloMais} absolute! bottom-2.5 right-2.5`}>
           <Plus aria-hidden="true" className="size-5" strokeWidth={1.8} />

@@ -41,7 +41,8 @@ export function CardProduto({ nome, href, colecao, preco, precoOriginal, oferta,
         <Link href={href} tabIndex={-1} aria-hidden="true" className="absolute inset-0">
           {foto}
         </Link>
-        {selo && <Selo fundo="citrino" className="absolute left-2.5 top-2.5">{selo}</Selo>}
+        {/* Para antes do favoritar: selo longo ("Última unidade") quebra a linha em vez de ficar por baixo */}
+        {selo && <Selo fundo="citrino" className="absolute left-2.5 top-2.5 max-w-[calc(100%-4.25rem)]">{selo}</Selo>}
         {favorito}
         {acao}
       </div>
