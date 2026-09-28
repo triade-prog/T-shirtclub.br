@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUp, MessageCircle } from "lucide-react";
@@ -22,14 +23,17 @@ export function RodapeTroca({ completo, colecoes, whatsapp, numero, empresa }: {
   if (!atual) return completo;
 
   // Sem campanha: o tom escuro da cor da coleção, com texto branco (contraste acima de 5:1 nas 5
-  // cores). Com campanha: a cor estrutural da paleta, com a base e o acento dela (conferidos na D36).
+  // cores; text-branco, porque o tema não tem text-white). Com campanha: a cor estrutural da
+  // paleta, com a base e o acento dela (conferidos na D36). O logo no lugar do nome escrito (28/09).
   const campanha = atual.campanhaLigada;
   const link = "inline-flex min-h-11 items-center underline-offset-4 hover:underline";
   return (
     <footer className={cx("mt-16", `col-${atual.cor.toLowerCase()}`, campanha && universoDaPaleta(atual.paleta).classe)}>
-      <div className={cx(campanha ? "border-t-4 border-camp-limao bg-camp-azul text-camp-base" : "border-t-4 border-colecao bg-colecao-tinta text-white")}>
+      <div className={cx(campanha ? "border-t-4 border-camp-limao bg-camp-azul text-camp-base" : "border-t-4 border-colecao bg-colecao-tinta text-branco")}>
         <div className="mx-auto grid max-w-7xl gap-x-10 gap-y-4 px-3.5 py-7 md:grid-cols-[auto_1fr] md:items-start md:px-5">
-          <Link href="/" className="tc-titulo inline-flex min-h-11 items-center text-[26px] leading-none">T-SHIRT CLUB.</Link>
+          <Link href="/" aria-label="T-shirt Club.br" className="inline-flex min-h-11 items-center">
+            <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-12 w-auto md:h-14" />
+          </Link>
           <div className="grid gap-1 text-[13px]">
             <nav aria-label="Coleções">
               <ul className="m-0 flex list-none flex-wrap gap-x-5 p-0">

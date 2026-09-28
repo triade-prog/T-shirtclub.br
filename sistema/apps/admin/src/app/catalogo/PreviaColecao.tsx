@@ -2,7 +2,7 @@
 
 import {
   BotaoCampanha, BotaoPecas, ConteudoSlide, FaixaChamada, PickYourStory, TopoCampanha, TopoColecaoBanner, TopoColecaoSimples,
-  classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha,
+  classeFotoStory, classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha,
 } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import type { Colecao } from "@/lib/tiposCatalogo";
@@ -50,9 +50,9 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
   const linhaStory = [
     ...outras.filter((c) => c.ativa && c.id !== r.id).map((c) => ({
       id: c.id, nome: c.nome, posicao: c.posicao, cor: c.cor, campanha: c.campanhaAtiva ? c.campanha : null,
-      foto: c.fotoStory ?? c.pecaMaisNova ?? c.capa, apagado: true,
+      foto: c.fotoStory ?? c.pecaMaisNova ?? c.capa, escolhida: Boolean(c.fotoStory), apagado: true,
     })),
-    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, campanha: campanhaLigada ? r.campanha : null, foto: r.fotoStory ?? r.pecaMaisNova ?? r.capa, apagado: false }] : []),
+    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, campanha: campanhaLigada ? r.campanha : null, foto: r.fotoStory ?? r.pecaMaisNova ?? r.capa, escolhida: Boolean(r.fotoStory), apagado: false }] : []),
   ].sort((a, b) => a.posicao - b.posicao || a.nome.localeCompare(b.nome, "pt-BR"));
 
   return (
@@ -74,7 +74,7 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
       {r.ativa
         ? <PickYourStory titulo={null} itens={linhaStory.map((c) => ({
             id: c.id, nome: c.nome, href: "#", cor: c.cor, campanha: c.campanha, apagado: c.apagado,
-            foto: c.foto && <Img foto={c.foto} className="absolute inset-0 size-full object-cover" />,
+            foto: c.foto && <Img foto={c.foto} className={classeFotoStory(c.escolhida)} />,
           }))} />
         : <Nota>Coleção inativa: não aparece no Pick your story nem na loja.</Nota>}
 

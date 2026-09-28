@@ -17,6 +17,15 @@ export interface ItemPickYourStory {
 }
 
 /**
+ * Classe da foto do círculo. A escolhida no painel (0440) aparece inteira, com uma folga, sobre a
+ * cor da coleção: são letterings com fundo transparente, que o recorte redondo cortava nas bordas.
+ * A peça mais nova, uma foto comum, preenche o círculo.
+ */
+export function classeFotoStory(escolhida: boolean): string {
+  return escolhida ? "absolute inset-0 size-full object-contain p-2 md:p-3" : "absolute inset-0 size-full object-cover";
+}
+
+/**
  * Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a foto
  * escolhida no painel (0440) ou a peça mais nova da coleção; com a campanha ligada, o nome dela
  * aparece em cima do da coleção. No celular, a linha desliza para o lado. É a mesma linha na loja

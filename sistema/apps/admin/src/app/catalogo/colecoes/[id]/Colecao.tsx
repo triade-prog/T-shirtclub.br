@@ -122,8 +122,8 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
           {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
           <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
           <div className="full">
-            <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início, quadrada)" />
-            <p className="field-help">{fotoStory ? "O círculo mostra o centro desta foto." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
+            <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início)" />
+            <p className="field-help">{fotoStory ? "O círculo mostra a foto inteira, sobre a cor da coleção (lettering com fundo transparente fica melhor)." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
             {fotoStory && <Botao variante="link" onClick={() => setFotoStory(null)}>Voltar para a peça mais nova</Botao>}
           </div>
 

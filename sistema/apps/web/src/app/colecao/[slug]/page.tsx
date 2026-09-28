@@ -175,7 +175,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
               Do drop<br />para o seu <em className="text-rosa-press">look.</em>
             </h2>
             <p className="m-0 max-w-[40ch] text-[13px] leading-relaxed text-tinta-suave">
-              {colecao.nome} é campanha, não uniforme. Use com jeans, alfaiataria, saia ou como quiser: a coleção muda de contexto junto com você.
+              {colecao.nome} não é uniforme. Use com jeans, alfaiataria, saia ou como quiser: a T-shirt muda de contexto junto com você.
             </p>
           </div>
           <div className="relative min-h-[430px] overflow-hidden rounded-[22px] border-2 border-tinta">
