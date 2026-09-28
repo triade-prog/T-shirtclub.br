@@ -1,7 +1,7 @@
 // Leitura do catálogo no servidor (páginas geradas no servidor, G17): chama a api-public
 // direto, com o segredo de repasse, sem passar pelo /api do navegador. Falha vira null e a
 // página mostra o estado sem dados, nunca um erro 500.
-import type { ItemCarrinho, ResultadoPreco, Tamanho } from "@tshirtclub/domain";
+import type { BeneficioVip, ItemCarrinho, ResultadoPreco, Tamanho } from "@tshirtclub/domain";
 import { ipReal, opcoesLoja } from "@tshirtclub/servidor/repasse";
 
 export type Selo = "DISPONIVEL" | "ULTIMAS_UNIDADES" | "ESGOTADO";
@@ -111,4 +111,9 @@ export async function buscarOfertaClub(): Promise<OfertaClub | null> {
 /** URL pública da foto no bucket catalogo (leitura pública, envio só por URL assinada). */
 export function urlFoto(caminho: string): string {
   return `${process.env.ORIGEM_IMAGENS ?? ""}/storage/v1/object/public/catalogo/${caminho}`;
+}
+
+/** Benefício do cupom de boas-vindas da Lista VIP (sem o código), para o pop-up e o rodapé. */
+export async function buscarOfertaVip(): Promise<BeneficioVip | null> {
+  return (await buscarCatalogo<{ beneficio: BeneficioVip | null }>("v1/catalog/vip"))?.beneficio ?? null;
 }

@@ -13,6 +13,7 @@ import { rotasPainel, type DepsPainel } from "./painel.ts";
 import { rotasWhatsappAdmin } from "./whatsapp.ts";
 import { rotasConta } from "./conta.ts";
 import { rotasComercial } from "./comercial.ts";
+import { rotasVipAdmin } from "./vip.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & {
   /** Revalidação ao publicar; sem ela, a loja atualiza o catálogo em até 60 s. */
@@ -21,7 +22,8 @@ export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & Dep
 
 // Rotas que mudam o que a loja mostra: peças (com fotos, tamanhos e estoque), coleções, looks,
 // blocos da página inicial, promoções e os nomes dos tamanhos.
-const CATALOGO = /^\/v1\/admin\/(products|collections|looks|home-blocks|promotions|settings\/tamanhos)(\/|$)/;
+// O cupom da lista VIP muda o texto do rodapé e do pop-up da loja
+const CATALOGO = /^\/v1\/admin\/(products|collections|looks|home-blocks|promotions|settings\/tamanhos|vip\/config)(\/|$)/;
 
 export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   const app = criarApp<VarsAdmin>("api-admin", segredo);
@@ -51,6 +53,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasWhatsappAdmin(app, deps);
   rotasConta(app, deps);
   rotasComercial(app, deps);
+  rotasVipAdmin(app, deps.banco);
 
   return app;
 }

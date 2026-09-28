@@ -94,7 +94,7 @@ test("consulta: pede o WhatsApp, acessível", async ({ page }) => {
 // Política de privacidade (P15): o rodapé e o aviso da reserva apontam para ela; antes dava 404.
 test("privacidade: o link do rodapé abre a política, acessível", async ({ page }) => {
   await page.goto(LOJA);
-  await page.getByRole("contentinfo").getByRole("link", { name: "Privacidade" }).click();
+  await page.getByRole("contentinfo").getByRole("link", { name: "Privacidade", exact: true }).click();
   await expect(page).toHaveURL(`${LOJA}/privacidade`);
   await expect(page.getByRole("heading", { level: 1, name: "Política de privacidade." })).toBeVisible();
   await expect(page.getByRole("main").getByRole("heading", { level: 2 })).toHaveCount(9);

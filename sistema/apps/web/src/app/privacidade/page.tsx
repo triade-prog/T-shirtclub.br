@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { idAnuncios } from "@/lib/anuncios";
+import { EMPRESA } from "@/lib/empresa";
 import { MudarEscolha } from "../_anuncios/MudarEscolha";
 
 export const metadata: Metadata = { title: "Política de privacidade" };
@@ -10,15 +11,8 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 // com o que o sistema faz de verdade (sacola em cookie, favoritos só no navegador, prazos de guarda
 // da F11). Dados da empresa (E6), encarregado e prazo fiscal informados pela loja em 27/09;
 // o texto final passa pela revisão jurídica antes de a P15 fechar.
-const EMPRESA = {
-  razaoSocial: "Carolina Soares Santana",
-  cnpj: "60.814.144/0001-03",
-  endereco: "2ª Travessa Palestina, Centro, Caetité (BA), CEP 46400-153",
-  emailEncarregado: "contato@grouptriade.com.br",
-  nomeEncarregado: "Carolina Soares Santana",
-  prazoFiscal: "5 anos",
-  atualizadaEm: "27/09/2026",
-};
+
+const ATUALIZADA_EM = "27/09/2026";
 
 export default async function Privacidade() {
   // Gerada a cada pedido, como as outras: estática, sairia sem o nonce da CSP (D29)
@@ -29,7 +23,7 @@ export default async function Privacidade() {
     <article className="mx-auto grid max-w-3xl gap-8 px-4 pb-14 pt-8 md:px-5 md:pt-12">
       <header className="grid gap-3">
         <h1 className="tc-titulo m-0 text-[clamp(40px,6vw,64px)]">Política de <em>privacidade.</em></h1>
-        <p className="m-0 text-sm text-tinta-suave">Última atualização: {EMPRESA.atualizadaEm}</p>
+        <p className="m-0 text-sm text-tinta-suave">Última atualização: {ATUALIZADA_EM}</p>
       </header>
 
       <Secao titulo="1. Quem cuida dos seus dados">
@@ -48,6 +42,7 @@ export default async function Privacidade() {
             direto no ambiente do Mercado Pago; a loja não vê nem guarda o número do cartão.
           </li>
           <li>Mensagens que você envia ao WhatsApp da loja para pedir o código ou consultar sua reserva.</li>
+          <li>Se você entrar na Lista VIP: o WhatsApp, o nome (se quiser informar) e a data em que aceitou receber as novidades.</li>
           <li>
             Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos
             como pedidos repetidos de código, e a verificação anti-robô da Cloudflare (Turnstile).
@@ -70,6 +65,10 @@ export default async function Privacidade() {
           <li>
             Guardar os registros de vendas exigidos pela legislação fiscal e de consumo: cumprimento de obrigação legal
             (art. 7º, II).
+          </li>
+          <li>
+            Mandar novidades, drops e ofertas pelo WhatsApp, só para quem entrou na Lista VIP: consentimento (art. 7º, I),
+            que você retira quando quiser pedindo pelo WhatsApp da loja.
           </li>
           {anuncios && (
             <li>
@@ -112,6 +111,7 @@ export default async function Privacidade() {
           </li>
           <li>Mensagens que você enviou ao WhatsApp da loja pelo sistema: o texto é apagado em até 90 dias.</li>
           <li>Endereço de entrega: 90 dias depois da entrega; depois fica só a cidade.</li>
+          <li>Lista VIP: até você pedir para sair; ao sair, o contato é apagado.</li>
           <li>
             Reservas, pedidos e pagamentos: pelo prazo exigido pela legislação fiscal e de consumo
             ({EMPRESA.prazoFiscal}). Depois, são anonimizados.

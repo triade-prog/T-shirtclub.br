@@ -23,7 +23,8 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   snapshotPathTemplate: "tests/e2e/__telas__/{testFilePath}/{arg}-{projectName}{ext}",
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001, animations: "disabled" } },
-  use: { trace: "retain-on-failure", ...chromiumLocal },
+  // O pop-up da Lista VIP fica "fechado há pouco" em todos os testes; vip.spec.ts começa sem isso
+  use: { trace: "retain-on-failure", storageState: "tests/e2e/estado-inicial.json", ...chromiumLocal },
   projects: [
     { name: "android", use: { ...devices["Pixel 7"], ...chromiumLocal } },
     { name: "iphone", use: { ...devices["iPhone 14"], browserName: "chromium", ...chromiumLocal } },

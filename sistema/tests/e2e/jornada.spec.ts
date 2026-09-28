@@ -62,8 +62,8 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();
   await expect(page.getByText("Escreva seu nome.")).toBeVisible();
   await semViolacoes(page, "seus dados com erros");
-  await page.getByLabel("Nome").fill("Carol Teste");
-  await page.getByLabel("WhatsApp").fill("(77) 99812-8809");
+  await page.getByLabel("Nome", { exact: true }).fill("Carol Teste");
+  await page.getByLabel("WhatsApp", { exact: true }).first().fill("(77) 99812-8809");
   await page.getByText("Retirar na loja").click();
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();
 

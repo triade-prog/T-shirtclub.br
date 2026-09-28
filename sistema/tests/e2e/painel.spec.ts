@@ -20,7 +20,7 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
   expect(erros).toEqual([]);
 });
 
-const TELAS = ["/", "/operacao", "/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/whatsapp", "/auditoria", "/conta"];
+const TELAS = ["/", "/operacao", "/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/vip", "/whatsapp", "/auditoria", "/conta"];
 
 test("sem sessão, as telas vão para o login e voltam depois", async ({ page }) => {
   await page.goto(`${PAINEL}/`);
@@ -121,4 +121,51 @@ test("cadastro da peça: prévia, checklist, Club e acessível", async ({ page, 
     ],
   });
   expect(enviados[1]!.corpo).toMatchObject({ escopo: "ESPECIFICOS", produtos: [{ produtoId: OUTRA }, { produtoId: PECA }], grupo: { qtd: 3, precoCentavos: 11999 } });
+});
+
+// Lista VIP (0390) com a api-admin simulada: lista, cupom de boas-vindas, exportar e tirar da lista.
+test("Lista VIP: contatos, cupom de boas-vindas, exportar planilha e tirar da lista", async ({ page, context }) => {
+  const ID = "44444444-4444-4444-8444-444444444444";
+  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+    "v1/admin/vip": { total: 1, itens: [{ id: ID, telefone: "+5577998128809", nome: "Marina", origem: "POPUP", em: "2026-09-28T01:00:00Z" }] },
+    "v1/admin/vip/config": { cupom: null, valendo: false, contatos: 1, cupons: [{ codigo: "VIP10", nome: "Boas-vindas VIP", modo: "PERCENTUAL", valor: 10, situacao: "ATIVA" }] },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (r.method() !== "GET") {
+      enviados.push({ metodo: r.method(), caminho, corpo: r.postData() ? r.postDataJSON() : null });
+      if (caminho === "v1/admin/vip/export") return rota.fulfill({ json: [{ telefone: "+5577998128809", nome: "Marina", origem: "POPUP", em: "2026-09-28T01:00:00Z" }] });
+      if (caminho === "v1/admin/vip/config") {
+        respostas[caminho] = { ...(respostas[caminho] as object), cupom: "VIP10", valendo: true };
+        return rota.fulfill({ json: respostas[caminho] });
+      }
+      return rota.fulfill({ json: { ok: true } });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/vip`);
+  await expect(page.getByRole("heading", { level: 1, name: "Lista VIP" })).toBeVisible();
+  const contatos = page.getByRole("list", { name: "Contatos da Lista VIP" });
+  await expect(contatos).toContainText("Marina");
+  await expect(contatos).toContainText("Pop-up");
+
+  await page.getByLabel("Cupom mostrado a quem entra").selectOption("VIP10");
+  await expect(page.getByText("Valendo", { exact: true })).toBeVisible();
+  expect(enviados.find((e) => e.caminho === "v1/admin/vip/config")).toMatchObject({ metodo: "PUT", corpo: { cupom: "VIP10" } });
+
+  const baixar = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Exportar planilha" }).click();
+  expect((await baixar).suggestedFilename()).toMatch(/^lista-vip-\d{4}-\d{2}-\d{2}\.csv$/);
+
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Tirar Marina da lista" }).click();
+  await expect.poll(() => enviados.some((e) => e.metodo === "DELETE" && e.caminho === `v1/admin/vip/${ID}`)).toBe(true);
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });

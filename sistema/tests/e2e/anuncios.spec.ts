@@ -62,8 +62,8 @@ test("com aceite: tag da conta e, no pagamento aprovado, a compra com valor e n�
   // Compra: sacola pela URL, dados, código do WhatsApp e PIX (a api falsa aprova sozinha)
   await page.goto(`${LOJA}/sacola?adicionar=limone-amalfi-coast&tamanho=unico`);
   await page.getByRole("link", { name: /Reservar minhas peças/ }).click();
-  await page.getByLabel("Nome").fill("Ana Anúncio");
-  await page.getByLabel("WhatsApp").fill("(77) 99812-7701");
+  await page.getByLabel("Nome", { exact: true }).fill("Ana Anúncio");
+  await page.getByLabel("WhatsApp", { exact: true }).first().fill("(77) 99812-7701");
   await page.getByText("Retirar na loja").click();
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();
   await page.getByLabel("Código de 6 dígitos").fill("123456");

@@ -100,6 +100,13 @@ http.createServer(async (req, res) => {
 
     if (m === "GET" && p === "v1/catalog/home") return responder(res, 200, home);
     if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao]);
+    // Lista VIP (0390): cupom de boas-vindas de 10% valendo
+    if (m === "GET" && p === "v1/catalog/vip") return responder(res, 200, { beneficio: { modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
+    if (m === "POST" && p === "v1/vip") {
+      const b = await lerCorpo(req);
+      if (!b?.consentimento || !b?.privacidade || String(b?.telefone ?? "").replace(/\D/g, "").length < 10) return erro(res, 400, "VALIDATION_ERROR");
+      return responder(res, 201, { novo: true, cupom: { codigo: "VIP10", modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
+    }
     if (m === "GET" && p === "v1/catalog/products") return responder(res, 200, url.searchParams.get("collection") === "limone" || !url.searchParams.get("collection") ? [cartao] : []);
     // Peça só do teste da revalidação: o nome traz quantas vezes a loja buscou a peça aqui
     // (fora das listas, para não mexer nos outros testes).
