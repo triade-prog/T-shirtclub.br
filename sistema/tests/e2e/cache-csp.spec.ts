@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 // ainda a trava explícita "private, no-store". Roda na loja com catálogo (3003, api falsa).
 const LOJA = "http://localhost:3003";
 
-const PAGINAS = ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/offline", "/pagina-que-nao-existe"];
+const PAGINAS = ["/", "/colecao/limone", "/produto/limone-amalfi-coast", "/sacola", "/consulta", "/offline", "/privacidade", "/pagina-que-nao-existe"];
 
 for (const caminho of PAGINAS) {
   test(`${caminho}: scripts com nonce e nenhum bloqueio da CSP`, async ({ page }) => {
