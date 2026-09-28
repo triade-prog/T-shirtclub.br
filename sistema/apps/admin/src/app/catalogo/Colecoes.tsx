@@ -30,7 +30,7 @@ export function Colecoes() {
                   <b><span className="swatch" style={{ background: CORES.find((x) => x[0] === c.cor)?.[2] }} aria-hidden="true" />{c.nome}</b>
                   <div className="meta">/colecao/{c.slug} · {CORES.find((x) => x[0] === c.cor)?.[1]} · {c.produtos} {c.produtos === 1 ? "peça" : "peças"} · ordem {c.posicao}</div>
                   <div style={{ display: "flex", gap: 7, marginTop: 7, flexWrap: "wrap" }}>
-                    {c.ativa ? <Selo tom="paid">Ativa</Selo> : <Selo tom="expired">Inativa</Selo>}
+                    <SelosColecao colecao={c} />
                     {!c.capa && <Selo tom="issue">Sem capa</Selo>}
                   </div>
                 </div>
@@ -45,6 +45,20 @@ export function Colecoes() {
           ))}
         </ul>
       )}
+    </>
+  );
+}
+
+/**
+ * Selos da coleção (28/09): se ela está na loja e, quando tem campanha, se a campanha está ligada.
+ * São duas chaves diferentes: coleção ativa mostra a coleção; campanha ligada troca a página comum
+ * pela de campanha.
+ */
+export function SelosColecao({ colecao: c }: { colecao: Colecao }) {
+  return (
+    <>
+      {c.ativa ? <Selo tom="paid">Coleção ativa</Selo> : <Selo tom="expired">Coleção oculta</Selo>}
+      {c.campanha && (c.campanhaAtiva ? <Selo tom="ship">Campanha ligada</Selo> : <Selo tom="reserved">Campanha desligada</Selo>)}
     </>
   );
 }
