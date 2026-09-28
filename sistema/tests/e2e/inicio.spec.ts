@@ -28,6 +28,10 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
   // Pick your story (0440): a foto escolhida no painel, no lugar da peça mais nova da coleção
   await expect(colecoes.getByRole("link", { name: "Limone" }).locator("img")).toHaveAttribute("src", /limone-detalhe\.webp/);
+  // A foto escolhida aparece inteira (lettering com fundo transparente), sem o recorte redondo cortar
+  await expect(colecoes.getByRole("link", { name: "Limone" }).locator("img")).toHaveCSS("object-fit", "contain");
+  // O círculo tem o fundo claro da cor da coleção (Limão), enquanto a foto carrega ou sem foto
+  await expect(colecoes.getByRole("link", { name: "Limone" }).locator(".col-limao")).toHaveCSS("background-color", "rgb(255, 249, 201)");
 
   // O axe mede o contraste do slide da vez depois da troca (0,7 s): no meio dela, o botão ainda está
   // meio transparente e o contraste sai errado (falhava de vez em quando no iPhone)

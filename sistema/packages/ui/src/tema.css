@@ -35,10 +35,6 @@
   --color-info: var(--tc-info);
   --color-info-fundo: var(--tc-info-fundo);
   --color-foco: var(--tc-foco);
-  /* Coleção: definidas por .col-* no elemento da coleção */
-  --color-colecao: var(--c-cor);
-  --color-colecao-fundo: var(--c-fundo);
-  --color-colecao-tinta: var(--c-tinta);
   --color-transparent: transparent;
 
   /* Três vozes (D24): Fraunces editorial nos títulos, Poppins no sistema, Baloo 2 nos
@@ -62,6 +58,11 @@
 /* Paleta da campanha (D36): definida por .paleta-* na página da coleção. "inline" põe o var()
    direto no utilitário; sem ele, a cor seria resolvida na raiz, onde --p-* ainda não existe. */
 @theme inline {
+  /* Coleção: definidas por .col-* no elemento da coleção (inline pelo mesmo motivo: sem ele, a
+     cor ficava transparente em toda a loja, medido na auditoria de 28/09) */
+  --color-colecao: var(--c-cor);
+  --color-colecao-fundo: var(--c-fundo);
+  --color-colecao-tinta: var(--c-tinta);
   --color-camp-base: var(--p-base);
   --color-camp-tinta: var(--p-tinta);
   --color-camp-azul: var(--p-azul);

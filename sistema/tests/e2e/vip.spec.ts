@@ -85,6 +85,12 @@ test("rodapé na coleção: curto, na cor da coleção, e volta ao completo fora
   await expect(rodape.getByRole("link", { name: "Limone" })).toHaveAttribute("aria-current", "page");
   await expect(rodape).toContainText("CNPJ 60.814.144/0001-03");
   await expect(rodape).toHaveClass(/col-limao/);
+  // A cor na tela, não só a classe: o tom escuro do Limão com o texto branco (auditoria de 28/09:
+  // a classe estava certa e o fundo saía transparente)
+  const faixa = rodape.locator(":scope > div").first();
+  await expect(faixa).toHaveCSS("background-color", "rgb(107, 86, 0)");
+  await expect(faixa).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(rodape.getByRole("link", { name: "T-shirt Club.br" }).locator("img")).toBeVisible();
   await rodape.scrollIntoViewIfNeeded();
   await semViolacoes(page, "rodapé da coleção");
 
@@ -92,11 +98,12 @@ test("rodapé na coleção: curto, na cor da coleção, e volta ao completo fora
   await rodape.getByRole("link", { name: "Estate Italiana" }).click();
   await expect(page).toHaveURL(`${LOJA}/colecao/estate-italiana`);
   await expect(rodape).toHaveClass(/paleta-estate-italiana/);
+  await expect(faixa).toHaveCSS("background-color", "rgb(29, 79, 140)");
   await rodape.scrollIntoViewIfNeeded();
   await semViolacoes(page, "rodapé da campanha");
 
   // De volta ao início, o rodapé completo
-  await rodape.getByRole("link", { name: "T-SHIRT CLUB." }).click();
+  await rodape.getByRole("link", { name: "T-shirt Club.br" }).click();
   await expect(page).toHaveURL(`${LOJA}/`);
   await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toBeVisible();
 });
