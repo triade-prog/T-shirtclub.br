@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
+import { idAnuncios } from "@/lib/anuncios";
+import { MudarEscolha } from "../_anuncios/MudarEscolha";
 
 export const metadata: Metadata = { title: "Política de privacidade" };
 
@@ -21,6 +23,8 @@ const EMPRESA = {
 export default async function Privacidade() {
   // Gerada a cada pedido, como as outras: estática, sairia sem o nonce da CSP (D29)
   await connection();
+  // Com a conta do Google Ads configurada, a política conta os cookies de anúncio (só com aceite)
+  const anuncios = idAnuncios(process.env.GOOGLE_ADS_ID) !== null;
   return (
     <article className="mx-auto grid max-w-3xl gap-8 px-4 pb-14 pt-8 md:px-5 md:pt-12">
       <header className="grid gap-3">
@@ -67,6 +71,12 @@ export default async function Privacidade() {
             Guardar os registros de vendas exigidos pela legislação fiscal e de consumo: cumprimento de obrigação legal
             (art. 7º, II).
           </li>
+          {anuncios && (
+            <li>
+              Saber quais anúncios do Google trouxeram visitas e compras, só se você aceitar os cookies de anúncio:
+              consentimento (art. 7º, I), que você pode retirar quando quiser (item 7).
+            </li>
+          )}
         </ul>
         <p>Não enviamos propaganda sem o seu pedido e não vendemos seus dados.</p>
       </Secao>
@@ -84,6 +94,12 @@ export default async function Privacidade() {
             sempre que o fornecedor oferece.
           </li>
           <li>Motoboy ou transportadora: nome, telefone e endereço, só quando há entrega.</li>
+          {anuncios && (
+            <li>
+              Google (Google Ads), só com o seu aceite: os cookies de anúncio e, quando o pagamento é aprovado, o número
+              da reserva e o valor da compra, sem nome nem telefone.
+            </li>
+          )}
         </ul>
         <p>Alguns desses fornecedores podem guardar dados fora do Brasil, com as garantias previstas na LGPD.</p>
       </Secao>
@@ -120,8 +136,12 @@ export default async function Privacidade() {
           O site usa cookies necessários para funcionar: um guarda as peças da sua sacola, e os outros mantêm a sua
           reserva e a sua consulta abertas depois da confirmação pelo WhatsApp. As peças que você marca como favoritas
           ficam só no seu navegador. Se você instalar o site na tela inicial, o aparelho guarda também a parte visual do
-          site para abrir mais rápido. Não usamos cookies de propaganda nem rastreamento de terceiros.
+          site para abrir mais rápido.{" "}
+          {anuncios
+            ? "Cookies de anúncio do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador."
+            : "Não usamos cookies de propaganda nem rastreamento de terceiros."}
         </p>
+        {anuncios && <MudarEscolha />}
       </Secao>
 
       <Secao titulo="8. Segurança">

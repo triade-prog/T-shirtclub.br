@@ -69,13 +69,20 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await page.getByRole("button", { name: "Gerar código PIX" }).click();
   await expect(page.getByRole("button", { name: /Copiar código PIX/ })).toBeVisible();
   await semViolacoes(page, "PIX");
-  await expect(page.getByRole("heading", { name: "Suas peças são suas." })).toBeVisible({ timeout: 15_000 });
+  // Pago: a reserva abre uma vez na página de pagamento aprovado (conversão do tráfego pago)
+  await expect(page).toHaveURL(/\/pagamento-aprovado\?reserva=\d+$/, { timeout: 15_000 });
+  const numero = new URL(page.url()).searchParams.get("reserva");
+  await expect(page.getByRole("heading", { name: "Suas peças são suas." })).toBeVisible();
   await semViolacoes(page, "pago");
 
   // Meu pedido: retirada confirmada, pedido em preparação
   await page.getByRole("button", { name: "Confirmar retirada" }).click();
   await expect(page.locator('[aria-current="step"]')).toContainText("Em preparação");
   await semViolacoes(page, "meu pedido");
+  // Uma vez só: voltando para a reserva, ela não abre de novo a página de aprovado
+  await page.goto(`${LOJA}/reserva/${numero}`);
+  await expect(page.locator('[aria-current="step"]')).toContainText("Em preparação");
+  await expect(page).toHaveURL(`${LOJA}/reserva/${numero}`);
   expect(erros).toEqual([]);
 });
 

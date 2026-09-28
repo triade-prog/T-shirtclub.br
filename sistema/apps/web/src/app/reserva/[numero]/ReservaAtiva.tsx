@@ -1,18 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, Botao, Cronometro, RELOGIO_ENCERRADO, SeloStatus, Sobretitulo, calcularRelogio, useRelogioDoServidor, type StatusSelo } from "@tshirtclub/ui";
+import { registrarCompra } from "@/lib/anuncios";
 import { chamarApi, horario, mensagemDeErro } from "@/lib/api";
 import { BlocoCartao } from "./BlocoCartao";
 import { BlocoPix } from "./BlocoPix";
 import { Entrega } from "./Entrega";
-import { ENTREGA, guardado, guardar, useRepetir, type Reserva } from "./util";
+import { ENTREGA, chaveAprovado, guardado, guardar, lembrado, lembrar, useRepetir, type Reserva } from "./util";
 
 const ESPERA_RESERVA_MS = 5000;
 
-export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoja: string }) {
+/** Na página /pagamento-aprovado: a conversão do Google Ads da compra, quando configurada. */
+export interface NaPaginaAprovado { conversao: { id: string; rotulo: string } | null }
+
+export function ReservaAtiva({ numero, numeroLoja, aprovado }: { numero: number; numeroLoja: string; aprovado?: NaPaginaAprovado }) {
+  const router = useRouter();
   const [reserva, setReserva] = useState<Reserva | null>(null);
   const [problema, setProblema] = useState<"SEM_SESSAO" | "NAO_ACHOU" | "FORA_DO_AR" | null>(null);
   const idRef = useRef<string | null>(null);
@@ -42,6 +48,22 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
   useRepetir(() => void lerReserva(), ativa ? ESPERA_RESERVA_MS : 20_000, ativa || pago);
   const agora = useRelogioDoServidor(reserva?.agora, 1000, ativa);
 
+  // Pagamento aprovado (tráfego pago): a reserva paga abre uma vez, neste aparelho, na página
+  // /pagamento-aprovado, com carregamento completo para a tag do Google registrar o endereço.
+  // Lá a compra é registrada (se houver conversão configurada); sem pagamento, volta para cá.
+  const irParaAprovado = !aprovado && pago && reserva !== null && !lembrado(chaveAprovado(reserva.id));
+  useEffect(() => {
+    if (!reserva) return;
+    if (!aprovado) {
+      if (irParaAprovado) window.location.replace(`/pagamento-aprovado?reserva=${reserva.numero}`);
+      return;
+    }
+    if (reserva.status !== "PAGAMENTO_CONFIRMADO") return router.replace(`/reserva/${reserva.numero}`);
+    if (lembrado(chaveAprovado(reserva.id))) return;
+    lembrar(chaveAprovado(reserva.id), "1");
+    if (aprovado.conversao) registrarCompra(aprovado.conversao.id, aprovado.conversao.rotulo, reserva);
+  }, [reserva, aprovado, irParaAprovado, router]);
+
   if (problema) return <Problema tipo={problema} />;
   if (!reserva) {
     return (
@@ -51,6 +73,13 @@ export function ReservaAtiva({ numero, numeroLoja }: { numero: number; numeroLoj
     );
   }
 
+  if (irParaAprovado) {
+    return (
+      <Moldura numero={numero} selo="PAGAMENTO_CONFIRMADO">
+        <p role="status" className="m-0 text-tinta-suave">Pagamento aprovado! Abrindo seu pedido…</p>
+      </Moldura>
+    );
+  }
   if (reserva.status === "EXPIRADO") return <Expirada reserva={reserva} />;
   if (reserva.limitada) return <Limitada reserva={reserva} />;
   if (reserva.status === "PAGAMENTO_CONFIRMADO" || reserva.status === "ENTREGUE") return <Entrega reserva={reserva} numeroLoja={numeroLoja} aoMudar={() => void lerReserva()} />;
