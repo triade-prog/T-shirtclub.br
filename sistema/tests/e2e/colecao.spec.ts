@@ -62,14 +62,30 @@ test("coleção de campanha: foto limpa, campanha, coleção, The Club Edit, cap
 
   const capitulo = page.getByRole("region", { name: "Il mercato apre cedo." });
   await expect(capitulo).toContainText("01 · Mattina — Mercato");
+  await expect(capitulo).toContainText("Cesta, jornal e tomates ainda com cheiro de horta.");
   await expect(capitulo.getByRole("img", { name: "Mercado de manhã" })).toBeVisible();
   await expect(capitulo.getByText("Limone Amalfi Coast")).toBeVisible();
 
-  await expect(page.getByText("Shop Estate Italiana · 1 estampa")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
+  // Build Your Club com o progresso do trio; a única estampa está no capítulo, então não há "resto da coleção"
+  const build = page.getByRole("region", { name: "Estate Italiana" });
+  await expect(build).toContainText("1 estampa · monte seu trio");
+  await expect(build).toContainText("3 T-shirts · R$ 119,99");
+  await expect(build.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
+  await expect(page.getByText("O resto")).toHaveCount(0);
+  // Next story: a próxima campanha ligada (Riviera)
+  await expect(page.getByRole("region", { name: "Mare, Amore!" }).getByRole("link", { name: /Descobrir Riviera/ })).toHaveAttribute("href", "/colecao/riviera");
   // Sem a nota editorial do Club: na campanha, os capítulos fazem esse papel
   await expect(page.getByText("Editorial note")).toHaveCount(0);
 
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
+test("coleção: campanha gravada e desligada não aparece; o endereço antigo da Riviera leva ao novo", async ({ page, request }) => {
+  await page.goto(`${LOJA}/colecao/limone`);
+  await expect(page.getByRole("heading", { level: 1, name: "Limone." })).toBeVisible();
+  await expect(page.getByText("Limone, Amore!")).toHaveCount(0);
+  const r = await request.get(`${LOJA}/colecao/sardines-club`, { maxRedirects: 0 });
+  expect(r.status()).toBe(308);
+  expect(r.headers()["location"]).toBe("/colecao/riviera");
 });

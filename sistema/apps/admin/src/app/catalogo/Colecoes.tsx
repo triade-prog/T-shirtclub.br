@@ -50,7 +50,7 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
   const [capa, setCapa] = useState<string | null>(colecao?.capa?.caminho ?? null);
   const [capaCelular, setCapaCelular] = useState<string | null>(colecao?.capaCelular?.caminho ?? null);
   const [capitulos, setCapitulos] = useState<CapituloForm[]>(
-    (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
+    (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, texto: k.texto ?? "", foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
   const { ocupado, erro, setErro, enviar } = useEnvio(aoSalvar);
 
   function salvar(e: React.FormEvent<HTMLFormElement>) {
@@ -64,14 +64,16 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
     const preenchidos = capitulos.filter((k) => k.rotulo.trim() || k.titulo.trim() || k.foto || k.produtos.length);
     if (preenchidos.some((k) => !k.rotulo.trim() || !k.titulo.trim())) return setErro("Cada capítulo precisa do nome (ex.: Mattina — Mercato) e do título.");
     if (preenchidos.some((k) => k.foto && !k.alt.trim())) return setErro("Descreva a foto de cada capítulo para quem usa leitor de tela.");
+    const campanhaAtiva = f.get("campanhaAtiva") === "on";
+    if (campanhaAtiva && !String(f.get("campanha") ?? "").trim()) return setErro("Para ligar a campanha, preencha o nome dela.");
     const corpo = {
       nome: nome.trim(), slug, descricao: String(f.get("descricao") ?? "").trim() || null,
       chamada: String(f.get("chamada") ?? "").trim() || null, cor: String(f.get("cor")),
       capa: capa ? { caminho: capa, alt } : null, posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
       campanha: String(f.get("campanha") ?? "").trim() || null, edicao: String(f.get("edicao") ?? "").trim() || null,
-      temporada: String(f.get("temporada") ?? "").trim() || null, paleta: String(f.get("paleta") ?? "CLUB"),
+      temporada: String(f.get("temporada") ?? "").trim() || null, paleta: String(f.get("paleta") ?? "CLUB"), campanhaAtiva,
       capaCelular: capaCelular ? { caminho: capaCelular, alt: altCelular } : null,
-      capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
+      capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), texto: k.texto.trim() || null, foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
     };
     void enviar(colecao ? chamarApi(`v1/admin/collections/${colecao.id}`, corpo, "PUT") : chamarApi("v1/admin/collections", corpo));
   }
@@ -93,8 +95,9 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
 
         <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
         <p className="field-help full" style={{ marginTop: -6 }}>
-          Com o nome da campanha, a página da coleção vira capítulo de campanha: foto limpa (sem texto dentro), nome da campanha, a coleção e os capítulos.
+          Grave tudo com a campanha desligada e ligue quando as fotos limpas (sem texto dentro) estiverem aprovadas: aí a página da coleção vira capítulo de campanha, com a foto, a campanha, a coleção, o manifesto e os capítulos.
         </p>
+        <div className="full"><Marcar name="campanhaAtiva" rotulo="Campanha ligada na loja" defaultChecked={colecao?.campanhaAtiva ?? false} /></div>
         <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
         <Escolha name="paleta" rotulo="Paleta da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Cada campanha pode ter a sua (D36)." />
         <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
@@ -116,8 +119,8 @@ function FormColecao({ colecao, aoFechar, aoSalvar }: { colecao: Colecao | null;
   );
 }
 
-interface CapituloForm { rotulo: string; titulo: string; foto: string | null; alt: string; produtos: string[] }
-const CAPITULO_VAZIO: CapituloForm = { rotulo: "", titulo: "", foto: null, alt: "", produtos: [] };
+interface CapituloForm { rotulo: string; titulo: string; texto: string; foto: string | null; alt: string; produtos: string[] }
+const CAPITULO_VAZIO: CapituloForm = { rotulo: "", titulo: "", texto: "", foto: null, alt: "", produtos: [] };
 
 // Até 3 capítulos (ex.: Mattina — Mercato · Il mercato apre cedo.), cada um com foto e as
 // estampas da própria coleção que aparecem junto dele na loja.
@@ -132,6 +135,7 @@ function Capitulos({ colecaoId, capitulos, mudar }: { colecaoId: string; capitul
           <div className="form-grid">
             <Campo rotulo="Nome do capítulo" maxLength={40} value={k.rotulo} placeholder="Mattina — Mercato" onChange={(e) => trocar(i, { rotulo: e.target.value })} />
             <Campo rotulo="Título" maxLength={80} value={k.titulo} placeholder="Il mercato apre cedo." onChange={(e) => trocar(i, { titulo: e.target.value })} />
+            <div className="full"><Campo rotulo="Frase (opcional)" maxLength={160} value={k.texto} placeholder="Sol alto, sal na pele e absolutamente nenhuma pressa." onChange={(e) => trocar(i, { texto: e.target.value })} /></div>
             <div className="full"><EnvioFoto destino="colecao" caminho={k.foto} aoEnviar={(foto) => trocar(i, { foto })} rotulo="Foto do capítulo" /></div>
             {k.foto && <div className="full"><Campo rotulo="Descrição da foto" maxLength={200} value={k.alt} onChange={(e) => trocar(i, { alt: e.target.value })} /></div>}
             <div className="full">

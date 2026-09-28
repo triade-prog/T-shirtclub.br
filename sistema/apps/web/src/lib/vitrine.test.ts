@@ -60,10 +60,10 @@ describe("tamanhos (0370)", () => {
 
 describe("título da coleção em duas linhas", () => {
   it("quebra onde a linha mais longa fica mais curta, sem deixar Club. sozinho", () => {
-    expect(tituloEmDuasLinhas("La Dolce Vita Club")).toEqual(["La Dolce", "Vita Club."]);
-    expect(tituloEmDuasLinhas("Good Mood Club")).toEqual(["Good Mood", "Club."]);
-    expect(tituloEmDuasLinhas("Sardines Club")).toEqual(["Sardines", "Club."]);
-    expect(tituloEmDuasLinhas("Girl Things")).toEqual(["Girl", "Things."]);
+    expect(tituloEmDuasLinhas("Estate Italiana")).toEqual(["Estate", "Italiana."]);
+    expect(tituloEmDuasLinhas("Dog Stories")).toEqual(["Dog", "Stories."]);
+    expect(tituloEmDuasLinhas("Club Editions")).toEqual(["Club", "Editions."]);
+    expect(tituloEmDuasLinhas("Uma coleção de nome longo")).toEqual(["Uma coleção", "de nome longo."]);
   });
   it("uma palavra fica numa linha", () => {
     expect(tituloEmDuasLinhas(" Fé ")).toEqual(["Fé."]);

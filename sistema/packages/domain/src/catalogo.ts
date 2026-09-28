@@ -19,8 +19,8 @@ const imagemSchema = z.object({ caminho: caminhoSchema, alt: altSchema });
 
 // ─── Painel: catálogo ────────────────────────────────────────────────────────────────
 
-/** Paletas de coleção (D36): a do Club e as das campanhas (a primeira, Estate Italiana). */
-export const PALETAS_COLECAO = ["CLUB", "ESTATE_ITALIANA"] as const;
+/** Paletas de coleção (D36): a do Club e as dos universos das campanhas (0430). */
+export const PALETAS_COLECAO = ["CLUB", "ESTATE_ITALIANA", "RIVIERA", "GIRLHOOD", "DOG_STORIES", "FE"] as const;
 export type PaletaColecao = (typeof PALETAS_COLECAO)[number];
 
 export const colecaoEntradaSchema = z.object({
@@ -39,9 +39,12 @@ export const colecaoEntradaSchema = z.object({
   edicao: textoOpcional(30),
   capaCelular: imagemSchema.nullish().transform((v) => v ?? null),
   paleta: z.enum(PALETAS_COLECAO).optional(),
+  /** Campanha ligada na loja (0430): gravada desligada até as fotos limpas serem aprovadas. */
+  campanhaAtiva: z.boolean().optional(),
   capitulos: z.array(z.object({
     rotulo: z.string().trim().min(1).max(40),
     titulo: z.string().trim().min(1).max(80),
+    texto: textoOpcional(160),
     foto: imagemSchema.nullish().transform((v) => v ?? null),
     produtos: z.array(z.string().uuid()).max(8).default([]),
   })).max(3).optional(),

@@ -14,13 +14,17 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
 
   await carrossel.getByRole("button", { name: "Pausar o carrossel" }).click();
   await expect(carrossel.getByRole("button", { name: "Continuar o carrossel" })).toBeVisible();
-  await carrossel.getByRole("button", { name: "Mostrar Sardines Club" }).click();
-  await expect(carrossel.getByRole("button", { name: "Mostrar Sardines Club" })).toHaveAttribute("aria-current", "true");
+  await carrossel.getByRole("button", { name: "Mostrar Riviera" }).click();
+  await expect(carrossel.getByRole("button", { name: "Mostrar Riviera" })).toHaveAttribute("aria-current", "true");
   // Só o slide da vez fica acessível: o outro sai do foco e do leitor de tela
-  await expect(carrossel.getByRole("link", { name: /Ver Sardines Club/ })).toHaveAttribute("href", "/colecao/sardines-club");
+  await expect(carrossel.getByRole("link", { name: /Ver Riviera/ })).toHaveAttribute("href", "/colecao/riviera");
+  // Campanha ligada: a legenda vem do HTML (no celular, com o carrossel 16:9, só no computador);
+  // a desligada (Limone) não tem legenda nenhuma
+  await expect(carrossel.getByText("Mare, Amore!")).toHaveCount(1);
+  await expect(page.getByText("Limone, Amore!")).toHaveCount(0);
   await expect(carrossel.getByRole("link", { name: /Ver Limone/ })).toHaveCount(0);
 
-  const colecoes = page.getByRole("region", { name: "Coleções" });
+  const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
 
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
@@ -31,7 +35,7 @@ test("início: troca sozinho; com movimento reduzido, começa parado", async ({ 
   test.setTimeout(30_000);
   await page.goto(`${LOJA}/`);
   const carrossel = page.getByRole("region", { name: "Coleções em destaque" });
-  await expect(carrossel.getByRole("button", { name: "Mostrar Sardines Club" })).toHaveAttribute("aria-current", "true", { timeout: 9_000 });
+  await expect(carrossel.getByRole("button", { name: "Mostrar Riviera" })).toHaveAttribute("aria-current", "true", { timeout: 9_000 });
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`${LOJA}/`);

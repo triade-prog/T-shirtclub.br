@@ -25,15 +25,20 @@ const cartao = {
 };
 colecao.fotos = [cartao.capa];
 colecao.slugsAntigos = ["limone-club"];
-// Segunda coleção com capa de campanha (sem peças): o carrossel do início tem 2 slides.
-const colecao2 = { id: "c0000000-0000-4000-8000-000000000002", nome: "Sardines Club", slug: "sardines-club", descricao: "A little salty.", chamada: null, cor: "MEDITERRANEO",
-  capa: { caminho: "campanha-limone.webp", alt: "Mare, Amore! Riviera SS26" }, produtos: 0, fotos: [] };
+// Campanha gravada e desligada (0430): a página segue a da coleção, sem nada da campanha.
+colecao.campanha = "Limone, Amore!";
+colecao.campanhaAtiva = false;
+// Segunda coleção com capa (sem peças), de campanha ligada: o carrossel do início tem 3 slides e
+// a Estate Italiana aponta para ela no Next story.
+const colecao2 = { id: "c0000000-0000-4000-8000-000000000002", nome: "Riviera", slug: "riviera", descricao: "Um pouco salgada. Muito charmosa.", chamada: null, cor: "MEDITERRANEO",
+  capa: { caminho: "campanha-limone.webp", alt: "Porto com barcos e água azul" }, produtos: 0, fotos: [], slugsAntigos: ["sardines-club"],
+  campanha: "Mare, Amore!", campanhaAtiva: true, temporada: "SS26", edicao: "Coleção 02", paleta: "RIVIERA", capitulos: [] };
 // Coleção de campanha (0420, D35 e D36): paleta própria, campanha, foto do celular e 1 capítulo.
 const colecao3 = { id: "c0000000-0000-4000-8000-000000000003", nome: "Estate Italiana", slug: "estate-italiana", descricao: "Limões, tomates e dias que parecem férias.",
   chamada: "Limões, listras e o verão italiano que não acaba.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Duas amigas no terraço, de frente para o mar" },
   capaCelular: { caminho: "campanha-limone.webp", alt: "Uma amiga olhando o mar" }, campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01",
-  paleta: "ESTATE_ITALIANA", produtos: 1, fotos: [], slugsAntigos: [],
-  capitulos: [{ rotulo: "Mattina — Mercato", titulo: "Il mercato apre cedo.", foto: { caminho: "campanha-limone.webp", alt: "Mercado de manhã" }, produtos: ["p0000000-0000-4000-8000-000000000001"] }] };
+  paleta: "ESTATE_ITALIANA", campanhaAtiva: true, produtos: 1, fotos: [], slugsAntigos: [],
+  capitulos: [{ rotulo: "Mattina — Mercato", titulo: "Il mercato apre cedo.", texto: "Cesta, jornal e tomates ainda com cheiro de horta.", foto: { caminho: "campanha-limone.webp", alt: "Mercado de manhã" }, produtos: ["p0000000-0000-4000-8000-000000000001"] }] };
 const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
 const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
