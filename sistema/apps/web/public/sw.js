@@ -48,7 +48,12 @@ self.addEventListener("fetch", (evento) => {
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/marca/")) {
     evento.respondWith(
       caches.match(pedido).then((guardada) => guardada || fetch(pedido).then((r) => {
-        if (r.ok) caches.open(CASCA).then((c) => c.put(pedido, r.clone()));
+        // A cópia sai antes de devolver a resposta: depois, o navegador já leu o corpo e o
+        // clone() falha ("Response body is already used")
+        if (r.ok) {
+          const copia = r.clone();
+          caches.open(CASCA).then((c) => c.put(pedido, copia));
+        }
         return r;
       })),
     );
