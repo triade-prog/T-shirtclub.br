@@ -214,14 +214,17 @@
   }
   /* Número de adesivo (29/09): o "3" do trio em citrino, com contorno e sombra de tinta, como os
      letterings da loja. Só em tamanho grande: o contorno é que segura o contraste sobre o rosa. */
-  .tc-numero-adesivo {
-    display: inline-block;
+  .tc-numero-adesivo,
+  .tc-letra-adesivo {
     color: var(--tc-citrino);
     paint-order: stroke fill;
     -webkit-text-stroke: 0.05em var(--tc-tinta);
     text-shadow: 0.045em 0.05em 0 var(--tc-tinta);
-    transform: rotate(-6deg);
   }
+  .tc-numero-adesivo { display: inline-block; transform: rotate(-6deg); }
+  /* O mesmo verde de adesivo numa palavra de título (o "Seu Club." da home, 29/09), sem girar;
+     o contorno é mais fino porque a letra é menor que o número */
+  .tc-titulo em.tc-letra-adesivo { color: var(--tc-citrino); -webkit-text-stroke-width: 0.035em; text-shadow: 0.035em 0.04em 0 var(--tc-tinta); }
   /* Faixa de ponta a ponta (29/09): o <main> tem no máximo 1280 px, e o bloco rosa do trio sai
      dele até as bordas da tela, com as linhas de tinta em cima e embaixo. É border-image com
      outset: pinta por fora sem contar na rolagem, então não aparece barra lateral. */

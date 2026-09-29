@@ -50,7 +50,7 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
 
-test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa, sem rolagem lateral", async ({ page }) => {
+test("início: carrossel e faixa corrida de ponta a ponta, o 3 e o Seu Club em verde, sem rolagem lateral", async ({ page }) => {
   // Tela mais larga que a página (1280 px): a foto e a faixa vão até as bordas (29/09)
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`${LOJA}/`);
@@ -64,8 +64,8 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa
   const bloco = (await page.locator("#monte-club").boundingBox())!;
   const caixa = (await faixa.boundingBox())!;
   expect(Math.abs(caixa.y + caixa.height / 2 - (bloco.y + bloco.height))).toBeLessThanOrEqual(1);
-  // No rosa da faixa do cabeçalho, com a arte do preço da loja (escolha da loja)
-  await expect(faixa).toHaveCSS("background-color", "rgb(232, 71, 138)");
+  // No verde-escuro, com a arte do preço da loja (escolha da loja)
+  await expect(faixa).toHaveCSS("background-color", "rgb(79, 106, 24)");
   await expect(faixa.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
   expect(Math.round((await faixa.boundingBox())!.width)).toBe(largura);
   await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "running");
@@ -76,12 +76,17 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa
   await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "paused");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 
-  // "3 escolhas.": o 3 na serifa itálica do "Seu Club." (pedido da loja, 29/09)
+  // "3 escolhas.": o 3 na serifa itálica do "Seu Club.", os dois no verde de adesivo (pedido da loja, 29/09)
   const tres = page.locator("#monte-club h2 em").first();
+  const club = page.locator("#monte-club h2 em").last();
   await expect(tres).toHaveText("3");
+  await expect(club).toHaveText("Seu Club.");
   await expect(tres).toHaveCSS("font-style", "italic");
-  expect(await tres.evaluate((e) => getComputedStyle(e).fontFamily)).toBe(
-    await page.locator("#monte-club h2 em").last().evaluate((e) => getComputedStyle(e).fontFamily));
+  expect(await tres.evaluate((e) => getComputedStyle(e).fontFamily)).toBe(await club.evaluate((e) => getComputedStyle(e).fontFamily));
+  for (const em of [tres, club]) await expect(em).toHaveCSS("color", "rgb(223, 240, 74)");
+
+  // A foto do carrossel corta só embaixo: os rostos ficam no alto (pedido da loja, 29/09)
+  await expect(foto).toHaveCSS("object-position", "50% 0%");
 
   // Com movimento reduzido, a faixa fica parada e o botão de pausa sai
   await page.emulateMedia({ reducedMotion: "reduce" });

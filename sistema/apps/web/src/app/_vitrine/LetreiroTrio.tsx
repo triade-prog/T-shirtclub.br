@@ -6,14 +6,23 @@ import { Pause, Play } from "lucide-react";
 import { formatarReais } from "@tshirtclub/domain";
 import { cx } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
-import { ARTE_PRECO } from "./OfertaTrio";
+
+/**
+ * Arte do preço do trio (lettering da loja, 29/09, em "imagens site" no bucket). O valor está
+ * desenhado nela, então só aparece enquanto o trio custar isso; com outro preço, volta o texto.
+ */
+export const ARTE_PRECO = { centavos: 11999, caminho: "imagens%20site/lettering-preco-119-99.webp", largura: 1000, altura: 442 };
 
 // Faixa corrida do trio (29/09, pedido da loja): "3 T-shirts por" e a arte do preço da loja
-// passando de ponta a ponta sobre a divisa do bloco "Monte seu Club" com o papel, no rosa da faixa
-// do cabeçalho (escolhas da loja). A altura é fixa (90 e 106 px) para a home subir metade dela. Com outro
-// preço, a arte (que tem o valor desenhado) dá lugar ao texto. O leitor de tela lê a frase uma
-// vez; o que corre é enfeite. Anda sozinha, então tem pausa (WCAG 2.2.2), para com o mouse em
-// cima e fica parada com movimento reduzido.
+// passando de ponta a ponta sobre a divisa do bloco rosa do trio com o papel, na home e no Build
+// Your Club das campanhas. Fundo verde (pedido da loja): o citrino da arte e o papel do texto
+// passam de 4,5:1 com o verde-escuro. A altura é fixa (90 e 106 px) para a página subir metade
+// dela (SUBIDA_LETREIRO). Com outro preço, a arte (que tem o valor desenhado) dá lugar ao texto. O
+// leitor de tela lê a frase uma vez; o que corre é enfeite. Anda sozinha, então tem pausa (WCAG
+// 2.2.2), para com o mouse em cima e fica parada com movimento reduzido.
+
+/** Metade da altura da faixa: quem a põe na divisa sobe isso, e o bloco rosa guarda espaço embaixo. */
+export const SUBIDA_LETREIRO = "relative z-10 -mt-[45px] md:-mt-[53px]";
 
 const REPETICOES = 5;
 
@@ -40,7 +49,7 @@ export function LetreiroTrio({ qtd, precoCentavos, className }: { qtd: number; p
   );
   return (
     <section aria-label="Oferta do Club" data-parado={parado}
-      className={cx("tc-letreiro tc-sangria flex h-[90px] items-center border-y-3 border-tinta bg-rosa text-no-rosa md:h-[106px]", className)}>
+      className={cx("tc-letreiro tc-sangria flex h-[90px] items-center border-y-3 border-tinta bg-verde-escuro text-no-verde md:h-[106px]", className)}>
       <p className="sr-only">{qtd} T-shirts por {preco}</p>
       <div aria-hidden="true" className="min-w-0 flex-1 overflow-hidden">
         <div className="tc-letreiro-trilho">{copia("a")}{copia("b")}</div>
