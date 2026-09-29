@@ -11,6 +11,7 @@ import { ProgressoDaSacola } from "./_sacola/ProgressoDaSacola";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
 import { CarrosselCapas } from "./_vitrine/CarrosselCapas";
+import { LetreiroTrio } from "./_vitrine/LetreiroTrio";
 import { OfertaTrio } from "./_vitrine/OfertaTrio";
 import { MosaicoPecas } from "./_vitrine/MosaicoPecas";
 
@@ -46,6 +47,7 @@ export default async function Inicio() {
           <CarrosselCapas slides={slides} />
         </>
       ) : <Capa oferta={oferta} fotos={pecasDaCapa} />)}
+      {club && <LetreiroTrio qtd={club.qtd} precoCentavos={club.precoCentavos} />}
       {blocos.map((b, i) => {
         switch (b.tipo) {
           case "CAMPANHA":
@@ -183,7 +185,8 @@ function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string
           <Sobretitulo>Monte seu Club</Sobretitulo>
           {/* Sobre o rosa, a palavra de marca vai em tinta (rosa sobre rosa some) */}
           <h2 className="tc-titulo m-0 text-[clamp(55px,7vw,100px)] leading-[0.82]">
-            <span className="font-display tracking-[-0.045em]">{qtd} escolhas.</span><br /><em className="text-tinta">Seu Club.</em>
+            {/* O "3" na mesma serifa itálica do "Seu Club." (29/09, pedido da loja) */}
+            <em className="text-tinta">{qtd}</em> <span className="font-display tracking-[-0.045em]">escolhas.</span><br /><em className="text-tinta">Seu Club.</em>
           </h2>
           <p className="m-0 max-w-[33ch] font-editorial text-xl italic leading-snug">Misture estampas e coleções.</p>
           <OfertaTrio qtd={qtd} precoCentavos={oferta?.precoCentavos ?? 11999} />

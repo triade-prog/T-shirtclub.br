@@ -222,14 +222,51 @@
     text-shadow: 0.045em 0.05em 0 var(--tc-tinta);
     transform: rotate(-6deg);
   }
+  /* Na faixa de tinta o contorno some: a sombra vira rosa */
+  .tc-numero-adesivo.tc-adesivo-no-escuro {
+    -webkit-text-stroke: 0;
+    text-shadow: 0.05em 0.05em 0 var(--tc-rosa);
+  }
   /* Faixa de ponta a ponta (29/09): o <main> tem no máximo 1280 px, e o bloco rosa do trio sai
      dele até as bordas da tela, com as linhas de tinta em cima e embaixo. É border-image com
      outset: pinta por fora sem contar na rolagem, então não aparece barra lateral. */
   .tc-faixa-inteira {
-    border-image-source: linear-gradient(var(--tc-tinta) 0 3px, var(--tc-rosa) 3px calc(100% - 3px), var(--tc-tinta) calc(100% - 3px));
+    /* O fundo e a linha de baixo mudam por bloco (a nota editorial é rosa-bruma, só com a de cima) */
+    --faixa-fundo: var(--tc-rosa);
+    --faixa-baixo: var(--tc-tinta);
+    border-image-source: linear-gradient(var(--tc-tinta) 0 3px, var(--faixa-fundo) 3px calc(100% - 3px), var(--faixa-baixo) calc(100% - 3px));
     border-image-slice: 0 fill;
     border-image-width: 0;
     border-image-outset: 0 100vw;
+  }
+  .tc-faixa-inteira.tc-faixa-bruma {
+    --faixa-fundo: var(--tc-rosa-bruma);
+    --faixa-baixo: var(--tc-rosa-bruma);
+  }
+  /* Sangria (29/09): o bloco sai do <main> (1280 px) e ocupa a tela de ponta a ponta, conteúdo
+     e tudo (a foto do carrossel, a faixa corrida). Com barra de rolagem fixa (Windows), o 100vw
+     passa meia barra de cada lado: a caixa em volta do <main> corta no eixo x (overflow-x: clip,
+     no layout), sem rolagem. */
+  .tc-sangria {
+    margin-inline: calc(50% - 50vw);
+  }
+  /* Faixa corrida (29/09): o texto passa da direita para a esquerda sem emenda (duas cópias, o
+     trilho anda metade). Para com o mouse em cima e no botão de pausa (WCAG 2.2.2); com
+     movimento reduzido, fica parada. */
+  .tc-letreiro-trilho {
+    display: flex;
+    width: max-content;
+    animation: tc-letreiro 38s linear infinite;
+  }
+  .tc-letreiro:hover .tc-letreiro-trilho,
+  .tc-letreiro[data-parado="true"] .tc-letreiro-trilho {
+    animation-play-state: paused;
+  }
+  @keyframes tc-letreiro {
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tc-letreiro-trilho { animation: none; }
   }
   /* Destaque de oferta no texto (29/09): "3 peças por R$ 119,99" em negrito, com o grifo rosa;
      serve no citrino e no papel. */

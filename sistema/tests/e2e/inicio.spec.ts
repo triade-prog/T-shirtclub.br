@@ -48,6 +48,41 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
 
+test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa, sem rolagem lateral", async ({ page }) => {
+  // Tela mais larga que a página (1280 px): a foto e a faixa vão até as bordas (29/09)
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto(`${LOJA}/`);
+  const largura = await page.evaluate(() => document.documentElement.clientWidth);
+  const foto = page.getByRole("region", { name: "Coleções em destaque" }).getByRole("img", { name: "Campanha Limone" });
+  expect(Math.round((await foto.boundingBox())!.width)).toBe(largura);
+
+  const faixa = page.getByRole("region", { name: "Oferta do Club" });
+  await expect(faixa).toContainText("3 T-shirts por R$ 119,99");
+  expect(Math.round((await faixa.boundingBox())!.width)).toBe(largura);
+  await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "running");
+  // Anda sozinha, então tem pausa (WCAG 2.2.2)
+  const pausa = faixa.getByRole("button", { name: "Pausar a faixa da oferta" });
+  await pausa.click();
+  await expect(pausa).toHaveAttribute("aria-pressed", "true");
+  await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "paused");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  // "3 escolhas.": o 3 na serifa itálica do "Seu Club." (pedido da loja, 29/09)
+  const tres = page.locator("#monte-club h2 em").first();
+  await expect(tres).toHaveText("3");
+  await expect(tres).toHaveCSS("font-style", "italic");
+  expect(await tres.evaluate((e) => getComputedStyle(e).fontFamily)).toBe(
+    await page.locator("#monte-club h2 em").last().evaluate((e) => getComputedStyle(e).fontFamily));
+
+  // Com movimento reduzido, a faixa fica parada e o botão de pausa sai
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-name", "none");
+  await expect(pausa).toBeHidden();
+  const r = await new AxeBuilder({ page }).include("#monte-club").include('[aria-label="Oferta do Club"]')
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
 test("início: troca sozinho; com movimento reduzido, começa parado", async ({ page }) => {
   test.setTimeout(30_000);
   await page.goto(`${LOJA}/`);

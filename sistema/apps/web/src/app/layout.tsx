@@ -31,7 +31,11 @@ export default async function LayoutLoja({ children }: { children: React.ReactNo
           Pular para o conteúdo
         </a>
         <Cabecalho />
-        <main id="conteudo" className="mx-auto w-full max-w-7xl">{children}</main>
+        {/* Os blocos de ponta a ponta (tc-sangria) saem do <main>; com barra de rolagem fixa, o 100vw
+            passa meia barra de cada lado, e este corte evita a rolagem lateral (29/09) */}
+        <div className="overflow-x-clip">
+          <main id="conteudo" className="mx-auto w-full max-w-7xl">{children}</main>
+        </div>
         <Rodape />
         <RegistrarServiceWorker />
         <AvisoSacola />

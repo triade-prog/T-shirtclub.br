@@ -77,14 +77,17 @@ export function CarrosselCapas({ slides }: { slides: SlideCapa[] }) {
     <section
       aria-roledescription="carrossel"
       aria-label="Coleções em destaque"
-      className="px-3.5 pt-5 md:px-5 md:pt-7"
+      className="tc-sangria"
       onMouseEnter={() => setEmCima(true)}
       onMouseLeave={() => setEmCima(false)}
       onFocus={() => setEmCima(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEmCima(false); }}
     >
       <div
-        className={classeMolduraCarrossel(vertical)}
+        // De ponta a ponta (29/09); numa tela larga, o 16:9 passaria da altura da tela: a foto
+        // para abaixo do cabeçalho e corta em cima e embaixo, e os botões seguem à vista. O w-full
+        // segura a largura: sem ele, o limite de altura passa pela proporção e encolhe a foto
+        className={cx(classeMolduraCarrossel(vertical), "w-full md:max-h-[calc(100svh-12rem)]")}
         onTouchStart={(e) => { inicioToque.current = e.touches[0]?.clientX ?? null; }}
         onTouchEnd={(e) => {
           const x0 = inicioToque.current;
