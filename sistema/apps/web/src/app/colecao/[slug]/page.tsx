@@ -8,7 +8,7 @@ import { formatarReais } from "@tshirtclub/domain";
 import { BotaoPecas, FaixaChamada, Sobretitulo, TopoColecaoBanner, TopoColecaoSimples, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type CartaoProduto, type Colecao } from "@/lib/catalogo";
 import { COOKIE_SACOLA } from "@/lib/sacola";
-import { filtrarProdutos, lerFiltro, textoOferta, type Filtro } from "@/lib/vitrine";
+import { VITRINE_DA_LOJA, colecoesDaVitrine, filtrarProdutos, lerColecao, lerFiltro, textoOferta, type Filtro } from "@/lib/vitrine";
 import { FaixaTrio } from "../../_sacola/FaixaTrio";
 import { CardProduto } from "../../_vitrine/CardProduto";
 import { MosaicoPecas } from "../../_vitrine/MosaicoPecas";
@@ -23,7 +23,8 @@ import { BotaoCampanha, BuildYourClub, CapitulosCampanha, ProximaHistoria, TopoC
 // de campanha: foto com o nome da campanha, coleção, The Club Edit e capítulos, na identidade da
 // marca como a home (D38; antes, cada campanha tinha a paleta própria).
 // A campanha só aparece ligada no painel (0430); depois dos capítulos vêm o Build Your Club, o
-// resto da coleção (as estampas que não estão nos capítulos) e a próxima campanha ligada.
+// resto da coleção (as estampas que não estão nos capítulos) e a próxima campanha ligada. A Club
+// Editions (D39) mostra a loja inteira: todas as peças, com um filtro por coleção (?colecao=).
 
 async function buscarColecao(slug: string): Promise<Colecao | undefined> {
   const colecoes = await buscarCatalogo<Colecao[]>("v1/catalog/collections");
@@ -59,13 +60,15 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
   await connection();
   const { slug } = await params;
   if (!/^[a-z0-9-]{1,80}$/.test(slug)) notFound();
+  const lojaToda = slug === VITRINE_DA_LOJA;
   const [colecoes, produtos, club] = await Promise.all([
     buscarCatalogo<Colecao[]>("v1/catalog/collections"),
-    buscarCatalogo<CartaoProduto[]>(`v1/catalog/products?collection=${slug}`),
+    buscarCatalogo<CartaoProduto[]>(lojaToda ? "v1/catalog/products" : `v1/catalog/products?collection=${slug}`),
     buscarOfertaClub(),
   ]);
   const colecao = colecoes?.find((c) => c.slug === slug);
-  const filtro = lerFiltro((await searchParams).filtro);
+  const busca = await searchParams;
+  const filtro = lerFiltro(busca.filtro);
   if (!colecao) {
     // Endereço antigo (a coleção mudou de nome): 308 para o atual, mantendo o filtro
     const atual = await colecaoDoEnderecoAntigo(slug);
@@ -76,9 +79,24 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
   const emCampanha = campanhaLigada(colecao);
   // Na campanha, a vitrine do fim é o resto da coleção: as estampas que não estão nos capítulos
   const nosCapitulos = new Set(emCampanha ? (colecao.capitulos ?? []).flatMap((k) => k.produtos) : []);
-  const vitrine = produtos.filter((p) => !nosCapitulos.has(p.id));
+  const naoNosCapitulos = produtos.filter((p) => !nosCapitulos.has(p.id));
+  // Loja inteira (Club Editions): as coleções com peças viram um filtro, que soma com o de disponibilidade
+  const porColecao = lojaToda && !emCampanha ? colecoesDaVitrine(naoNosCapitulos, colecoes ?? []) : [];
+  const colecaoEscolhida = lerColecao(busca.colecao, porColecao);
+  const vitrine = colecaoEscolhida ? naoNosCapitulos.filter((p) => p.colecao?.slug === colecaoEscolhida) : naoNosCapitulos;
   const temCapitulos = emCampanha && (colecao.capitulos ?? []).length > 0;
   const visiveis = filtrarProdutos(vitrine, filtro);
+  const endereco = (f: Filtro, c: string | undefined) => {
+    const q = new URLSearchParams();
+    if (c) q.set("colecao", c);
+    if (f !== "todas") q.set("filtro", f);
+    const texto = q.toString();
+    return `/colecao/${slug}${texto ? `?${texto}` : ""}#pecas`;
+  };
+  const chip = (ativo: boolean) => cx(
+    "inline-flex min-h-11 items-center rounded-pilula border-[1.5px] px-4 text-[11px] font-extrabold uppercase tracking-[0.08em]",
+    ativo ? "border-tinta bg-rosa text-no-rosa shadow-adesivo-sm" : "border-tinta bg-papel",
+  );
   const ligadas = (colecoes ?? []).filter(campanhaLigada);
   const posicao = ligadas.findIndex((c) => c.id === colecao.id);
   const proxima = emCampanha && ligadas.length > 1 ? ligadas[(posicao + 1) % ligadas.length] : undefined;
@@ -125,9 +143,22 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
           </div>
         ) : (
           <div className="mb-6">
-            <Sobretitulo>{colecao.nome} · {qtdEstampas}</Sobretitulo>
+            <Sobretitulo>{porColecao.length > 0 ? `Toda a loja · ${qtdEstampas}` : `${colecao.nome} · ${qtdEstampas}`}</Sobretitulo>
             <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
           </div>
+        )}
+
+        {porColecao.length > 1 && (
+          <nav aria-label="Filtrar por coleção" className="mb-3 flex flex-wrap gap-2">
+            <Link href={endereco(filtro, undefined)} scroll={false} aria-current={colecaoEscolhida ? undefined : "page"} className={chip(!colecaoEscolhida)}>
+              Todas as coleções · {naoNosCapitulos.length}
+            </Link>
+            {porColecao.map((c) => (
+              <Link key={c.slug} href={endereco(filtro, c.slug)} scroll={false} aria-current={colecaoEscolhida === c.slug ? "page" : undefined} className={chip(colecaoEscolhida === c.slug)}>
+                {c.nome} · {c.qtd}
+              </Link>
+            ))}
+          </nav>
         )}
 
         {vitrine.length > 0 && (
@@ -135,13 +166,10 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
             {FILTROS.map((f) => (
               <Link
                 key={f.valor}
-                href={f.valor === "todas" ? `/colecao/${slug}#pecas` : `/colecao/${slug}?filtro=${f.valor}#pecas`}
+                href={endereco(f.valor, colecaoEscolhida)}
                 scroll={false}
                 aria-current={filtro === f.valor ? "page" : undefined}
-                className={cx(
-                  "inline-flex min-h-11 items-center rounded-pilula border-[1.5px] px-4 text-[11px] font-extrabold uppercase tracking-[0.08em]",
-                  filtro === f.valor ? "border-tinta bg-rosa text-no-rosa shadow-adesivo-sm" : "border-tinta bg-papel",
-                )}
+                className={chip(filtro === f.valor)}
               >
                 {f.rotulo}{f.valor === "todas" && ` · ${vitrine.length}`}
               </Link>

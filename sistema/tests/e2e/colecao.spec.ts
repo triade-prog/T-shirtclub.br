@@ -93,6 +93,30 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
 
+// Club Editions (D39): a vitrine da loja inteira, com todas as peças e um filtro por coleção
+test("Club Editions mostra a loja inteira, com filtro por coleção que soma com o de disponibilidade, com axe", async ({ page }) => {
+  await page.goto(`${LOJA}/colecao/club-editions`);
+  const grade = page.locator("#pecas");
+  await expect(grade.getByText("Toda a loja · 2 estampas", { exact: true })).toBeVisible();
+  await expect(grade.getByRole("link", { name: "Limone Amalfi Coast", exact: true })).toBeVisible();
+  await expect(grade.getByRole("link", { name: "Rio de Janeiro", exact: true })).toBeVisible();
+  const porColecao = page.getByRole("navigation", { name: "Filtrar por coleção" });
+  await expect(porColecao.getByRole("link")).toHaveText(["Todas as coleções · 2", "Limone · 1", "Club Editions · 1"]);
+  await expect(porColecao.getByRole("link", { name: "Todas as coleções · 2" })).toHaveAttribute("aria-current", "page");
+
+  await porColecao.getByRole("link", { name: "Limone · 1" }).click();
+  await expect(page).toHaveURL(`${LOJA}/colecao/club-editions?colecao=limone#pecas`);
+  await expect(grade.getByRole("link", { name: "Rio de Janeiro", exact: true })).toHaveCount(0);
+  await expect(grade.getByRole("link", { name: "Limone Amalfi Coast", exact: true })).toBeVisible();
+  await expect(porColecao.getByRole("link", { name: "Limone · 1" })).toHaveAttribute("aria-current", "page");
+  // O filtro de disponibilidade guarda a coleção escolhida
+  await expect(page.getByRole("navigation", { name: "Filtrar peças" }).getByRole("link", { name: "Disponíveis" }))
+    .toHaveAttribute("href", "/colecao/club-editions?colecao=limone&filtro=disponiveis#pecas");
+
+  const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
 test("coleção: campanha gravada e desligada não aparece; o endereço antigo da Riviera leva ao novo", async ({ page, request }) => {
   await page.goto(`${LOJA}/colecao/limone`);
   await expect(page.getByRole("heading", { level: 1, name: "Limone." })).toBeVisible();

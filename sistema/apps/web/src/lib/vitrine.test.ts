@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CartaoProduto } from "./catalogo";
-import { dividirNome, filtrarProdutos, lerFiltro, tamanhoRapido, textoMedidas, textoOferta, textoSelo, tituloEmDuasLinhas } from "./vitrine";
+import { colecoesDaVitrine, dividirNome, filtrarProdutos, lerColecao, lerFiltro, tamanhoRapido, textoMedidas, textoOferta, textoSelo, tituloEmDuasLinhas } from "./vitrine";
 
 const produto = (slug: string, selo: CartaoProduto["selo"]): CartaoProduto => ({
   id: slug, slug, nome: slug, precoCentavos: 4999, precoPromocionalCentavos: null, noClub: true,
@@ -19,6 +19,18 @@ describe("vitrine", () => {
 
   it("selo com a quantidade real: última, só 2, últimas 3 e 4, e nada acima", () => {
     expect([0, 1, 2, 3, 4, 5, 12].map(textoSelo)).toEqual(["Esgotado", "Última unidade", "Só 2 no Club", "Últimas 3", "Últimas 4", null, null]);
+  });
+
+  it("vitrine da loja: as coleções com peças, na ordem da loja, e o filtro de coleção só se existir", () => {
+    const de = (slug: string, colecao: string): CartaoProduto => ({ ...produto(slug, "DISPONIVEL"), colecao: { slug: colecao, nome: colecao, cor: "LIMAO" } });
+    const pecas = [de("a", "riviera"), de("b", "estate"), de("c", "riviera"), produto("d", "DISPONIVEL")];
+    const colecoes = [{ slug: "estate", nome: "Estate" }, { slug: "riviera", nome: "Riviera" }, { slug: "fe", nome: "Fé" }];
+    const vitrine = colecoesDaVitrine(pecas, colecoes);
+    expect(vitrine).toEqual([{ slug: "estate", nome: "Estate", qtd: 1 }, { slug: "riviera", nome: "Riviera", qtd: 2 }]);
+    expect(lerColecao("riviera", vitrine)).toBe("riviera");
+    expect(lerColecao("fe", vitrine)).toBeUndefined();
+    expect(lerColecao(["riviera", "estate"], vitrine)).toBeUndefined();
+    expect(lerColecao(undefined, vitrine)).toBeUndefined();
   });
 
   it("filtro desconhecido ou repetido na URL vira todas", () => {

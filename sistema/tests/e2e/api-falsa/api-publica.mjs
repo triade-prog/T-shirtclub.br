@@ -41,6 +41,14 @@ const colecao3 = { id: "c0000000-0000-4000-8000-000000000003", nome: "Estate Ita
   capaCelular: { caminho: "campanha-limone.webp", alt: "Uma amiga olhando o mar" }, campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01",
   paleta: "ESTATE_ITALIANA", campanhaAtiva: true, produtos: 1, fotos: [], slugsAntigos: [],
   capitulos: [{ rotulo: "Mattina — Mercato", titulo: "Il mercato apre cedo.", texto: "Cesta, jornal e tomates ainda com cheiro de horta.", foto: { caminho: "campanha-limone.webp", alt: "Mercado de manhã" }, produtos: ["p0000000-0000-4000-8000-000000000001"] }] };
+// Club Editions (D37 e D39): peças avulsas, sem capa nem campanha; a página dela mostra a loja inteira
+const colecao4 = { id: "c0000000-0000-4000-8000-000000000004", nome: "Club Editions", slug: "club-editions", descricao: "As estampas avulsas do Club.",
+  chamada: null, cor: "LAVANDA", capa: null, capaCelular: null, campanha: null, campanhaAtiva: false, temporada: null, edicao: null, paleta: "CLUB",
+  produtos: 1, fotos: [], slugsAntigos: [], capitulos: [] };
+const avulsa = {
+  ...cartao, id: "p0000000-0000-4000-8000-000000000010", slug: "rio-de-janeiro", nome: "Rio de Janeiro",
+  colecao: { slug: "club-editions", nome: "Club Editions", cor: "LAVANDA" }, capa: { ...cartao.capa, alt: "Camiseta Rio de Janeiro" },
+};
 const medidas = { UNICO: { busto: 104, comprimento: 68 }, PLUS: { busto: 116, comprimento: 72 } };
 const rotuloDe = (varianteId) => cartao.tamanhos.find((t) => t.id === varianteId);
 const produto = {
@@ -117,7 +125,7 @@ http.createServer(async (req, res) => {
     let x;
 
     if (m === "GET" && p === "v1/catalog/home") return responder(res, 200, home);
-    if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao, colecao2, colecao3]);
+    if (m === "GET" && p === "v1/catalog/collections") return responder(res, 200, [colecao, colecao2, colecao3, colecao4]);
     // Lista VIP (0390): cupom de boas-vindas de 10% valendo
     if (m === "GET" && p === "v1/catalog/vip") return responder(res, 200, { beneficio: { modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
     if (m === "POST" && p === "v1/vip") {
@@ -125,7 +133,10 @@ http.createServer(async (req, res) => {
       if (!b?.consentimento || !b?.privacidade || String(b?.telefone ?? "").replace(/\D/g, "").length < 10) return erro(res, 400, "VALIDATION_ERROR");
       return responder(res, 201, { novo: true, cupom: { codigo: "VIP10", modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
     }
-    if (m === "GET" && p === "v1/catalog/products") return responder(res, 200, ["limone", "estate-italiana", null].includes(url.searchParams.get("collection")) ? [cartao] : []);
+    if (m === "GET" && p === "v1/catalog/products") {
+      const c = url.searchParams.get("collection");
+      return responder(res, 200, c === null ? [cartao, avulsa] : c === "club-editions" ? [avulsa] : ["limone", "estate-italiana"].includes(c) ? [cartao] : []);
+    }
     // Peça só do teste da revalidação: o nome traz quantas vezes a loja buscou a peça aqui
     // (fora das listas, para não mexer nos outros testes).
     if (m === "GET" && (x = p.match(/^v1\/catalog\/products\/(revalidacao-[a-z0-9-]+)$/))) {
