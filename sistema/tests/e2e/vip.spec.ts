@@ -94,11 +94,11 @@ test("rodapé na coleção: curto, na cor da coleção, e volta ao completo fora
   await rodape.scrollIntoViewIfNeeded();
   await semViolacoes(page, "rodapé da coleção");
 
-  // Campanha ligada (Estate Italiana na api falsa): a paleta da campanha
+  // Campanha ligada (Estate Italiana na api falsa): a faixa na tinta da marca, como toda a campanha (D38)
   await rodape.getByRole("link", { name: "Estate Italiana" }).click();
   await expect(page).toHaveURL(`${LOJA}/colecao/estate-italiana`);
   await expect(rodape).toHaveClass(/paleta-estate-italiana/);
-  await expect(faixa).toHaveCSS("background-color", "rgb(29, 79, 140)");
+  await expect(faixa).toHaveCSS("background-color", "rgb(38, 25, 30)");
   await rodape.scrollIntoViewIfNeeded();
   await semViolacoes(page, "rodapé da campanha");
 

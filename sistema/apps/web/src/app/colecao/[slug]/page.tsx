@@ -20,7 +20,8 @@ import { BotaoCampanha, BuildYourClub, CapitulosCampanha, ProximaHistoria, TopoC
 // de campanha, ele inteiro no topo e o nome embaixo; sem, 45% texto e 55% as peças reais (sem
 // nenhuma, só o texto); faixa verde com a chamada da coleção e as peças logo depois do título,
 // com o Club numa faixa compacta. Com o nome da campanha (0420, D35 e D36), a página vira capítulo
-// de campanha na paleta da coleção: foto limpa, campanha, coleção, The Club Edit e capítulos.
+// de campanha: foto com o nome da campanha, coleção, The Club Edit e capítulos, na identidade da
+// marca como a home (D38; antes, cada campanha tinha a paleta própria).
 // A campanha só aparece ligada no painel (0430); depois dos capítulos vêm o Build Your Club, o
 // resto da coleção (as estampas que não estão nos capítulos) e a próxima campanha ligada.
 
@@ -112,14 +113,14 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
       {!emCampanha && colecao.chamada && <FaixaChamada chamada={colecao.chamada} />}
 
       {!(temCapitulos && vitrine.length === 0) && (
-      <section id={temCapitulos ? undefined : "pecas"} className={cx("scroll-mt-32 px-3.5 py-12 md:px-5 md:py-20", emCampanha && "border-t border-camp-tinta/15")}>
+      <section id={temCapitulos ? undefined : "pecas"} className={cx("scroll-mt-32 px-3.5 py-12 md:px-5 md:py-20", emCampanha && "border-t border-tinta/15")}>
         {emCampanha ? (
           <div className="mb-6 grid gap-3">
-            <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.24em] text-camp-terracota">
+            <Sobretitulo>
               Shop {colecao.nome} · {temCapitulos ? `mais ${vitrine.length === 1 ? "1 estampa" : `${vitrine.length} estampas`}` : qtdEstampas}
-            </p>
-            <h2 className="m-0 font-editorial text-[clamp(40px,5.4vw,72px)] font-semibold leading-[0.95] tracking-[-0.04em] text-camp-azul">
-              {temCapitulos ? <>O resto <em className="text-camp-tomate">da coleção.</em></> : <>Escolha <em className="text-camp-tomate">as suas.</em></>}
+            </Sobretitulo>
+            <h2 className="tc-titulo m-0 text-[clamp(40px,5.4vw,72px)]">
+              {temCapitulos ? <>O resto <em>da coleção.</em></> : <>Escolha <em>as suas.</em></>}
             </h2>
           </div>
         ) : (
@@ -139,9 +140,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
                 aria-current={filtro === f.valor ? "page" : undefined}
                 className={cx(
                   "inline-flex min-h-11 items-center rounded-pilula border-[1.5px] px-4 text-[11px] font-extrabold uppercase tracking-[0.08em]",
-                  emCampanha
-                    ? (filtro === f.valor ? "border-camp-azul bg-camp-azul text-camp-base" : "border-camp-tinta/40 bg-transparent")
-                    : (filtro === f.valor ? "border-tinta bg-rosa text-no-rosa shadow-adesivo-sm" : "border-tinta bg-papel"),
+                  filtro === f.valor ? "border-tinta bg-rosa text-no-rosa shadow-adesivo-sm" : "border-tinta bg-papel",
                 )}
               >
                 {f.rotulo}{f.valor === "todas" && ` · ${vitrine.length}`}

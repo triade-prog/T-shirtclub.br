@@ -50,11 +50,19 @@ test("coleção: o endereço antigo leva ao novo, com o filtro", async ({ page, 
   expect((await request.get(`${LOJA}/colecao/nunca-existiu`)).status()).toBe(404);
 });
 
-// Coleção de campanha (0420, D35 e D36): marca, campanha, coleção e capítulos, na paleta própria.
-test("coleção de campanha: foto limpa, campanha, coleção, The Club Edit, capítulo e shop, com axe", async ({ page }) => {
+// Coleção de campanha (0420, D35 e D36): marca, campanha, coleção e capítulos, na identidade da
+// marca como a home (D38): o nome da campanha sobre a foto, títulos em tinta e o trio no bloco rosa.
+test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítulo e shop, com axe", async ({ page }) => {
   await page.goto(`${LOJA}/colecao/estate-italiana`);
-  await expect(page.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
+  const nome = page.getByText("Ciao, Estate!", { exact: true });
+  await expect(nome).toBeVisible();
+  await expect(nome).toHaveCSS("font-style", "italic");
+  // Sobre a foto: o nome e a foto da campanha no mesmo quadro
+  const quadro = page.locator("main section").first();
+  await expect(quadro.getByRole("img", { name: "Uma amiga olhando o mar" })).toBeVisible();
+  await expect(quadro).toContainText("Ciao, Estate!");
   await expect(page.getByText("Estate Italiana · SS26", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("color", "rgb(38, 25, 30)");
   await expect(page.getByText("Coleção 01 · 1 estampa", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Estate Italiana." })).toBeVisible();
   await expect(page.getByRole("link", { name: /Ver a estampa/ })).toHaveAttribute("href", "#pecas");
@@ -71,6 +79,7 @@ test("coleção de campanha: foto limpa, campanha, coleção, The Club Edit, cap
   await expect(build).toContainText("1 estampa · monte seu trio");
   await expect(build).toContainText("3 T-shirts · R$ 119,99");
   await expect(build.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
+  await expect(build).toHaveCSS("background-color", "rgb(232, 71, 138)");
   await expect(page.getByText("O resto")).toHaveCount(0);
   // Next story: a próxima campanha ligada (Riviera)
   await expect(page.getByRole("region", { name: "Mare, Amore!" }).getByRole("link", { name: /Descobrir Riviera/ })).toHaveAttribute("href", "/colecao/riviera");

@@ -15,7 +15,7 @@ export function FaixaTrio({ qtd, preco, oferta, inicial, campanha }: {
   oferta: string;
   /** Cookie da sacola lido no servidor. */
   inicial?: string;
-  /** Na página de campanha, nas cores da paleta da coleção (D36), sem o adesivo do Club. */
+  /** Na página de campanha, dentro do bloco rosa do Build Your Club: o cartão citrino da home (D38). */
   campanha?: boolean;
 }) {
   const pecas = usePecasNaSacola(inicial);
@@ -29,17 +29,13 @@ export function FaixaTrio({ qtd, preco, oferta, inicial, campanha }: {
   return (
     <section aria-label={`Monte seu Club: ${p.noTrio} de ${qtd}`}
       className={cx("mb-8 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-cartao px-4 py-3.5 md:flex-nowrap md:px-5",
-        campanha ? "bg-camp-azul text-camp-base" : "border-2 border-tinta bg-rosa text-no-rosa shadow-adesivo")}>
-      {campanha
-        ? <span className="shrink-0 rounded-pilula bg-camp-limao px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-camp-tinta">{oferta}</span>
-        : <Selo fundo="citrino" brilho={false} className="shrink-0">{oferta}</Selo>}
+        campanha ? "border-2 border-tinta bg-citrino text-no-citrino shadow-adesivo-lg" : "border-2 border-tinta bg-rosa text-no-rosa shadow-adesivo")}>
+      <Selo fundo={campanha ? "papel" : "citrino"} brilho={false} className="shrink-0">{oferta}</Selo>
       <p className="m-0 min-w-[16ch] flex-1 text-sm font-semibold leading-snug">{texto}</p>
       <div className="flex shrink-0 items-center gap-1.5" aria-hidden="true">
         {Array.from({ length: qtd }, (_, i) => (
           <span key={i} className={cx("grid size-7 place-items-center rounded-full border-2 font-display text-xs font-extrabold",
-            campanha
-              ? (i < p.noTrio ? "border-camp-limao bg-camp-limao text-camp-tinta" : "border-camp-base/60 text-camp-base")
-              : (i < p.noTrio ? "border-tinta bg-citrino text-no-citrino" : "border-tinta bg-papel text-tinta"))}>
+            i < p.noTrio ? (campanha ? "border-tinta bg-tinta text-papel" : "border-tinta bg-citrino text-no-citrino") : "border-tinta bg-papel text-tinta")}>
             {i < p.noTrio ? "✓" : i + 1}
           </span>
         ))}

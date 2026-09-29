@@ -1,7 +1,7 @@
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { BotaoCampanha as BotaoCampanhaUi, MICRO_CAMPANHA, NomeCampanha, TopoCampanha as TopoCampanhaUi, cx, universoDaPaleta, type Universo } from "@tshirtclub/ui";
+import { BotaoCampanha as BotaoCampanhaUi, FotoComNome, Sobretitulo, TopoCampanha as TopoCampanhaUi, cx, universoDaPaleta, type Universo } from "@tshirtclub/ui";
 import { urlFoto, type CapituloColecao, type CartaoProduto, type Colecao, type Foto } from "@/lib/catalogo";
 import { CardProduto } from "../../_vitrine/CardProduto";
 
@@ -10,9 +10,9 @@ import { CardProduto } from "../../_vitrine/CardProduto";
 // manifesto, capítulos, Build Your Club, o resto da coleção e a próxima história), mas cada
 // universo com a sua paleta, o seu ritmo e um detalhe próprio, para as cinco páginas não serem a
 // mesma com outra cor (0430). A foto fica limpa (sem texto nem botão dentro); o HTML traz o resto.
-// Os universos, o nome da campanha e o topo estão em packages/ui, para a prévia do painel.
-
-const MICRO = MICRO_CAMPANHA;
+// Os universos, o nome da campanha e o topo estão em packages/ui, para a prévia do painel. Desde
+// 29/09 (D38) tudo na identidade da marca, como a home: títulos em tinta com o sobretítulo citrino,
+// fotos sem contorno, o trio no bloco rosa e o nome da campanha sobre a foto.
 
 export function universo(colecao: Colecao): Universo {
   return universoDaPaleta(colecao.paleta);
@@ -27,7 +27,7 @@ export function campanhaLigada(colecao: Colecao): boolean {
 function FotoCampanha({ capa, celular, prioridade = true, tamanhos = "(min-width: 1280px) 1240px, 100vw" }: {
   capa: Foto; celular: Foto | null | undefined; prioridade?: boolean; tamanhos?: string;
 }) {
-  const moldura = "relative overflow-hidden rounded-[24px] ring-1 ring-camp-tinta/15";
+  const moldura = "relative overflow-hidden rounded-[24px]";
   if (!celular) {
     return (
       <div className={cx(moldura, "aspect-video")}>
@@ -73,16 +73,15 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
     <div id={id} className={cx("grid scroll-mt-32 gap-16 px-3.5 py-14 md:gap-24 md:px-5 md:py-20", silencio && "md:gap-32")}>
       {capitulos.map((k, i) => {
         const pecas = k.produtos.map((pid) => produtos.find((p) => p.id === pid)).filter((p): p is CartaoProduto => Boolean(p));
-        const inclinada = u.ritmo === "humor" ? (i % 2 === 0 ? "md:-rotate-1" : "md:rotate-1") : "";
         return (
           <section key={k.rotulo} aria-labelledby={`capitulo-${i}`} className="grid gap-8">
             <div className={cx("grid gap-3", silencio ? "justify-items-center text-center" : "max-w-[46rem]")}>
-              <p className={cx(MICRO, "text-camp-terracota")}>{String(i + 1).padStart(2, "0")} · {k.rotulo}</p>
-              <h2 id={`capitulo-${i}`} className="m-0 font-editorial text-[clamp(36px,5vw,68px)] font-semibold leading-[0.95] tracking-[-0.04em] text-camp-azul">{k.titulo}</h2>
-              {k.texto && <p className="m-0 max-w-[40ch] font-editorial text-[clamp(18px,1.8vw,22px)] italic leading-snug text-camp-tinta">{k.texto}</p>}
+              <Sobretitulo>{String(i + 1).padStart(2, "0")} · {k.rotulo}</Sobretitulo>
+              <h2 id={`capitulo-${i}`} className="tc-titulo m-0 text-[clamp(36px,5vw,68px)] text-tinta">{k.titulo}</h2>
+              {k.texto && <p className="m-0 max-w-[40ch] font-editorial text-[clamp(18px,1.8vw,22px)] italic leading-snug text-tinta">{k.texto}</p>}
             </div>
             {k.foto && (
-              <div className={cx("relative aspect-[4/5] overflow-hidden rounded-[24px] ring-1 ring-camp-tinta/15 md:aspect-[21/9]", inclinada, silencio && "md:mx-auto md:aspect-[16/10] md:w-3/4")}>
+              <div className={cx("relative aspect-[4/5] overflow-hidden rounded-[24px] md:aspect-[21/9]", silencio && "md:mx-auto md:aspect-[16/10] md:w-3/4")}>
                 <Image src={urlFoto(k.foto.caminho)} alt={k.foto.alt ?? ""} fill sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />
               </div>
             )}
@@ -105,35 +104,33 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
   );
 }
 
-/** Build Your Club: o fim da história puxa para o trio (3 T-shirts · R$ 119,99), com o progresso da sacola. */
+/** Build Your Club: o fim da história puxa para o trio, no bloco rosa do "3 escolhas. Seu Club." da home. */
 export function BuildYourClub({ colecao, qtdEstampas, oferta, progresso }: { colecao: Colecao; qtdEstampas: string; oferta: string; progresso: React.ReactNode }) {
   const silencio = universo(colecao).ritmo === "silencio";
   return (
-    <section aria-labelledby="build-your-club" className={cx("grid gap-5 border-t border-camp-tinta/15 px-3.5 py-14 md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
-      <p className={cx(MICRO, "text-camp-terracota")}>{qtdEstampas} · monte seu trio</p>
-      <h2 id="build-your-club" className="m-0 font-editorial text-[clamp(44px,7vw,104px)] font-semibold uppercase leading-[0.9] tracking-[-0.03em] text-camp-azul">{colecao.nome}</h2>
-      <p className="m-0 font-display text-[clamp(24px,3vw,40px)] font-extrabold uppercase tracking-[-0.01em] text-camp-tomate">{oferta.replace(" por ", " T-shirts · ")}</p>
+    <section aria-labelledby="build-your-club" className={cx("grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
+      <Sobretitulo>{qtdEstampas} · monte seu trio</Sobretitulo>
+      <h2 id="build-your-club" className="tc-titulo m-0 text-[clamp(44px,7vw,104px)]">{colecao.nome}</h2>
+      <p className="m-0 font-editorial text-[clamp(24px,3vw,40px)] font-[680] italic tracking-[-0.03em]">{oferta.replace(" por ", " T-shirts · ")}</p>
       <div className="w-full">{progresso}</div>
     </section>
   );
 }
 
-/** Next story: a próxima campanha ligada, na paleta dela, com a foto grande. */
+/** Next story: a próxima campanha ligada, com o nome dela sobre a foto, como o topo da campanha. */
 export function ProximaHistoria({ colecao }: { colecao: Colecao }) {
   const u = universo(colecao);
   return (
-    <section aria-labelledby="proxima-historia" className={cx(u.classe, "bg-camp-base px-3.5 py-14 text-camp-tinta md:px-5 md:py-20")}>
+    <section aria-labelledby="proxima-historia" className="border-t border-tinta/15 px-3.5 py-14 text-tinta md:px-5 md:py-20">
       <Link href={`/colecao/${colecao.slug}`} className="group grid gap-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="grid gap-3">
-            <p className={cx(MICRO, "text-camp-terracota")}>Next story</p>
-            <h2 id="proxima-historia" className="m-0"><NomeCampanha colecao={colecao} u={u} Tag="span" /></h2>
-          </div>
-          <span className={cx(MICRO, "inline-flex min-h-11 items-center gap-2 text-camp-azul")}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Sobretitulo>Next story</Sobretitulo>
+          <span className="inline-flex min-h-11 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em]">
             Descobrir {colecao.nome} <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" strokeWidth={1.8} />
           </span>
         </div>
-        {colecao.capa && <FotoCampanha capa={colecao.capa} celular={colecao.capaCelular} prioridade={false} />}
+        <FotoComNome colecao={colecao} u={u} Tag="h2" id="proxima-historia"
+          foto={colecao.capa && <FotoCampanha capa={colecao.capa} celular={colecao.capaCelular} prioridade={false} />} />
       </Link>
     </section>
   );

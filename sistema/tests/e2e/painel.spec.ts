@@ -197,7 +197,7 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   // Pick your story só com o nome da coleção, mesmo com a campanha ligada (29/09: o nome da campanha
   // já está no lettering do círculo e aparecia duas vezes); o componente é o mesmo da loja
   await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Limone Nuovo" })).toHaveText("Limone Nuovo");
-  await page.getByLabel("Paleta da página").selectOption("RIVIERA");
+  await page.getByLabel("Universo da página").selectOption("RIVIERA");
   await expect(computador.locator(".paleta-riviera")).toHaveCount(1);
   // Ligada sem as fotos: o painel avisa o que falta (não impede)
   const aviso = page.getByRole("status").filter({ hasText: "Campanha ligada sem" });
