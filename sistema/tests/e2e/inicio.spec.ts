@@ -58,6 +58,9 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa
 
   const faixa = page.getByRole("region", { name: "Oferta do Club" });
   await expect(faixa).toContainText("3 T-shirts por R$ 119,99");
+  // No rosa da faixa do cabeçalho, com a arte do preço da loja (escolha da loja)
+  await expect(faixa).toHaveCSS("background-color", "rgb(232, 71, 138)");
+  await expect(faixa.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
   expect(Math.round((await faixa.boundingBox())!.width)).toBe(largura);
   await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "running");
   // Anda sozinha, então tem pausa (WCAG 2.2.2)
