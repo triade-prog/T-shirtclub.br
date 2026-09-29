@@ -4,18 +4,20 @@ import { useState } from "react";
 import Image from "next/image";
 import { Pause, Play } from "lucide-react";
 import { formatarReais } from "@tshirtclub/domain";
+import { cx } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import { ARTE_PRECO } from "./OfertaTrio";
 
 // Faixa corrida do trio (29/09, pedido da loja): "3 T-shirts por" e a arte do preço da loja
-// passando de ponta a ponta logo abaixo da capa, no rosa da faixa do cabeçalho (escolha da loja). Com outro
+// passando de ponta a ponta sobre a divisa do bloco "Monte seu Club" com o papel, no rosa da faixa
+// do cabeçalho (escolhas da loja). A altura é fixa (90 e 106 px) para a home subir metade dela. Com outro
 // preço, a arte (que tem o valor desenhado) dá lugar ao texto. O leitor de tela lê a frase uma
 // vez; o que corre é enfeite. Anda sozinha, então tem pausa (WCAG 2.2.2), para com o mouse em
 // cima e fica parada com movimento reduzido.
 
 const REPETICOES = 5;
 
-export function LetreiroTrio({ qtd, precoCentavos }: { qtd: number; precoCentavos: number }) {
+export function LetreiroTrio({ qtd, precoCentavos, className }: { qtd: number; precoCentavos: number; className?: string }) {
   const [parado, setParado] = useState(false);
   const preco = formatarReais(precoCentavos);
   const frase = "font-editorial text-[clamp(26px,3vw,40px)] font-[680] italic tracking-[-0.03em]";
@@ -28,7 +30,7 @@ export function LetreiroTrio({ qtd, precoCentavos }: { qtd: number; precoCentavo
           </span>
           {precoCentavos === ARTE_PRECO.centavos ? (
             <Image src={urlFoto(ARTE_PRECO.caminho)} alt="" width={ARTE_PRECO.largura} height={ARTE_PRECO.altura}
-              sizes="220px" className="h-[clamp(64px,7vw,96px)] w-auto -rotate-3" />
+              sizes="200px" className="h-16 w-auto -rotate-3 md:h-20" />
           ) : (
             <span className={frase}>{preco}</span>
           )}
@@ -38,9 +40,9 @@ export function LetreiroTrio({ qtd, precoCentavos }: { qtd: number; precoCentavo
   );
   return (
     <section aria-label="Oferta do Club" data-parado={parado}
-      className="tc-letreiro tc-sangria flex items-center border-y-3 border-tinta bg-rosa text-no-rosa">
+      className={cx("tc-letreiro tc-sangria flex h-[90px] items-center border-y-3 border-tinta bg-rosa text-no-rosa md:h-[106px]", className)}>
       <p className="sr-only">{qtd} T-shirts por {preco}</p>
-      <div aria-hidden="true" className="min-w-0 flex-1 overflow-hidden py-2.5">
+      <div aria-hidden="true" className="min-w-0 flex-1 overflow-hidden">
         <div className="tc-letreiro-trilho">{copia("a")}{copia("b")}</div>
       </div>
       <button type="button" onClick={() => setParado(!parado)} aria-pressed={parado} aria-label="Pausar a faixa da oferta"

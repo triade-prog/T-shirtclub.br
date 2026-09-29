@@ -26,11 +26,13 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   await expect(page.getByText("Limone, Amore!")).toHaveCount(0);
   await expect(carrossel.getByRole("link", { name: /Ver Limone/ })).toHaveCount(0);
 
-  // Monte seu Club: o "3" grande em citrino e o preço no lettering da loja, como nas campanhas
+  // Monte seu Club (29/09): a oferta saiu de dentro do bloco e corre na faixa em cima da divisa,
+  // com o "3" grande em citrino e o preço no lettering da loja
   const monte = page.locator("#monte-club");
-  await expect(monte).toContainText("3 T-shirts por R$ 119,99");
-  await expect(monte.locator("b.tc-numero-adesivo")).toHaveCSS("color", "rgb(223, 240, 74)");
-  await expect(monte.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(1);
+  await expect(monte.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(0);
+  const oferta = page.getByRole("region", { name: "Oferta do Club" });
+  await expect(oferta).toContainText("3 T-shirts por R$ 119,99");
+  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(223, 240, 74)");
 
   const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
@@ -58,6 +60,10 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 do Club na serifa
 
   const faixa = page.getByRole("region", { name: "Oferta do Club" });
   await expect(faixa).toContainText("3 T-shirts por R$ 119,99");
+  // Em cima da divisa do bloco rosa com o papel: metade sobre o rosa, metade embaixo
+  const bloco = (await page.locator("#monte-club").boundingBox())!;
+  const caixa = (await faixa.boundingBox())!;
+  expect(Math.abs(caixa.y + caixa.height / 2 - (bloco.y + bloco.height))).toBeLessThanOrEqual(1);
   // No rosa da faixa do cabeçalho, com a arte do preço da loja (escolha da loja)
   await expect(faixa).toHaveCSS("background-color", "rgb(232, 71, 138)");
   await expect(faixa.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
