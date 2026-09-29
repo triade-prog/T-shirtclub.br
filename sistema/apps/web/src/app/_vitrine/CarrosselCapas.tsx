@@ -27,8 +27,12 @@ export interface SlideCapa {
 
 const TAMANHOS = "(min-width: 1280px) 1240px, 100vw";
 
+// Numa tela larga, a moldura fica mais baixa que o 16:9 e a foto corta: o corte sai só de baixo
+// (29/09, pedido da loja), porque os rostos das campanhas ficam no alto da foto.
+const AJUSTE_FOTO = "object-cover object-top";
+
 function FotoSlide({ s, prioridade }: { s: SlideCapa; prioridade: boolean }) {
-  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} sizes={TAMANHOS} className="object-cover" />;
+  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} sizes={TAMANHOS} className={AJUSTE_FOTO} />;
   const { props: { srcSet: computador } } = getImageProps({ src: s.foto, alt: "", width: 2400, height: 1350, sizes: TAMANHOS });
   const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
   return (
@@ -36,7 +40,7 @@ function FotoSlide({ s, prioridade }: { s: SlideCapa; prioridade: boolean }) {
       <source media="(min-width: 768px)" srcSet={computador} />
       <source srcSet={celular} />
       {/* eslint-disable-next-line jsx-a11y/alt-text -- o alt vem de getImageProps */}
-      <img {...img} className="absolute inset-0 size-full object-cover" />
+      <img {...img} className={cx("absolute inset-0 size-full", AJUSTE_FOTO)} />
     </picture>
   );
 }
@@ -85,7 +89,7 @@ export function CarrosselCapas({ slides }: { slides: SlideCapa[] }) {
     >
       <div
         // De ponta a ponta (29/09); numa tela larga, o 16:9 passaria da altura da tela: a foto
-        // para abaixo do cabeçalho e corta em cima e embaixo, e os botões seguem à vista. O w-full
+        // para abaixo do cabeçalho e corta embaixo (AJUSTE_FOTO), e os botões seguem à vista. O w-full
         // segura a largura: sem ele, o limite de altura passa pela proporção e encolhe a foto
         className={cx(classeMolduraCarrossel(vertical), "w-full md:max-h-[calc(100svh-12rem)]")}
         onTouchStart={(e) => { inicioToque.current = e.touches[0]?.clientX ?? null; }}

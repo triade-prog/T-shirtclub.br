@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { BotaoCampanha as BotaoCampanhaUi, FotoComNome, Sobretitulo, TopoCampanha as TopoCampanhaUi, cx, universoDaPaleta, type Universo } from "@tshirtclub/ui";
 import { urlFoto, type CapituloColecao, type CartaoProduto, type Colecao, type Foto, type OfertaClub } from "@/lib/catalogo";
 import { CardProduto } from "../../_vitrine/CardProduto";
-import { OfertaTrio } from "../../_vitrine/OfertaTrio";
+import { LetreiroTrio, SUBIDA_LETREIRO } from "../../_vitrine/LetreiroTrio";
 
 // Coleção como capítulo de campanha (28/09, D35 e D36): a marca é a T-shirt Club, a campanha tem
 // nome próprio e a coleção é o capítulo. Um esqueleto só para todas (foto, campanha, coleção,
@@ -105,16 +105,22 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
   );
 }
 
-/** Build Your Club: o fim da história puxa para o trio, no bloco rosa do "3 escolhas. Seu Club." da home. */
+/**
+ * Build Your Club: o fim da história puxa para o trio, no bloco rosa do "3 escolhas. Seu Club." da
+ * home, com a mesma faixa corrida da oferta em cima da divisa (29/09, pedido da loja: a arte saiu
+ * de dentro do bloco em todas as páginas).
+ */
 export function BuildYourClub({ colecao, qtdEstampas, club, progresso }: { colecao: Colecao; qtdEstampas: string; club: OfertaClub; progresso: React.ReactNode }) {
   const silencio = universo(colecao).ritmo === "silencio";
   return (
-    <section aria-labelledby="build-your-club" className={cx("tc-faixa-inteira grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
-      <Sobretitulo>{qtdEstampas} · monte seu trio</Sobretitulo>
-      <h2 id="build-your-club" className="tc-titulo m-0 text-[clamp(44px,7vw,104px)]">{colecao.nome}</h2>
-      <OfertaTrio qtd={club.qtd} precoCentavos={club.precoCentavos} className={cx(silencio && "justify-center")} />
-      <div className="w-full">{progresso}</div>
-    </section>
+    <>
+      <section aria-labelledby="build-your-club" className={cx("tc-faixa-inteira grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 pb-20 pt-14 text-no-rosa md:px-5 md:pb-24 md:pt-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
+        <Sobretitulo>{qtdEstampas} · monte seu trio</Sobretitulo>
+        <h2 id="build-your-club" className="tc-titulo m-0 text-[clamp(44px,7vw,104px)]">{colecao.nome}</h2>
+        <div className="w-full">{progresso}</div>
+      </section>
+      <LetreiroTrio qtd={club.qtd} precoCentavos={club.precoCentavos} className={SUBIDA_LETREIRO} />
+    </>
   );
 }
 
