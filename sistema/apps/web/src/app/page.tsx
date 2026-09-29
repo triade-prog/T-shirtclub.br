@@ -177,7 +177,7 @@ function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string
   const preco = oferta ? formatarReais(oferta.precoCentavos) : "R$ 119,99";
   const qtd = oferta?.qtd ?? 3;
   return (
-    <section id="monte-club" className="border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5">
+    <section id="monte-club" className="tc-faixa-inteira border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5">
       <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
         <div className="grid justify-items-start gap-5">
           <Sobretitulo>Monte seu Club</Sobretitulo>

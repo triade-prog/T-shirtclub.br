@@ -109,7 +109,7 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
 export function BuildYourClub({ colecao, qtdEstampas, club, progresso }: { colecao: Colecao; qtdEstampas: string; club: OfertaClub; progresso: React.ReactNode }) {
   const silencio = universo(colecao).ritmo === "silencio";
   return (
-    <section aria-labelledby="build-your-club" className={cx("grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
+    <section aria-labelledby="build-your-club" className={cx("tc-faixa-inteira grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
       <Sobretitulo>{qtdEstampas} · monte seu trio</Sobretitulo>
       <h2 id="build-your-club" className="tc-titulo m-0 text-[clamp(44px,7vw,104px)]">{colecao.nome}</h2>
       <OfertaTrio qtd={club.qtd} precoCentavos={club.precoCentavos} className={cx(silencio && "justify-center")} />

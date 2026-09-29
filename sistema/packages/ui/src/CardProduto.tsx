@@ -36,7 +36,7 @@ export interface CardProdutoProps {
  */
 export function CardProduto({ nome, href, colecao, preco, precoOriginal, oferta, selo, foto, favorito, acao, Link = "a", className }: CardProdutoProps) {
   return (
-    <article className={cx("group grid min-w-0 gap-2.5", className)}>
+    <article className={cx("group grid min-w-0 content-start gap-2.5", className)}>
       <div className="relative aspect-4/5 overflow-hidden rounded-foto border-[1.5px] border-tinta bg-algodao shadow-[3px_3px_0_rgb(38_25_30/0.12)]">
         <Link href={href} tabIndex={-1} aria-hidden="true" className="absolute inset-0">
           {foto}
@@ -52,11 +52,17 @@ export function CardProduto({ nome, href, colecao, preco, precoOriginal, oferta,
         <h3 className="m-0 -mb-3 -mt-2.5 text-sm font-bold tracking-[-0.02em]">
           <Link href={href} className="block truncate rounded-[4px] py-3">{nome}</Link>
         </h3>
-        <p className="m-0 mt-1 font-display text-[15px] font-extrabold">
-          {precoOriginal && <s className="mr-1.5 font-texto text-xs font-normal text-tinta-suave">{precoOriginal}</s>}
-          {preco}
-          {oferta && <span className="ml-1.5 font-texto text-[11px] font-bold text-verde-escuro">{oferta}</span>}
+        {/* Preço da peça e o do Club separados (29/09: "R$ 49,993 por" colado confundia): a peça na
+            tinta e, embaixo, "ou 3 por R$ 119,99 no Club", discreto, com o grifo citrino */}
+        <p className="m-0 mt-1 text-[15px] font-semibold tracking-[-0.01em]">
+          {precoOriginal && <><s className="text-xs font-normal text-tinta-suave">{precoOriginal}</s>{" "}</>}
+          {preco} <span className="text-xs font-normal text-tinta-suave">a peça</span>
         </p>
+        {oferta && (
+          <p className="m-0 mt-0.5 text-xs text-tinta-suave">
+            ou <span className="font-semibold text-tinta underline decoration-citrino decoration-[3px] underline-offset-2">{oferta}</span> no Club
+          </p>
+        )}
       </div>
     </article>
   );

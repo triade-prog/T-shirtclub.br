@@ -222,6 +222,15 @@
     text-shadow: 0.045em 0.05em 0 var(--tc-tinta);
     transform: rotate(-6deg);
   }
+  /* Faixa de ponta a ponta (29/09): o <main> tem no máximo 1280 px, e o bloco rosa do trio sai
+     dele até as bordas da tela, com as linhas de tinta em cima e embaixo. É border-image com
+     outset: pinta por fora sem contar na rolagem, então não aparece barra lateral. */
+  .tc-faixa-inteira {
+    border-image-source: linear-gradient(var(--tc-tinta) 0 3px, var(--tc-rosa) 3px calc(100% - 3px), var(--tc-tinta) calc(100% - 3px));
+    border-image-slice: 0 fill;
+    border-image-width: 0;
+    border-image-outset: 0 100vw;
+  }
   .tc-sobretitulo {
     display: flex;
     align-items: center;

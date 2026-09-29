@@ -23,6 +23,10 @@ test("coleção: capa, chamada, faixa do Club antes das peças e o trio completo
   const faixa = page.getByRole("region", { name: "Monte seu Club: 3 de 3" });
   await expect(faixa).toContainText("Seu trio está completo ✓");
   await expect(faixa).toContainText("3 por R$ 119,99");
+  // O cartão da peça: o preço dela e, embaixo, o do Club (29/09)
+  const cartao = page.getByRole("article").filter({ hasText: "Limone Amalfi Coast" }).first();
+  await expect(cartao).toContainText("R$ 49,99 a peça");
+  await expect(cartao).toContainText("ou 3 por R$ 119,99 no Club");
   const peca = page.getByRole("link", { name: /Limone Amalfi Coast/ }).first();
   expect((await faixa.boundingBox())!.y).toBeLessThan((await peca.boundingBox())!.y);
   expect((await page.getByRole("navigation", { name: "Filtrar peças" }).boundingBox())!.y).toBeLessThan((await faixa.boundingBox())!.y);
@@ -83,6 +87,9 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   await expect(build.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(1);
   await expect(build.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
   await expect(build).toHaveCSS("background-color", "rgb(232, 71, 138)");
+  // De ponta a ponta: o rosa sai da largura máxima da página (border-image com outset, sem rolagem)
+  await expect(build).toHaveCSS("border-image-outset", /100vw|\d{3,}px/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await expect(page.getByText("O resto")).toHaveCount(0);
   // Next story: a próxima campanha ligada (Riviera)
   await expect(page.getByRole("region", { name: "Mare, Amore!" }).getByRole("link", { name: /Descobrir Riviera/ })).toHaveAttribute("href", "/colecao/riviera");

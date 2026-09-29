@@ -47,6 +47,9 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await expect(page.getByText("Plus · 44 ao 48: busto 116 cm · comprimento 72 cm")).toBeAttached();
 
   // Produto → sacola: a peça entra sem sair da página; o aviso mostra o progresso do trio
+  // Preço da peça e o do Club separados, sem nada colado (29/09)
+  await expect(page.getByText("R$ 49,99 a peça", { exact: true })).toBeVisible();
+  await expect(page.getByText("ou 3 por R$ 119,99 no Club", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Adicionar ao Club" }).click();
   const aviso = page.getByRole("status", { name: "Aviso da sacola" });
   await expect(aviso).toContainText("Limone Amalfi Coast entrou na sacola.");

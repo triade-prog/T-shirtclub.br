@@ -85,12 +85,21 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
           </h1>
           {produto.descricao && <p className="m-0 font-editorial text-xl italic leading-tight text-tinta-suave">{produto.descricao}</p>}
 
-          <p className="m-0 flex flex-wrap items-baseline gap-2.5 border-y border-linha py-4">
+          {/* Preço limpo, na tinta, sem a caixa rosa (29/09): "R$ 49,99 a peça" e, ao lado, "ou 3 por
+              R$ 119,99 no Club" com o grifo citrino */}
+          <p className="m-0 flex flex-wrap items-baseline gap-x-3.5 gap-y-1 border-y border-linha py-4">
             {promo !== null && <s className="text-sm text-tinta-suave"><span className="sr-only">De </span>{formatarReais(produto.precoCentavos)}</s>}
-            <strong className="rounded-[6px] bg-rosa-bruma px-2 py-1 font-display text-[22px] font-extrabold">
-              {promo !== null && <span className="sr-only">por </span>}{formatarReais(promo ?? produto.precoCentavos)}
-            </strong>
-            {oferta && <span className="text-xs font-extrabold text-verde-escuro">ou {oferta}</span>}
+            <span>
+              <strong className="text-[26px] font-semibold tracking-[-0.02em]">
+                {promo !== null && <span className="sr-only">por </span>}{formatarReais(promo ?? produto.precoCentavos)}
+              </strong>{" "}
+              <span className="text-sm text-tinta-suave">a peça</span>
+            </span>
+            {oferta && (
+              <span className="text-sm text-tinta-suave">
+                ou <span className="font-semibold text-tinta underline decoration-citrino decoration-4 underline-offset-[3px]">{oferta}</span> no Club
+              </span>
+            )}
           </p>
 
           {oferta && club && (
