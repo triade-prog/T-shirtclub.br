@@ -196,7 +196,8 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
       {proxima && <ProximaHistoria colecao={proxima} />}
 
       {!emCampanha && fotoFim && (
-        <section className="grid items-center gap-7.5 border-t-3 border-tinta bg-rosa-bruma px-3.5 py-15.5 md:grid-cols-2 md:px-5">
+        // Rosa-bruma de ponta a ponta (29/09), como o bloco do trio; o conteúdo segue na largura da página
+        <section className="tc-faixa-inteira tc-faixa-bruma grid items-center gap-7.5 border-t-3 border-tinta bg-rosa-bruma px-3.5 py-15.5 md:grid-cols-2 md:px-5">
           <div>
             <Sobretitulo>Editorial note</Sobretitulo>
             <h2 className="m-0 mb-4.5 mt-2.5 font-editorial text-[clamp(48px,6vw,90px)] font-bold leading-[0.84] tracking-[-0.05em] text-verde-escuro">

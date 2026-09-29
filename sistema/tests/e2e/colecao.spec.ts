@@ -30,6 +30,10 @@ test("coleção: capa, chamada, faixa do Club antes das peças e o trio completo
   const peca = page.getByRole("link", { name: /Limone Amalfi Coast/ }).first();
   expect((await faixa.boundingBox())!.y).toBeLessThan((await peca.boundingBox())!.y);
   expect((await page.getByRole("navigation", { name: "Filtrar peças" }).boundingBox())!.y).toBeLessThan((await faixa.boundingBox())!.y);
+  // A nota editorial do fim em rosa-bruma de ponta a ponta, como o bloco do trio (29/09)
+  const nota = page.locator("section", { has: page.getByText("Editorial note", { exact: true }) });
+  await expect(nota).toHaveCSS("border-image-outset", /100vw|\d{3,}px/);
+  await expect(nota).toHaveCSS("background-color", "rgb(252, 221, 232)");
 
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);

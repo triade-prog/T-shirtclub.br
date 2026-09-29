@@ -7,7 +7,7 @@ import { urlFoto } from "@/lib/catalogo";
  * Arte do preço do trio (lettering da loja, 29/09, em "imagens site" no bucket). O valor está
  * desenhado nela, então só aparece enquanto o trio custar isso; com outro preço, volta o texto.
  */
-const ARTE_PRECO = { centavos: 11999, caminho: "imagens%20site/lettering-preco-119-99.webp", largura: 1000, altura: 442 };
+export const ARTE_PRECO = { centavos: 11999, caminho: "imagens%20site/lettering-preco-119-99.webp", largura: 1000, altura: 442 };
 
 /**
  * "3 T-shirts por R$ 119,99" com o "3" grande em citrino e o preço no lettering da loja, no bloco

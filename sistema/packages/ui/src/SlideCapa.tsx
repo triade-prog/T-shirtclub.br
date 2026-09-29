@@ -13,10 +13,10 @@ export function SetaDireita({ className }: { className?: string }) {
 
 /**
  * Moldura do carrossel da capa do início: 16:9; vertical (4:5) no celular quando todos os slides
- * têm a foto do celular.
+ * têm a foto do celular. Sem cantos nem contorno (29/09): na loja a foto vai de ponta a ponta.
  */
 export function classeMolduraCarrossel(vertical: boolean): string {
-  return cx("relative overflow-hidden rounded-[24px] bg-rosa-bruma ring-1 ring-tinta/15", vertical ? "aspect-[4/5] md:aspect-video" : "aspect-video");
+  return cx("relative overflow-hidden bg-rosa-bruma", vertical ? "aspect-[4/5] md:aspect-video" : "aspect-video");
 }
 
 /**

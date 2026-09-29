@@ -11,7 +11,7 @@ import { ProgressoDaSacola } from "./_sacola/ProgressoDaSacola";
 import { AvisoInstalarIphone } from "./_pwa/AvisoInstalarIphone";
 import { CardProduto } from "./_vitrine/CardProduto";
 import { CarrosselCapas } from "./_vitrine/CarrosselCapas";
-import { OfertaTrio } from "./_vitrine/OfertaTrio";
+import { LetreiroTrio } from "./_vitrine/LetreiroTrio";
 import { MosaicoPecas } from "./_vitrine/MosaicoPecas";
 
 // Início editorial (F2.9, tela 1; V4 em docs/design/v4/home.html). A ordem e o conteúdo dos
@@ -177,16 +177,17 @@ function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string
   const preco = oferta ? formatarReais(oferta.precoCentavos) : "R$ 119,99";
   const qtd = oferta?.qtd ?? 3;
   return (
-    <section id="monte-club" className="tc-faixa-inteira border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5">
+    <>
+    <section id="monte-club" className="tc-faixa-inteira border-y-3 border-tinta bg-rosa px-3.5 pb-20 pt-14 text-no-rosa md:px-5 md:pb-24">
       <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
         <div className="grid justify-items-start gap-5">
           <Sobretitulo>Monte seu Club</Sobretitulo>
           {/* Sobre o rosa, a palavra de marca vai em tinta (rosa sobre rosa some) */}
           <h2 className="tc-titulo m-0 text-[clamp(55px,7vw,100px)] leading-[0.82]">
-            <span className="font-display tracking-[-0.045em]">{qtd} escolhas.</span><br /><em className="text-tinta">Seu Club.</em>
+            {/* O "3" na mesma serifa itálica do "Seu Club." (29/09, pedido da loja) */}
+            <em className="text-tinta">{qtd}</em> <span className="font-display tracking-[-0.045em]">escolhas.</span><br /><em className="text-tinta">Seu Club.</em>
           </h2>
           <p className="m-0 max-w-[33ch] font-editorial text-xl italic leading-snug">Misture estampas e coleções.</p>
-          <OfertaTrio qtd={qtd} precoCentavos={oferta?.precoCentavos ?? 11999} />
           <Link href="#novidades" className="inline-flex min-h-13 items-center rounded-pilula border-2 border-tinta bg-tinta px-6 text-[15px] font-bold text-papel shadow-adesivo">
             Escolher minhas {qtd}
           </Link>
@@ -195,5 +196,9 @@ function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string
           texto={<>A cada {qtd}, o preço do Club entra sozinho: <b className="tc-destaque">{qtd} peças por {preco}</b>.</>} />
       </div>
     </section>
+    {/* A oferta corre em cima da divisa do rosa com o papel (29/09, pedido da loja), no lugar da
+        arte que ficava dentro do bloco: metade da faixa sobe sobre o rosa */}
+    <LetreiroTrio qtd={qtd} precoCentavos={oferta?.precoCentavos ?? 11999} className="relative z-10 -mt-[45px] md:-mt-[53px]" />
+    </>
   );
 }
