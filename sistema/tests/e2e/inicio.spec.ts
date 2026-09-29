@@ -32,9 +32,6 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   await expect(colecoes.getByRole("link", { name: "Limone" }).locator("img")).toHaveCSS("object-fit", "contain");
   // O círculo tem o fundo claro da cor da coleção (Limão), enquanto a foto carrega ou sem foto
   await expect(colecoes.getByRole("link", { name: "Limone" }).locator(".col-limao")).toHaveCSS("background-color", "rgb(255, 249, 201)");
-  // Só o nome da coleção embaixo do círculo (29/09): o da campanha já está no lettering e aparecia duas vezes
-  await expect(colecoes.getByRole("link", { name: "Riviera" })).toHaveText("Riviera");
-  await expect(colecoes.getByText("Mare, Amore!")).toHaveCount(0);
 
   // O axe mede o contraste do slide da vez depois da troca (0,7 s): no meio dela, o botão ainda está
   // meio transparente e o contraste sai errado (falhava de vez em quando no iPhone)
