@@ -31,8 +31,10 @@ export function ConteudoSlide({ nome, campanha, linha, vertical, foto }: {
     <>
       {foto}
       {campanha && (
-        <span className={cx(!vertical && "max-md:hidden", "absolute inset-x-0 bottom-0 grid gap-1.5 bg-linear-to-t from-black/55 to-transparent px-4 pb-16 pt-24 text-[#fbf5ea] md:px-8 md:pb-8 md:pt-32")}>
-          <span className="font-display text-[clamp(34px,5.4vw,76px)] font-extrabold uppercase leading-[0.92] tracking-[-0.02em]">{campanha}</span>
+        <span className={cx(!vertical && "max-md:hidden", "absolute inset-x-0 bottom-0 grid gap-1.5 bg-linear-to-t from-tinta/75 via-tinta/30 to-transparent px-4 pb-16 pt-24 text-[#fbf5ea] md:px-8 md:pb-8 md:pt-32")}>
+          {/* O nome da campanha na Fraunces itálica, como na página da campanha (D38); o degradê é de
+              tinta porque o tema não tem preto (--color-*: initial) */}
+          <span className="font-editorial text-[clamp(40px,6vw,88px)] font-[680] italic leading-[0.9] tracking-[-0.045em] [font-optical-sizing:auto]">{campanha}</span>
           {linha && <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">{linha}</span>}
         </span>
       )}
