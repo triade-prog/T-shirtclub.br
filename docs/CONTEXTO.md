@@ -202,6 +202,8 @@ A Vercel ficou como a loja deixou: projetos `web` (`https://tshirtclub.vercel.ap
 
 **Club Editions como vitrine da loja inteira (29/09, D39):** a página `/colecao/club-editions` busca todas as peças (`v1/catalog/products` sem coleção, até 200) e mostra um filtro por coleção (`?colecao=`, `colecoesDaVitrine` e `lerColecao` em `apps/web/src/lib/vitrine.ts`) que soma com o de disponibilidade (`?filtro=`). A regra é pelo slug (`VITRINE_DA_LOJA`): se ele mudar no painel, mude ali também. O topo das coleções sem campanha (`TopoColecaoSimples`) usa a identidade da marca, como o das campanhas; na Club Editions, sem o mosaico, com "Toda a loja · N estampas".
 
+**Trocas e devoluções (29/09):** a regra da loja é troca em até 7 dias (de quando a cliente recebe ou retira), com a peça sem uso e com a etiqueta (`DIAS_TROCA` e `RESUMO_TROCA` em `apps/web/src/lib/trocas.ts`). A página `/trocas` explica, junto com o direito de arrependimento da compra pelo site (CDC, art. 49), e o pedido é pelo WhatsApp. O link fica no rodapé (completo e curto), na aba "Trocas e cuidados" da peça e nas garantias da sacola. Falta a resposta automática no WhatsApp.
+
 **Desempenho das fontes (27/09, F2.6, investigação encerrada):** hipótese "o CSS disputa banda com 188 KB de fontes pré-carregadas; pré-carregar só as do topo baixa o LCP". Medido no container do CI (`scripts/lighthouse-container.sh`, 5 execuções, página inicial sem catálogo, onde o LCP é o título "3 escolhas. / Seu Club."), antes e depois de pré-carregar só a Poppins 700/800 e a Fraunces itálica:
 
 | Modo | LCP | FCP |

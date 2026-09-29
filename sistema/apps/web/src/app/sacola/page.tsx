@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CreditCard, MessageCircle, RefreshCw, Store, type LucideIcon } from "lucide-react";
 import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import { ordinalClub, progressoTrio, textoAviso } from "@/lib/sacola";
 import { montarSacola } from "@/lib/sacola-servidor";
+import { DIAS_TROCA } from "@/lib/trocas";
 import { removerPeca } from "./acoes";
 
 // Sacola "Monte seu Club" (F2.9; V4 em docs/design/v4/sacola.html), gerada no servidor.
@@ -14,6 +15,14 @@ import { removerPeca } from "./acoes";
 // Preço e desconto vêm da cotação da api-public (POST /v1/cart/quote), nunca do navegador.
 
 export const metadata: Metadata = { title: "Sua sacola", robots: { index: false } };
+
+/** O que dá segurança para fechar o pedido, embaixo do botão de reservar. */
+const GARANTIAS: { Icone: LucideIcon; titulo: string; texto: string; href?: string }[] = [
+  { Icone: CreditCard, titulo: "Pix ou cartão", texto: "Pagamento seguro pelo Mercado Pago" },
+  { Icone: Store, titulo: "Retire ou receba", texto: "Na loja, por motoboy ou por envio" },
+  { Icone: MessageCircle, titulo: "Atendimento humano", texto: "Gente de verdade no WhatsApp" },
+  { Icone: RefreshCw, titulo: `Troca em ${DIAS_TROCA} dias`, texto: "Sem uso e com etiqueta · ver a política", href: "/trocas" },
+];
 
 export default async function PaginaSacola({ searchParams }: PageProps<"/sacola">) {
   const { itens, produtos, validos, cotacao, club, avisos } = await montarSacola();
@@ -158,9 +167,21 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
               <p className="m-0 mt-3 text-center text-[11px] leading-relaxed text-tinta-suave">
                 No próximo passo você confirma seu WhatsApp. Após a confirmação, as peças ficam reservadas pelo período indicado.
               </p>
-              <ul className="m-0 mt-4 grid list-none gap-2 p-0">
-                {["PIX ou cartão", "Retire ou receba", "Atendimento humano"].map((t) => (
-                  <li key={t} className="rounded-xl border border-tinta bg-papel p-2.5 text-center text-[10px] font-extrabold uppercase tracking-[0.06em]">{t}</li>
+              {/* As garantias (29/09): antes eram pílulas com borda que pareciam botões e não faziam
+                  nada; agora uma lista com ícone, o título e o que ele quer dizer, e a troca em 7 dias */}
+              <ul aria-label="Garantias da compra" className="m-0 mt-4 grid list-none divide-y divide-tinta/10 rounded-2xl bg-papel/80 px-4 py-1">
+                {GARANTIAS.map(({ Icone, titulo, texto, href }) => (
+                  <li key={titulo} className="flex items-center gap-3 py-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-citrino text-no-citrino">
+                      <Icone aria-hidden="true" className="size-4.5" strokeWidth={1.8} />
+                    </span>
+                    <span className="grid gap-0.5 text-left">
+                      <span className="text-[13px] font-semibold leading-tight">{titulo}</span>
+                      <span className="text-xs leading-snug text-tinta-suave">
+                        {href ? <Link href={href} className="tc-alvo relative underline underline-offset-2">{texto}</Link> : texto}
+                      </span>
+                    </span>
+                  </li>
                 ))}
               </ul>
             </aside>

@@ -9,6 +9,7 @@ import { formatarReais } from "@tshirtclub/domain";
 import { Botao, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
 import { COOKIE_SACOLA } from "@/lib/sacola";
+import { RESUMO_TROCA } from "@/lib/trocas";
 import { dividirNome, textoMedidas, textoOferta, textoSelo } from "@/lib/vitrine";
 import { FormSacola } from "../../_sacola/FormSacola";
 import { ProgressoDaSacola } from "../../_sacola/ProgressoDaSacola";
@@ -53,8 +54,9 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
     { titulo: "Material e caimento", texto: [produto.composicao, produto.modelagem].filter(Boolean).join(" ") || null },
     { titulo: "Medidas", texto: medidas.map((m) => `${m.rotulo}: ${m.texto}`).join("\n") || null, id: "medidas" },
     { titulo: "Entrega e retirada", texto: "Retire na loja ou escolha a entrega. A reserva é confirmada pelo WhatsApp." },
-    { titulo: "Trocas e cuidados", texto: produto.cuidados },
-  ].filter((d) => d.texto);
+    // A regra da troca (29/09) vem antes dos cuidados da peça, com o link para a política inteira
+    { titulo: "Trocas e cuidados", texto: [RESUMO_TROCA, produto.cuidados].filter(Boolean).join("\n\n"), link: { href: "/trocas", rotulo: "Ver a política de trocas" } },
+  ].filter((d): d is typeof d & { texto: string } => Boolean(d.texto));
   const sobretitulo = [produto.noClub && "Club pick", selo].filter(Boolean).join(" · ");
   const looks = produto.looks.slice(0, 3);
 
@@ -152,6 +154,11 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
                     <span aria-hidden="true" className="hidden text-lg font-normal group-open:inline">−</span>
                   </summary>
                   <p className="m-0 mt-1 whitespace-pre-line text-sm leading-relaxed text-tinta-suave">{d.texto}</p>
+                  {"link" in d && d.link && (
+                    <Link href={d.link.href} className="tc-alvo relative mt-2 inline-flex min-h-7 items-center text-sm font-semibold underline decoration-citrino decoration-[3px] underline-offset-4">
+                      {d.link.rotulo}
+                    </Link>
+                  )}
                 </details>
               ))}
             </div>

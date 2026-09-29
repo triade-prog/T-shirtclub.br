@@ -52,6 +52,7 @@ export function RodapeTroca({ completo, semExtras, colecoes, whatsapp, numero, e
                 <li><Link href="/#monte-club" className={link}>Monte seu Club</Link></li>
                 <li><Link href="/consulta" className={link}>Minhas reservas</Link></li>
                 <li><Link href="/sacola" className={link}>Minha sacola</Link></li>
+                <li><Link href="/trocas" className={link}>Trocas e devoluções</Link></li>
                 <li><Link href="/privacidade" className={link}>Privacidade</Link></li>
                 <li>
                   <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" className={cx(link, "gap-1.5")}>
