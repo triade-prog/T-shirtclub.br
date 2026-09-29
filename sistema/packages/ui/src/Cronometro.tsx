@@ -19,7 +19,7 @@ export function Cronometro({ relogio, ate, className }: CronometroProps) {
   return (
     <div className={cx("grid gap-2 rounded-[18px] border-2 border-tinta bg-citrino p-4 text-no-citrino shadow-adesivo-sm", className)}>
       <div className="flex items-baseline justify-between gap-3">
-        <span className={cx("font-display text-[44px] font-extrabold leading-none tabular-nums", fim && "text-tinta-suave")} aria-hidden="true">
+        <span className={cx("font-texto font-semibold tabular-nums text-[44px] leading-none tracking-[-0.02em]", fim && "text-tinta-suave")} aria-hidden="true">
           {fim ? "00:00" : formatarTempo(relogio.restanteMs)}
         </span>
         <span className="text-sm font-semibold">{fim ? `terminou às ${ate}` : `guardado até ${ate}`}</span>

@@ -150,7 +150,7 @@ function Lista({ reservas }: { reservas: Resumo[] }) {
           const conteudo = (
             <>
               <div className="flex items-center justify-between gap-2">
-                <h2 className="m-0 font-display text-2xl font-extrabold">#{r.numero}</h2>
+                <h2 className="m-0 font-texto font-semibold tabular-nums text-2xl">#{r.numero}</h2>
                 <SeloStatus status={r.status} brilho={false} />
               </div>
               <p className="m-0 text-sm text-tinta-suave">

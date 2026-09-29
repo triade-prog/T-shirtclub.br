@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
 import { cx } from "./classes.ts";
 
 export interface ProgressoClubProps {
   /** Peças na sacola; o Club fecha a cada 3. */
   pecas: number;
-  titulo: string;
-  texto?: string;
+  /** Pode vir com destaque (o número em rosa, a oferta grifada). */
+  titulo: ReactNode;
+  texto?: ReactNode;
   /** Rótulos dos três passos; o padrão é "1ª peça", "2ª peça", "3ª peça". */
   rotulos?: [string, string, string];
   /** Nível do título; 2 logo abaixo do h1 da página (o padrão é 3). */
@@ -29,7 +31,7 @@ export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2
           <Titulo className="m-0 font-editorial text-[25px] font-bold leading-tight tracking-[-0.035em]">{titulo}</Titulo>
           {texto && <p className="m-0 mt-1 text-sm text-[#4a441a]">{texto}</p>}
         </div>
-        <b className="font-display text-2xl font-extrabold" aria-hidden="true">{noTrio}/3</b>
+        <b className="font-texto font-semibold tabular-nums text-2xl" aria-hidden="true">{noTrio}/3</b>
       </div>
       <ol className="relative m-0 mt-4 grid list-none grid-cols-3 gap-2 p-0 before:absolute before:left-[16%] before:right-[16%] before:top-5 before:h-px before:bg-no-citrino/30">
         {rotulos.map((rotulo, i) => {
@@ -40,7 +42,7 @@ export function ProgressoClub({ pecas, titulo, texto, rotulos = ["1ª peça", "2
               <span
                 aria-hidden="true"
                 className={cx(
-                  "grid size-10 place-items-center rounded-full border-2 border-no-citrino font-display text-sm font-extrabold text-no-citrino",
+                  "grid size-10 place-items-center rounded-full border-2 border-no-citrino font-texto font-semibold tabular-nums text-sm text-no-citrino",
                   feito ? "bg-rosa" : "bg-[#fff9f5]",
                 )}
               >

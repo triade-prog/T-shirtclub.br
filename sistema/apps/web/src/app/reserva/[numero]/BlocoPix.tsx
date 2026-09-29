@@ -90,7 +90,7 @@ export function BlocoPix({ reservaId, finalidade, titulo, valorCentavos, podeGer
     <section aria-labelledby={idTitulo} className="grid gap-4 rounded-[22px] border-2 border-tinta bg-papel p-5 shadow-[6px_6px_0_var(--tc-citrino)]">
       <div className="flex items-baseline justify-between gap-3">
         <h2 id={idTitulo} className="m-0 font-editorial text-2xl font-bold tracking-[-0.035em]">{titulo}</h2>
-        <p className="m-0 text-sm">Total <b className="font-display text-2xl font-extrabold">{formatarReais(valorCentavos)}</b></p>
+        <p className="m-0 text-sm">Total <b className="font-texto font-semibold tabular-nums text-2xl">{formatarReais(valorCentavos)}</b></p>
       </div>
       {erro && <div role="alert"><Aviso tipo="erro" titulo={erro} /></div>}
 

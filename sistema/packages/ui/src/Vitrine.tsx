@@ -61,7 +61,7 @@ export function Vitrine({ app }: { app: "loja" | "painel" }) {
         <p className="tc-titulo m-0 text-[56px]">Você faz o <em className="tc-marca">Club.</em></p>
         <p className="tc-titulo m-0 text-[40px]">Escolha <em>as suas.</em></p>
         <p className="m-0 font-editorial text-xl italic text-tinta-suave">Fraunces itálico para a frase de apoio editorial.</p>
-        <p className="m-0 font-display text-3xl font-extrabold tracking-[-0.045em]">3 por R$ 119,99</p>
+        <p className="m-0 font-texto font-semibold tabular-nums text-3xl tracking-[-0.02em]">3 por R$ 119,99</p>
         <p className="m-0 max-w-prose">Texto corrido em Poppins 400, com linhas confortáveis para ler no celular.</p>
         <p className="m-0 text-sm text-tinta-suave">Nota e texto secundário.</p>
       </Secao>

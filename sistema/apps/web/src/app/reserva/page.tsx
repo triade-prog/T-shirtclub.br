@@ -61,7 +61,7 @@ export default async function PaginaSeusDados() {
             )}
             <div className="mt-2 flex items-baseline justify-between border-t-2 border-tinta pt-3">
               <dt className="text-xs font-extrabold uppercase tracking-[0.1em]">Total dos produtos</dt>
-              <dd className="m-0 font-display text-2xl font-extrabold">{formatarReais(cotacao.totalCentavos)}</dd>
+              <dd className="m-0 font-texto font-semibold tabular-nums text-2xl">{formatarReais(cotacao.totalCentavos)}</dd>
             </div>
           </dl>
         )}

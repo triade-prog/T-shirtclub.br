@@ -57,7 +57,13 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
     // A regra da troca (29/09) vem antes dos cuidados da peça, com o link para a política inteira
     { titulo: "Trocas e cuidados", texto: [RESUMO_TROCA, produto.cuidados].filter(Boolean).join("\n\n"), link: { href: "/trocas", rotulo: "Ver a política de trocas" } },
   ].filter((d): d is typeof d & { texto: string } => Boolean(d.texto));
-  const sobretitulo = [produto.noClub && "Club pick", selo].filter(Boolean).join(" · ");
+  // A escassez em destaque (29/09): "Última unidade", "Só 2 no Club"... numa pílula rosa
+  const sobretitulo = (produto.noClub || selo) && (
+    <>
+      {produto.noClub && "Club pick"}{produto.noClub && selo && " · "}
+      {selo && <span className="rounded-full bg-rosa px-2 py-0.5 text-no-rosa">{selo}</span>}
+    </>
+  );
   const looks = produto.looks.slice(0, 3);
 
   return (
@@ -99,14 +105,15 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
             </span>
             {oferta && (
               <span className="text-sm text-tinta-suave">
-                ou <span className="font-semibold text-tinta underline decoration-citrino decoration-4 underline-offset-[3px]">{oferta}</span> no Club
+                ou <span className="font-semibold text-tinta underline decoration-citrino decoration-4 underline-offset-[3px] [text-decoration-skip-ink:none]">{oferta}</span> no Club
               </span>
             )}
           </p>
 
           {oferta && club && (
             <ProgressoDaSacola nivel={2} qtd={club.qtd} preco={formatarReais(club.precoCentavos)} inicial={(await cookies()).get(COOKIE_SACOLA)?.value}
-              titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
+              titulo={<>A cada <span className="text-rosa-press">{club.qtd}</span>, o Club.</>}
+              texto={<>Misture esta peça com qualquer coleção: <b className="tc-destaque">{club.qtd} peças por {formatarReais(club.precoCentavos)}</b>, sem cupom.</>} />
           )}
 
           {/* A peça e o tamanho entram na sacola sem sair da página; sem JavaScript, o GET /sacola de sempre. */}

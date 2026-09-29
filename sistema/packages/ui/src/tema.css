@@ -231,6 +231,17 @@
     border-image-width: 0;
     border-image-outset: 0 100vw;
   }
+  /* Destaque de oferta no texto (29/09): "3 peças por R$ 119,99" em negrito, com o grifo rosa;
+     serve no citrino e no papel. */
+  .tc-destaque {
+    font-weight: 700;
+    color: var(--tc-tinta);
+    text-decoration: underline;
+    text-decoration-color: var(--tc-rosa);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 3px;
+    text-decoration-skip-ink: none;
+  }
   .tc-sobretitulo {
     display: flex;
     align-items: center;

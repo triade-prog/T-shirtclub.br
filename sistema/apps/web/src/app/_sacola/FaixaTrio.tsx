@@ -34,12 +34,12 @@ export function FaixaTrio({ qtd, preco, oferta, inicial, campanha }: {
       <p className="m-0 min-w-[16ch] flex-1 text-sm font-semibold leading-snug">{texto}</p>
       <div className="flex shrink-0 items-center gap-1.5" aria-hidden="true">
         {Array.from({ length: qtd }, (_, i) => (
-          <span key={i} className={cx("grid size-7 place-items-center rounded-full border-2 font-display text-xs font-extrabold",
+          <span key={i} className={cx("grid size-7 place-items-center rounded-full border-2 font-texto font-semibold tabular-nums text-xs",
             i < p.noTrio ? (campanha ? "border-tinta bg-tinta text-papel" : "border-tinta bg-citrino text-no-citrino") : "border-tinta bg-papel text-tinta")}>
             {i < p.noTrio ? "✓" : i + 1}
           </span>
         ))}
-        <b className="ml-1.5 font-display text-lg font-extrabold">{p.noTrio}/{qtd}</b>
+        <b className="ml-1.5 font-texto font-semibold tabular-nums text-lg">{p.noTrio}/{qtd}</b>
       </div>
     </section>
   );

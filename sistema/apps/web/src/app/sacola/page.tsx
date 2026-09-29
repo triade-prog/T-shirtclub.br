@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CreditCard, MessageCircle, RefreshCw, Store, type LucideIcon } from "lucide-react";
+import { ArrowRight, Clock, CreditCard, MessageCircle, RefreshCw, Store, type LucideIcon } from "lucide-react";
 import { formatarReais } from "@tshirtclub/domain";
 import { Aviso, ProgressoClub, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
@@ -157,15 +157,17 @@ export default async function PaginaSacola({ searchParams }: PageProps<"/sacola"
                 <div className="flex justify-between gap-3.5 py-1.75"><dt>Entrega</dt><dd className="m-0">Definir depois</dd></div>
                 <div className="mt-2.5 flex items-baseline justify-between border-t-2 border-tinta pt-4">
                   <dt className="text-xs font-extrabold uppercase tracking-[0.1em]">Total</dt>
-                  <dd className="m-0 font-display text-[27px] font-extrabold">{formatarReais(cotacao.totalCentavos)}</dd>
+                  <dd className="m-0 font-texto font-semibold tabular-nums text-[27px] tracking-[-0.02em]">{formatarReais(cotacao.totalCentavos)}</dd>
                 </div>
               </dl>
               {/* A reserva (fatia 4) lê a mesma sacola do cookie. */}
               <Link href="/reserva" className="mt-4.5 flex min-h-13 w-full items-center justify-center gap-2 rounded-pilula border-2 border-tinta bg-rosa px-5 text-[15px] font-bold text-no-rosa shadow-adesivo">
-                Reservar minhas peças — 15 min <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.8} />
+                Reservar minhas peças <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.8} />
               </Link>
-              <p className="m-0 mt-3 text-center text-[11px] leading-relaxed text-tinta-suave">
-                No próximo passo você confirma seu WhatsApp. Após a confirmação, as peças ficam reservadas pelo período indicado.
+              {/* Sem o "— 15 min" colado no botão (29/09): o prazo vem explicado embaixo, com o relógio */}
+              <p className="m-0 mt-3 flex items-start justify-center gap-2 text-center text-xs leading-relaxed text-tinta-suave">
+                <Clock aria-hidden="true" className="mt-0.5 size-4 shrink-0" strokeWidth={1.8} />
+                <span>Você confirma seu WhatsApp e suas peças ficam guardadas por <b className="font-semibold text-tinta">15 minutos</b> para você pagar.</span>
               </p>
               {/* As garantias (29/09): antes eram pílulas com borda que pareciam botões e não faziam
                   nada; agora uma lista com ícone, o título e o que ele quer dizer, e a troca em 7 dias */}

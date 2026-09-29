@@ -191,7 +191,8 @@ function MonteSeuClub({ oferta, sacola }: { oferta?: OfertaClub; sacola?: string
             Escolher minhas {qtd}
           </Link>
         </div>
-        <ProgressoDaSacola qtd={qtd} preco={preco} inicial={sacola} titulo={`Escolha ${qtd} peças.`} texto={`A cada ${qtd}, o preço do Club entra sozinho: ${preco} pelas ${qtd}.`} />
+        <ProgressoDaSacola qtd={qtd} preco={preco} inicial={sacola} titulo={<>Escolha <span className="text-rosa-press">{qtd}</span> peças.</>}
+          texto={<>A cada {qtd}, o preço do Club entra sozinho: <b className="tc-destaque">{qtd} peças por {preco}</b>.</>} />
       </div>
     </section>
   );

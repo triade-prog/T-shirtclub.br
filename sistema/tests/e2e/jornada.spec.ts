@@ -50,6 +50,10 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   // Preço da peça e o do Club separados, sem nada colado (29/09)
   await expect(page.getByText("R$ 49,99 a peça", { exact: true })).toBeVisible();
   await expect(page.getByText("ou 3 por R$ 119,99 no Club", { exact: true }).first()).toBeVisible();
+  // O cartão do Club: o 3 do título em rosa e a oferta grifada (29/09)
+  const cartaoClub = page.getByRole("region", { name: "Monte seu Club: 0 de 3" });
+  await expect(cartaoClub.locator(".tc-destaque")).toHaveText("3 peças por R$ 119,99");
+  await expect(cartaoClub.locator("h2 span")).toHaveCSS("color", "rgb(184, 40, 106)");
   await page.getByRole("button", { name: "Adicionar ao Club" }).click();
   const aviso = page.getByRole("status", { name: "Aviso da sacola" });
   await expect(aviso).toContainText("Limone Amalfi Coast entrou na sacola.");
@@ -64,6 +68,9 @@ test("da vitrine ao pedido: sacola, reserva com código do WhatsApp, PIX e retir
   await semViolacoes(page, "sacola");
 
   // Sacola → Seus dados
+  // O botão sem o "— 15 min" colado: o prazo vem explicado embaixo (29/09)
+  await expect(page.getByRole("link", { name: "Reservar minhas peças", exact: true })).toBeVisible();
+  await expect(page.getByText(/ficam guardadas por 15 minutos para você pagar/)).toBeVisible();
   await page.getByRole("link", { name: /Reservar minhas peças/ }).click();
   await expect(page).toHaveURL(`${LOJA}/reserva`);
   await page.getByRole("button", { name: "Receber código no WhatsApp" }).click();

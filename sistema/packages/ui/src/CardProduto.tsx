@@ -60,7 +60,7 @@ export function CardProduto({ nome, href, colecao, preco, precoOriginal, oferta,
         </p>
         {oferta && (
           <p className="m-0 mt-0.5 text-xs text-tinta-suave">
-            ou <span className="font-semibold text-tinta underline decoration-citrino decoration-[3px] underline-offset-2">{oferta}</span> no Club
+            ou <span className="font-semibold text-tinta underline decoration-citrino decoration-[3px] underline-offset-2 [text-decoration-skip-ink:none]">{oferta}</span> no Club
           </p>
         )}
       </div>
