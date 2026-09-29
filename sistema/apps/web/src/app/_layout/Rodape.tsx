@@ -12,7 +12,8 @@ import { RodapeTroca } from "./RodapeTroca";
 // Rodapé (27/09, referência Le Lis no estilo V4): as vantagens da loja em cartões, a Lista VIP,
 // os links (coleções, ajuda, atendimento e redes) e a linha com os dados da empresa. Coleções,
 // oferta do Club e cupom VIP vêm do catálogo (cache da loja); sem catálogo, o rodapé segue sem eles.
-// Na página de uma coleção (28/09), um rodapé curto na cor dela, sem as vantagens e a Lista VIP.
+// Na página de uma coleção (28/09), um rodapé curto na cor dela, sem as vantagens e a Lista VIP;
+// na sacola (29/09), o rodapé verde sem as vantagens e a Lista VIP.
 export async function Rodape() {
   const [colecoes, club, vip] = await Promise.all([
     buscarCatalogo<Colecao[]>("v1/catalog/collections"), buscarOfertaClub(), buscarOfertaVip(),
@@ -30,8 +31,8 @@ export async function Rodape() {
 
   const empresa = `© 2026 T-shirt Club.br · ${EMPRESA.razaoSocial} · CNPJ ${EMPRESA.cnpj} · ${EMPRESA.endereco}. Preços e estoque podem mudar sem aviso.`;
 
-  const completo = (
-    <footer className="mt-12 border-t-4 border-tinta">
+  const extras = (
+    <>
       <section aria-label="Vantagens da loja" className="bg-rosa-bruma px-3.5 py-6 md:px-5">
         <ul className="mx-auto m-0 grid max-w-7xl list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-6">
           {vantagens.map(({ Icone, titulo, texto }) => (
@@ -60,57 +61,65 @@ export async function Rodape() {
           <FormVip origem="RODAPE" compacto />
         </div>
       </section>
+    </>
+  );
 
-      <div className="bg-verde-escuro text-no-verde">
-        {/* Rodapé enxuto (28/09): o logo no lugar do nome escrito, links mais juntos (o alvo de 44 px
-            vem do tc-alvo, sem aumentar a altura da linha) e as coleções em duas colunas */}
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-7 px-3.5 pb-8 pt-9 md:grid-cols-[1fr_1.5fr_0.9fr_1fr] md:gap-y-0 md:px-5">
-          <div className="col-span-2 grid content-start gap-3 md:col-span-1">
-            <Link href="/" aria-label="T-shirt Club.br" className="justify-self-start rounded-campo">
-              <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-14 w-auto md:h-16" />
-            </Link>
-            <p className="m-0 max-w-[30ch] text-[13px] leading-relaxed">
-              Uma camiseta não determina o seu estilo. Você determina. Vista, misture, repita.
-            </p>
-          </div>
-          <Coluna titulo="Coleções" duasColunas>
-            {(colecoes ?? []).map((c) => <li key={c.id}><Link href={`/colecao/${c.slug}`} className="tc-alvo relative inline-flex min-h-7 items-center">{c.nome}</Link></li>)}
-            <li><Link href="/#monte-club" className="tc-alvo relative inline-flex min-h-7 items-center">Monte seu Club</Link></li>
-          </Coluna>
-          <Coluna titulo="Ajuda">
-            <li><Link href="/consulta" className="tc-alvo relative inline-flex min-h-7 items-center">Minhas reservas</Link></li>
-            <li><Link href="/sacola" className="tc-alvo relative inline-flex min-h-7 items-center">Minha sacola</Link></li>
-            <li><Link href="/privacidade" className="tc-alvo relative inline-flex min-h-7 items-center">Privacidade</Link></li>
-          </Coluna>
-          <Coluna titulo="Atendimento" largo>
-            <li>
-              <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
-                <MessageCircle aria-hidden="true" className="size-4.5" strokeWidth={1.8} /> WhatsApp {EMPRESA.whatsapp}
+  const links = (
+    <div className="bg-verde-escuro text-no-verde">
+      {/* Rodapé enxuto (28/09): o logo no lugar do nome escrito, links mais juntos (o alvo de 44 px
+          vem do tc-alvo, sem aumentar a altura da linha) e as coleções em duas colunas */}
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-7 px-3.5 pb-8 pt-9 md:grid-cols-[1fr_1.5fr_0.9fr_1fr] md:gap-y-0 md:px-5">
+        <div className="col-span-2 grid content-start gap-3 md:col-span-1">
+          <Link href="/" aria-label="T-shirt Club.br" className="justify-self-start rounded-campo">
+            <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-14 w-auto md:h-16" />
+          </Link>
+          <p className="m-0 max-w-[30ch] text-[13px] leading-relaxed">
+            Uma camiseta não determina o seu estilo. Você determina. Vista, misture, repita.
+          </p>
+        </div>
+        <Coluna titulo="Coleções" duasColunas>
+          {(colecoes ?? []).map((c) => <li key={c.id}><Link href={`/colecao/${c.slug}`} className="tc-alvo relative inline-flex min-h-7 items-center">{c.nome}</Link></li>)}
+          <li><Link href="/#monte-club" className="tc-alvo relative inline-flex min-h-7 items-center">Monte seu Club</Link></li>
+        </Coluna>
+        <Coluna titulo="Ajuda">
+          <li><Link href="/consulta" className="tc-alvo relative inline-flex min-h-7 items-center">Minhas reservas</Link></li>
+          <li><Link href="/sacola" className="tc-alvo relative inline-flex min-h-7 items-center">Minha sacola</Link></li>
+          <li><Link href="/privacidade" className="tc-alvo relative inline-flex min-h-7 items-center">Privacidade</Link></li>
+        </Coluna>
+        <Coluna titulo="Atendimento" largo>
+          <li>
+            <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
+              <MessageCircle aria-hidden="true" className="size-4.5" strokeWidth={1.8} /> WhatsApp {EMPRESA.whatsapp}
+            </a>
+          </li>
+          {redes.map((r) => (
+            <li key={r.rede}>
+              <a href={r.url} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
+                <IconeRede rede={r.rede} /> <span>{r.rede} <span className="opacity-80">@{r.usuario}</span></span>
               </a>
             </li>
-            {redes.map((r) => (
-              <li key={r.rede}>
-                <a href={r.url} target="_blank" rel="noopener noreferrer" className="tc-alvo relative inline-flex min-h-7 items-center gap-2">
-                  <IconeRede rede={r.rede} /> <span>{r.rede} <span className="opacity-80">@{r.usuario}</span></span>
-                </a>
-              </li>
-            ))}
-          </Coluna>
-        </div>
-        <div className="border-t border-no-verde/20">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-3.5 py-3 text-[11px] leading-relaxed md:px-5">
-            <p className="m-0 max-w-[80ch]">{empresa}</p>
-            <a href="#" className="tc-alvo relative inline-flex min-h-7 items-center gap-1.5 font-bold uppercase tracking-[0.1em]">
-              <ArrowUp aria-hidden="true" className="size-4" strokeWidth={2} /> Voltar ao topo
-            </a>
-          </div>
+          ))}
+        </Coluna>
+      </div>
+      <div className="border-t border-no-verde/20">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-3.5 py-3 text-[11px] leading-relaxed md:px-5">
+          <p className="m-0 max-w-[80ch]">{empresa}</p>
+          <a href="#" className="tc-alvo relative inline-flex min-h-7 items-center gap-1.5 font-bold uppercase tracking-[0.1em]">
+            <ArrowUp aria-hidden="true" className="size-4" strokeWidth={2} /> Voltar ao topo
+          </a>
         </div>
       </div>
-    </footer>
+    </div>
   );
-  // Na página de uma coleção, o rodapé curto na cor dela (RodapeTroca decide no navegador)
+  const completo = <footer className="mt-12 border-t-4 border-tinta">{extras}{links}</footer>;
+  // Na sacola (29/09), só os links e os dados da empresa: as vantagens e a Lista VIP tiravam a
+  // atenção de quem está fechando o pedido
+  const semExtras = <footer className="mt-12 border-t-4 border-tinta">{links}</footer>;
+
+  // Na página de uma coleção, o rodapé curto na cor dela; na sacola, sem as vantagens e a Lista
+  // VIP (RodapeTroca decide no navegador)
   return (
-    <RodapeTroca completo={completo} numero={numero} whatsapp={EMPRESA.whatsapp} empresa={empresa}
+    <RodapeTroca completo={completo} semExtras={semExtras} numero={numero} whatsapp={EMPRESA.whatsapp} empresa={empresa}
       colecoes={(colecoes ?? []).map((c) => ({ slug: c.slug, nome: c.nome, cor: c.cor, paleta: c.paleta, campanhaLigada: Boolean(c.campanha && c.campanhaAtiva) }))} />
   );
 }
