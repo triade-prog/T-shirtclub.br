@@ -1,6 +1,5 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
-import { cx } from "./classes.ts";
-import { Selo } from "./Selo.tsx";
+import { Selo, Sobretitulo } from "./Selo.tsx";
 import { SetaDireita } from "./SlideCapa.tsx";
 
 // Topo da página da coleção sem campanha ligada (28/09): com banner (o banner inteiro no topo e
@@ -61,24 +60,33 @@ export function TopoColecaoBanner({ nome, qtdEstampas, descricao, botao, foto }:
   );
 }
 
-/** Sem banner: 45% texto e 55% o mosaico das peças reais (sem nenhuma, só o texto). */
-export function TopoColecaoSimples({ nome, qtdEstampas, descricao, botao, mosaico }: PropsTopo & { mosaico?: ReactNode }) {
-  const linhas = tituloEmDuasLinhas(nome);
+/** Sem banner: 45% texto e 55% o mosaico das peças reais (sem mosaico, só o texto). */
+export function TopoColecaoSimples({ nome, qtdEstampas, descricao, botao, mosaico, rotulo }: PropsTopo & { mosaico?: ReactNode; rotulo?: string }) {
+  // Na identidade da marca, como o topo das campanhas (29/09, D38): papel, sobretítulo citrino,
+  // Fraunces em tinta e o botão preto. Sem mosaico (a Club Editions, D39), o título fica à
+  // esquerda e a frase com o botão à direita, e a grade de peças vem logo abaixo.
+  const texto = (
+    <div className="grid justify-items-start gap-6">
+      {descricao && <p className="m-0 max-w-[26ch] font-editorial text-[clamp(21px,2.1vw,27px)] italic leading-snug text-tinta">{descricao}</p>}
+      {botao}
+    </div>
+  );
+  const titulo = (
+    <div className="grid justify-items-start gap-4">
+      <Sobretitulo>{rotulo ?? `Coleção · ${qtdEstampas}`}</Sobretitulo>
+      <h1 className="tc-titulo m-0 text-[clamp(56px,9vw,136px)] text-tinta">{nome}.</h1>
+    </div>
+  );
   return (
-    <section className="overflow-x-clip border-b-3 border-tinta bg-colecao-fundo px-3.5 py-10 md:px-5 md:py-14">
-      <div className={cx("mx-auto grid max-w-7xl items-center gap-9 md:gap-12", Boolean(mosaico) && "md:grid-cols-[45fr_55fr]")}>
-        <div className="grid justify-items-start gap-5">
-          <Selo>Coleção · {qtdEstampas}</Selo>
-          <h1 className="m-0 font-editorial text-[clamp(56px,9vw,124px)] font-bold italic leading-[0.86] tracking-[-0.055em] text-rosa-press [text-shadow:5px_5px_0_var(--tc-rosa-bruma)]">
-            {linhas.map((l) => <span key={l} className="block whitespace-nowrap">{l}</span>)}
-          </h1>
-          {descricao && (
-            <p className="m-0 max-w-[30ch] font-editorial text-[22px] italic leading-tight text-tinta-suave">{descricao}</p>
-          )}
-          {botao}
+    <section className="overflow-x-clip border-b border-tinta/15 px-3.5 py-12 md:px-5 md:py-18">
+      {mosaico ? (
+        <div className="mx-auto grid max-w-7xl items-center gap-9 md:grid-cols-[45fr_55fr] md:gap-12">
+          <div className="grid justify-items-start gap-6">{titulo}{texto}</div>
+          {mosaico}
         </div>
-        {mosaico}
-      </div>
+      ) : (
+        <div className="grid items-end gap-8 md:grid-cols-[1.25fr_0.75fr] md:gap-14">{titulo}{texto}</div>
+      )}
     </section>
   );
 }

@@ -125,7 +125,8 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
           foto={<Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />} />
       ) : (
         <TopoColecaoSimples nome={colecao.nome} qtdEstampas={qtdEstampas} descricao={colecao.descricao} botao={botaoPecas}
-          mosaico={mosaico.length > 0 && <MosaicoPecas fotos={mosaico} selo={oferta} prioridade tamanhos="(min-width: 768px) 30vw, 55vw" className="h-[360px] md:h-[540px]" />} />
+          rotulo={lojaToda ? `Toda a loja · ${qtdEstampas}` : undefined}
+          mosaico={!lojaToda && mosaico.length > 0 && <MosaicoPecas fotos={mosaico} selo={oferta} prioridade tamanhos="(min-width: 768px) 30vw, 55vw" className="h-[360px] md:h-[540px]" />} />
       )}
 
       {!emCampanha && colecao.chamada && <FaixaChamada chamada={colecao.chamada} />}
@@ -143,7 +144,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
           </div>
         ) : (
           <div className="mb-6">
-            <Sobretitulo>{porColecao.length > 0 ? `Toda a loja · ${qtdEstampas}` : `${colecao.nome} · ${qtdEstampas}`}</Sobretitulo>
+            <Sobretitulo>{porColecao.length > 0 ? "Misture as coleções" : `${colecao.nome} · ${qtdEstampas}`}</Sobretitulo>
             <h2 className="tc-titulo m-0 mt-2 text-[clamp(38px,5.2vw,68px)]">Escolha <em className="tc-marca">as suas.</em></h2>
           </div>
         )}

@@ -97,7 +97,10 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
 test("Club Editions mostra a loja inteira, com filtro por coleção que soma com o de disponibilidade, com axe", async ({ page }) => {
   await page.goto(`${LOJA}/colecao/club-editions`);
   const grade = page.locator("#pecas");
-  await expect(grade.getByText("Toda a loja · 2 estampas", { exact: true })).toBeVisible();
+  // O topo na identidade da marca (como o das campanhas), sem as fotos soltas: a grade vem logo abaixo
+  await expect(page.getByText("Toda a loja · 2 estampas", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Club Editions." })).toHaveCSS("color", "rgb(38, 25, 30)");
+  await expect(grade.getByText("Misture as coleções", { exact: true })).toBeVisible();
   await expect(grade.getByRole("link", { name: "Limone Amalfi Coast", exact: true })).toBeVisible();
   await expect(grade.getByRole("link", { name: "Rio de Janeiro", exact: true })).toBeVisible();
   const porColecao = page.getByRole("navigation", { name: "Filtrar por coleção" });
