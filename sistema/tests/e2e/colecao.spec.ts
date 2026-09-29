@@ -77,7 +77,10 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   // Build Your Club com o progresso do trio; a única estampa está no capítulo, então não há "resto da coleção"
   const build = page.getByRole("region", { name: "Estate Italiana" });
   await expect(build).toContainText("1 estampa · monte seu trio");
-  await expect(build).toContainText("3 T-shirts · R$ 119,99");
+  await expect(build).toContainText("3 T-shirts por R$ 119,99");
+  // O "3" grande em citrino e o preço no lettering da loja (a arte só vale para R$ 119,99)
+  await expect(build.locator("b.tc-numero-adesivo")).toHaveCSS("color", "rgb(223, 240, 74)");
+  await expect(build.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(1);
   await expect(build.getByRole("region", { name: "Monte seu Club: 0 de 3" })).toBeVisible();
   await expect(build).toHaveCSS("background-color", "rgb(232, 71, 138)");
   await expect(page.getByText("O resto")).toHaveCount(0);

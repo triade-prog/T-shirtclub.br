@@ -98,7 +98,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         <>
           <TopoCampanha colecao={colecao} qtdEstampas={qtdEstampas} botao={<BotaoCampanha produtos={produtos.length} />} />
           <CapitulosCampanha colecao={colecao} produtos={produtos} oferta={oferta} id={temCapitulos ? "pecas" : undefined} />
-          {oferta && <BuildYourClub colecao={colecao} qtdEstampas={qtdEstampas} oferta={oferta} progresso={progresso} />}
+          {club && <BuildYourClub colecao={colecao} qtdEstampas={qtdEstampas} club={club} progresso={progresso} />}
         </>
       ) : colecao.capa ? (
         // Com banner de campanha (28/09): o banner inteiro no topo, como no carrossel do início, e
