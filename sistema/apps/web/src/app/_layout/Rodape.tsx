@@ -84,6 +84,7 @@ export async function Rodape() {
         <Coluna titulo="Ajuda">
           <li><Link href="/consulta" className="tc-alvo relative inline-flex min-h-7 items-center">Minhas reservas</Link></li>
           <li><Link href="/sacola" className="tc-alvo relative inline-flex min-h-7 items-center">Minha sacola</Link></li>
+          <li><Link href="/trocas" className="tc-alvo relative inline-flex min-h-7 items-center">Trocas e devoluções</Link></li>
           <li><Link href="/privacidade" className="tc-alvo relative inline-flex min-h-7 items-center">Privacidade</Link></li>
         </Coluna>
         <Coluna titulo="Atendimento" largo>

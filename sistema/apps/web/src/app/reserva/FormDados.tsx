@@ -146,7 +146,7 @@ export function FormDados({ pedido, pecas, cotacaoInicial }: { pedido: ItemCarri
       <div className="sticky bottom-0 -mx-3.5 grid gap-3 border-t-2 border-tinta bg-papel/95 px-3.5 pb-4 pt-3 backdrop-blur-md md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
         <p className="m-0 flex items-baseline justify-between gap-3 text-sm">
           <span>{pecas} {pecas === 1 ? "peça" : "peças"}{cotacao.aplicada ? ` · ${cotacao.aplicada.rotulo}` : ""}</span>
-          <b className="font-display text-xl font-extrabold">{formatarReais(cotacao.totalCentavos)}</b>
+          <b className="font-texto font-semibold tabular-nums text-xl">{formatarReais(cotacao.totalCentavos)}</b>
         </p>
         <Botao type="submit" cheio carregando={enviando} icone={<MessageCircle aria-hidden="true" className="size-5" strokeWidth={1.8} />}>
           Receber código no WhatsApp

@@ -21,8 +21,16 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   // Campanha ligada: a legenda vem do HTML (no celular, com o carrossel 16:9, só no computador);
   // a desligada (Limone) não tem legenda nenhuma
   await expect(carrossel.getByText("Mare, Amore!")).toHaveCount(1);
+  // O nome da campanha na serifa itálica, como na página da campanha (D38)
+  await expect(carrossel.getByText("Mare, Amore!")).toHaveCSS("font-style", "italic");
   await expect(page.getByText("Limone, Amore!")).toHaveCount(0);
   await expect(carrossel.getByRole("link", { name: /Ver Limone/ })).toHaveCount(0);
+
+  // Monte seu Club: o "3" grande em citrino e o preço no lettering da loja, como nas campanhas
+  const monte = page.locator("#monte-club");
+  await expect(monte).toContainText("3 T-shirts por R$ 119,99");
+  await expect(monte.locator("b.tc-numero-adesivo")).toHaveCSS("color", "rgb(223, 240, 74)");
+  await expect(monte.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(1);
 
   const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");

@@ -81,7 +81,7 @@ function Passos({ reserva }: { reserva: Reserva }) {
         return (
           <li key={texto} className="flex items-center gap-3" aria-current={estado === "agora" ? "step" : undefined}>
             <span aria-hidden="true" className={cx(
-              "grid size-9 place-items-center rounded-full border-2 border-tinta font-display text-sm font-extrabold",
+              "grid size-9 place-items-center rounded-full border-2 border-tinta font-texto font-semibold tabular-nums text-sm",
               estado === "feito" ? "bg-rosa text-no-rosa" : estado === "agora" ? "bg-citrino text-no-citrino" : "bg-papel text-tinta-suave",
             )}>{estado === "feito" ? "✓" : i + 1}</span>
             <span className={cx(estado === "agora" && "font-bold", estado === "depois" && "text-tinta-suave")}>

@@ -9,6 +9,7 @@ import { formatarReais } from "@tshirtclub/domain";
 import { Botao, Selo, Sobretitulo, cx } from "@tshirtclub/ui";
 import { buscarCatalogo, buscarOfertaClub, urlFoto, type ProdutoDetalhe } from "@/lib/catalogo";
 import { COOKIE_SACOLA } from "@/lib/sacola";
+import { RESUMO_TROCA } from "@/lib/trocas";
 import { dividirNome, textoMedidas, textoOferta, textoSelo } from "@/lib/vitrine";
 import { FormSacola } from "../../_sacola/FormSacola";
 import { ProgressoDaSacola } from "../../_sacola/ProgressoDaSacola";
@@ -53,9 +54,16 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
     { titulo: "Material e caimento", texto: [produto.composicao, produto.modelagem].filter(Boolean).join(" ") || null },
     { titulo: "Medidas", texto: medidas.map((m) => `${m.rotulo}: ${m.texto}`).join("\n") || null, id: "medidas" },
     { titulo: "Entrega e retirada", texto: "Retire na loja ou escolha a entrega. A reserva é confirmada pelo WhatsApp." },
-    { titulo: "Trocas e cuidados", texto: produto.cuidados },
-  ].filter((d) => d.texto);
-  const sobretitulo = [produto.noClub && "Club pick", selo].filter(Boolean).join(" · ");
+    // A regra da troca (29/09) vem antes dos cuidados da peça, com o link para a política inteira
+    { titulo: "Trocas e cuidados", texto: [RESUMO_TROCA, produto.cuidados].filter(Boolean).join("\n\n"), link: { href: "/trocas", rotulo: "Ver a política de trocas" } },
+  ].filter((d): d is typeof d & { texto: string } => Boolean(d.texto));
+  // A escassez em destaque (29/09): "Última unidade", "Só 2 no Club"... numa pílula rosa
+  const sobretitulo = (produto.noClub || selo) && (
+    <>
+      {produto.noClub && "Club pick"}{produto.noClub && selo && " · "}
+      {selo && <span className="rounded-full bg-rosa px-2 py-0.5 text-no-rosa">{selo}</span>}
+    </>
+  );
   const looks = produto.looks.slice(0, 3);
 
   return (
@@ -85,17 +93,27 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
           </h1>
           {produto.descricao && <p className="m-0 font-editorial text-xl italic leading-tight text-tinta-suave">{produto.descricao}</p>}
 
-          <p className="m-0 flex flex-wrap items-baseline gap-2.5 border-y border-linha py-4">
+          {/* Preço limpo, na tinta, sem a caixa rosa (29/09): "R$ 49,99 a peça" e, ao lado, "ou 3 por
+              R$ 119,99 no Club" com o grifo citrino */}
+          <p className="m-0 flex flex-wrap items-baseline gap-x-3.5 gap-y-1 border-y border-linha py-4">
             {promo !== null && <s className="text-sm text-tinta-suave"><span className="sr-only">De </span>{formatarReais(produto.precoCentavos)}</s>}
-            <strong className="rounded-[6px] bg-rosa-bruma px-2 py-1 font-display text-[22px] font-extrabold">
-              {promo !== null && <span className="sr-only">por </span>}{formatarReais(promo ?? produto.precoCentavos)}
-            </strong>
-            {oferta && <span className="text-xs font-extrabold text-verde-escuro">ou {oferta}</span>}
+            <span>
+              <strong className="text-[26px] font-semibold tracking-[-0.02em]">
+                {promo !== null && <span className="sr-only">por </span>}{formatarReais(promo ?? produto.precoCentavos)}
+              </strong>{" "}
+              <span className="text-sm text-tinta-suave">a peça</span>
+            </span>
+            {oferta && (
+              <span className="text-sm text-tinta-suave">
+                ou <span className="font-semibold text-tinta underline decoration-citrino decoration-4 underline-offset-[3px] [text-decoration-skip-ink:none]">{oferta}</span> no Club
+              </span>
+            )}
           </p>
 
           {oferta && club && (
             <ProgressoDaSacola nivel={2} qtd={club.qtd} preco={formatarReais(club.precoCentavos)} inicial={(await cookies()).get(COOKIE_SACOLA)?.value}
-              titulo={`A cada ${club.qtd}, o Club.`} texto={`Misture esta peça com qualquer coleção: ${oferta}, sem cupom.`} />
+              titulo={<>A cada <span className="text-rosa-press">{club.qtd}</span>, o Club.</>}
+              texto={<>Misture esta peça com qualquer coleção: <b className="tc-destaque">{club.qtd} peças por {formatarReais(club.precoCentavos)}</b>, sem cupom.</>} />
           )}
 
           {/* A peça e o tamanho entram na sacola sem sair da página; sem JavaScript, o GET /sacola de sempre. */}
@@ -143,6 +161,11 @@ export default async function PaginaProduto({ params, searchParams }: PageProps<
                     <span aria-hidden="true" className="hidden text-lg font-normal group-open:inline">−</span>
                   </summary>
                   <p className="m-0 mt-1 whitespace-pre-line text-sm leading-relaxed text-tinta-suave">{d.texto}</p>
+                  {"link" in d && d.link && (
+                    <Link href={d.link.href} className="tc-alvo relative mt-2 inline-flex min-h-7 items-center text-sm font-semibold underline decoration-citrino decoration-[3px] underline-offset-4">
+                      {d.link.rotulo}
+                    </Link>
+                  )}
                 </details>
               ))}
             </div>

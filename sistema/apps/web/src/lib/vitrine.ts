@@ -15,6 +15,26 @@ export function filtrarProdutos(produtos: readonly CartaoProduto[], filtro: Filt
   return [...produtos];
 }
 
+/**
+ * Club Editions (29/09, D39): a coleção das peças avulsas é também a vitrine da loja inteira, com
+ * todas as peças e um filtro por coleção, para ver tudo sem abrir coleção por coleção.
+ */
+export const VITRINE_DA_LOJA = "club-editions";
+
+export interface ColecaoNaVitrine { slug: string; nome: string; qtd: number }
+
+/** As coleções que têm peças na lista, na ordem das coleções da loja, com quantas peças cada. */
+export function colecoesDaVitrine(produtos: readonly CartaoProduto[], colecoes: readonly { slug: string; nome: string }[]): ColecaoNaVitrine[] {
+  return colecoes
+    .map((c) => ({ slug: c.slug, nome: c.nome, qtd: produtos.filter((p) => p.colecao?.slug === c.slug).length }))
+    .filter((c) => c.qtd > 0);
+}
+
+/** O filtro de coleção do endereço (?colecao=), só se for uma das coleções da vitrine. */
+export function lerColecao(valor: string | string[] | undefined, vitrine: readonly ColecaoNaVitrine[]): string | undefined {
+  return typeof valor === "string" ? vitrine.find((c) => c.slug === valor)?.slug : undefined;
+}
+
 /** Até quantas unidades o selo mostra a quantidade (estratégia do Drop 01: a escassez é real). */
 export const SELO_ATE = 4;
 
