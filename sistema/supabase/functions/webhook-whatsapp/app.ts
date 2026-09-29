@@ -9,6 +9,7 @@ import {
   candidatosDoRemetente,
   ehPedidoMinhaReserva,
   ehPedidoOfertas,
+  ehPedidoTroca,
   lerPedidoDeCodigo,
   mensagemWhatsApp,
   type Promocao,
@@ -90,6 +91,17 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
   }
 
   /**
+   * Fala em troca ou devolução: a política e o link de /trocas, no máximo 1 vez a cada 24 h
+   * por número (o banco decide e já marca; a loja pode desligar no painel). Repetida ou
+   * desligada, fica como conversa, sem boas-vindas: quem pediu troca espera a equipe, não o site.
+   */
+  async function trocas(id: string, remetente: string | null): Promise<string> {
+    if (!remetente || !(await deps.banco.rpc<boolean>("inbound_exchange", { p_wa_message_id: id }))) return await marcar(id, "CONVERSA");
+    await responder(remetente, mensagemWhatsApp("trocas", {}));
+    return "TROCAS";
+  }
+
+  /**
    * Mensagem comum: responde com o endereço da loja no máximo 1 vez a cada 24 h por número
    * (o banco decide e já marca, e a loja pode desligar no painel); a equipe segue
    * atendendo pelo celular. Remetente sem número (LID) não recebe.
@@ -120,8 +132,9 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     const pedido = lerPedidoDeCodigo(e.texto);
     if (!pedido) {
       if (ehPedidoOfertas(e.texto)) return await ofertas(e.id, e.remetente);
-      if (!ehPedidoMinhaReserva(e.texto)) return await conversa(e.id, e.remetente);
-      return await minhaReserva(e.id, e.remetente);
+      if (ehPedidoMinhaReserva(e.texto)) return await minhaReserva(e.id, e.remetente);
+      if (ehPedidoTroca(e.texto)) return await trocas(e.id, e.remetente);
+      return await conversa(e.id, e.remetente);
     }
 
     const candidatos = candidatosDoRemetente(e.remetente);

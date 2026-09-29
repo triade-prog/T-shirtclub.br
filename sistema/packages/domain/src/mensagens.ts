@@ -11,6 +11,12 @@ import type { Promocao } from "./preco.ts";
 const FUSO = "America/Bahia";
 /** Endereço da loja nas mensagens sem link de reserva (27/09: o da Vercel, até existir o domínio próprio). */
 const SITE = "tshirtclub.vercel.app";
+/**
+ * Política de trocas (29/09, pedido da loja): dias para pedir, contados de quando a cliente
+ * recebe ou retira a peça, que precisa estar sem uso e com a etiqueta. A página /trocas, a
+ * sacola, a página da peça e o WhatsApp leem daqui.
+ */
+export const DIAS_TROCA = 7;
 const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, hour: "2-digit", minute: "2-digit" });
 
 /** 14:32, no horário da loja. */
@@ -68,6 +74,14 @@ export function ehPedidoOfertas(texto: string): boolean {
 }
 
 /**
+ * Fala em troca ou devolução (29/09): "quero trocar", "como faço a devolução?". Ao contrário
+ * de "ofertas", vale no meio da frase; "troco" (do dinheiro) fica de fora.
+ */
+export function ehPedidoTroca(texto: string): boolean {
+  return /\b(trocas?|trocar|devolucao|devolucoes|devolver)\b/.test(normalizarTexto(texto));
+}
+
+/**
  * O remetente do WhatsApp (só dígitos) nas formas E.164 com e sem o nono dígito (R17).
  * Vazio quando não é um telefone (identificador LID, G4).
  */
@@ -120,6 +134,7 @@ export interface ParametrosMensagem {
   minhas_reservas: { reservas: ResumoReserva[] };
   /** As vigentes, na ordem de whatsapp_offers() (0340). */
   ofertas: { promocoes: readonly Promocao[] };
+  trocas: Record<string, never>;
   boas_vindas: Record<string, never>;
   mensagem_teste: Record<string, never>;
 }
@@ -361,7 +376,7 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
       blocos(
         `Pedido #${p.numero} entregue. 💖`,
         `Obrigada por fazer parte do Club${p.nome ? `, ${nomeOuNada(p.nome)}` : ""}!`,
-        "Se precisar falar sobre troca ou devolução, pode responder esta mensagem.",
+        `Troca em até ${DIAS_TROCA} dias, com a peça sem uso e com a etiqueta. Se precisar, é só responder esta mensagem.`,
       ),
   ],
 
@@ -388,6 +403,17 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
           p.promocoes.length > 1 && "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.",
           `Para ver as peças e reservar:\n${SITE}`,
         ),
+  ],
+  // Resposta a quem fala em troca ou devolução (29/09): a política e o link; no máximo 1 vez a
+  // cada 24 h por número (0460). O pedido de troca a equipe atende pelo celular.
+  trocas: [
+    () =>
+      blocos(
+        `Trocas na T-shirt Club: você tem até *${DIAS_TROCA} dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.`,
+        `Comprou pelo site e desistiu? Nos mesmos ${DIAS_TROCA} dias você devolve e recebe o valor de volta.`,
+        "Para pedir, responda aqui com o número da reserva e o que quer trocar. Nossa equipe responde assim que puder.",
+        `A política completa:\n${SITE}/trocas`,
+      ),
   ],
   // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310).
   boas_vindas: [
@@ -431,6 +457,7 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "saida", nome: "Saiu para entrega / enviado", quando: "Quando a loja marca a saída", essencial: false, modelos: ["saiu_entrega", "pedido_enviado"] },
   { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, modelos: ["pedido_entregue"] },
   { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, com o endereço da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
+  { id: "trocas", nome: "Resposta sobre trocas", quando: "Quando alguém fala em troca ou devolução, com a política da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["trocas"] },
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
 ];
 

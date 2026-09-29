@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Promocao } from "./preco.ts";
 import {
   candidatosDoRemetente,
+  DIAS_TROCA,
   ehPedidoMinhaReserva,
   ehPedidoOfertas,
+  ehPedidoTroca,
   formatarHora,
   lerPedidoDeCodigo,
   linkWhatsApp,
@@ -25,6 +27,11 @@ describe("o que a cliente escreve", () => {
   it("reconhece o pedido de ofertas, sozinho na mensagem", () => {
     for (const t of ["oferta", "Ofertas", "PROMOÇÃO", "promoções!", "promocoes?"]) expect(ehPedidoOfertas(t)).toBe(true);
     for (const t of ["a promoção não funcionou no meu pedido", "tem oferta de moletom?", "minha reserva"]) expect(ehPedidoOfertas(t)).toBe(false);
+  });
+
+  it("reconhece quem fala em troca ou devolução, também no meio da frase", () => {
+    for (const t of ["troca", "Quero TROCAR a Limone", "como faço a devolução?", "posso devolver?", "Trocas", "devoluções"]) expect(ehPedidoTroca(t)).toBe(true);
+    for (const t of ["tem troco para 50?", "trocaram o endereço", "minha reserva", "ofertas", "Oi, tem a Limone?"]) expect(ehPedidoTroca(t)).toBe(false);
   });
 
   it("reconhece o pedido de consulta", () => {
@@ -135,7 +142,7 @@ describe("o que a loja manda", () => {
       "Seu pedido #1048 foi enviado! 💖\n\n*Código de rastreio:*\n*AB123456789BR*\n\nVocê já pode acompanhar a entrega pelo rastreamento da transportadora.",
     );
     expect(mensagemWhatsApp("pedido_entregue", { numero: 1048, nome: "Marina Souza" })).toBe(
-      "Pedido #1048 entregue. 💖\n\nObrigada por fazer parte do Club, Marina!\n\nSe precisar falar sobre troca ou devolução, pode responder esta mensagem.",
+      "Pedido #1048 entregue. 💖\n\nObrigada por fazer parte do Club, Marina!\n\nTroca em até 7 dias, com a peça sem uso e com a etiqueta. Se precisar, é só responder esta mensagem.",
     );
     expect(mensagemWhatsApp("pedido_entregue", { numero: 1048 })).toContain("Obrigada por fazer parte do Club!");
   });
@@ -203,11 +210,23 @@ describe("o que a loja manda", () => {
     expect(NOTIFICACOES.find((n) => n.id === "boas_vindas")).toMatchObject({ essencial: false, modelos: ["boas_vindas"] });
   });
 
+  it("resposta sobre trocas: a política de 7 dias, o arrependimento, como pedir e o link", () => {
+    expect(DIAS_TROCA).toBe(7);
+    expect(mensagemWhatsApp("trocas", {})).toBe(
+      "Trocas na T-shirt Club: você tem até *7 dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.\n\n" +
+        "Comprou pelo site e desistiu? Nos mesmos 7 dias você devolve e recebe o valor de volta.\n\n" +
+        "Para pedir, responda aqui com o número da reserva e o que quer trocar. Nossa equipe responde assim que puder.\n\n" +
+        "A política completa:\ntshirtclub.vercel.app/trocas",
+    );
+    expect(NOTIFICACOES.find((n) => n.id === "trocas")).toMatchObject({ essencial: false, modelos: ["trocas"] });
+  });
+
   it("nenhuma mensagem escreve Club.br (o WhatsApp faz link para club.br, que não é da loja)", () => {
     const amostras = [
       mensagemWhatsApp("codigo_verificacao", { codigo: "482193", minutos: 5 }),
       mensagemWhatsApp("telefone_liberado", {}),
       mensagemWhatsApp("boas_vindas", {}),
+      mensagemWhatsApp("trocas", {}),
       mensagemWhatsApp("mensagem_teste", {}),
       mensagemWhatsApp("pedido_entregue", { numero: 1048 }),
       mensagemWhatsApp("reserva_criada", { nome: "Marina", pecas: 3, numero: 1048, totalCentavos: 11999, expiraEm: expira, link }),

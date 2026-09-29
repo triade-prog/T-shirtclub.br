@@ -6,7 +6,7 @@ import { criarWebhookWhatsApp } from "./app.ts";
 const SEGREDO = "s".repeat(40);
 const AGORA = new Date("2026-10-10T12:00:00Z");
 
-function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean; ofertas?: unknown[] } = {}) {
+function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean; ofertas?: unknown[]; trocas?: boolean } = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const vistas = new Set<string>();
   const banco: Banco = {
@@ -27,6 +27,8 @@ function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: un
             return opcoes.reservas ?? [];
           case "inbound_welcome":
             return opcoes.boasVindas ?? false;
+          case "inbound_exchange":
+            return opcoes.trocas ?? false;
           case "whatsapp_offers":
             return opcoes.ofertas ?? [];
           default:
@@ -134,6 +136,31 @@ Deno.test("ofertas: responde com as promoções vigentes do banco, pulando o que
   await vazio.enviar(msg({ text: { message: "oferta" } }));
   assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^No momento não temos ofertas ativas\./);
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid", text: { message: "ofertas" } }))).tratamento, "SEM_NUMERO");
+});
+
+Deno.test("trocas: a política e o link quando o banco libera; repetida, fica para a equipe sem boas-vindas", async () => {
+  const liberada = montar({ trocas: true, boasVindas: true });
+  assertEquals((await liberada.enviar(msg({ text: { message: "Oi, quero trocar a Limone por um M" } }))).tratamento, "TROCAS");
+  assertEquals(liberada.rpcs.find((x) => x.funcao === "inbound_exchange")!.args, { p_wa_message_id: "m1" });
+  assertEquals(liberada.rpcs.some((x) => x.funcao === "inbound_welcome"), false, "não conta como mensagem comum");
+  assertEquals(liberada.rpcs.some((x) => x.funcao === "inbound_mark"), false, "o banco já marcou TROCAS");
+  assertEquals(liberada.whatsapp.enviadas.map((m) => m.telefone), ["+5577998128809"]);
+  assertMatch(liberada.whatsapp.enviadas[0]!.texto, /até \*7 dias\*.*sem uso e com a etiqueta/);
+  assertMatch(liberada.whatsapp.enviadas[0]!.texto, /tshirtclub\.vercel\.app\/trocas$/);
+
+  const jaRecebeu = montar({ trocas: false, boasVindas: true });
+  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Como faço a devolução?" } }))).tratamento, "CONVERSA");
+  assertEquals(jaRecebeu.rpcs.some((x) => x.funcao === "inbound_welcome"), false);
+  assertEquals(jaRecebeu.whatsapp.enviadas.length, 0);
+
+  const lid = montar({ trocas: true });
+  assertEquals((await lid.enviar(msg({ phone: "123456789012345@lid", text: { message: "troca" } }))).tratamento, "CONVERSA");
+  assertEquals(lid.rpcs.some((x) => x.funcao === "inbound_exchange"), false);
+  assertEquals(lid.whatsapp.enviadas.length, 0);
+
+  // O pedido de código vem antes: a referência vale mesmo com "troca" no texto
+  assertEquals((await montar({ trocas: true }).enviar(msg({ text: { message: "Quero confirmar a entrega do pedido (ref. K7Q2) e trocar" } }))).tratamento,
+    "CODIGO_ENVIADO");
 });
 
 Deno.test("status de entrega atualiza a fila", async () => {
