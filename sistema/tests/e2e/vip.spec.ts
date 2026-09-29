@@ -107,3 +107,21 @@ test("rodapé na coleção: curto, na cor da coleção, e volta ao completo fora
   await expect(page).toHaveURL(`${LOJA}/`);
   await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toBeVisible();
 });
+
+// Na sacola (29/09): o rodapé verde com os links e os dados da loja, sem as vantagens e a Lista VIP,
+// para não tirar a atenção de quem está fechando o pedido. Ao sair da sacola, volta o completo.
+test("rodapé na sacola: sem as vantagens e a Lista VIP", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("tc-vip-fechado", String(Date.now())));
+  await page.goto(`${LOJA}/sacola`);
+  const rodape = page.getByRole("contentinfo");
+  await expect(rodape.getByRole("navigation", { name: "Ajuda" })).toBeVisible();
+  await expect(rodape).toContainText("CNPJ 60.814.144/0001-03");
+  await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toHaveCount(0);
+  await expect(rodape.getByRole("region", { name: /Drops novos/ })).toHaveCount(0);
+  await rodape.scrollIntoViewIfNeeded();
+  await semViolacoes(page, "rodapé da sacola");
+
+  await rodape.getByRole("link", { name: "T-shirt Club.br" }).click();
+  await expect(page).toHaveURL(`${LOJA}/`);
+  await expect(rodape.getByRole("region", { name: "Vantagens da loja" })).toBeVisible();
+});

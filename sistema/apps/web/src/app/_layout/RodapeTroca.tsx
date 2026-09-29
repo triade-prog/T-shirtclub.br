@@ -11,13 +11,15 @@ export interface ColecaoRodape { slug: string; nome: string; cor: string; paleta
 /**
  * Na página de uma coleção (28/09), o rodapé fica curto e na cor dela: sem as vantagens e a Lista
  * VIP, uma faixa com as outras coleções, a ajuda e os dados da empresa. Com a campanha ligada, a
- * faixa usa a paleta da campanha. Fora das coleções, o rodapé completo. A troca é no navegador
+ * faixa usa a paleta da campanha. Na sacola (29/09), o rodapé sem as vantagens e a Lista VIP.
+ * Fora disso, o rodapé completo. A troca é no navegador
  * porque o rodapé fica no layout, que não é refeito quando a cliente navega entre as páginas.
  */
-export function RodapeTroca({ completo, colecoes, whatsapp, numero, empresa }: {
-  completo: React.ReactNode; colecoes: ColecaoRodape[]; whatsapp: string; numero: string; empresa: string;
+export function RodapeTroca({ completo, semExtras, colecoes, whatsapp, numero, empresa }: {
+  completo: React.ReactNode; semExtras: React.ReactNode; colecoes: ColecaoRodape[]; whatsapp: string; numero: string; empresa: string;
 }) {
   const caminho = usePathname();
+  if (caminho === "/sacola" || caminho.startsWith("/sacola/")) return semExtras;
   const slug = /^\/colecao\/([^/?#]+)/.exec(caminho)?.[1];
   const atual = slug ? colecoes.find((c) => c.slug === decodeURIComponent(slug)) : undefined;
   if (!atual) return completo;

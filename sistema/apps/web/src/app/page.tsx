@@ -149,7 +149,7 @@ function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colec
     <PickYourStory titulo={titulo} Link={Link} itens={colecoes.map((c) => {
       const foto = c.fotoStory ?? c.fotos?.[0] ?? c.capa;
       return {
-        id: c.id, nome: c.nome, href: `/colecao/${c.slug}`, cor: c.cor, campanha: c.campanhaAtiva ? c.campanha : null,
+        id: c.id, nome: c.nome, href: `/colecao/${c.slug}`, cor: c.cor,
         foto: foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 112px, 80px" className={classeFotoStory(Boolean(c.fotoStory))} />,
       };
     })} />

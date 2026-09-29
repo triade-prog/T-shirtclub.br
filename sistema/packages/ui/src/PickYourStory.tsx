@@ -8,8 +8,6 @@ export interface ItemPickYourStory {
   href: string;
   /** Cor da coleção (col-*), no fundo do círculo enquanto a foto carrega ou sem foto. */
   cor: string;
-  /** Nome da campanha, em cima do da coleção, só com a campanha ligada (0430). */
-  campanha?: string | null;
   /** A foto, preenchendo o círculo (a loja usa o next/image; o painel, a miniatura). */
   foto?: ReactNode;
   /** Na prévia do painel: as outras coleções ficam apagadas, para a editada se destacar. */
@@ -27,8 +25,8 @@ export function classeFotoStory(escolhida: boolean): string {
 
 /**
  * Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a foto
- * escolhida no painel (0440) ou a peça mais nova da coleção; com a campanha ligada, o nome dela
- * aparece em cima do da coleção. No celular, a linha desliza para o lado. É a mesma linha na loja
+ * escolhida no painel (0440) ou a peça mais nova da coleção, e só o nome da coleção embaixo (29/09:
+ * o nome da campanha já está no lettering do círculo e aparecia duas vezes). No celular, a linha desliza para o lado. É a mesma linha na loja
  * e na prévia do painel.
  */
 export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | null; itens: ItemPickYourStory[]; Link?: ComponentType<PropsLink> | "a" }) {
@@ -42,7 +40,6 @@ export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | 
               <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
                 {c.foto}
               </span>
-              {c.campanha && <span className="text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-tinta-suave">{c.campanha}</span>}
               <span className="font-editorial text-[15px] font-bold leading-tight tracking-[-0.02em] md:text-lg">{c.nome}</span>
             </Link>
           </li>
