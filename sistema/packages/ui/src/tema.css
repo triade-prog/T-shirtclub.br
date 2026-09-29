@@ -212,6 +212,16 @@
     color: var(--tc-rosa-press);
     box-shadow: 5px 5px 0 var(--tc-verde);
   }
+  /* Número de adesivo (29/09): o "3" do trio em citrino, com contorno e sombra de tinta, como os
+     letterings da loja. Só em tamanho grande: o contorno é que segura o contraste sobre o rosa. */
+  .tc-numero-adesivo {
+    display: inline-block;
+    color: var(--tc-citrino);
+    paint-order: stroke fill;
+    -webkit-text-stroke: 0.05em var(--tc-tinta);
+    text-shadow: 0.045em 0.05em 0 var(--tc-tinta);
+    transform: rotate(-6deg);
+  }
   .tc-sobretitulo {
     display: flex;
     align-items: center;

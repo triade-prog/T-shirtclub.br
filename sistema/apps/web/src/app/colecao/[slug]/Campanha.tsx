@@ -2,7 +2,8 @@ import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BotaoCampanha as BotaoCampanhaUi, FotoComNome, Sobretitulo, TopoCampanha as TopoCampanhaUi, cx, universoDaPaleta, type Universo } from "@tshirtclub/ui";
-import { urlFoto, type CapituloColecao, type CartaoProduto, type Colecao, type Foto } from "@/lib/catalogo";
+import { formatarReais } from "@tshirtclub/domain";
+import { urlFoto, type CapituloColecao, type CartaoProduto, type Colecao, type Foto, type OfertaClub } from "@/lib/catalogo";
 import { CardProduto } from "../../_vitrine/CardProduto";
 
 // Coleção como capítulo de campanha (28/09, D35 e D36): a marca é a T-shirt Club, a campanha tem
@@ -104,14 +105,34 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
   );
 }
 
+/**
+ * Arte do preço do trio (lettering da loja, 29/09, em "imagens site" no bucket). O valor está
+ * desenhado nela, então só aparece enquanto o trio custar isso; com outro preço, volta o texto.
+ */
+const ARTE_PRECO = { centavos: 11999, caminho: "imagens%20site/lettering-preco-119-99.webp", largura: 1000, altura: 442 };
+
 /** Build Your Club: o fim da história puxa para o trio, no bloco rosa do "3 escolhas. Seu Club." da home. */
-export function BuildYourClub({ colecao, qtdEstampas, oferta, progresso }: { colecao: Colecao; qtdEstampas: string; oferta: string; progresso: React.ReactNode }) {
+export function BuildYourClub({ colecao, qtdEstampas, club, progresso }: { colecao: Colecao; qtdEstampas: string; club: OfertaClub; progresso: React.ReactNode }) {
   const silencio = universo(colecao).ritmo === "silencio";
+  const preco = formatarReais(club.precoCentavos);
+  const frase = "font-editorial text-[clamp(24px,3vw,40px)] font-[680] italic tracking-[-0.03em]";
   return (
     <section aria-labelledby="build-your-club" className={cx("grid gap-5 border-y-3 border-tinta bg-rosa px-3.5 py-14 text-no-rosa md:px-5 md:py-20", silencio ? "justify-items-center text-center" : "justify-items-start")}>
       <Sobretitulo>{qtdEstampas} · monte seu trio</Sobretitulo>
       <h2 id="build-your-club" className="tc-titulo m-0 text-[clamp(44px,7vw,104px)]">{colecao.nome}</h2>
-      <p className="m-0 font-editorial text-[clamp(24px,3vw,40px)] font-[680] italic tracking-[-0.03em]">{oferta.replace(" por ", " T-shirts · ")}</p>
+      {/* O "3" grande em citrino e o preço no lettering da loja (29/09); o leitor de tela lê a frase inteira */}
+      <p className={cx("m-0 flex flex-wrap items-center gap-x-4.5 gap-y-1.5", silencio && "justify-center")}>
+        <span className="sr-only">{club.qtd} T-shirts por {preco}</span>
+        <span aria-hidden="true" className={frase}>
+          <b className="tc-numero-adesivo mr-1 align-[-0.12em] text-[2.3em] font-[680] leading-[0.7]">{club.qtd}</b> T-shirts por
+        </span>
+        {club.precoCentavos === ARTE_PRECO.centavos ? (
+          <Image src={urlFoto(ARTE_PRECO.caminho)} alt="" aria-hidden="true" width={ARTE_PRECO.largura} height={ARTE_PRECO.altura}
+            sizes="(min-width: 768px) 300px, 50vw" className="h-[clamp(84px,9vw,130px)] w-auto -rotate-3" />
+        ) : (
+          <span aria-hidden="true" className={frase}>{preco}</span>
+        )}
+      </p>
       <div className="w-full">{progresso}</div>
     </section>
   );
