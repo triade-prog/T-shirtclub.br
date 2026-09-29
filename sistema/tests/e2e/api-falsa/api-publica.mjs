@@ -35,7 +35,7 @@ colecao.campanhaAtiva = false;
 const colecao2 = { id: "c0000000-0000-4000-8000-000000000002", nome: "Riviera", slug: "riviera", descricao: "Um pouco salgada. Muito charmosa.", chamada: null, cor: "MEDITERRANEO",
   capa: { caminho: "campanha-limone.webp", alt: "Porto com barcos e água azul" }, produtos: 0, fotos: [], slugsAntigos: ["sardines-club"],
   campanha: "Mare, Amore!", campanhaAtiva: true, temporada: "SS26", edicao: "Coleção 02", paleta: "RIVIERA", capitulos: [] };
-// Coleção de campanha (0420, D35 e D36): paleta própria, campanha, foto do celular e 1 capítulo.
+// Coleção de campanha (0420, D35 e D36; cores da marca desde a D38): campanha, foto do celular e 1 capítulo.
 const colecao3 = { id: "c0000000-0000-4000-8000-000000000003", nome: "Estate Italiana", slug: "estate-italiana", descricao: "Limões, tomates e dias que parecem férias.",
   chamada: "Limões, listras e o verão italiano que não acaba.", cor: "LIMAO", capa: { caminho: "campanha-limone.webp", alt: "Duas amigas no terraço, de frente para o mar" },
   capaCelular: { caminho: "campanha-limone.webp", alt: "Uma amiga olhando o mar" }, campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01",

@@ -100,13 +100,13 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
   );
 }
 
-/** Topo da página de campanha, na paleta da coleção. */
+/** Topo da página de campanha, na identidade da marca (D38), como a loja desenha. */
 function TopoDaCampanha({ r, nome, qtdEstampas }: { r: RascunhoColecao; nome: string; qtdEstampas: string }) {
   return (
     <div className={cx(`col-${r.cor.toLowerCase()}`, universoDaPaleta(r.paleta).classe, "bg-camp-base text-camp-tinta")}>
       <TopoCampanha colecao={{ ...r, nome }} qtdEstampas={qtdEstampas} botao={<BotaoCampanha produtos={r.produtos} />}
         foto={r.capa && (
-          <div className={cx("relative overflow-hidden rounded-[24px] ring-1 ring-camp-tinta/15", r.capaCelular ? "aspect-[4/5] md:aspect-video" : "aspect-video")}>
+          <div className={cx("relative overflow-hidden rounded-[24px]", r.capaCelular ? "aspect-[4/5] md:aspect-video" : "aspect-video")}>
             <FotoDupla capa={r.capa} celular={r.capaCelular} />
           </div>
         )} />

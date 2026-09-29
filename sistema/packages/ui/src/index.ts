@@ -8,7 +8,7 @@ export { SecaoVitrine } from "./SecaoVitrine.tsx";
 export { BotaoPecas, FaixaChamada, TopoColecaoBanner, TopoColecaoSimples, tituloEmDuasLinhas } from "./TopoColecao.tsx";
 export { ConteudoSlide, SetaDireita, classeMolduraCarrossel } from "./SlideCapa.tsx";
 export {
-  BotaoCampanha, MICRO_CAMPANHA, NomeCampanha, TopoCampanha, universoDaPaleta,
+  BotaoCampanha, FotoComNome, NomeCampanha, TopoCampanha, universoDaPaleta,
   type ColecaoCampanha, type PaletaCampanha, type Universo,
 } from "./TopoCampanha.tsx";
 export { Cronometro, type CronometroProps } from "./Cronometro.tsx";
