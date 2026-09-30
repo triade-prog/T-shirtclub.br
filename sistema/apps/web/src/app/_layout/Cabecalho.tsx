@@ -17,7 +17,7 @@ export function Cabecalho() {
         <div className="mx-auto grid h-18 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-3.5 md:h-21.5 md:px-5">
           <BotaoVoltar />
           <Link href="/" className="rounded-campo" aria-label="T-shirt Club.br, página inicial">
-            <Image src="/marca/logo.webp" alt="" width={160} height={110} priority className="h-12 w-auto md:h-15.5" />
+            <Image src="/marca/logo-limao.webp" alt="" width={160} height={108} priority className="h-12 w-auto md:h-15.5" />
           </Link>
           <Link
             href="/sacola"

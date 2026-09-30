@@ -34,7 +34,7 @@ export function RodapeTroca({ completo, semExtras, colecoes, whatsapp, numero, e
       <div className={cx(campanha ? "border-t-4 border-camp-limao bg-camp-azul text-camp-base" : "border-t-4 border-colecao bg-colecao-tinta text-branco")}>
         <div className="mx-auto grid max-w-7xl gap-x-10 gap-y-4 px-3.5 py-7 md:grid-cols-[auto_1fr] md:items-start md:px-5">
           <Link href="/" aria-label="T-shirt Club.br" className="inline-flex min-h-11 items-center">
-            <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-12 w-auto md:h-14" />
+            <Image src="/marca/logo-limao.webp" alt="" width={160} height={108} className="h-12 w-auto md:h-14" />
           </Link>
           <div className="grid gap-1 text-[13px]">
             <nav aria-label="Coleções">
