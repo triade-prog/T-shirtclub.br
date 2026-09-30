@@ -4,14 +4,14 @@ import { ShoppingBag } from "lucide-react";
 import { BotaoVoltar } from "./BotaoVoltar";
 import { ContadorSacola } from "./ContadorSacola";
 
-// Cabeçalho V4 (D24): faixa da oferta, logo no centro, sacola em pílula de adesivo e a faixa de
-// três cores embaixo. A faixa da oferta é verde-limão desde 29/09 (escolha da loja), como a faixa
-// corrida do trio, com o texto em tinta; o selo do preço inverte (escuro com letra citrino) para não sumir.
+// Cabeçalho V4 (D24): faixa rosa da oferta, logo no centro, sacola em pílula de adesivo e
+// a faixa de três cores embaixo. A faixa ficou verde por uma noite (29/09) e voltou ao rosa a
+// pedido da loja.
 export function Cabecalho() {
   return (
     <header className="sticky top-0 z-30">
-      <p className="m-0 border-b-2 border-tinta bg-citrino px-4 py-2 text-center text-[11px] font-extrabold uppercase tracking-[0.11em] text-no-citrino">
-        Monte seu Club <span aria-hidden="true">✦</span> <b className="rounded-[4px] bg-no-citrino px-1.5 py-0.5 text-citrino">3 T-shirts · R$ 119,99</b>
+      <p className="m-0 border-b-2 border-tinta bg-rosa px-4 py-2 text-center text-[11px] font-extrabold uppercase tracking-[0.11em] text-no-rosa">
+        Monte seu Club <span aria-hidden="true">✦</span> <b className="rounded-[4px] bg-citrino px-1.5 py-0.5 text-no-citrino">3 T-shirts · R$ 119,99</b>
       </p>
       <div className="border-b-2 border-tinta bg-papel/95 backdrop-blur-md">
         <div className="mx-auto grid h-18 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-3.5 md:h-21.5 md:px-5">
