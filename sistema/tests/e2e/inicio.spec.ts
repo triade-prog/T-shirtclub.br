@@ -58,8 +58,8 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 e o Seu Club em v
   const foto = page.getByRole("region", { name: "Coleções em destaque" }).getByRole("img", { name: "Campanha Limone" });
   expect(Math.round((await foto.boundingBox())!.width)).toBe(largura);
 
-  // A faixa da oferta no topo, no mesmo verde-limão da faixa corrida (escolha da loja, 29/09)
-  await expect(page.getByRole("banner").getByText(/Monte seu Club/)).toHaveCSS("background-color", "rgb(223, 240, 74)");
+  // A faixa da oferta no topo segue rosa (voltou ao rosa a pedido da loja, 29/09)
+  await expect(page.getByRole("banner").getByText(/Monte seu Club/)).toHaveCSS("background-color", "rgb(232, 71, 138)");
 
   const faixa = page.getByRole("region", { name: "Oferta do Club" });
   await expect(faixa).toContainText("3 T-shirts por R$ 119,99");
