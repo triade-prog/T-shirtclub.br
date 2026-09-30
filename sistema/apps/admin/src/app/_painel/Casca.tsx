@@ -96,7 +96,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
       <div className="panel-shell">
         <aside className="sidebar" id="sidebar" aria-label="Menu do painel">
           <div className="brandbox">
-            <Image src="/marca/logo.webp" alt="T-shirt Club.br" width={132} height={58} priority />
+            <Image src="/marca/logo-limao.webp" alt="T-shirt Club.br" width={132} height={58} priority />
             <span className="admin">Painel</span>
           </div>
           <nav className="nav" aria-label="Navegação principal">

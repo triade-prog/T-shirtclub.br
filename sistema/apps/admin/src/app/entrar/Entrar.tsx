@@ -84,7 +84,7 @@ export function Entrar() {
   return (
     <main className="auth">
       <section className="auth-brand" style={senha ? undefined : { background: "var(--green-soft)" }} aria-hidden="true">
-        <div className="auth-logo"><Image src="/marca/logo.webp" alt="" width={190} height={130} priority /></div>
+        <div className="auth-logo"><Image src="/marca/logo-limao.webp" alt="" width={190} height={130} priority /></div>
         <div className="auth-message">
           <div className="starbig" style={senha ? undefined : { background: "var(--citron)" }} />
           {senha

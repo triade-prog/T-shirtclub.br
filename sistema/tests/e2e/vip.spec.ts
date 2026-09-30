@@ -56,8 +56,11 @@ test("rodapé: vantagens, Lista VIP e dados da loja", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("tc-vip-fechado", String(Date.now())));
   await page.goto(`${LOJA}/`);
   const rodape = page.getByRole("contentinfo");
-  await expect(rodape.getByRole("region", { name: "Vantagens da loja" }).getByRole("listitem")).toHaveCount(6);
-  await expect(rodape).toContainText("3 por R$ 119,99");
+  // Cinco vantagens: o "3 por R$ 119,99" saiu (pedido da loja, 29/09), a oferta já está no topo
+  const vantagens = rodape.getByRole("region", { name: "Vantagens da loja" });
+  await expect(vantagens.getByRole("listitem")).toHaveCount(5);
+  await expect(vantagens).not.toContainText("Misture qualquer coleção");
+  await expect(vantagens).toContainText("Retire na loja");
   await expect(rodape).toContainText("Ganhe 10% OFF na primeira compra");
   await expect(rodape.getByRole("navigation", { name: "Coleções" }).getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");
   await expect(rodape).toContainText("CNPJ 60.814.144/0001-03");

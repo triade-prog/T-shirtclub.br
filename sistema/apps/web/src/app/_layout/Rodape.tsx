@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp, Bike, CreditCard, MessageCircle, Package, Store, Tag, type LucideIcon } from "lucide-react";
-import { condicaoBeneficioVip, formatarReais, textoBeneficioVip } from "@tshirtclub/domain";
+import { ArrowUp, Bike, CreditCard, MessageCircle, Package, Store, type LucideIcon } from "lucide-react";
+import { condicaoBeneficioVip, textoBeneficioVip } from "@tshirtclub/domain";
 import { Selo } from "@tshirtclub/ui";
-import { buscarCatalogo, buscarOfertaClub, buscarOfertaVip, type Colecao } from "@/lib/catalogo";
+import { buscarCatalogo, buscarOfertaVip, type Colecao } from "@/lib/catalogo";
 import { EMPRESA, redesDaLoja } from "@/lib/empresa";
 import { FormVip } from "../_vip/FormVip";
 import { IconeRede } from "./IconeRede";
@@ -11,17 +11,16 @@ import { RodapeTroca } from "./RodapeTroca";
 
 // Rodapé (27/09, referência Le Lis no estilo V4): as vantagens da loja em cartões, a Lista VIP,
 // os links (coleções, ajuda, atendimento e redes) e a linha com os dados da empresa. Coleções,
-// oferta do Club e cupom VIP vêm do catálogo (cache da loja); sem catálogo, o rodapé segue sem eles.
+// cupom VIP vêm do catálogo (cache da loja); sem catálogo, o rodapé segue sem eles.
 // Na página de uma coleção (28/09), um rodapé curto na cor dela, sem as vantagens e a Lista VIP;
 // na sacola (29/09), o rodapé verde sem as vantagens e a Lista VIP.
+// As vantagens não repetem o "3 por R$ 119,99" (29/09, pedido da loja): a oferta já está no topo e na
+// faixa corrida; são cinco cartões, e o último ocupa a linha inteira no celular.
 export async function Rodape() {
-  const [colecoes, club, vip] = await Promise.all([
-    buscarCatalogo<Colecao[]>("v1/catalog/collections"), buscarOfertaClub(), buscarOfertaVip(),
-  ]);
+  const [colecoes, vip] = await Promise.all([buscarCatalogo<Colecao[]>("v1/catalog/collections"), buscarOfertaVip()]);
   const numero = process.env.WHATSAPP_LOJA ?? "5577998155772";
   const redes = redesDaLoja(process.env);
   const vantagens: { Icone: LucideIcon; titulo: string; texto: string }[] = [
-    { Icone: Tag, titulo: club ? `${club.qtd} por ${formatarReais(club.precoCentavos)}` : "Monte seu Club", texto: "Misture qualquer coleção" },
     { Icone: Store, titulo: "Retire na loja", texto: "Sem frete, com o código do pedido" },
     { Icone: Bike, titulo: "Motoboy", texto: "Na cidade, frete combinado" },
     { Icone: Package, titulo: "Envio", texto: "Para outras cidades" },
@@ -34,9 +33,9 @@ export async function Rodape() {
   const extras = (
     <>
       <section aria-label="Vantagens da loja" className="bg-rosa-bruma px-3.5 py-6 md:px-5">
-        <ul className="mx-auto m-0 grid max-w-7xl list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-6">
+        <ul className="mx-auto m-0 grid max-w-7xl list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 lg:grid-cols-5">
           {vantagens.map(({ Icone, titulo, texto }) => (
-            <li key={titulo} className="grid content-start justify-items-center gap-1.5 rounded-[18px] border-2 border-tinta bg-papel px-3 py-3 text-center shadow-adesivo-sm">
+            <li key={titulo} className="grid content-start justify-items-center gap-1.5 rounded-[18px] max-sm:last:col-span-2 border-2 border-tinta bg-papel px-3 py-3 text-center shadow-adesivo-sm">
               <span className="grid size-9 place-items-center rounded-full border-[1.5px] border-tinta bg-citrino text-no-citrino">
                 <Icone aria-hidden="true" className="size-4.5" strokeWidth={1.8} />
               </span>
@@ -71,7 +70,7 @@ export async function Rodape() {
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-7 px-3.5 pb-8 pt-9 md:grid-cols-[1fr_1.5fr_0.9fr_1fr] md:gap-y-0 md:px-5">
         <div className="col-span-2 grid content-start gap-3 md:col-span-1">
           <Link href="/" aria-label="T-shirt Club.br" className="justify-self-start rounded-campo">
-            <Image src="/marca/logo.webp" alt="" width={160} height={110} className="h-14 w-auto md:h-16" />
+            <Image src="/marca/logo-limao.webp" alt="" width={160} height={108} className="h-14 w-auto md:h-16" />
           </Link>
           <p className="m-0 max-w-[30ch] text-[13px] leading-relaxed">
             Uma camiseta não determina o seu estilo. Você determina. Vista, misture, repita.

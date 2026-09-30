@@ -1,6 +1,8 @@
 // Gera os arquivos da marca a partir do logo oficial (docs/design/marca/logo-original.webp):
-// tira o fundo rosa-claro (preenchimento a partir das bordas, parando no contorno verde),
-// recorta a sobra e grava logo, favicon e ícones do app em apps/*/public/marca.
+// tira o fundo (preenchimento a partir das bordas, parando no contorno verde),
+// recorta a sobra e grava logo, favicon e ícones do app em apps/*/public/marca. O logo leva o nome
+// da versão (logo-limao, 29/09): com outro nome, nem o otimizador de imagens nem o service worker
+// guardam o logo antigo.
 // Uso: node scripts/gerar-marca.mjs
 import sharp from "sharp";
 import { mkdirSync } from "node:fs";
@@ -40,8 +42,8 @@ const meta = await sharp(logo).metadata();
 for (const app of ["web", "admin"]) {
   const pasta = join(raiz, "apps", app, "public", "marca");
   mkdirSync(pasta, { recursive: true });
-  await sharp(logo).resize({ width: 480 }).webp({ quality: 88 }).toFile(join(pasta, "logo.webp"));
-  await sharp(logo).resize({ width: 480 }).png({ compressionLevel: 9 }).toFile(join(pasta, "logo.png"));
+  await sharp(logo).resize({ width: 480 }).webp({ quality: 88 }).toFile(join(pasta, "logo-limao.webp"));
+  await sharp(logo).resize({ width: 480 }).png({ compressionLevel: 9 }).toFile(join(pasta, "logo-limao.png"));
   // Ícones quadrados: logo centralizado no rosa-bruma da marca.
   const quadrado = async (lado, margem, arquivo) => {
     const interno = Math.round(lado * (1 - 2 * margem));

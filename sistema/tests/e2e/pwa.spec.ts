@@ -24,7 +24,7 @@ test.describe("PWA da loja", () => {
     // A casca (arquivos com hash) fica guardada: com o clone() depois de devolver a resposta,
     // o navegador já tinha lido o corpo e nada entrava no cache
     await expect
-      .poll(() => page.evaluate(async () => (await (await caches.open("casca-v1")).keys()).some((r) => new URL(r.url).pathname.startsWith("/_next/static/"))))
+      .poll(() => page.evaluate(async () => (await (await caches.open("casca-v2")).keys()).some((r) => new URL(r.url).pathname.startsWith("/_next/static/"))))
       .toBe(true);
 
     await context.setOffline(true);

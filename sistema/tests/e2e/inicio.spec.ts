@@ -58,14 +58,17 @@ test("início: carrossel e faixa corrida de ponta a ponta, o 3 e o Seu Club em v
   const foto = page.getByRole("region", { name: "Coleções em destaque" }).getByRole("img", { name: "Campanha Limone" });
   expect(Math.round((await foto.boundingBox())!.width)).toBe(largura);
 
+  // A faixa da oferta no topo, no mesmo verde-limão da faixa corrida (escolha da loja, 29/09)
+  await expect(page.getByRole("banner").getByText(/Monte seu Club/)).toHaveCSS("background-color", "rgb(223, 240, 74)");
+
   const faixa = page.getByRole("region", { name: "Oferta do Club" });
   await expect(faixa).toContainText("3 T-shirts por R$ 119,99");
   // Em cima da divisa do bloco rosa com o papel: metade sobre o rosa, metade embaixo
   const bloco = (await page.locator("#monte-club").boundingBox())!;
   const caixa = (await faixa.boundingBox())!;
   expect(Math.abs(caixa.y + caixa.height / 2 - (bloco.y + bloco.height))).toBeLessThanOrEqual(1);
-  // No verde-escuro, com a arte do preço da loja (escolha da loja)
-  await expect(faixa).toHaveCSS("background-color", "rgb(79, 106, 24)");
+  // No verde-limão, com a arte do preço da loja (escolha da loja)
+  await expect(faixa).toHaveCSS("background-color", "rgb(223, 240, 74)");
   await expect(faixa.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
   expect(Math.round((await faixa.boundingBox())!.width)).toBe(largura);
   await expect(faixa.locator(".tc-letreiro-trilho")).toHaveCSS("animation-play-state", "running");

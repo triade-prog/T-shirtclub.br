@@ -4,11 +4,12 @@
 // Nunca guarda /api, /r nem páginas (as páginas podem ter dados da cliente): sem rede, a
 // navegação cai na página "sem conexão", guardada na instalação.
 
-const VERSAO = "v1";
+// v2 (29/09): logo e ícones novos; a troca de versão apaga a casca e as imagens guardadas
+const VERSAO = "v2";
 const CASCA = `casca-${VERSAO}`;
 const IMAGENS = `imagens-${VERSAO}`;
 const MAX_IMAGENS = 80;
-const PRECARGA = ["/offline", "/marca/logo.webp", "/marca/icone-192.png"];
+const PRECARGA = ["/offline", "/marca/logo-limao.webp", "/marca/icone-192.png"];
 
 self.addEventListener("install", (evento) => {
   evento.waitUntil(caches.open(CASCA).then((c) => c.addAll(PRECARGA)).then(() => self.skipWaiting()));
