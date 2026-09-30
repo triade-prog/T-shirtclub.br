@@ -91,7 +91,8 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   const oferta = page.getByRole("region", { name: "Oferta do Club" });
   await expect(oferta).toContainText("3 T-shirts por R$ 119,99");
   await expect(oferta).toHaveCSS("background-color", "rgb(223, 240, 74)");
-  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(223, 240, 74)");
+  // O "3" da faixa é rosa (30/09)
+  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(232, 71, 138)");
   await expect(oferta.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
   const bloco = (await build.boundingBox())!;
   const caixa = (await oferta.boundingBox())!;

@@ -32,7 +32,8 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   await expect(monte.locator('img[src*="lettering-preco-119-99"]')).toHaveCount(0);
   const oferta = page.getByRole("region", { name: "Oferta do Club" });
   await expect(oferta).toContainText("3 T-shirts por R$ 119,99");
-  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(223, 240, 74)");
+  // O "3" da faixa é rosa (30/09)
+  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(232, 71, 138)");
 
   const colecoes = page.getByRole("region", { name: "Pick your story." });
   await expect(colecoes.getByRole("link", { name: "Limone" })).toHaveAttribute("href", "/colecao/limone");

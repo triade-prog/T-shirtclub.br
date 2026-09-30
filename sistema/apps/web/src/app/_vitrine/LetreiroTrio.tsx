@@ -16,7 +16,7 @@ export const ARTE_PRECO = { centavos: 11999, caminho: "imagens%20site/lettering-
 // Faixa corrida do trio (29/09, pedido da loja): "3 T-shirts por" e a arte do preço da loja
 // passando de ponta a ponta sobre a divisa do bloco rosa do trio com o papel, na home e no Build
 // Your Club das campanhas. Fundo verde-limão (citrino, escolha da loja entre quatro verdes), com
-// o texto em tinta; a arte e o "3" têm contorno escuro e aparecem sobre ele. A altura é fixa (64 e
+// o texto em tinta; a arte e o "3" (rosa desde 30/09) têm contorno escuro e aparecem sobre ele. A altura é fixa (64 e
 // 74 px, mais baixa desde 29/09 à noite) para a página subir metade
 // dela (SUBIDA_LETREIRO). Com outro preço, a arte (que tem o valor desenhado) dá lugar ao texto. O
 // leitor de tela lê a frase uma vez; o que corre é enfeite. Anda sozinha, então tem pausa (WCAG

@@ -263,6 +263,9 @@
   @keyframes tc-letreiro {
     to { transform: translateX(-50%); }
   }
+  /* Na faixa, o "3" é rosa (30/09, pedido da loja), o mesmo rosa da arte do preço; na home, o 3
+     do título segue no verde de adesivo */
+  .tc-letreiro .tc-numero-adesivo { color: var(--tc-rosa); }
   @media (prefers-reduced-motion: reduce) {
     .tc-letreiro-trilho { animation: none; }
   }
