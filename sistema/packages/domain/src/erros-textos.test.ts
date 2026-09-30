@@ -37,6 +37,15 @@ describe("textos com contexto", () => {
     expect(textoErro("STOCK_BELOW_COMMITTED", { comprometido: 3 }).mensagem).toContain("abaixo de 3");
   });
 
+  it("reserva encerrada, cancelamento repetido, tentativa sem código e sessão vencida têm texto próprio (30/09)", () => {
+    const geral = textoErro("INTERNAL_ERROR").mensagem;
+    for (const codigo of ["RESERVATION_NOT_ACTIVE", "ALREADY_REQUESTED", "ATTEMPT_NOT_VERIFIED", "UNAUTHORIZED"] as const) {
+      expect(textoErro(codigo).mensagem).not.toBe(geral);
+    }
+    expect(textoErro("ALREADY_REQUESTED").mensagem).toContain("já pediu o cancelamento");
+    expect(textoErro("ATTEMPT_NOT_VERIFIED").acao).toBe("Digitar o código");
+  });
+
   it("todo motivo de cupom tem texto", () => {
     for (const m of ["NAO_ENCONTRADO", "AGENDADO", "ENCERRADO", "ESGOTADO", "GASTO_MINIMO", "SEM_PRODUTOS", "LIMITE_CLIENTE", "VENCIDO"] as const) {
       expect(textoCupom(m).length).toBeGreaterThan(10);

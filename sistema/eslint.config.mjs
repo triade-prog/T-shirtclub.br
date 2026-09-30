@@ -26,6 +26,6 @@ export default defineConfig([
   },
   {
     files: ["scripts/**/*.mjs", "tests/**/*.mjs"],
-    languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly" } },
+    languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly", fetch: "readonly", Buffer: "readonly" } },
   },
 ]);

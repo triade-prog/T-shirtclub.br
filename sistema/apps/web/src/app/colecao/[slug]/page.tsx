@@ -13,6 +13,7 @@ import { FaixaTrio } from "../../_sacola/FaixaTrio";
 import { CardProduto } from "../../_vitrine/CardProduto";
 import { MosaicoPecas } from "../../_vitrine/MosaicoPecas";
 import { BotaoCampanha, BuildYourClub, CapitulosCampanha, ProximaHistoria, TopoCampanha, campanhaLigada, universo } from "./Campanha";
+import { compartilhar } from "@/lib/compartilhar";
 
 // Página de coleção (F2.6; V4 em docs/design/v4/colecao.html). A coleção vem de
 // /v1/catalog/collections e as peças de /v1/catalog/products?collection=; o filtro é um link
@@ -42,11 +43,16 @@ export async function generateMetadata({ params }: PageProps<"/colecao/[slug]">)
   if (!colecao) return {};
   // O endereço canônico é sempre o atual: os antigos redirecionam (0410) e não concorrem na busca
   const titulo = campanhaLigada(colecao) ? `${colecao.nome} · ${colecao.campanha}` : colecao.nome;
+  const foto = colecao.capa ?? colecao.fotos?.[0];
   return {
     title: titulo,
     description: colecao.descricao ?? undefined,
     alternates: { canonical: `/colecao/${colecao.slug}` },
-    openGraph: { title: titulo, description: colecao.descricao ?? undefined, url: `/colecao/${colecao.slug}` },
+    // A capa da coleção (ou a peça mais nova) na prévia do link; sem foto, a arte da loja
+    openGraph: compartilhar({
+      titulo, descricao: colecao.descricao ?? undefined, url: `/colecao/${colecao.slug}`,
+      imagem: foto ? { url: urlFoto(foto.caminho), alt: foto.alt ?? colecao.nome } : undefined,
+    }),
   };
 }
 

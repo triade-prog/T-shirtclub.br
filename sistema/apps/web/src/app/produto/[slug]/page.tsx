@@ -15,6 +15,7 @@ import { FormSacola } from "../../_sacola/FormSacola";
 import { ProgressoDaSacola } from "../../_sacola/ProgressoDaSacola";
 import { BotaoFavorito } from "../../_vitrine/BotaoFavorito";
 import { Galeria } from "./Galeria";
+import { compartilhar } from "@/lib/compartilhar";
 
 // Página do produto (F2.7; V4 em docs/design/v4/produto.html): galeria de 1 a 10 fotos,
 // preço com a oferta do Club, o tamanho (Único ou Plus, 0370), detalhes da peça e os looks.
@@ -30,7 +31,10 @@ export async function generateMetadata({ params }: PageProps<"/produto/[slug]">)
   return {
     title: produto.nome,
     description: produto.descricao ?? undefined,
-    openGraph: capa ? { images: [{ url: urlFoto(capa.caminho), alt: capa.alt ?? produto.nome }] } : undefined,
+    openGraph: compartilhar({
+      titulo: produto.nome, descricao: produto.descricao ?? undefined, url: `/produto/${produto.slug}`,
+      imagem: capa ? { url: urlFoto(capa.caminho), alt: capa.alt ?? produto.nome } : undefined,
+    }),
   };
 }
 

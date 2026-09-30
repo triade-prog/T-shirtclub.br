@@ -90,6 +90,14 @@ export function textoErro(codigo: CodigoErro, c: ContextoErro = {}): TextoErro {
       return { mensagem: "Esta reserva já começou por uma forma de pagamento; continue por ela.", acao: "Voltar ao pagamento" };
     case "PAYMENT_IN_PROGRESS":
       return { mensagem: "Já tem um pagamento em andamento. Espere a resposta do banco antes de tentar outro." };
+    case "RESERVATION_NOT_ACTIVE":
+      return { mensagem: "Esta reserva não está mais aberta: o prazo terminou ou ela já foi encerrada. Atualize a página para ver como ela está.", acao: "Ver a reserva" };
+    case "ALREADY_REQUESTED":
+      return { mensagem: "Você já pediu o cancelamento desta reserva. A loja responde pelo WhatsApp; enquanto isso, a reserva segue no prazo." };
+    case "ATTEMPT_NOT_VERIFIED":
+      return { mensagem: "Falta confirmar o seu WhatsApp. Digite o código que chegou na conversa com a loja.", acao: "Digitar o código" };
+    case "UNAUTHORIZED":
+      return { mensagem: "Por segurança, a confirmação deste aparelho venceu. Confirme de novo com um código pelo WhatsApp.", acao: "Receber código" };
     case "PHONE_VERIFICATION_REQUIRED":
       return { mensagem: "Para mexer na entrega, confirme que é você com um código pelo WhatsApp.", acao: "Receber código" };
     case "NOT_PAID":
