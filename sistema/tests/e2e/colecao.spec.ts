@@ -91,7 +91,8 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   const oferta = page.getByRole("region", { name: "Oferta do Club" });
   await expect(oferta).toContainText("3 T-shirts por R$ 119,99");
   await expect(oferta).toHaveCSS("background-color", "rgb(223, 240, 74)");
-  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(223, 240, 74)");
+  // O "3" da faixa é rosa (30/09)
+  await expect(oferta.locator("b.tc-numero-adesivo").first()).toHaveCSS("color", "rgb(232, 71, 138)");
   await expect(oferta.locator('img[src*="lettering-preco-119-99"]').first()).toBeAttached();
   const bloco = (await build.boundingBox())!;
   const caixa = (await oferta.boundingBox())!;
@@ -145,4 +146,25 @@ test("coleção: campanha gravada e desligada não aparece; o endereço antigo d
   const r = await request.get(`${LOJA}/colecao/sardines-club`, { maxRedirects: 0 });
   expect(r.status()).toBe(308);
   expect(r.headers()["location"]).toBe("/colecao/riviera");
+});
+
+test("prévia do link: arte da loja no início, capa na coleção e foto na peça (30/09)", async ({ page, request }) => {
+  const imagem = () => page.locator('meta[property="og:image"]').first().getAttribute("content");
+  await page.goto(LOJA);
+  const arte = await imagem();
+  expect(arte).toMatch(/^https?:\/\/.+\/marca\/compartilhar\.png$/);
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "T-shirt Club.br");
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+  const r = await request.get(`${LOJA}/marca/compartilhar.png`);
+  expect(r.status()).toBe(200);
+  expect(r.headers()["content-type"]).toBe("image/png");
+
+  await page.goto(`${LOJA}/colecao/limone`);
+  expect(await imagem()).toMatch(/\/storage\/v1\/object\/public\/catalogo\/.+/);
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "T-shirt Club.br");
+
+  await page.goto(`${LOJA}/produto/limone-amalfi-coast`);
+  expect(await imagem()).toMatch(/\/storage\/v1\/object\/public\/catalogo\/.+/);
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Limone Amalfi Coast");
 });

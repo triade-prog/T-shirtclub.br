@@ -8,11 +8,15 @@ import { PopupVip } from "./_vip/PopupVip";
 import { buscarOfertaVip } from "@/lib/catalogo";
 import { TagGoogle } from "./_anuncios/TagGoogle";
 import { idAnuncios } from "@/lib/anuncios";
+import { compartilhar } from "@/lib/compartilhar";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "T-shirt Club.br", template: "%s · T-shirt Club.br" },
   description: "Camisetas com estampa própria. Monte seu Club: 3 por R$ 119,99.",
+  // Prévia do link no WhatsApp e nas redes: a arte da loja, até a página ter foto própria
+  openGraph: compartilhar({ descricao: "Camisetas com estampa própria. Monte seu Club: 3 por R$ 119,99." }),
+  twitter: { card: "summary_large_image" },
   icons: {
     icon: [{ url: "/marca/favicon-32.png", sizes: "32x32", type: "image/png" }],
     apple: "/marca/apple-touch-icon.png",
