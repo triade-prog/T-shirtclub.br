@@ -50,7 +50,7 @@ Gerado do código em 30/09/2026 para a revisão da loja (item D4 do painel de ex
 | Muitas tentativas seguidas. | Muitas tentativas seguidas. Espere um minutinho e tente de novo. | ☐ |
 | Falta a verificação anti-robô. | Confirme que você não é um robô para continuar. | ☐ |
 | A verificação anti-robô falhou. | Confirme que você não é um robô para continuar. | ☐ |
-| Sem conexão com o servidor ou com um fornecedor (Mercado Pago, Z-API). | Sem conexão com a loja agora. Sua reserva continua valendo; tente de novo em instantes. | ☐ |
+| Sem conexão com o servidor ou com um fornecedor (Mercado Pago, Wafly). | Sem conexão com a loja agora. Sua reserva continua valendo; tente de novo em instantes. | ☐ |
 | Algum campo chegou em formato inválido (a tela quase sempre avisa antes). Fica com o texto geral. | Algo não saiu como esperado. Tente de novo em instantes. | ☐ |
 | Acesso negado por um problema técnico. Fica com o texto geral. | Algo não saiu como esperado. Tente de novo em instantes. | ☐ |
 | Erro inesperado do sistema. É o texto geral. | Algo não saiu como esperado. Tente de novo em instantes. | ☐ |

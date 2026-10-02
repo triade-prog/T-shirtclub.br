@@ -4,7 +4,7 @@ Preparado em 30/09/2026 para a análise jurídica (item P15 do painel de execuç
 
 - **Site:** https://tshirtclub.vercel.app. Ainda não há domínio próprio.
 - **Página da política:** https://tshirtclub.vercel.app/privacidade
-- **Texto no ar desde:** 27/09/2026.
+- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo).
 
 O documento tem quatro partes:
 
@@ -26,7 +26,7 @@ Correções podem ser feitas direto no texto da parte 2 ou em comentários à pa
   - endereço, só para entrega por motoboy ou envio.
 - **O que o site não pede:** CPF, e-mail ou data de nascimento.
 - **Pagamento:** pelo Mercado Pago. Os dados do cartão são digitados no componente do Mercado Pago e não passam pelo servidor da loja.
-- **Mensagens automáticas pelo WhatsApp:** código, reserva criada, lembrete, pagamento, entrega, resposta sobre trocas e resposta automática. O envio usa a Z-API, uma ferramenta que conecta o WhatsApp da loja ao sistema.
+- **Mensagens automáticas pelo WhatsApp:** código, reserva criada, lembrete, pagamento, entrega, resposta sobre trocas e resposta automática. O envio usa a Wafly, uma ferramenta que conecta o WhatsApp da loja ao sistema (até 02/10/2026, a Z-API).
 - **Lista VIP:** é opcional. A cliente dá dois aceites separados: um para receber ofertas pelo WhatsApp e outro para a política de privacidade.
 - **Bloqueio automático:** um telefone com 3 reservas expiradas sem pagamento em 30 dias fica com as reservas pausadas. A equipe pode revisar e liberar pelo painel.
 - **Onde os dados ficam:**
@@ -51,7 +51,7 @@ Uma rotina diária apaga ou reduz estes dados:
 ## 2. Texto publicado (como aparece no site)
 
 > **Política de privacidade.**
-> Última atualização: 27/09/2026
+> Última atualização: 02/10/2026
 >
 > **1. Quem cuida dos seus dados**
 >
@@ -81,7 +81,7 @@ Uma rotina diária apaga ou reduz estes dados:
 > **4. Com quem compartilhamos**
 >
 > - Mercado Pago: processamento do pagamento.
-> - Z-API: conexão do WhatsApp da loja ao sistema, para receber e enviar as mensagens. As mensagens passam também pelo próprio WhatsApp (Meta).
+> - Wafly: conexão do WhatsApp da loja ao sistema, para receber e enviar as mensagens. As mensagens passam também pelo próprio WhatsApp (Meta).
 > - Cloudflare (Turnstile): verificação anti-robô nos formulários.
 > - Hospedagem e banco de dados (Supabase e Vercel): armazenamento seguro do sistema, em servidores de São Paulo sempre que o fornecedor oferece.
 > - Motoboy ou transportadora: nome, telefone e endereço, só quando há entrega.
@@ -164,7 +164,7 @@ O banco guarda o texto exato que a cliente aceitou e a data e hora do aceite.
 
 5. **Decisão automatizada.** O bloqueio depois de 3 expirações é automático. A política oferece a revisão, mas não cita o art. 20 da LGPD. Precisa citar?
 
-6. **Z-API e WhatsApp.** A Z-API não é a API oficial da Meta. Isso deve estar escrito na política? Existe algum risco a apontar?
+6. **Wafly e WhatsApp.** A Wafly, como a Z-API antes dela, não é a API oficial da Meta. Isso deve estar escrito na política? Existe algum risco a apontar? A troca de fornecedor exige algum aviso às clientes além da nova data no topo da política?
 
 7. **Transferência internacional.** A frase "Alguns desses fornecedores podem guardar dados fora do Brasil, com as garantias previstas na LGPD" é suficiente? Ou é preciso listar os países ou os mecanismos de transferência (art. 33)?
 

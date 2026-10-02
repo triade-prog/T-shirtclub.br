@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
 import { Casca } from "../_painel/Casca";
-import { FilaHoje } from "../_painel/FilaHoje";
+import { FilaHoje, type FilaWhatsApp } from "../_painel/FilaHoje";
 import { Aviso, Botao, Campo, Carregando, Marcar, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
@@ -17,7 +17,7 @@ import { useRepetir } from "../_painel/useRepetir";
 interface Ritmo { intervaloMinS: number; intervaloMaxS: number; tetoHora: number }
 interface Config {
   conectado: boolean; modoLancamento: boolean; ritmo: Ritmo; ritmoLancamento: Ritmo;
-  fila: { pendentes: number; enviadasHoje: number; falhasHoje: number; descartadasHoje: number; maisAntigaPendente: string | null };
+  fila: FilaWhatsApp;
   notificacoes: { id: string; nome: string; quando: string; essencial: boolean; ligada: boolean }[];
 }
 
