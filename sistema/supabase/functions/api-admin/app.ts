@@ -14,10 +14,13 @@ import { rotasWhatsappAdmin } from "./whatsapp.ts";
 import { rotasConta } from "./conta.ts";
 import { rotasComercial } from "./comercial.ts";
 import { rotasVipAdmin } from "./vip.ts";
+import { rotasReservaManual } from "./reservas.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & {
   /** Revalidação ao publicar; sem ela, a loja atualiza o catálogo em até 60 s. */
   loja?: AvisoLoja;
+  /** Endereço da loja para o link da reserva manual (0470). */
+  urlLoja?: string;
 };
 
 // Rotas que mudam o que a loja mostra: peças (com fotos, tamanhos e estoque), coleções, looks,
@@ -54,6 +57,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasConta(app, deps);
   rotasComercial(app, deps);
   rotasVipAdmin(app, deps.banco);
+  rotasReservaManual(app, { banco: deps.banco, urlLoja: deps.urlLoja ?? "https://tshirtclub.vercel.app", agora: deps.agora });
 
   return app;
 }

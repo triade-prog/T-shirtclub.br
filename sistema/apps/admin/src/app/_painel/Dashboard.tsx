@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { formatarReais } from "@tshirtclub/domain";
+import { ROTULO_FORMA, formatarReais, type FormaPagamento } from "@tshirtclub/domain";
 import { AvisoWhatsApp } from "./Alertas";
 import { Casca } from "./Casca";
 import { Carregando } from "./ui";
@@ -38,7 +38,7 @@ interface Comercial {
   meta: number | null;
   serie: { dia: string; receitaLiquidaCentavos: number }[];
   colecoes: { nome: string; receitaCentavos: number; pecas: number }[];
-  mix: { pagamento: Partial<Record<"PIX" | "CARTAO", number>>; entrega: Partial<Record<"RETIRADA" | "MOTOBOY" | "ENVIO", number>>; tamanho?: Partial<Record<"UNICO" | "PLUS", number>> };
+  mix: { pagamento: Partial<Record<FormaPagamento, number>>; entrega: Partial<Record<"RETIRADA" | "MOTOBOY" | "ENVIO", number>>; tamanho?: Partial<Record<"UNICO" | "PLUS", number>> };
   estoque: { id: string; nome: string; colecao: string; tamanho: string; rotuloTamanho: string; disponivel: number }[];
   estoqueTotal: number;
   pulso: { ativas: number; precisamDeAcao: number; pagas: number; freteParaCalcular: number; entreguesHoje: number };
@@ -285,7 +285,9 @@ function Colecoes({ colecoes }: { colecoes: Comercial["colecoes"] }) {
 }
 
 function Mix({ mix }: { mix: Comercial["mix"] }) {
-  const pag = (mix.pagamento.PIX ?? 0) + (mix.pagamento.CARTAO ?? 0);
+  const pag = Object.values(mix.pagamento).reduce((a, n) => a + (n ?? 0), 0);
+  // Vendas manuais já pagas (0470) só aparecem quando houver
+  const fora = (["DINHEIRO", "PIX_DIRETO", "MAQUININHA"] as const).filter((f) => (mix.pagamento[f] ?? 0) > 0);
   const ent = (mix.entrega.RETIRADA ?? 0) + (mix.entrega.MOTOBOY ?? 0) + (mix.entrega.ENVIO ?? 0);
   // Peças vendidas por tamanho (0370)
   const tam = (mix.tamanho?.UNICO ?? 0) + (mix.tamanho?.PLUS ?? 0);
@@ -304,6 +306,7 @@ function Mix({ mix }: { mix: Comercial["mix"] }) {
         <div className="compact-list">
           {linha("PIX", mix.pagamento.PIX ?? 0, pag, "green")}
           {linha("Cartão", mix.pagamento.CARTAO ?? 0, pag, "pink")}
+          {fora.map((f) => <div key={f}>{linha(ROTULO_FORMA[f], mix.pagamento[f] ?? 0, pag, "blue")}</div>)}
           <div className="mix-gap" />
           {linha("Retirada", mix.entrega.RETIRADA ?? 0, ent, "violet")}
           {linha("Motoboy", mix.entrega.MOTOBOY ?? 0, ent, "blue")}

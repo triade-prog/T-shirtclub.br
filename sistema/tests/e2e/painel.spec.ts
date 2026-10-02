@@ -20,7 +20,7 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
   expect(erros).toEqual([]);
 });
 
-const TELAS = ["/", "/operacao", "/reservas", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/vip", "/whatsapp", "/auditoria", "/conta"];
+const TELAS = ["/", "/operacao", "/reservas", "/reservas/nova", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/vip", "/whatsapp", "/auditoria", "/conta"];
 
 test("sem sessão, as telas vão para o login e voltam depois", async ({ page }) => {
   await page.goto(`${PAINEL}/`);
@@ -296,4 +296,63 @@ test("Lista VIP: contatos, cupom de boas-vindas, exportar planilha e tirar da li
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
+// Reserva manual (0470) com a api-admin simulada: peça, cliente, desconto com motivo e venda paga.
+test("nova reserva: escolhe a peça, vê o total, exige o motivo do desconto e registra a venda paga", async ({ page, context }) => {
+  const PECA = "11111111-1111-4111-8111-111111111111";
+  const RESERVA = "44444444-4444-4444-8444-444444444444";
+  const enviados: { caminho: string; corpo: Record<string, unknown> }[] = [];
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho === "v1/admin/dashboard") {
+      return rota.fulfill({ json: { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } } });
+    }
+    if (caminho === "v1/admin/products") {
+      return rota.fulfill({ json: { itens: [{
+        id: PECA, codigo: "LIM-01", slug: "limone", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
+        capa: null, fotos: 1, estoque: { total: 2, reservado: 0, vendido: 0, disponivel: 2 },
+        tamanhos: [{ id: "v1", tamanho: "UNICO", rotulo: "Único", ativa: true, disponivel: 2 }, { id: "v2", tamanho: "PLUS", rotulo: "Plus", ativa: false, disponivel: 0 }],
+      }], pagina: 1, porPagina: 20, total: 1 } });
+    }
+    const corpo = (r.postDataJSON() ?? {}) as Record<string, unknown>;
+    enviados.push({ caminho, corpo });
+    if (caminho === "v1/admin/reservations/quote") {
+      const qtd = (corpo.itens as { qtd: number }[]).reduce((s, i) => s + i.qtd, 0);
+      const manual = Number(corpo.descontoManualCentavos ?? 0);
+      return rota.fulfill({ json: { subtotalCentavos: 4999 * qtd, descontoCentavos: 0, descontoManualCentavos: manual, totalCentavos: 4999 * qtd - manual, aplicada: null, cupom: null, linhas: [] } });
+    }
+    if (caminho === "v1/admin/reservations") return rota.fulfill({ status: 201, json: { reserva: { id: RESERVA, numero: 1050 } } });
+    return rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/reservas/nova`);
+  await expect(page.getByRole("heading", { level: 1, name: "Nova reserva" })).toBeVisible();
+  await page.getByLabel("Nome da cliente").fill("Ana Paula");
+  await page.getByLabel("WhatsApp da cliente").fill("(77) 99812-8809");
+  await page.getByRole("button", { name: "Adicionar Limone Amalfi, Único" }).click();
+  await page.getByRole("button", { name: "Adicionar Limone Amalfi, Único" }).click();
+  await expect(page.getByLabel("Quantidade de Limone Amalfi")).toHaveValue("2");
+  await expect(page.locator(".price-total")).toHaveText("R$ 99,98");
+
+  await page.getByLabel("Já pago em dinheiro").check();
+  await page.getByLabel("Desconto da loja (R$, opcional)").fill("9,98");
+  await expect(page.locator(".price-total")).toHaveText("R$ 90,00");
+  await page.getByRole("button", { name: "Registrar venda paga" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Escreva o motivo do desconto" })).toBeVisible();
+  expect(enviados.filter((e) => e.caminho === "v1/admin/reservations")).toEqual([]);
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations).toEqual([]);
+
+  await page.getByLabel("Motivo do desconto").fill("Cliente fiel");
+  await page.getByRole("button", { name: "Registrar venda paga" }).click();
+  await expect(page).toHaveURL(`${PAINEL}/reservas/${RESERVA}`);
+  const criada = enviados.find((e) => e.caminho === "v1/admin/reservations")!.corpo;
+  expect(criada).toMatchObject({
+    nome: "Ana Paula", telefone: "+5577998128809", entrega: "RETIRADA", pagamento: "DINHEIRO",
+    itens: [{ produtoId: PECA, varianteId: "v1", qtd: 2 }], descontoManualCentavos: 998, motivoDesconto: "Cliente fiel", totalEsperadoCentavos: 9000,
+  });
 });

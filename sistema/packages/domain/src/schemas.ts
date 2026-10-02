@@ -260,3 +260,30 @@ export const confirmarAutenticadorSchema = z.object({ codigo: codigoAutenticador
 
 /** DELETE /v1/admin/mfa/factors/:id: o código vem de outro autenticador que continua (D12). */
 export const removerAutenticadorSchema = z.object({ codigo: codigoAutenticadorSchema, fatorDoCodigo: z.string().min(1).max(100) });
+
+// ─── Reserva manual pelo painel (0470) ────────────────────────────────────────────────
+
+export const PAGAMENTOS_MANUAIS = ["LINK", "DINHEIRO", "PIX_DIRETO", "MAQUININHA"] as const;
+
+/** Cotação e criação da reserva manual: as peças, a cliente e, se houver, o desconto da loja. */
+export const cotacaoManualSchema = z.object({
+  itens: z.array(itemCarrinhoSchema).min(1).max(LIMITES_PADRAO.maxPecas)
+    .refine((itens) => new Set(itens.map((i) => i.varianteId)).size === itens.length, "VALIDATION_ERROR"),
+  cupom: cupomSchema.optional(),
+  /** O histórico do telefone decide cupom e "uma por cliente", como no site. */
+  telefone: telefoneSchema.optional(),
+  descontoManualCentavos: z.number().int().min(0).max(10_000_000).default(0),
+});
+
+/** POST /v1/admin/reservations */
+export const reservaManualSchema = cotacaoManualSchema
+  .extend({
+    nome: nomeClienteSchema,
+    telefone: telefoneSchema,
+    entrega: modalidadeEntregaSchema,
+    pagamento: z.enum(PAGAMENTOS_MANUAIS),
+    motivoDesconto: z.string().trim().max(200, "VALIDATION_ERROR").optional().transform((v) => v || undefined),
+    /** O total que a tela mostrou: se o preço mudou no meio, a loja confere antes. */
+    totalEsperadoCentavos: z.number().int().nonnegative(),
+  })
+  .refine((r) => r.descontoManualCentavos === 0 || (r.motivoDesconto?.length ?? 0) >= 3, { message: "VALIDATION_ERROR", path: ["motivoDesconto"] });

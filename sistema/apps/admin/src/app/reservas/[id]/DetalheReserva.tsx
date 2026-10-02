@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatarReais, linkWhatsApp } from "@tshirtclub/domain";
+import { ROTULO_FORMA, formatarReais, linkWhatsApp, type FormaPagamento } from "@tshirtclub/domain";
 import { dataHora, telefone } from "@/lib/api";
 import { MODALIDADE, MOTIVO_ENCERRAMENTO, STATUS_PAGAMENTO, STATUS_RESERVA, SUBSTATUS } from "@/lib/rotulos";
 import { AcoesEntrega, DecisaoCancelamento, FormFrete } from "../../_painel/acoes";
@@ -26,6 +26,9 @@ interface Detalhe {
   cancelamentos: { id: string; status: string; observacao?: string; solicitadoEm: string; decididoEm?: string; motivoDecisao?: string; decididoPor?: string }[];
   transicoes: { evento: string; para?: string; ator: string; atorNome?: string; motivo?: string; em: string }[];
   cliente: { bloqueado: boolean; reservas: number; expiracoes30Dias: number };
+  /** Reserva manual pelo painel (0470): forma da venda já paga, quem cadastrou e o motivo do desconto. */
+  forma?: FormaPagamento | null;
+  manual?: { criadaPor?: string; motivoDesconto?: string } | null;
 }
 
 const CAMISETA = <path d="m8 4 4 2 4-2 5 3-3 5-2-1v9H8v-9l-2 1-3-5Z" />;
@@ -110,6 +113,9 @@ export function DetalheReserva({ id }: { id: string }) {
               {(r.descontos ?? []).map((d, n) => <div key={n} className="kv-row discount"><span>{d.rotulo ?? d.tipo}</span><b>− {formatarReais(d.valorCentavos)}</b></div>)}
               {r.cupom && <div className="kv-row"><span>Cupom</span><b>{r.cupom}</b></div>}
               <div className="kv-row"><span>Total</span><b className="price-total">{formatarReais(r.totalCentavos)}</b></div>
+              {r.forma && <div className="kv-row"><span>Pagamento</span><b>{ROTULO_FORMA[r.forma] ?? r.forma}</b></div>}
+              {r.manual && <div className="kv-row"><span>Reserva manual</span><b>{r.manual.criadaPor ? `Cadastrada por ${r.manual.criadaPor}` : "Cadastrada no painel"}</b></div>}
+              {r.manual?.motivoDesconto && <div className="kv-row"><span>Motivo do desconto</span><b>{r.manual.motivoDesconto}</b></div>}
             </div>
           </article>
           <article className="card">

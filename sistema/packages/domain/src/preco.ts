@@ -360,3 +360,27 @@ export function precoPromocional(produto: ProdutoPreco, promocoes: readonly Prom
   const preco = d.modo === "PERCENTUAL" ? produto.precoCentavos - pct(produto.precoCentavos, d.valor) : d.valor;
   return preco < produto.precoCentavos ? { precoCentavos: Math.max(preco, 0), promocaoId: p.id } : null;
 }
+
+export interface LinhaManual extends LinhaResultado {
+  descontoPromoCentavos: number;
+  descontoManualCentavos: number;
+}
+
+/**
+ * Desconto manual da reserva pelo painel (0470), depois da promoção: repartido entre as peças
+ * pelo que cada uma ainda custa (a última absorve o centavo), sem passar do total. Cada linha
+ * guarda a parte da promoção e a parte manual, que o banco confere de novo.
+ */
+export function comDescontoManual(r: ResultadoPreco, centavos: number): { linhas: LinhaManual[]; descontoManualCentavos: number; totalCentavos: number } {
+  if (!Number.isInteger(centavos) || centavos < 0) throw new Error("Desconto manual precisa ser inteiro e positivo");
+  const manual = Math.min(centavos, r.totalCentavos);
+  const partes = repartir(manual, r.linhas.map((l) => l.totalCentavos));
+  const linhas = r.linhas.map((l, i) => ({
+    ...l,
+    descontoPromoCentavos: l.descontoCentavos,
+    descontoManualCentavos: partes[i]!,
+    descontoCentavos: l.descontoCentavos + partes[i]!,
+    totalCentavos: l.totalCentavos - partes[i]!,
+  }));
+  return { linhas, descontoManualCentavos: manual, totalCentavos: r.totalCentavos - manual };
+}

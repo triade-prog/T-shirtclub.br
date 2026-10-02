@@ -46,6 +46,8 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
     banco,
   ),
   loja: urlLoja && segredoRevalidar ? avisoLojaHttp({ urlLoja, segredo: segredoRevalidar }) : avisoLojaDesligado,
+  // Link da reserva manual (0470); sem LOJA_URL, o endereço de hoje da loja
+  urlLoja: urlLoja ?? "https://tshirtclub.vercel.app",
 });
 
 Deno.serve(app.fetch);

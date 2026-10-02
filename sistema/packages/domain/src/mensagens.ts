@@ -17,6 +17,12 @@ const SITE = "tshirtclub.vercel.app";
  * sacola, a página da peça e o WhatsApp leem daqui.
  */
 export const DIAS_TROCA = 7;
+
+/** Formas de pagamento (0470): PIX e cartão pelo site; as outras, venda manual já paga no painel. */
+export type FormaPagamento = "PIX" | "CARTAO" | "DINHEIRO" | "PIX_DIRETO" | "MAQUININHA";
+export const ROTULO_FORMA: Record<FormaPagamento, string> = {
+  PIX: "PIX", CARTAO: "Cartão", DINHEIRO: "Dinheiro", PIX_DIRETO: "PIX na conta da loja", MAQUININHA: "Maquininha",
+};
 const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, hour: "2-digit", minute: "2-digit" });
 
 /** 14:32, no horário da loja. */
@@ -116,7 +122,8 @@ export interface ParametrosMensagem {
   /** nome e pecas: o banco completa a partir da reserva (0330). */
   reserva_lembrete_5min: { numero: number; expiraEm: Date; nome?: string; pecas?: number };
   reserva_expirada: { numero: number; expiradaEm: Date };
-  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: "PIX" | "CARTAO"; pecas?: number };
+  /** retirada: venda manual já paga com retirada combinada (0470): não pede para escolher a entrega. */
+  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: FormaPagamento; pecas?: number; retirada?: boolean };
   pagamento_em_analise: { numero: number; frete?: boolean; valorDivergente?: boolean };
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
@@ -274,8 +281,8 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
       blocos(
         "Pagamento confirmado! ✦",
         `${primeiroNome(p.nome)}, ${p.pecas === 1 ? "sua peça agora é sua" : "suas peças agora são suas"}. 💖`,
-        `Pedido #${p.numero}\n${formatarReais(p.totalCentavos)} · ${p.forma === "PIX" ? "PIX" : "Cartão"}`,
-        `Falta só escolher como você quer receber:\n${SITE}`,
+        `Pedido #${p.numero}\n${formatarReais(p.totalCentavos)} · ${ROTULO_FORMA[p.forma] ?? "PIX"}`,
+        p.retirada ? "Você retira na loja. Avisamos por aqui assim que o pedido estiver pronto." : `Falta só escolher como você quer receber:\n${SITE}`,
       ),
   ],
   // "Não pague de novo" evita pagamento em dobro enquanto a loja confere.
