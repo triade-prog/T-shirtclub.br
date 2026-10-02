@@ -226,7 +226,8 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   const quadro = page.locator('iframe[title="Prévia na loja (celular)"]');
   await expect(quadro).toHaveCSS("width", "390px");
   const celular = page.frameLocator('iframe[title="Prévia na loja (celular)"]');
-  await expect(celular.locator("#inicio-colecoes + ul li span").first()).toHaveCSS("width", "80px");
+  // Tamanho de celular na prévia: o anel do destaque tem 74 px (capa de 66 + respiro de 3 + borda); no computador, 98
+  await expect(celular.locator("#inicio-colecoes + ul li span").first()).toHaveCSS("width", "74px");
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);

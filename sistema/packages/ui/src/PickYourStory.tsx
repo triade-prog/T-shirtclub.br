@@ -20,27 +20,31 @@ export interface ItemPickYourStory {
  * A peça mais nova, uma foto comum, preenche o círculo.
  */
 export function classeFotoStory(escolhida: boolean): string {
-  return escolhida ? "absolute inset-0 size-full object-contain p-2 md:p-3" : "absolute inset-0 size-full object-cover";
+  return escolhida ? "absolute inset-0 size-full object-contain p-1.5 md:p-2" : "absolute inset-0 size-full object-cover";
 }
 
 /**
- * Pick your story (28/09): atalhos para cada história logo abaixo da capa, em círculos com a foto
- * escolhida no painel (0440) ou a peça mais nova da coleção, e só o nome da coleção embaixo (29/09:
- * o nome da campanha já está no lettering do círculo e aparecia duas vezes). No celular, a linha desliza para o lado. É a mesma linha na loja
- * e na prévia do painel.
+ * Pick your story (28/09): atalhos para cada história logo abaixo da capa, com a capa escolhida no
+ * painel (0440) ou a peça mais nova da coleção, e só o nome da coleção embaixo (29/09: o nome da
+ * campanha já está no lettering e aparecia duas vezes). Desde 02/10, no jeito dos destaques
+ * fixados do Instagram: anel fino, respiro claro, a capa dentro e o nome pequeno, sem o contorno
+ * grosso de adesivo. Pouco espaço até a seção seguinte. No celular, a linha desliza para o lado.
+ * É a mesma linha na loja e na prévia do painel.
  */
 export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | null; itens: ItemPickYourStory[]; Link?: ComponentType<PropsLink> | "a" }) {
   return (
-    <section aria-labelledby="inicio-colecoes" className="px-3.5 py-8 md:px-5 md:py-12">
+    <section aria-labelledby="inicio-colecoes" className="px-3.5 pb-2 pt-8 md:px-5 md:pb-4 md:pt-12 [&+section]:pt-6 md:[&+section]:pt-10">
       <h2 id="inicio-colecoes" className="tc-titulo m-0 mb-5 text-center text-[clamp(30px,3.6vw,44px)]">{titulo ?? "Pick your story."}</h2>
-      <ul className="m-0 flex list-none snap-x gap-3 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-6 md:overflow-visible">
+      <ul className="m-0 flex list-none snap-x gap-3.5 overflow-x-auto p-0 pb-2 md:flex-wrap md:justify-center md:gap-7 md:overflow-visible">
         {itens.map((c) => (
           <li key={c.id} className={c.apagado ? "shrink-0 snap-start opacity-30" : "shrink-0 snap-start"}>
-            <Link href={c.href} className="group grid w-24 justify-items-center gap-2 text-center md:w-32">
-              <span className={`col-${c.cor.toLowerCase()} relative block size-20 overflow-hidden rounded-full border-2 border-tinta bg-colecao-fundo shadow-adesivo-sm transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none md:size-28`}>
-                {c.foto}
+            <Link href={c.href} className="group grid w-[78px] justify-items-center gap-1.5 text-center md:w-[104px]">
+              <span className="block rounded-full border border-tinta/25 bg-papel p-[3px] transition-colors group-hover:border-tinta/60 motion-reduce:transition-none">
+                <span className={`col-${c.cor.toLowerCase()} relative block size-[66px] overflow-hidden rounded-full bg-colecao-fundo md:size-[90px]`}>
+                  {c.foto}
+                </span>
               </span>
-              <span className="font-editorial text-[15px] font-bold leading-tight tracking-[-0.02em] md:text-lg">{c.nome}</span>
+              <span className="line-clamp-2 text-xs font-medium leading-tight md:text-[13px]">{c.nome}</span>
             </Link>
           </li>
         ))}
