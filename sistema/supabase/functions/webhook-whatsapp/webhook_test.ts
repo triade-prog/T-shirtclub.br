@@ -44,7 +44,7 @@ function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: un
     const r = await app.request(`/webhook-whatsapp/${segredo}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corpo) });
     return { status: r.status, tratamento: r.status === 200 ? (await r.json()).tratamento : null };
   };
-  return { enviar, rpcs, whatsapp };
+  return { app, enviar, rpcs, whatsapp };
 }
 
 const msg = (extra: Record<string, unknown> = {}) => ({
@@ -55,6 +55,17 @@ const msg = (extra: Record<string, unknown> = {}) => ({
 Deno.test("segmento secreto errado: 404 e nada é registrado", async () => {
   const { enviar, rpcs } = montar();
   assertEquals((await enviar(msg(), "x".repeat(40))).status, 404);
+  assertEquals(rpcs.length, 0);
+});
+
+Deno.test("corpo acima de 256 KB: 413 sem ler nem registrar; aviso desconhecido é ignorado", async () => {
+  const { app, enviar, rpcs } = montar();
+  const grande = await app.request(`/webhook-whatsapp/${SEGREDO}`, {
+    method: "POST", headers: { "content-type": "application/json", "content-length": String(300 * 1024) }, body: "{}",
+  });
+  assertEquals(grande.status, 413);
+  assertEquals((await enviar({ type: "DeliveryCallback", messageId: "x" })).tratamento, "IGNORADA");
+  assertEquals((await enviar({ type: "ReceivedCallback" })).tratamento, "IGNORADA", "sem messageId não é processada");
   assertEquals(rpcs.length, 0);
 });
 

@@ -63,6 +63,8 @@ Ver [`.env.example`](.env.example). Nas Edge Functions (`supabase secrets set`):
 (o mesmo valor dos apps), `TURNSTILE_SECRET`, `OTP_PEPPER` e `WEBHOOK_WHATSAPP_SEGREDO` (32+
 caracteres, `openssl rand -base64 48`), `WORKER_SEGREDO`, `IP_SAL`, `ZAPI_INSTANCIA`, `ZAPI_TOKEN`,
 `ZAPI_CLIENT_TOKEN`, `LOJA_WHATSAPP`, `LOJA_URL`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` e `MP_EMAIL_PIX`. `SUPABASE_URL` e as chaves o Supabase já entrega.
+WhatsApp pela Wafly: `WAFLY_INSTANCE`, `WAFLY_TOKEN` e `WAFLY_CLIENT_TOKEN` (as três, ou a função
+não sobe). Sem nenhuma delas, as funções usam a Z-API pelas `ZAPI_*`.
 Revalidação ao publicar: `REVALIDAR_SEGREDO` (`openssl rand -hex 32`) com o mesmo valor nas Edge
 Functions e no projeto da loja na Vercel; a api-admin usa também o `LOJA_URL` para chamar o
 `POST /revalidar` da loja depois de cada gravação do catálogo. Sem ele, a loja atualiza o
@@ -73,7 +75,7 @@ página `/pagamento-aprovado`, aberta uma vez quando o pagamento é aprovado. No
 conversão por evento (com o rótulo) ou a por página (`/pagamento-aprovado`), não as duas.
 Opcionais, nas funções e nos apps: `SENTRY_DSN` (erros, sem dados pessoais) e `AMBIENTE` (`producao`
 ou `teste`).
-O webhook da Z-API aponta para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (o segredo vai na
+Os avisos da ferramenta do WhatsApp ("Ao receber" e status/entrega) apontam para `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (o segredo vai na
 URL: gere com `openssl rand -hex 32`, porque o `/` e o `+` do base64 quebram o caminho); o do
 Mercado Pago (só o tópico payment), para `…/functions/v1/webhook-payments`. A conta recebedora vai em
 `app_settings.mp_collector_id`: pagamento de outra conta nunca é aplicado.

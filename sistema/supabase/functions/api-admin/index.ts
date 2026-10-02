@@ -6,7 +6,7 @@ import { storageSupabase } from "../_shared/armazenamento.ts";
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
-import { comRegistroDeConexao, whatsappZapi } from "../_shared/whatsapp.ts";
+import { comRegistroDeConexao, whatsappDoAmbiente } from "../_shared/whatsapp.ts";
 import { avisoLojaDesligado, avisoLojaHttp } from "../_shared/loja.ts";
 import { criarApiAdmin } from "./app.ts";
 import { monitorDoAmbiente } from "../_shared/monitor.ts";
@@ -42,7 +42,7 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
     return Promise.resolve();
   },
   whatsapp: comRegistroDeConexao(
-    whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+    whatsappDoAmbiente((nome) => Deno.env.get(nome)),
     banco,
   ),
   loja: urlLoja && segredoRevalidar ? avisoLojaHttp({ urlLoja, segredo: segredoRevalidar }) : avisoLojaDesligado,

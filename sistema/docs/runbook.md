@@ -13,7 +13,7 @@ sozinho** e **o que fazer**, na ordem. Para quem opera a loja; os passos técnic
 | Dona do projeto no Supabase | Backup, restauração, chaves, autenticador perdido | _a preencher_ |
 | Encarregado (LGPD) | Incidente de dados e pedidos das titulares | _a preencher_ |
 | Desenvolvimento | Erro no sistema, job parado, estoque divergente | _a preencher_ |
-| Suporte Z-API · Mercado Pago · Supabase · Vercel | Fora do ar do lado deles | páginas de status e suporte de cada um |
+| Suporte da ferramenta do WhatsApp (Z-API ou Wafly) · Mercado Pago · Supabase · Vercel | Fora do ar do lado deles | páginas de status e suporte de cada um |
 
 ## Onde olhar primeiro
 
@@ -55,6 +55,27 @@ sentido (lembrete de reserva já paga, por exemplo) são descartadas na volta.
 5. Se o número foi **bloqueado pelo WhatsApp**: avise as clientes pelo Instagram e chame o
    desenvolvimento. O plano B é a API oficial (Cloud API): a troca é de implementação, não de fluxo,
    mas pede conta Meta verificada.
+
+## Trocar a ferramenta do WhatsApp (Z-API ↔ Wafly)
+
+A Wafly usa as mesmas rotas e o mesmo cabeçalho `Client-Token` da Z-API: o sistema troca de uma
+para a outra só pelos segredos das Edge Functions, sem publicar código.
+
+1. Na Wafly: crie a instância, conecte o número da loja pelo QR e copie a instância, o token e o
+   Client-Token de Segurança do painel dela.
+2. Supabase → Edge Functions → Secrets: `WAFLY_INSTANCE`, `WAFLY_TOKEN` e `WAFLY_CLIENT_TOKEN`
+   (as três; com uma faltando, as funções não sobem). Nunca cole tokens em conversas.
+3. No painel da Wafly, aponte "mensagem recebida" e "confirmação de entrega" para
+   `…/functions/v1/webhook-whatsapp/<WEBHOOK_WHATSAPP_SEGREDO>` (a mesma URL de hoje).
+4. Painel → WhatsApp: "Número conectado" e **mensagem de teste**. De outro celular, mande
+   "Minha reserva" e uma mensagem comum para o número da loja e confira as respostas.
+5. A documentação da Wafly não mostra o conteúdo dos avisos: aviso que o sistema não reconhece
+   aparece no log do `webhook-whatsapp` como "evento ignorado", só com o tipo e os nomes dos campos.
+6. Para voltar à Z-API: apague os três `WAFLY_*` (as `ZAPI_*` continuam lá).
+
+**Mensagem com falha "sem resposta":** a ferramenta não respondeu a tempo e a mensagem pode ter
+saído. A fila não tenta de novo, para não mandar duas vezes: confira a conversa no celular da loja
+e, se não chegou, mande pelo próprio WhatsApp.
 
 ## Mercado Pago fora do ar
 
@@ -179,7 +200,7 @@ e confere dados, invariantes e acesso; o ensaio abaixo é o mesmo, com o backup 
    select admin_dashboard();
    ```
 3. Para usar o restaurado de verdade: configure os segredos das funções (ver README), o
-   `worker_url` e o segredo do worker no Vault, aponte os webhooks da Z-API e do Mercado Pago para o
+   `worker_url` e o segredo do worker no Vault, aponte os webhooks da ferramenta do WhatsApp e do Mercado Pago para o
    projeto novo e troque as variáveis da Vercel.
 4. Registre a data do ensaio e o tempo que levou.
 
@@ -188,7 +209,7 @@ e confere dados, invariantes e acesso; o ensaio abaixo é o mesmo, com o backup 
 Vazamento, acesso indevido ou perda de dados de clientes.
 
 1. **Conter** (na hora): troque as chaves suspeitas (service role do Supabase, `REPASSE_SEGREDO`,
-   token do Mercado Pago, tokens da Z-API, senhas das contas); encerre as sessões do painel (Minha
+   token do Mercado Pago, tokens da ferramenta do WhatsApp, senhas das contas); encerre as sessões do painel (Minha
    conta → sair dos outros aparelhos); se preciso, tire a loja do ar.
 2. **Avaliar**: quais dados, de quantas pessoas, desde quando. Use a auditoria (não tem dado pessoal,
    mas mostra quem fez o quê e quando).

@@ -5,7 +5,7 @@
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { turnstileCloudflare } from "../_shared/turnstile.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
-import { comRegistroDeConexao, whatsappZapi } from "../_shared/whatsapp.ts";
+import { comRegistroDeConexao, whatsappDoAmbiente } from "../_shared/whatsapp.ts";
 import { criarApiPublica } from "./app.ts";
 import { monitorDoAmbiente } from "../_shared/monitor.ts";
 
@@ -23,7 +23,7 @@ const app = criarApiPublica(Deno.env.get("REPASSE_SEGREDO"), {
   banco,
   pagamentos: mercadoPago({ accessToken: exigir("MP_ACCESS_TOKEN"), urlWebhook: `${url}/functions/v1/webhook-payments`, emailPix: exigir("MP_EMAIL_PIX") }),
   whatsapp: comRegistroDeConexao(
-    whatsappZapi({ instancia: exigir("ZAPI_INSTANCIA"), token: exigir("ZAPI_TOKEN"), clientToken: exigir("ZAPI_CLIENT_TOKEN") }),
+    whatsappDoAmbiente((nome) => Deno.env.get(nome)),
     banco,
   ),
   turnstile: turnstileCloudflare(exigir("TURNSTILE_SECRET")),
