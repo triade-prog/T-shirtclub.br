@@ -10,8 +10,9 @@ import { useEnvio } from "../_painel/useEnvio";
 import { useRepetir } from "../_painel/useRepetir";
 
 // WhatsApp (tela 18 do protótipo; sem referência V4, no estilo do painel V4): conexão do
-// número da loja (Z-API) com o QR code para reconectar, fila, ritmo, modo lançamento,
-// notificações que a loja liga e desliga e mensagem de teste. Tudo vai para a auditoria.
+// número da loja (ferramenta no formato da Z-API: Z-API ou Wafly) com o QR code para
+// reconectar, fila, ritmo, modo lançamento, notificações que a loja liga e desliga e
+// mensagem de teste. Tudo vai para a auditoria.
 
 interface Ritmo { intervaloMinS: number; intervaloMaxS: number; tetoHora: number }
 interface Config {
@@ -26,7 +27,7 @@ export function Whatsapp() {
   const aoSalvar = () => void recarregar();
 
   return (
-    <Casca kicker="MENSAGENS" titulo="WhatsApp" sub="Conexão do número da loja com o sistema (Z-API), fila de envio e quais notificações a cliente recebe.">
+    <Casca kicker="MENSAGENS" titulo="WhatsApp" sub="Conexão do número da loja com o sistema, fila de envio e quais notificações a cliente recebe.">
       {!c ? <Carregando erro={erro} /> : (
         <div className="grid split">
           <div className="stack">
@@ -53,12 +54,12 @@ function Conexao({ conectado, aoConectar }: { conectado: boolean; aoConectar: ()
     setErro(null);
     if (r.dados.conectado) { setQr(null); aoConectar(); } else setQr(r.dados.qrCode ?? null);
   }
-  // A imagem da Z-API vale poucos segundos: enquanto o QR está na tela, ele se renova.
+  // A imagem do QR vale poucos segundos: enquanto o QR está na tela, ele se renova.
   useRepetir(() => void buscarQr(), 15_000, qr !== null && !conectado);
 
   if (conectado) {
     return (
-      <Aviso tipo="green" titulo="Número conectado." tag="Z-API">
+      <Aviso tipo="green" titulo="Número conectado." tag="ONLINE">
         <p>Os códigos saem na hora e a fila envia no ritmo configurado abaixo.</p>
       </Aviso>
     );
@@ -68,7 +69,7 @@ function Conexao({ conectado, aoConectar }: { conectado: boolean; aoConectar: ()
       <p>Sem ele, as clientes não recebem o código e os avisos esperam na fila. No celular da loja, abra o WhatsApp, vá em Aparelhos conectados e leia o QR code.</p>
       {qr ? (
         <div className="qr mt">
-          {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo da Z-API */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- QR em data: vindo da ferramenta do WhatsApp */}
           <img src={qr} alt="QR code para conectar o WhatsApp da loja" width={200} height={200} />
           <p className="field-help">O código se renova sozinho a cada 15 segundos.</p>
         </div>

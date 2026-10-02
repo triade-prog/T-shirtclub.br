@@ -1,5 +1,7 @@
-// Webhook da Z-API (seção 07, G4). Sem assinatura da ferramenta: a URL tem um segmento
-// secreto de 32+ caracteres, comparado em tempo constante e trocável sem deploy.
+// Webhook da ferramenta do WhatsApp no formato da Z-API (Z-API ou Wafly; seção 07, G4).
+// Sem assinatura da ferramenta: a URL tem um segmento secreto de 32+ caracteres, comparado
+// em tempo constante e trocável sem deploy. Aviso que não é mensagem nem status vai para o
+// log só com o tipo e os nomes dos campos (para conferir o formato de uma ferramenta nova).
 // Descarta mensagens da própria loja (a equipe atende pelo celular), de grupos, status e
 // canais, e as com mais de 10 min. Cada mensagem é tratada uma vez, com limite por
 // remetente. O pedido de código é respondido na hora, na mesma conversa (fora da fila).
@@ -20,7 +22,7 @@ import type { Banco } from "../_shared/banco.ts";
 import { gerarCodigo, hashCodigo } from "../_shared/otp.ts";
 import { relatarErro } from "../_shared/monitor.ts";
 import { segredoConfere } from "../_shared/repasse.ts";
-import { lerWebhookZapi, type EventoWhatsApp, type WhatsAppProvider } from "../_shared/whatsapp.ts";
+import { formaDoAviso, lerWebhookZapi, type EventoWhatsApp, type WhatsAppProvider } from "../_shared/whatsapp.ts";
 
 export interface DepsWebhook {
   banco: Banco;
@@ -34,6 +36,7 @@ export interface DepsWebhook {
 type Resultado = { acao: "ENVIAR_CODIGO"; telefone: string; validadeMinutos: number } | { acao: "NUMERO_DIFERENTE" | "REFERENCIA_INVALIDA" | "AGUARDE" } | { acao: "BLOQUEADO"; ate: string };
 
 const DEZ_MINUTOS = 10 * 60 * 1000;
+const LIMITE_CORPO = 256 * 1024;
 
 export function criarWebhookWhatsApp(deps: DepsWebhook) {
   const app = new Hono().basePath("/webhook-whatsapp");
@@ -183,7 +186,11 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     if (deps.segredo.length < 32 || !segredoConfere(c.req.param("segredo"), deps.segredo)) {
       return c.json({ erro: { codigo: "NOT_FOUND" } }, 404);
     }
-    const evento = lerWebhookZapi(await c.req.json().catch(() => null));
+    // Aviso de texto tem poucos KB; corpo grande não chega a ser lido
+    if (Number(c.req.header("content-length") ?? 0) > LIMITE_CORPO) return c.json({ erro: { codigo: "PAYLOAD_TOO_LARGE" } }, 413);
+    const corpo = await c.req.json().catch(() => null);
+    const evento = lerWebhookZapi(corpo);
+    if (evento.tipo === "OUTRO") console.log(JSON.stringify({ funcao: "webhook-whatsapp", aviso: "evento ignorado", ...formaDoAviso(corpo) }));
     return c.json({ ok: true, tratamento: await tratar(evento) });
   });
 

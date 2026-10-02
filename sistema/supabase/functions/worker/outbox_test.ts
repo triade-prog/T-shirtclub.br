@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import type { Banco } from "../_shared/banco.ts";
-import { whatsappFalso } from "../_shared/whatsapp.ts";
+import { EnvioIncerto, whatsappFalso } from "../_shared/whatsapp.ts";
 import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { criarWorker } from "./app.ts";
 import { despacharOutbox } from "./outbox.ts";
@@ -41,6 +41,15 @@ Deno.test("falha de envio volta para a fila com o erro", async () => {
   assertEquals(await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve() }), { enviadas: 0, falhas: 1 });
   assertEquals(resultados[0]!.p_ok, false);
   assertEquals(resultados[0]!.p_error, "Error: falha simulada");
+  assertEquals(resultados[0]!.p_retry, true);
+});
+
+Deno.test("envio incerto (sem resposta a tempo) não volta para a fila: não duplica a mensagem", async () => {
+  const { banco, resultados } = fila([pedido("a")]);
+  const whatsapp = whatsappFalso();
+  whatsapp.enviarTexto = () => Promise.reject(new EnvioIncerto("wafly.com.br sem resposta (TimeoutError)"));
+  assertEquals(await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve() }), { enviadas: 0, falhas: 1 });
+  assertEquals([resultados[0]!.p_ok, resultados[0]!.p_retry, resultados[0]!.p_error], [false, false, "EnvioIncerto: wafly.com.br sem resposta (TimeoutError)"]);
 });
 
 Deno.test("modelo desconhecido não trava a fila", async () => {

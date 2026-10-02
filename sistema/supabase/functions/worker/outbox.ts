@@ -1,10 +1,11 @@
 // Envio da fila (seção 12, G5): uma mensagem por vez, na ordem de prioridade, com intervalo
 // sorteado entre o mínimo e o máximo do modo (normal ou lançamento). O banco decide o que
-// sai e quando (outbox_claim); aqui só se monta o texto e se envia.
+// sai e quando (outbox_claim); aqui só se monta o texto e se envia. Recusa da ferramenta volta
+// para a fila; envio incerto (sem resposta a tempo) não, para não mandar a mesma mensagem duas vezes.
 
 import { mensagemWhatsApp, type Modelo, type ParametrosMensagem } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
-import type { WhatsAppProvider } from "../_shared/whatsapp.ts";
+import { EnvioIncerto, type WhatsAppProvider } from "../_shared/whatsapp.ts";
 
 export interface DepsOutbox {
   banco: Banco;
@@ -46,7 +47,8 @@ export async function despacharOutbox(deps: DepsOutbox): Promise<{ enviadas: num
       await deps.banco.rpc("outbox_result", { p_id: p.id, p_ok: true, p_provider_message_id: envio.id });
       enviadas++;
     } catch (e) {
-      await deps.banco.rpc("outbox_result", { p_id: p.id, p_ok: false, p_error: String(e).slice(0, 500) });
+      // Envio incerto não volta para a fila: a mensagem pode ter saído (0480)
+      await deps.banco.rpc("outbox_result", { p_id: p.id, p_ok: false, p_error: String(e).slice(0, 500), p_retry: !(e instanceof EnvioIncerto) });
       falhas++;
     }
     const espera = (p.intervalo.minS + sorteio() * (p.intervalo.maxS - p.intervalo.minS)) * 1000;
