@@ -175,11 +175,12 @@ function Pedido({ reserva }: { reserva: Reserva }) {
       </ul>
       <dl className="m-0 border-t border-tinta/20 pt-2 text-sm">
         <div className="flex justify-between py-0.5"><dt>Subtotal</dt><dd className="m-0">{formatarReais(reserva.subtotalCentavos)}</dd></div>
-        {reserva.descontoCentavos > 0 && (
-          <div className="flex justify-between py-0.5 font-bold text-verde-escuro">
-            <dt>{reserva.descontos?.[0]?.rotulo ?? "Desconto"}</dt><dd className="m-0">− {formatarReais(reserva.descontoCentavos)}</dd>
+        {/* Um por linha: a promoção e, na reserva feita pela loja, o "Desconto da loja" (0470) */}
+        {reserva.descontoCentavos > 0 && (reserva.descontos?.length ? reserva.descontos : [{ tipo: "", rotulo: null, valorCentavos: reserva.descontoCentavos }]).map((d, n) => (
+          <div key={n} className="flex justify-between py-0.5 font-bold text-verde-escuro">
+            <dt>{d.rotulo ?? "Desconto"}</dt><dd className="m-0">− {formatarReais(d.valorCentavos)}</dd>
           </div>
-        )}
+        ))}
         <div className="flex justify-between border-t-2 border-tinta pt-2 font-bold"><dt>Total</dt><dd className="m-0">{formatarReais(reserva.totalCentavos)}</dd></div>
         {reserva.entrega && <div className="flex justify-between pt-2 text-tinta-suave"><dt>Entrega pretendida</dt><dd className="m-0">{ENTREGA[reserva.entrega]}</dd></div>}
       </dl>

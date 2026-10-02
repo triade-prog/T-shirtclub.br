@@ -14,6 +14,7 @@ import {
   loginAdminSchema,
   nomeClienteSchema,
   pedidoCancelamentoSchema,
+  reservaManualSchema,
   telefoneSchema,
 } from "./schemas.ts";
 
@@ -121,5 +122,20 @@ describe("painel", () => {
     expect(consultaSchema.safeParse({ motivo: "ENTREGA", reservaId: "x" }).success).toBe(false);
     expect(linkReservaSchema.safeParse({ chave: "a".repeat(22) }).success).toBe(true);
     expect(linkReservaSchema.safeParse({ chave: "a/".repeat(11) }).success).toBe(false);
+  });
+});
+
+describe("reserva manual pelo painel (0470)", () => {
+  const base = { nome: "Ana Paula", telefone: "(77) 99812-8809", entrega: "RETIRADA", pagamento: "LINK", totalEsperadoCentavos: 4999,
+    itens: [{ produtoId: "6f1c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f", varianteId: "9c4d5e6f-7a8b-4c3d-9e4f-5a6b7c8d9e0f", qtd: 1 }] };
+  it("aceita link e as formas pagas fora do site; telefone em E.164", () => {
+    for (const pagamento of ["LINK", "DINHEIRO", "PIX_DIRETO", "MAQUININHA"]) expect(reservaManualSchema.safeParse({ ...base, pagamento }).success).toBe(true);
+    expect(reservaManualSchema.parse(base).telefone).toBe("+5577998128809");
+    expect(reservaManualSchema.safeParse({ ...base, pagamento: "CHEQUE" }).success).toBe(false);
+  });
+  it("desconto manual só com motivo", () => {
+    expect(reservaManualSchema.safeParse({ ...base, descontoManualCentavos: 500 }).success).toBe(false);
+    expect(reservaManualSchema.safeParse({ ...base, descontoManualCentavos: 500, motivoDesconto: "ok" }).success).toBe(false);
+    expect(reservaManualSchema.safeParse({ ...base, descontoManualCentavos: 500, motivoDesconto: "Cliente fiel" }).success).toBe(true);
   });
 });

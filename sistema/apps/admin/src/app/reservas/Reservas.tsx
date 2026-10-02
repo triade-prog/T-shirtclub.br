@@ -41,7 +41,8 @@ export function Reservas() {
   const paginas = dados ? Math.max(1, Math.ceil(dados.total / dados.porPagina)) : 1;
 
   return (
-    <Casca kicker="PEDIDOS" titulo="Reservas" sub="Busque por cliente ou acompanhe rapidamente o estado de cada reserva.">
+    <Casca kicker="PEDIDOS" titulo="Reservas" sub="Busque por cliente ou acompanhe rapidamente o estado de cada reserva."
+      acoes={<Link className="btn btn-dark" href="/reservas/nova">Nova reserva</Link>}>
       <section className="card flat">
         <form role="search" className="form-row" onSubmit={(e) => {
           e.preventDefault();

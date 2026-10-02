@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calcularPreco,
+  comDescontoManual,
   precoPromocional,
   situacaoPromocao,
   type CompreMaisGrupo,
@@ -246,5 +247,25 @@ describe("invariantes", () => {
 
   it("recusa quantidade ou preço quebrados", () => {
     expect(() => calcularPreco({ itens: [{ produto: { id: "x", precoCentavos: 49.99 }, qtd: 1 }], promocoes: [], agora })).toThrow();
+  });
+});
+
+describe("desconto manual da reserva pelo painel (0470)", () => {
+  it("vem depois da promoção e se reparte pelas peças, sem centavo perdido", () => {
+    const r = calcularPreco({ itens: pecas(3), promocoes: [club], agora });
+    const m = comDescontoManual(r, 1001);
+    expect(m.totalCentavos).toBe(11999 - 1001);
+    expect(m.linhas.reduce((s, l) => s + l.descontoManualCentavos, 0)).toBe(1001);
+    expect(m.linhas.reduce((s, l) => s + l.totalCentavos, 0)).toBe(m.totalCentavos);
+    for (const l of m.linhas) {
+      expect(l.descontoCentavos).toBe(l.descontoPromoCentavos + l.descontoManualCentavos);
+      expect(l.totalCentavos).toBe(l.subtotalCentavos - l.descontoCentavos);
+    }
+  });
+  it("não passa do total e recusa valor quebrado", () => {
+    const r = calcularPreco({ itens: pecas(1), promocoes: [], agora });
+    expect(comDescontoManual(r, 99_999).totalCentavos).toBe(0);
+    expect(comDescontoManual(r, 0).linhas[0]!.descontoManualCentavos).toBe(0);
+    expect(() => comDescontoManual(r, 10.5)).toThrow();
   });
 });

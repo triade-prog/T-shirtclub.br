@@ -106,6 +106,13 @@ describe("o que a loja manda", () => {
     );
     expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1048, totalCentavos: 4999, forma: "CARTAO", pecas: 1 }))
       .toContain("Marina, sua peça agora é sua. 💖\n\nPedido #1048\nR$ 49,99 · Cartão");
+    // Venda manual já paga (0470): a forma pelo nome e, com retirada combinada, sem pedir a entrega
+    const balcao = mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1050, totalCentavos: 11999, forma: "DINHEIRO", retirada: true });
+    expect(balcao).toContain("R$ 119,99 · Dinheiro");
+    expect(balcao).toContain("Você retira na loja. Avisamos por aqui assim que o pedido estiver pronto.");
+    expect(balcao).not.toContain("Falta só escolher");
+    expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1050, totalCentavos: 4999, forma: "PIX_DIRETO" })).toContain("PIX na conta da loja");
+    expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1050, totalCentavos: 4999, forma: "MAQUININHA" })).toContain("Falta só escolher");
     expect(mensagemWhatsApp("pagamento_em_analise", { numero: 1048 })).toBe(
       "Recebemos um pagamento relacionado à reserva #1048 depois do prazo.\n\nNossa equipe vai conferir o pagamento e falar com você por aqui.\n\nNão é necessário pagar novamente.",
     );
