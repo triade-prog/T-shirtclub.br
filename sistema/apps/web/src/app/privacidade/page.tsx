@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 // da F11). Dados da empresa (E6), encarregado e prazo fiscal informados pela loja em 27/09;
 // o texto final passa pela revisão jurídica antes de a P15 fechar.
 
-const ATUALIZADA_EM = "27/09/2026";
+const ATUALIZADA_EM = "02/10/2026";
 
 export default async function Privacidade() {
   // Gerada a cada pedido, como as outras: estática, sairia sem o nonce da CSP (D29)
@@ -84,7 +84,7 @@ export default async function Privacidade() {
         <ul>
           <li>Mercado Pago: processamento do pagamento.</li>
           <li>
-            Z-API: conexão do WhatsApp da loja ao sistema, para receber e enviar as mensagens. As mensagens passam também
+            Wafly: conexão do WhatsApp da loja ao sistema, para receber e enviar as mensagens. As mensagens passam também
             pelo próprio WhatsApp (Meta).
           </li>
           <li>Cloudflare (Turnstile): verificação anti-robô nos formulários.</li>

@@ -46,7 +46,7 @@ const ERROS: Record<CodigoErro, { onde: "Loja" | "Painel" | "Loja e painel"; qua
   TURNSTILE_REQUIRED: { onde: "Loja e painel", quando: "Falta a verificação anti-robô." },
   TURNSTILE_INVALID: { onde: "Loja e painel", quando: "A verificação anti-robô falhou." },
   WHATSAPP_OFFLINE: { onde: "Loja", quando: "O WhatsApp da loja está desconectado do sistema." },
-  UPSTREAM_UNAVAILABLE: { onde: "Loja e painel", quando: "Sem conexão com o servidor ou com um fornecedor (Mercado Pago, Z-API)." },
+  UPSTREAM_UNAVAILABLE: { onde: "Loja e painel", quando: "Sem conexão com o servidor ou com um fornecedor (Mercado Pago, Wafly)." },
   INVALID_CREDENTIALS: { onde: "Painel", quando: "E-mail ou senha errados no login." },
   MFA_REQUIRED: { onde: "Painel", quando: "Falta o código do aplicativo autenticador." },
   MFA_INVALID: { onde: "Painel", quando: "Código do autenticador errado." },
