@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { cx } from "./classes.ts";
 
 /** Seta do lucide (ArrowRight), desenhada aqui porque o pacote de componentes não depende dele. */
@@ -9,6 +9,18 @@ export function SetaDireita({ className }: { className?: string }) {
       <path d="m12 5 7 7-7 7" />
     </svg>
   );
+}
+
+/**
+ * A linha da coleção ("Girlhood · Spring e Summer 2027") quebra só nos pontos: cada parte fica
+ * inteira, para o celular não deixar o "2027" sozinho na linha de baixo (02/10).
+ */
+export function PartesDaLinha({ linha }: { linha: string }) {
+  const partes = linha.split(" · ");
+  // O ponto vai grudado na parte de antes, para a linha de baixo não começar com ele
+  return partes.map((parte, i) => (
+    <Fragment key={i}>{i > 0 && " "}<span className="whitespace-nowrap">{parte}{i < partes.length - 1 && " ·"}</span></Fragment>
+  ));
 }
 
 /**
@@ -33,9 +45,10 @@ export function ConteudoSlide({ nome, campanha, linha, vertical, foto }: {
       {campanha && (
         <span className={cx(!vertical && "max-md:hidden", "absolute inset-x-0 bottom-0 grid gap-1.5 bg-linear-to-t from-tinta/75 via-tinta/30 to-transparent px-4 pb-16 pt-24 text-[#fbf5ea] md:px-8 md:pb-8 md:pt-32")}>
           {/* O nome da campanha na Fraunces itálica, como na página da campanha (D38); o degradê é de
-              tinta porque o tema não tem preto (--color-*: initial) */}
-          <span className="font-editorial text-[clamp(40px,6vw,88px)] font-[680] italic leading-[0.9] tracking-[-0.045em] [font-optical-sizing:auto]">{campanha}</span>
-          {linha && <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">{linha}</span>}
+              tinta porque o tema não tem preto (--color-*: initial). A folga embaixo (em em, cresce com
+              a letra) é das pernas do g, do z e do y, que com a entrelinha 0,9 tampavam a linha de baixo */}
+          <span className="pb-[0.14em] font-editorial text-[clamp(40px,6vw,88px)] font-[680] italic leading-[0.9] tracking-[-0.045em] [font-optical-sizing:auto]">{campanha}</span>
+          {linha && <span className="text-[11px] font-semibold uppercase tracking-[0.24em]"><PartesDaLinha linha={linha} /></span>}
         </span>
       )}
       <span className="absolute bottom-2.5 right-2.5 inline-flex min-h-8 items-center gap-1.5 rounded-pilula border-2 border-tinta bg-tinta px-3 text-xs font-bold text-papel shadow-adesivo group-hover:bg-rosa-press md:bottom-5 md:right-5 md:min-h-13 md:gap-2 md:px-6 md:text-[15px]">

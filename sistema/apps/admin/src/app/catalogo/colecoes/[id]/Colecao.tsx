@@ -155,7 +155,7 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
           <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
           <Escolha name="paleta" rotulo="Universo da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Muda o ritmo e o detalhe da página; as cores são as da marca (D38)." />
           <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
-          <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="SS26" />
+          <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="Spring e Summer 2027" />
           <div className="full"><EnvioFoto destino="colecao" caminho={capaCelular} aoEnviar={setCapaCelular} rotulo="Foto do celular (4:5, 1080 × 1350, sem texto)" proporcao={CELULAR} /></div>
           {capaCelular && <div className="full"><Campo name="altCelular" rotulo="Descrição da foto do celular" maxLength={200} defaultValue={colecao?.capaCelular?.alt ?? ""} /></div>}
 

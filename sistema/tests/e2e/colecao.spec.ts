@@ -69,7 +69,7 @@ test("coleção de campanha: foto com o nome, coleção, The Club Edit, capítul
   const quadro = page.locator("main section").first();
   await expect(quadro.getByRole("img", { name: "Uma amiga olhando o mar" })).toBeVisible();
   await expect(quadro).toContainText("Ciao, Estate!");
-  await expect(page.getByText("Estate Italiana · SS26", { exact: true })).toBeVisible();
+  await expect(page.getByText("Estate Italiana · Spring e Summer 2027", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveCSS("color", "rgb(38, 25, 30)");
   await expect(page.getByText("Coleção 01 · 1 estampa", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Estate Italiana." })).toBeVisible();

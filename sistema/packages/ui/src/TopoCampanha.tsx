@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
 import { cx } from "./classes.ts";
 import { Sobretitulo } from "./Selo.tsx";
-import { SetaDireita } from "./SlideCapa.tsx";
+import { PartesDaLinha, SetaDireita } from "./SlideCapa.tsx";
 
 // Topo da coleção como capítulo de campanha (28/09, D35 e D36): a foto, a campanha, a coleção com
 // o botão, o manifesto e o detalhe de cada universo (0430). Fica aqui, e não na loja, para a prévia
@@ -51,13 +51,14 @@ export interface ColecaoCampanha {
 
 /**
  * Nome da campanha: a serifa itálica do "Seu Club." da home (29/09, D38), em caixa normal; em Dog
- * Stories, quebra na vírgula. A cor vem de fora: clara sobre a foto, tinta fora dela.
+ * Stories, quebra na vírgula. A cor vem de fora: clara sobre a foto, tinta fora dela. A folga
+ * embaixo (0,14em) é das pernas do g e do z, que com a entrelinha 0,9 tampavam a linha de baixo.
  */
 export function NomeCampanha({ colecao, u, className, Tag = "p", id }: { colecao: ColecaoCampanha; u: Universo; className?: string; Tag?: "p" | "span" | "h2"; id?: string }) {
   const nome = colecao.campanha ?? "";
   const partes = u.ritmo === "humor" ? nome.split(/(?<=,)\s+/) : [nome];
   return (
-    <Tag id={id} className={cx("m-0 block font-editorial text-[clamp(46px,6.6vw,96px)] font-[680] italic leading-[0.9] tracking-[-0.045em] [font-optical-sizing:auto]", className)}>
+    <Tag id={id} className={cx("m-0 block pb-[0.14em] font-editorial text-[clamp(46px,6.6vw,96px)] font-[680] italic leading-[0.9] tracking-[-0.045em] [font-optical-sizing:auto]", className)}>
       {partes.map((p, i) => <span key={i} className="block">{p}</span>)}
     </Tag>
   );
@@ -74,7 +75,7 @@ export function FotoComNome({ colecao, u, foto, linha, Tag = "p", id }: {
     return (
       <div className="grid gap-2 border-b border-tinta/15 pb-5">
         <NomeCampanha colecao={colecao} u={u} Tag={Tag} id={id} className="text-tinta" />
-        {linha && <p className={cx(MICRO, "text-tinta")}>{linha}</p>}
+        {linha && <p className={cx(MICRO, "text-tinta")}><PartesDaLinha linha={linha} /></p>}
       </div>
     );
   }
@@ -83,7 +84,7 @@ export function FotoComNome({ colecao, u, foto, linha, Tag = "p", id }: {
       {foto}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 grid gap-2 bg-linear-to-t from-tinta/75 via-tinta/30 to-transparent px-4.5 pb-5 pt-28 text-[#fbf5ea] md:px-8 md:pb-7.5 md:pt-36">
         <NomeCampanha colecao={colecao} u={u} Tag={Tag} id={id} />
-        {linha && <p className={MICRO}>{linha}</p>}
+        {linha && <p className={MICRO}><PartesDaLinha linha={linha} /></p>}
       </div>
     </div>
   );
