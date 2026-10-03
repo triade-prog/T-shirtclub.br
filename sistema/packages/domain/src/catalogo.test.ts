@@ -30,6 +30,11 @@ describe("painel: catálogo", () => {
     expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA" })).not.toHaveProperty("fotoStory");
     expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA", fotoStory: null })).toHaveProperty("fotoStory", null);
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", fotoStory: { caminho: "../fora.webp" } }).success).toBe(false);
+    // Ícone do Pick your story (0500): sem o campo, não apaga; null volta para a camiseta; só a chave
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA" })).not.toHaveProperty("iconeStory");
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA", iconeStory: "arco_iris" })).toHaveProperty("iconeStory", "arco_iris");
+    expect(colecaoEntradaSchema.parse({ nome: "X", slug: "x", cor: "MENTA", iconeStory: null })).toHaveProperty("iconeStory", null);
+    expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", iconeStory: "<svg onload=x>" }).success).toBe(false);
     const capitulo = { rotulo: "A", titulo: "B" };
     expect(colecaoEntradaSchema.safeParse({ nome: "X", slug: "x", cor: "MENTA", capitulos: [capitulo, capitulo, capitulo, capitulo] }).success).toBe(false);
   });

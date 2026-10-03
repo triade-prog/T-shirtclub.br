@@ -1,4 +1,5 @@
-import type { AnchorHTMLAttributes, ComponentType, ReactNode } from "react";
+import { createElement, type AnchorHTMLAttributes, type ComponentType } from "react";
+import { iconeDoStory } from "./IconeStory.tsx";
 
 type PropsLink = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
 
@@ -6,30 +7,21 @@ export interface ItemPickYourStory {
   id: string;
   nome: string;
   href: string;
-  /** Cor da coleção (col-*), no fundo do círculo enquanto a foto carrega ou sem foto. */
+  /** Cor da coleção (col-*): o fundo claro do círculo e o traço do ícone. */
   cor: string;
-  /** A foto, preenchendo o círculo (a loja usa o next/image; o painel, a miniatura). */
-  foto?: ReactNode;
+  /** Chave do ícone escolhido no painel (0500); sem ela, a camiseta. */
+  icone?: string | null;
   /** Na prévia do painel: as outras coleções ficam apagadas, para a editada se destacar. */
   apagado?: boolean;
 }
 
 /**
- * Classe da foto do círculo. A escolhida no painel (0440) aparece inteira, com uma folga, sobre a
- * cor da coleção: são letterings com fundo transparente, que o recorte redondo cortava nas bordas.
- * A peça mais nova, uma foto comum, preenche o círculo.
- */
-export function classeFotoStory(escolhida: boolean): string {
-  return escolhida ? "absolute inset-0 size-full object-contain p-1.5 md:p-2" : "absolute inset-0 size-full object-cover";
-}
-
-/**
- * Pick your story (28/09): atalhos para cada história logo abaixo da capa, com a capa escolhida no
- * painel (0440) ou a peça mais nova da coleção, e só o nome da coleção embaixo (29/09: o nome da
- * campanha já está no lettering e aparecia duas vezes). Desde 02/10, no jeito dos destaques
- * fixados do Instagram: anel fino, respiro claro, a capa dentro e o nome pequeno, sem o contorno
- * grosso de adesivo. Pouco espaço até a seção seguinte. No celular, a linha desliza para o lado.
- * É a mesma linha na loja e na prévia do painel.
+ * Pick your story (28/09): atalhos para cada história logo abaixo da capa, só com o nome da
+ * coleção embaixo (29/09: o nome da campanha aparecia duas vezes). Desde 02/10, no jeito dos
+ * destaques fixados do Instagram: anel fino, respiro claro e o nome pequeno. Desde 02/10, sem foto:
+ * um ícone de traço fino (escolhido no painel) sobre o fundo claro da cor da coleção, como as capas
+ * dos destaques; as fotos pesavam no início. No celular, a linha desliza para o lado. É a mesma
+ * linha na loja e na prévia do painel.
  */
 export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | null; itens: ItemPickYourStory[]; Link?: ComponentType<PropsLink> | "a" }) {
   return (
@@ -40,8 +32,8 @@ export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | 
           <li key={c.id} className={c.apagado ? "shrink-0 snap-start opacity-30" : "shrink-0 snap-start"}>
             <Link href={c.href} className="group grid w-[78px] justify-items-center gap-1.5 text-center md:w-[104px]">
               <span className="block rounded-full border border-tinta/25 bg-papel p-[3px] transition-colors group-hover:border-tinta/60 motion-reduce:transition-none">
-                <span className={`col-${c.cor.toLowerCase()} relative block size-[66px] overflow-hidden rounded-full bg-colecao-fundo md:size-[90px]`}>
-                  {c.foto}
+                <span className={`col-${c.cor.toLowerCase()} grid size-[66px] place-items-center rounded-full bg-colecao-fundo text-colecao-tinta md:size-[90px]`}>
+                  <IconeDoItem chave={c.icone} />
                 </span>
               </span>
               <span className="line-clamp-2 text-xs font-medium leading-tight md:text-[13px]">{c.nome}</span>
@@ -51,4 +43,9 @@ export function PickYourStory({ titulo, itens, Link = "a" }: { titulo: string | 
       </ul>
     </section>
   );
+}
+
+// createElement e não <Icone />: o ícone vem de uma tabela fixa, não é um componente novo a cada vez
+function IconeDoItem({ chave }: { chave: string | null | undefined }) {
+  return createElement(iconeDoStory(chave), { "aria-hidden": true, strokeWidth: 1.5, className: "size-7 md:size-9" });
 }

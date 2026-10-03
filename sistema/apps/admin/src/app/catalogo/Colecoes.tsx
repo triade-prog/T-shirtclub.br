@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { rotuloDoIcone } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import { CORES, type Colecao } from "@/lib/tiposCatalogo";
 import { Icone } from "../_painel/Casca";
@@ -38,7 +39,7 @@ export function Colecoes() {
                   {c.campanha
                     ? <><div className="amount">{c.campanha}</div><div className="date">{c.campanhaAtiva ? "Campanha ligada" : "Campanha desligada"}</div></>
                     : <div className="date">Sem campanha</div>}
-                  <div className="date">{c.fotoStory ? "Pick your story: foto escolhida" : "Pick your story: peça mais nova"}</div>
+                  <div className="date">Pick your story: {rotuloDoIcone(c.iconeStory).toLowerCase()}</div>
                 </div>
               </Link>
             </li>

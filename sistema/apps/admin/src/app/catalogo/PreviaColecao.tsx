@@ -2,7 +2,7 @@
 
 import {
   BotaoCampanha, BotaoPecas, ConteudoSlide, FaixaChamada, PickYourStory, TopoCampanha, TopoColecaoBanner, TopoColecaoSimples,
-  classeFotoStory, classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha,
+  classeMolduraCarrossel, cx, universoDaPaleta, type PaletaCampanha,
 } from "@tshirtclub/ui";
 import { urlFoto } from "@/lib/catalogo";
 import type { Colecao } from "@/lib/tiposCatalogo";
@@ -15,8 +15,8 @@ export interface RascunhoColecao {
   id: string | null; nome: string; slug: string; cor: string; ativa: boolean; posicao: number;
   descricao: string | null; chamada: string | null;
   campanha: string | null; campanhaAtiva: boolean; temporada: string | null; edicao: string | null; paleta: PaletaCampanha;
-  capa: Foto | null; capaCelular: Foto | null; fotoStory: Foto | null;
-  produtos: number; pecaMaisNova: Foto | null;
+  capa: Foto | null; capaCelular: Foto | null; iconeStory: string | null;
+  produtos: number;
 }
 
 // eslint-disable-next-line @next/next/no-img-element -- miniatura do Storage, dentro da prévia
@@ -50,9 +50,9 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
   const linhaStory = [
     ...outras.filter((c) => c.ativa && c.id !== r.id).map((c) => ({
       id: c.id, nome: c.nome, posicao: c.posicao, cor: c.cor,
-      foto: c.fotoStory ?? c.pecaMaisNova ?? c.capa, escolhida: Boolean(c.fotoStory), apagado: true,
+      icone: c.iconeStory, apagado: true,
     })),
-    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, foto: r.fotoStory ?? r.pecaMaisNova ?? r.capa, escolhida: Boolean(r.fotoStory), apagado: false }] : []),
+    ...(r.ativa ? [{ id: r.id ?? "nova", nome, posicao: r.posicao, cor: r.cor, icone: r.iconeStory, apagado: false }] : []),
   ].sort((a, b) => a.posicao - b.posicao || a.nome.localeCompare(b.nome, "pt-BR"));
 
   return (
@@ -73,8 +73,7 @@ export function PreviaColecao({ r, outras }: { r: RascunhoColecao; outras: Colec
       <Parte numero={2} titulo="No início: o Pick your story, com esta coleção em destaque e as outras apagadas" />
       {r.ativa
         ? <PickYourStory titulo={null} itens={linhaStory.map((c) => ({
-            id: c.id, nome: c.nome, href: "#", cor: c.cor, apagado: c.apagado,
-            foto: c.foto && <Img foto={c.foto} className={classeFotoStory(c.escolhida)} />,
+            id: c.id, nome: c.nome, href: "#", cor: c.cor, apagado: c.apagado, icone: c.icone,
           }))} />
         : <Nota>Coleção inativa: não aparece no Pick your story nem na loja.</Nota>}
 

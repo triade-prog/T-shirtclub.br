@@ -130,10 +130,9 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   const C2 = "55555555-5555-4555-8555-555555555552";
   const colecoes = [
     { id: C1, nome: "Limone", slug: "limone", descricao: "Sol e limão.", chamada: null, cor: "LIMAO", capa: { caminho: "colecoes/limone.webp", alt: "Limões" }, posicao: 1, ativa: true, produtos: 2,
-      campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01", capaCelular: null, paleta: "ESTATE_ITALIANA", campanhaAtiva: false, capitulos: [], fotoStory: null,
-      pecaMaisNova: { caminho: "produtos/lim-01/1.webp", alt: "Limone" } },
+      campanha: "Ciao, Estate!", temporada: "SS26", edicao: "Coleção 01", capaCelular: null, paleta: "ESTATE_ITALIANA", campanhaAtiva: false, capitulos: [], iconeStory: "limao" },
     { id: C2, nome: "Riviera", slug: "riviera", descricao: null, chamada: null, cor: "MEDITERRANEO", capa: null, posicao: 2, ativa: true, produtos: 0,
-      campanha: null, temporada: null, edicao: null, capaCelular: null, paleta: "CLUB", campanhaAtiva: false, capitulos: [], fotoStory: null, pecaMaisNova: null },
+      campanha: null, temporada: null, edicao: null, capaCelular: null, paleta: "CLUB", campanhaAtiva: false, capitulos: [], iconeStory: null },
   ];
   const produto = { id: "p1", codigo: "LIM-01", slug: "limone-amalfi", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
     capa: null, fotos: 1, estoque: { total: 5, reservado: 0, vendido: 0, disponivel: 5 } };
@@ -144,10 +143,14 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
     "v1/admin/looks": [{ id: "l1", titulo: "Praia", foto: { caminho: "looks/praia.webp", alt: "Praia" }, posicao: 1, ativo: true, produtos: [] }],
     "v1/admin/products": { itens: [produto], total: 1, pagina: 1, porPagina: 20 },
   };
+  let salvo: unknown = null;
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
   await page.route("**/api/v1/admin/**", async (rota) => {
     const caminho = new URL(rota.request().url()).pathname.replace(/^\/api\//, "");
-    if (rota.request().method() !== "GET") return rota.fulfill({ json: { id: C1 } });
+    if (rota.request().method() !== "GET") {
+      salvo = rota.request().postDataJSON();
+      return rota.fulfill({ json: { id: C1 } });
+    }
     if (caminho === "v1/admin/products" && new URL(rota.request().url()).searchParams.get("colecao")) {
       const pagina = Number(new URL(rota.request().url()).searchParams.get("pagina") ?? "1");
       return rota.fulfill({ json: { itens: pagina === 1 ? [produto] : pagina === 2 ? [produto2] : [], total: 2, pagina, porPagina: 1 } });
@@ -163,6 +166,9 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Coleção ativa");
   await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Campanha desligada");
   await expect(page.getByRole("link", { name: /Riviera/ })).not.toContainText("Campanha");
+  // O ícone do Pick your story (0500); sem escolha, a camiseta
+  await expect(page.getByRole("link", { name: /Limone/ })).toContainText("Pick your story: limão");
+  await expect(page.getByRole("link", { name: /Riviera/ })).toContainText("Pick your story: camiseta");
   await page.getByRole("link", { name: /Limone/ }).click();
   await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Limone");
@@ -184,8 +190,10 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await expect(computador.getByText(/Quando a campanha for ligada/)).toBeVisible();
   await expect(computador.getByText("Ciao, Estate!", { exact: true })).toBeVisible();
   await expect(computador.locator(".paleta-estate-italiana")).toHaveCount(1);
-  // Sem foto escolhida, o círculo usa a peça mais nova
-  await expect(computador.locator('#inicio-colecoes + ul img[src*="produtos/lim-01"]')).toHaveCount(1);
+  // O círculo é o ícone escolhido (0500), sem foto
+  await expect(computador.locator("#inicio-colecoes + ul svg.lucide-citrus")).toHaveCount(1);
+  await expect(computador.locator("#inicio-colecoes + ul img")).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Limão" })).toBeChecked();
 
   // Muda com o formulário, sem salvar
   await page.getByLabel("Nome", { exact: true }).fill("Limone Nuovo");
@@ -199,6 +207,10 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   await expect(computador.locator("#inicio-colecoes + ul li").filter({ hasText: "Limone Nuovo" })).toHaveText("Limone Nuovo");
   await page.getByLabel("Universo da página").selectOption("RIVIERA");
   await expect(computador.locator(".paleta-riviera")).toHaveCount(1);
+  // Outro ícone muda o círculo na prévia, sem salvar
+  await page.getByRole("radio", { name: "Pomba" }).check();
+  await expect(computador.locator("#inicio-colecoes + ul svg.lucide-bird")).toHaveCount(1);
+  await expect(computador.locator("#inicio-colecoes + ul svg.lucide-citrus")).toHaveCount(0);
   // Ligada sem as fotos: o painel avisa o que falta (não impede)
   const aviso = page.getByRole("status").filter({ hasText: "Campanha ligada sem" });
   await expect(aviso).toContainText("a foto do celular 4:5");
@@ -235,6 +247,8 @@ test("prévia na loja: coleção e look mudam com o formulário, no celular e no
   // Salvar fica na página, com o aviso; voltar leva à lista
   await page.getByRole("button", { name: "Salvar coleção" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Coleção salva." })).toBeVisible();
+  expect(salvo).toMatchObject({ iconeStory: "pomba" });
+  expect(salvo).not.toHaveProperty("fotoStory");
   await expect(page).toHaveURL(`${PAINEL}/catalogo/colecoes/${C1}`);
   await page.getByRole("link", { name: "← Coleções" }).click();
   await expect(page).toHaveURL(`${PAINEL}/catalogo?aba=colecoes`);

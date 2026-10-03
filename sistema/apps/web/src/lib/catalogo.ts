@@ -43,8 +43,8 @@ export interface Colecao {
   temporada?: string | null;
   edicao?: string | null;
   capaCelular?: Foto | null;
-  /** Foto do círculo do Pick your story, escolhida no painel (0440). */
-  fotoStory?: { caminho: string } | null;
+  /** Ícone do círculo do Pick your story, escolhido no painel (0500; chave de ICONES_STORY). */
+  iconeStory?: string | null;
   paleta?: "CLUB" | "ESTATE_ITALIANA" | "RIVIERA" | "GIRLHOOD" | "DOG_STORIES" | "FE";
   capitulos?: CapituloColecao[];
 }
