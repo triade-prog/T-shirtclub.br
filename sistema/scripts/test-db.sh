@@ -32,6 +32,8 @@ pg_prove --ext .sql -r "$RAIZ/supabase/tests/pgtap"
 
 # Concorrência da criação da reserva: 50 clientes pela última unidade e duas abas (F4.4).
 PGBIN="$PGBIN" bash "$RAIZ/supabase/tests/concorrencia/ultima-unidade.sh"
+# Aprovação do pagamento e expiração da reserva no mesmo instante (T16).
+PGBIN="$PGBIN" bash "$RAIZ/supabase/tests/concorrencia/aprovacao-expiracao.sh"
 
 # Integração das Edge Functions com o banco de verdade (fluxo da reserva, F3 + F4).
 DENO="${DENO:-$(command -v deno || echo "$RAIZ/node_modules/.bin/deno")}"

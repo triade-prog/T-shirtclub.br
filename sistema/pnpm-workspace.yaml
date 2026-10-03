@@ -6,7 +6,9 @@ onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
 # Vulnerabilidades altas e médias só no @lhci/cli (Lighthouse CI, desenvolvimento), sem versão
-# nova que as corrija (P14). O extract-zip não tem versão corrigida publicada.
+# nova que as corrija (P14). O extract-zip (Lighthouse CI) e o braces (eslint-config-next) não têm
+# versão corrigida publicada; nenhum dos dois vai para a loja ou para o painel (03/10).
 overrides:
   tmp: ^0.2.6
   uuid: ^11.1.1
+  basic-ftp: ^6.2.1
