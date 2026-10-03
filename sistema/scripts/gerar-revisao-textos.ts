@@ -138,7 +138,13 @@ const EXEMPLOS: Exemplo[] = [
   { modelo: "ofertas", titulo: "Resposta a \"ofertas\"", p: { promocoes } },
   { modelo: "ofertas", titulo: "Resposta a \"ofertas\": sem ofertas", p: { promocoes: [] } },
   { modelo: "trocas", titulo: "Resposta sobre trocas", p: {} },
-  { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum)", p: {} },
+  { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum), com o menu", p: { opcoes: [
+    { numero: 1, titulo: "Ver as peças e reservar" }, { numero: 2, titulo: "Tamanhos e medidas" }, { numero: 3, titulo: "Entrega e frete" },
+    { numero: 4, titulo: "Pagamento" }, { numero: 5, titulo: "Horário e endereço" }, { numero: 6, titulo: "Minha reserva" },
+    { numero: 7, titulo: "Ofertas e cupons" }, { numero: 8, titulo: "Trocas e devoluções" }, { numero: 9, titulo: "Falar com a equipe" },
+  ] } },
+  { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum), com as respostas rápidas desligadas", p: {} },
+  { modelo: "resposta_rapida", titulo: "Resposta rápida (o texto vem do painel, com a volta para o menu)", p: { texto: "É tudo pelo site, com o Mercado Pago:\n• *PIX*, confirmado na hora\n• *Cartão de crédito*\n\nDepois de reservar, o link para pagar chega aqui no WhatsApp ✦" } },
   { modelo: "mensagem_teste", titulo: "Mensagem de teste do painel", p: {} },
 ];
 

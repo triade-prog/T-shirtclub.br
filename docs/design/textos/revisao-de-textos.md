@@ -519,7 +519,7 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Estas são suas reservas recentes:
+Achei! Estas são suas reservas recentes:
 
 • #1048 · reservada até *14:47* · 3 peças · R$ 119,99
 • #1031 · paga · pronta para retirada
@@ -536,7 +536,7 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Não encontramos reservas recentes neste número.
+Procurei aqui e não achei reservas recentes neste número. 🤔
 
 Para escolher suas peças ou fazer uma nova reserva:
 tshirtclub.vercel.app
@@ -549,7 +549,7 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Ofertas de hoje na T-shirt Club ✦
+Separei as ofertas de hoje para você ✦
 
 • *Club*: 3 peças por R$ 119,99
 • Cupom *VIP5*: 5% de desconto
@@ -567,7 +567,7 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-No momento não temos ofertas ativas.
+Hoje não tem oferta ativa, mas as peças estão te esperando. 💖
 
 Para ver as peças e reservar:
 tshirtclub.vercel.app
@@ -580,11 +580,13 @@ Revisão: ☐
 *a loja liga e desliga no painel ("Resposta sobre trocas")*
 
 ```text
-Trocas na T-shirt Club: você tem até *7 dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.
+Sobre trocas, eu te explico! 💖
+
+Você tem até *7 dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.
 
 Comprou pelo site e desistiu? Nos mesmos 7 dias você devolve e recebe o valor de volta.
 
-Para pedir, responda aqui com o número da reserva e o que quer trocar. Nossa equipe responde assim que puder.
+Para pedir, responda aqui com o número da reserva e o que quer trocar. A equipe te responde assim que puder.
 
 A política completa:
 tshirtclub.vercel.app/trocas
@@ -592,17 +594,57 @@ tshirtclub.vercel.app/trocas
 
 Revisão: ☐
 
-### Resposta automática (mensagem comum)
+### Resposta automática (mensagem comum), com o menu
 
 *a loja liga e desliga no painel ("Resposta automática")*
 
 ```text
-Oi! 💖 Aqui é a T-shirt Club.
+Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖
+
+Para ver as peças e reservar:
+tshirtclub.vercel.app
+
+Como posso te ajudar? É só responder com o número:
+*1* · Ver as peças e reservar
+*2* · Tamanhos e medidas
+*3* · Entrega e frete
+*4* · Pagamento
+*5* · Horário e endereço
+*6* · Minha reserva
+*7* · Ofertas e cupons
+*8* · Trocas e devoluções
+*9* · Falar com a equipe
+```
+
+Revisão: ☐
+
+### Resposta automática (mensagem comum), com as respostas rápidas desligadas
+
+*a loja liga e desliga no painel ("Resposta automática")*
+
+```text
+Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖
 
 Para ver as peças, reservar ou acompanhar seus pedidos:
 tshirtclub.vercel.app
 
-Se precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.
+Precisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.
+```
+
+Revisão: ☐
+
+### Resposta rápida (o texto vem do painel, com a volta para o menu)
+
+*a loja liga e desliga no painel ("Respostas rápidas e menu")*
+
+```text
+É tudo pelo site, com o Mercado Pago:
+• *PIX*, confirmado na hora
+• *Cartão de crédito*
+
+Depois de reservar, o link para pagar chega aqui no WhatsApp ✦
+
+Quer ver as outras opções? É só mandar *menu* ✦
 ```
 
 Revisão: ☐

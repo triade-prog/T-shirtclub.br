@@ -57,24 +57,24 @@ alter table whatsapp_inbound
 create index whatsapp_inbound_conversa_idx on whatsapp_inbound (from_wa_id, received_at)
   where handled_as in ('DA_LOJA', 'EQUIPE', 'MENU', 'BOAS_VINDAS', 'RESPOSTA');
 
--- Os textos de partida; a loja muda tudo no painel. {site}, {endereco} e {horario} viram o
+-- Os textos de partida, na voz da Clubinha (a assistente virtual da loja); a loja muda tudo no painel. {site}, {endereco} e {horario} viram o
 -- endereço do site e o endereço e o horário da retirada (configurações da loja).
 insert into whatsapp_quick_replies (position, action, title, keywords, body) values
   (1, 'TEXTO', 'Ver as peças e reservar', '{catalogo,colecao,colecoes,modelos,estampas,reservar,como comprar}',
-   E'Todas as peças, com fotos, preços e tamanhos, estão no site:\n{site}\n\nEscolha, coloque na sacola e reserve com o seu WhatsApp. A reserva segura as peças enquanto você paga.'),
+   E'Todas as peças, com fotos, preços e tamanhos, estão no site 👇\n{site}\n\nEscolhe as suas, coloca na sacola e reserva com o seu WhatsApp. A reserva segura as peças enquanto você paga ✦'),
   (2, 'TEXTO', 'Tamanhos e medidas', '{tamanho,tamanhos,medida,medidas,numeracao,veste,vestir,forma pequeno,forma grande}',
-   E'No site, cada peça mostra os tamanhos que ainda temos.\n\nFicou entre dois tamanhos? Mande aqui o nome da peça e o tamanho que você costuma usar, e a equipe ajuda a escolher.'),
+   E'No site, cada peça mostra os tamanhos que ainda temos.\n\nFicou entre dois? Me manda aqui o nome da peça e o tamanho que você costuma usar, que a equipe te ajuda a escolher 💖'),
   (3, 'TEXTO', 'Entrega e frete', '{entrega,entregam,entregar,frete,envio,enviam,correios,motoboy,retirada,retirar,prazo}',
    E'Você escolhe depois de pagar a reserva:\n• *Retirada na loja*, sem custo\n• *Motoboy*, na cidade\n• *Envio* pelos Correios ou transportadora\n\nO frete do motoboy e do envio a loja calcula pelo seu endereço, e você paga pelo site.'),
   (4, 'TEXTO', 'Pagamento', '{pix,pagamento,pagar,cartao,credito,debito,parcela,parcelar,parcelado}',
-   E'O pagamento é pelo site, com o Mercado Pago:\n• *PIX*, confirmado na hora\n• *Cartão de crédito*\n\nDepois de reservar, o link para pagar chega aqui no WhatsApp.'),
+   E'É tudo pelo site, com o Mercado Pago:\n• *PIX*, confirmado na hora\n• *Cartão de crédito*\n\nDepois de reservar, o link para pagar chega aqui no WhatsApp ✦'),
   (5, 'TEXTO', 'Horário e endereço', '{horario,endereco,onde fica,localizacao,aberto,abre,fecha,funcionamento}',
-   E'📍 {endereco}\n🕒 {horario}'),
+   E'A loja fica aqui:\n📍 {endereco}\n🕒 {horario}'),
   (6, 'MINHA_RESERVA', 'Minha reserva', '{}', null),
   (7, 'OFERTAS', 'Ofertas e cupons', '{cupom,cupons,desconto,descontos}', null),
   (8, 'TROCAS', 'Trocas e devoluções', '{}', null),
   (9, 'EQUIPE', 'Falar com a equipe', '{atendente,atendimento,falar com alguem,falar com voces}',
-   E'Pronto! Já avisamos a equipe, e alguém responde por aqui assim que puder. 💖');
+   E'Pronto! Já chamei a equipe, e alguém te responde por aqui assim que puder 💖');
 
 -- ─── Pausa ───────────────────────────────────────────────────────────────────────────
 

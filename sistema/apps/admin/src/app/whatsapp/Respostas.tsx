@@ -41,7 +41,7 @@ export function AtendimentoAutomatico() {
     <section className="card" aria-labelledby="respostas-titulo">
       <h2 id="respostas-titulo">Atendimento automático</h2>
       <p className="field-help">
-        Quem escreve para a loja recebe as boas-vindas com este menu. A cliente responde com o número, ou escreve uma das palavras de uma resposta
+        Quem responde é a Clubinha, a assistente virtual da loja: quem escreve recebe as boas-vindas dela com este menu. A cliente responde com o número, ou escreve uma das palavras de uma resposta
         (como “frete” ou “pix”) e recebe o texto na hora. Enviando “menu”, ela vê as opções de novo. Quando vocês respondem pelo celular da loja,
         o robô fica quieto nessa conversa por {dados.pausaHoras} {dados.pausaHoras === 1 ? "hora" : "horas"}.
       </p>
@@ -118,7 +118,7 @@ function FormResposta({ resposta, ativas, aoSalvar, aoCancelar }: { resposta?: R
       )}
       {comTexto && (
         <Campo name="texto" multilinha rotulo="Texto da resposta" maxLength={1000} defaultValue={resposta?.texto ?? ""}
-          ajuda="Use *asteriscos* para negrito. {site}, {endereco} e {horario} viram o site e o endereço e o horário de retirada da loja." />
+          ajuda="Escreva como a Clubinha fala: em primeira pessoa, próxima e animada, com 💖 e ✦. Use *asteriscos* para negrito. {site}, {endereco} e {horario} viram o site e o endereço e o horário de retirada da loja." />
       )}
       <Marcar name="ativa" rotulo="Ativa no menu" defaultChecked={resposta?.ativa ?? true} />
       {salvar.erro && <p className="field-error" role="alert">{salvar.erro}</p>}

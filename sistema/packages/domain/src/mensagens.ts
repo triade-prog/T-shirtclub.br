@@ -4,6 +4,10 @@
 // Só o primeiro nome; o link é sempre do domínio da loja. *negrito* é a marcação do WhatsApp.
 // O nome é "T-shirt Club", sem o .br: o WhatsApp transforma "Club.br" em link para club.br,
 // que não é da loja (27/09).
+// Na conversa (boas-vindas, menu, respostas rápidas, minha reserva, ofertas e trocas) quem fala
+// é a Clubinha, a assistente virtual da loja (03/10): primeira pessoa, próxima e animada, com 💖
+// e ✦. Ela diz que é assistente virtual ao se apresentar. Os avisos de reserva, pagamento e
+// entrega seguem no tom da loja, e código, erro e bloqueio ficam neutros.
 
 import { formatarReais } from "./dinheiro.ts";
 import type { Promocao } from "./preco.ts";
@@ -307,7 +311,9 @@ type Versoes<M extends Modelo> = ((p: ParametrosMensagem[M]) => string)[];
 const blocos = (...partes: (string | false | undefined)[]) => partes.filter(Boolean).join("\n\n");
 const nomeOuNada = (nome?: string) => (nome ? primeiroNome(nome) : "");
 const linhasMenu = (opcoes: readonly OpcaoMenu[]) =>
-  `Como podemos ajudar? Responda com o número:\n${opcoes.map((o) => `*${o.numero}* · ${o.titulo}`).join("\n")}`;
+  `Como posso te ajudar? É só responder com o número:\n${opcoes.map((o) => `*${o.numero}* · ${o.titulo}`).join("\n")}`;
+/** A Clubinha se apresenta nas boas-vindas (03/10). */
+const CLUBINHA = "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖";
 
 const MODELOS: { [M in Modelo]: Versoes<M> } = {
   // ─── Verificação: neutras ───
@@ -482,14 +488,14 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
       ),
   ],
 
-  // ─── Conversa ───
+  // ─── Conversa: a Clubinha ───
   // Resposta a "Minha reserva" (regra 22): sem código e sem link de pagamento; detalhes no site.
   minhas_reservas: [
     (p) =>
       p.reservas.length === 0
-        ? blocos("Não encontramos reservas recentes neste número.", `Para escolher suas peças ou fazer uma nova reserva:\n${SITE}`)
+        ? blocos("Procurei aqui e não achei reservas recentes neste número. 🤔", `Para escolher suas peças ou fazer uma nova reserva:\n${SITE}`)
         : blocos(
-          p.reservas.length === 1 ? "Esta é sua reserva recente:" : "Estas são suas reservas recentes:",
+          p.reservas.length === 1 ? "Achei! Esta é sua reserva recente:" : "Achei! Estas são suas reservas recentes:",
           p.reservas.map(linhaReserva).join("\n"),
           `Para ver todos os detalhes:\n${SITE}`,
         ),
@@ -498,9 +504,9 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   ofertas: [
     (p) =>
       p.promocoes.length === 0
-        ? blocos("No momento não temos ofertas ativas.", `Para ver as peças e reservar:\n${SITE}`)
+        ? blocos("Hoje não tem oferta ativa, mas as peças estão te esperando. 💖", `Para ver as peças e reservar:\n${SITE}`)
         : blocos(
-          "Ofertas de hoje na T-shirt Club ✦",
+          "Separei as ofertas de hoje para você ✦",
           p.promocoes.map(linhaOferta).join("\n"),
           p.promocoes.length > 1 && "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.",
           `Para ver as peças e reservar:\n${SITE}`,
@@ -511,9 +517,10 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   trocas: [
     () =>
       blocos(
-        `Trocas na T-shirt Club: você tem até *${DIAS_TROCA} dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.`,
+        "Sobre trocas, eu te explico! 💖",
+        `Você tem até *${DIAS_TROCA} dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.`,
         `Comprou pelo site e desistiu? Nos mesmos ${DIAS_TROCA} dias você devolve e recebe o valor de volta.`,
-        "Para pedir, responda aqui com o número da reserva e o que quer trocar. Nossa equipe responde assim que puder.",
+        "Para pedir, responda aqui com o número da reserva e o que quer trocar. A equipe te responde assim que puder.",
         `A política completa:\n${SITE}/trocas`,
       ),
   ],
@@ -522,17 +529,17 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   boas_vindas: [
     (p) =>
       p.opcoes?.length
-        ? blocos("Oi! 💖 Aqui é a T-shirt Club.", `Para ver as peças e reservar:\n${SITE}`, linhasMenu(p.opcoes))
+        ? blocos(CLUBINHA, `Para ver as peças e reservar:\n${SITE}`, linhasMenu(p.opcoes))
         : blocos(
-          "Oi! 💖 Aqui é a T-shirt Club.",
+          CLUBINHA,
           `Para ver as peças, reservar ou acompanhar seus pedidos:\n${SITE}`,
-          "Se precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.",
+          "Precisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.",
         ),
   ],
   // "menu" a qualquer hora (0540)
   menu: [(p) => linhasMenu(p.opcoes)],
   // Resposta rápida do painel (0540), com o caminho de volta para o menu
-  resposta_rapida: [(p) => blocos(p.texto, "Para ver as outras opções, envie *menu*.")],
+  resposta_rapida: [(p) => blocos(p.texto, "Quer ver as outras opções? É só mandar *menu* ✦")],
   mensagem_teste: [
     () => blocos("✦ Teste T-shirt Club", "O envio de mensagens pelo sistema está funcionando corretamente.", "Esta é apenas uma mensagem de teste."),
   ],
@@ -566,7 +573,7 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "pronto_retirada", nome: "Pronto para retirada", quando: "Quando a loja marca o pedido como pronto, com o código de retirada", essencial: false, modelos: ["pronto_retirada"] },
   { id: "saida", nome: "Saiu para entrega / enviado", quando: "Quando a loja marca a saída", essencial: false, modelos: ["saiu_entrega", "pedido_enviado"] },
   { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, modelos: ["pedido_entregue"] },
-  { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, com o endereço da loja e o menu (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
+  { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, a Clubinha se apresenta com o site e o menu (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
   { id: "respostas", nome: "Respostas rápidas e menu", quando: "Quando a cliente escolhe um número do menu ou escreve uma palavra das respostas rápidas (tamanho, frete, pix...)", essencial: false, modelos: ["resposta_rapida", "menu"] },
   { id: "trocas", nome: "Resposta sobre trocas", quando: "Quando alguém fala em troca ou devolução, com a política da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["trocas"] },
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },

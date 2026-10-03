@@ -478,7 +478,7 @@ test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({
 
   await page.goto(`${PAINEL}/whatsapp`);
   const card = page.getByRole("region", { name: "Atendimento automático" });
-  await expect(card.locator(".previa-menu")).toHaveText("Como podemos ajudar? Responda com o número:\n*1* · Entrega e frete\n*2* · Minha reserva\n*3* · Falar com a equipe");
+  await expect(card.locator(".previa-menu")).toHaveText("Como posso te ajudar? É só responder com o número:\n*1* · Entrega e frete\n*2* · Minha reserva\n*3* · Falar com a equipe");
 
   // Nova resposta: palavra curta não passa; depois, palavras sem acento e sem repetir
   await card.getByRole("button", { name: "Nova resposta" }).click();

@@ -51,11 +51,11 @@ describe("atendimento automático (0540)", () => {
 
   it("textos: menu, boas-vindas com o menu, resposta com a volta para o menu e o aviso da equipe", () => {
     const opcoes = [{ numero: 1, titulo: "Ver as peças" }, { numero: 2, titulo: "Falar com a equipe" }];
-    expect(mensagemWhatsApp("menu", { opcoes })).toBe("Como podemos ajudar? Responda com o número:\n*1* · Ver as peças\n*2* · Falar com a equipe");
+    expect(mensagemWhatsApp("menu", { opcoes })).toBe("Como posso te ajudar? É só responder com o número:\n*1* · Ver as peças\n*2* · Falar com a equipe");
     expect(mensagemWhatsApp("boas_vindas", { opcoes })).toBe(
-      "Oi! 💖 Aqui é a T-shirt Club.\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app\n\nComo podemos ajudar? Responda com o número:\n*1* · Ver as peças\n*2* · Falar com a equipe",
+      "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app\n\nComo posso te ajudar? É só responder com o número:\n*1* · Ver as peças\n*2* · Falar com a equipe",
     );
-    expect(mensagemWhatsApp("resposta_rapida", { texto: "PIX ou cartão." })).toBe("PIX ou cartão.\n\nPara ver as outras opções, envie *menu*.");
+    expect(mensagemWhatsApp("resposta_rapida", { texto: "PIX ou cartão." })).toBe("PIX ou cartão.\n\nQuer ver as outras opções? É só mandar *menu* ✦");
     expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", final: "8809", nome: "Ana" })).toBe(
       "💬 *Ana quer falar com a equipe*\n\nNo WhatsApp da loja, a conversa do número com final 8809. O robô fica quieto nela enquanto vocês respondem.",
     );
