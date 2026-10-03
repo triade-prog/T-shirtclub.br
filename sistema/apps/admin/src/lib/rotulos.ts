@@ -25,7 +25,9 @@ export const STATUS_PAGAMENTO: Record<string, string> = {
   FALHOU: "Falhou", EM_ANALISE: "Em análise", ESTORNADO: "Estornado",
 };
 
-export const MOTIVO_ENCERRAMENTO: Record<string, string> = { PRAZO_ESGOTADO: "prazo esgotado", CANCELAMENTO_APROVADO: "cancelamento aprovado" };
+export const MOTIVO_ENCERRAMENTO: Record<string, string> = {
+  PRAZO_ESGOTADO: "prazo esgotado", CANCELAMENTO_APROVADO: "cancelamento aprovado", CANCELADA_PELA_LOJA: "cancelamento da loja",
+};
 
 // Auditoria (tela 21): quem, assunto e o que aconteceu em texto; ação nova sem rótulo aparece pelo código.
 export const AUTOR: Record<string, string> = { SISTEMA: "Sistema", ADMIN: "Loja", CLIENTE: "Cliente", PROVEDOR: "Provedor" };
@@ -36,7 +38,7 @@ export const ASSUNTO: Record<string, string> = {
 const ACAO: Record<string, string> = {
   "tentativa.criada": "Pediu o código para reservar", "otp.enviado": "Código enviado pelo WhatsApp", "otp.verificado": "Código confirmado",
   "otp.bloqueado": "Código bloqueado por tentativas erradas", "reserva.criada": "Reserva criada", "reserva.manual": "Reserva manual pelo painel", "reserva.expirada": "Reserva expirada",
-  "reserva.entregue": "Pedido entregue", "tolerancia.iniciada": "Tolerância de pagamento iniciada",
+  "reserva.entregue": "Pedido entregue", "reserva.cancelada": "Cancelada pela loja", "entrega.endereco": "Endereço de entrega corrigido", "tolerancia.iniciada": "Tolerância de pagamento iniciada",
   "cancelamento.solicitado": "Cancelamento pedido", "cancelamento.aprovado": "Cancelamento aprovado", "cancelamento.recusado": "Cancelamento recusado",
   "consulta.criada": "Pediu o código para consultar", "consulta.verificada": "Consulta confirmada",
   "entrega.confirmada": "Entrega escolhida", "entrega.substatus": "Andamento da entrega",

@@ -398,3 +398,13 @@ ol.list{list-style:none;margin:0;padding:0}
 .event-dot.whats{background:#c9efd3;border-color:#2f7d4a}
 .event-dot.falhou{background:var(--tomato-soft);border-color:#c0492c}
 .event-dot.chamado{background:var(--pink-soft);border-color:var(--pink-dark)}
+/* Cancelar pela loja e entrega pelo painel (0590) */
+.cancelar-caixa{margin-bottom:14px;background:var(--tomato-soft);border-color:rgba(238,74,42,.32)}
+.cancelar-caixa h2{margin:8px 0 8px}
+.cancelar-efeitos{margin:0 0 14px;padding-left:18px;display:grid;gap:5px;font-size:12px;line-height:1.5}
+.ent-modo{margin:0;font-size:12px}
+.ent-endereco{display:grid;gap:2px;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--paper);font-style:normal;font-size:12px;line-height:1.45}
+.ent-endereco span:first-child{font-weight:800}
+.ent-falta{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--lemon-soft);font-size:11.5px}
+.endereco-campos{margin-top:14px;border:0;padding:0}
+.endereco-campos legend{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);margin-bottom:6px}

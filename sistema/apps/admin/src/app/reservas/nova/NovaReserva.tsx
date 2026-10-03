@@ -8,6 +8,7 @@ import { chamarApi, mensagemDeErro } from "@/lib/api";
 import { paraCentavos } from "@/lib/catalogo";
 import { NOME_TAMANHO, type Tamanho } from "@/lib/tiposCatalogo";
 import { Casca } from "../../_painel/Casca";
+import { CamposEndereco, lerEndereco, type Endereco } from "../../_painel/Endereco";
 import { Aviso, Botao, Campo, Escolha } from "../../_painel/ui";
 import { useEnvio } from "../../_painel/useEnvio";
 import { useTodosProdutos } from "../../_painel/useTodosProdutos";
@@ -38,6 +39,7 @@ export function NovaReserva() {
   const [busca, setBusca] = useState("");
   const [telefone, setTelefone] = useState("");
   const [pagamento, setPagamento] = useState<Pagamento>("LINK");
+  const [entrega, setEntrega] = useState("RETIRADA");
   const [cupom, setCupom] = useState("");
   const [desconto, setDesconto] = useState("");
   const [cotacao, setCotacao] = useState<Cotacao | null>(null);
@@ -89,14 +91,22 @@ export function NovaReserva() {
     if (descontoCentavos === null) return setErro("Confira o desconto da loja, em reais (ex.: 10,00).");
     if (descontoCentavos > 0 && motivo.length < 3) return setErro("Escreva o motivo do desconto da loja: ele fica na auditoria.");
     if (!total) return setErro(falhaTotal ?? "Aguarde o total ser calculado.");
+    // Motoboy ou envio já pago (0590): o endereço vai junto; pelo link, a cliente informa no site
+    let endereco: Endereco | undefined;
+    if (comEndereco) {
+      const lido = lerEndereco(f);
+      if ("erro" in lido) return setErro(lido.erro);
+      endereco = lido.endereco;
+    }
     void enviar(chamarApi("v1/admin/reservations", {
-      nome, telefone: e164, entrega: String(f.get("entrega")), pagamento, itens,
+      nome, telefone: e164, entrega, pagamento, itens, endereco,
       cupom: cupom.trim() || undefined, descontoManualCentavos: descontoCentavos,
       motivoDesconto: descontoCentavos > 0 ? motivo : undefined, totalEsperadoCentavos: total.totalCentavos,
     }));
   }
 
   const ajudaPagamento = PAGAMENTOS.find((p) => p.valor === pagamento)!.ajuda;
+  const comEndereco = entrega !== "RETIRADA" && pagamento !== "LINK";
   return (
     <Casca kicker="PEDIDOS" titulo="Nova reserva" sub="Para quem pediu pelo WhatsApp, pelo Instagram ou na loja. O preço é o do site."
       acoes={<Link className="btn btn-ghost" href="/reservas">← Reservas</Link>}>
@@ -115,7 +125,7 @@ export function NovaReserva() {
           <h2>Peças</h2>
           <input className="input" type="search" aria-label="Buscar peça por nome ou código" placeholder="Buscar por nome ou código"
             value={busca} onChange={(e) => setBusca(e.target.value)} />
-          <div className="picker" role="list" aria-label="Peças à venda">
+          <div className="picker" role={produtos && vitrine.length > 0 && !erroProdutos ? "list" : undefined} aria-label="Peças à venda">
             {erroProdutos ? <p role="alert" className="field-error">{erroProdutos}</p> : !produtos ? <p className="loading">Carregando peças…</p>
               : vitrine.length === 0 ? <p className="loading">Nenhuma peça.</p> : vitrine.map((p) => (
                 <div key={p.id} role="listitem" className="kv-row">
@@ -153,9 +163,11 @@ export function NovaReserva() {
         <article className="card">
           <h2>Entrega e pagamento</h2>
           <div className="form-grid">
-            <Escolha name="entrega" rotulo="Entrega" defaultValue="RETIRADA"
+            <Escolha name="entrega" rotulo="Entrega" value={entrega} onChange={(e) => setEntrega(e.target.value)}
               opcoes={[["RETIRADA", "Retirada na loja"], ["MOTOBOY", "Motoboy"], ["ENVIO", "Envio"]]}
-              ajuda="Motoboy e envio: a cliente informa o endereço no site, e a loja calcula o frete." />
+              ajuda={entrega === "RETIRADA" ? "A cliente busca na loja com o código de retirada."
+                : pagamento === "LINK" ? "Pelo link, a cliente informa o endereço no site depois de pagar, e a loja calcula o frete."
+                : "Preencha o endereço abaixo; depois a loja calcula o frete."} />
           </div>
           <fieldset className="field">
             <legend>Pagamento</legend>
@@ -166,6 +178,7 @@ export function NovaReserva() {
             ))}
             <span className="field-help">{ajudaPagamento}</span>
           </fieldset>
+          {comEndereco && <CamposEndereco />}
         </article>
 
         <article className="card">

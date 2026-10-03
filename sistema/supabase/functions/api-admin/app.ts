@@ -15,6 +15,7 @@ import { rotasConta } from "./conta.ts";
 import { rotasComercial } from "./comercial.ts";
 import { rotasVipAdmin } from "./vip.ts";
 import { rotasReservaManual } from "./reservas.ts";
+import { rotasAcoesReserva } from "./reserva_acoes.ts";
 import { rotasAcessosAdmin } from "./acessos.ts";
 
 export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & {
@@ -53,6 +54,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasCancelamentos(app, deps.banco);
   rotasEntregas(app, deps.banco);
   rotasPagamentosAdmin(app, deps);
+  rotasAcoesReserva(app, deps);
   rotasPainel(app, deps);
   rotasWhatsappAdmin(app, deps);
   rotasConta(app, deps);

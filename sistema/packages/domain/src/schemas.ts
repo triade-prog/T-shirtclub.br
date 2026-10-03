@@ -146,6 +146,9 @@ export const pedidoCancelamentoSchema = z.object({ observacao: z.string().trim()
 /** POST /v1/admin/cancellation-requests/:id/approve e /reject: sempre com motivo. */
 export const decisaoCancelamentoSchema = decisaoBloqueioSchema;
 
+/** POST /v1/admin/reservations/:id/cancel (0590): a loja cancela, sempre com motivo. */
+export const cancelarReservaSchema = decisaoBloqueioSchema;
+
 // ─── Consulta (F9, G13, D13) ─────────────────────────────────────────────────────────
 
 /**
@@ -292,5 +295,8 @@ export const reservaManualSchema = cotacaoManualSchema
     motivoDesconto: z.string().trim().max(200, "VALIDATION_ERROR").optional().transform((v) => v || undefined),
     /** O total que a tela mostrou: se o preço mudou no meio, a loja confere antes. */
     totalEsperadoCentavos: z.number().int().nonnegative(),
+    /** Motoboy ou envio já pago (0590): a loja preenche o endereço na hora. */
+    endereco: enderecoSchema.optional(),
   })
-  .refine((r) => r.descontoManualCentavos === 0 || (r.motivoDesconto?.length ?? 0) >= 3, { message: "VALIDATION_ERROR", path: ["motivoDesconto"] });
+  .refine((r) => r.descontoManualCentavos === 0 || (r.motivoDesconto?.length ?? 0) >= 3, { message: "VALIDATION_ERROR", path: ["motivoDesconto"] })
+  .refine((r) => !r.endereco || (r.entrega !== "RETIRADA" && r.pagamento !== "LINK"), { message: "VALIDATION_ERROR", path: ["endereco"] });

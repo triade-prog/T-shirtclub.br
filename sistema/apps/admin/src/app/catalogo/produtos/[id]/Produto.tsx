@@ -252,7 +252,7 @@ function Cadastro({ produto: p, colecoes, promocoes, aoMudar }: { produto: Produ
                   {p.movimentos.map((m, i) => (
                     <li key={i} className="event">
                       <span className={`event-dot${m.qtd < 0 ? " muted" : ""}`} aria-hidden="true" />
-                      <div><b>{m.qtd > 0 ? `+${m.qtd}` : m.qtd} · {m.tipo.toLowerCase()}{m.tamanho ? ` · ${NOME_TAMANHO[m.tamanho]}` : ""}</b><span>{dataHora(m.em)}{m.motivo ? ` · ${m.motivo}` : ""}</span></div>
+                      <div><b>{m.qtd > 0 ? `+${m.qtd}` : m.qtd} · {({ LIBERACAO: "liberação", DEVOLUCAO: "devolução de pedido cancelado" } as Record<string, string>)[m.tipo] ?? m.tipo.toLowerCase()}{m.tamanho ? ` · ${NOME_TAMANHO[m.tamanho]}` : ""}</b><span>{dataHora(m.em)}{m.motivo ? ` · ${m.motivo}` : ""}</span></div>
                     </li>
                   ))}
                 </ol>

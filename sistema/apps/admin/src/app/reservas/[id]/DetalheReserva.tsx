@@ -8,7 +8,8 @@ import { urlFoto } from "@/lib/catalogo";
 import { MODALIDADE, MOTIVO_ENCERRAMENTO, STATUS_PAGAMENTO, STATUS_RESERVA, SUBSTATUS } from "@/lib/rotulos";
 import { AcoesEntrega, DecisaoCancelamento, FormFrete } from "../../_painel/acoes";
 import { Casca, Icone } from "../../_painel/Casca";
-import { Aviso, Botao, Carregando, Selo, tomDoStatus } from "../../_painel/ui";
+import { CamposEndereco, lerEndereco, linhasDoEndereco, type Endereco } from "../../_painel/Endereco";
+import { Aviso, Botao, Campo, Carregando, Escolha, Selo, tomDoStatus } from "../../_painel/ui";
 import { useDados } from "../../_painel/useDados";
 import { useEnvio } from "../../_painel/useEnvio";
 import { pedirConversa } from "../../whatsapp/_wa/abrirConversa";
@@ -35,7 +36,7 @@ interface Detalhe {
   }[];
   descontos?: { tipo: string; valorCentavos: number; rotulo: string | null }[];
   logistica?: {
-    modalidade?: string; substatus?: string; confirmadaEm?: string; endereco?: Record<string, string>; codigoRetirada?: string; rastreio?: string;
+    modalidade?: string; substatus?: string; confirmadaEm?: string; endereco?: Endereco; codigoRetirada?: string; rastreio?: string;
     frete?: { valorCentavos: number; prazoDias?: number; observacao?: string; pagarAte?: string; status?: string; pagoEm?: string };
   } | null;
   pagamentos: { id: string; finalidade: string; forma: string; status: string; valorCentavos: number; criadoEm: string; aprovadoEm?: string; idProvedor?: string; provedor?: string }[];
@@ -69,7 +70,10 @@ function etapas(r: Detalhe): { lista: Etapa[]; atual: number; encerrada: boolean
   const log = r.logistica;
   const sub = log?.substatus ?? "";
   if (r.status === "EXPIRADO") {
-    return { lista: [{ rotulo: "Reservada", em: r.criadaEm }, { rotulo: "Encerrada", em: r.expiradaEm }], atual: 1, encerrada: true };
+    const cancelada = r.motivoEncerramento === "CANCELADA_PELA_LOJA" || r.motivoEncerramento === "CANCELAMENTO_APROVADO";
+    const lista: Etapa[] = [{ rotulo: "Reservada", em: r.criadaEm }, ...(r.pagaEm ? [{ rotulo: "Paga", em: r.pagaEm }] : []),
+      { rotulo: cancelada ? "Cancelada" : "Expirada", em: r.expiradaEm }];
+    return { lista, atual: lista.length - 1, encerrada: true };
   }
   const audit = (substatus: string) => r.auditoria?.find((a) => a.acao === "entrega.substatus" && a.dados?.substatus === substatus)?.em;
   const combinada = log?.confirmadaEm ?? log?.frete?.pagoEm;
@@ -146,7 +150,7 @@ function ProximoPasso({ r, atualizar }: { r: Detalhe; atualizar: () => void }) {
         <b>{MODALIDADE[log.modalidade ?? ""] ?? "Entrega ainda não escolhida"}</b>
         {log.codigoRetirada && <> · Código de retirada: <b className="pop codigo-retirada">{log.codigoRetirada}</b></>}
       </p>
-      {e && <p>{e.rua}, {e.numero}{e.complemento ? `, ${e.complemento}` : ""} · {e.bairro} · {e.cidade}/{e.uf} · CEP {e.cep}</p>}
+      {e && <p>{linhasDoEndereco(e).join(" · ")}</p>}
       {log.rastreio && <p>Rastreio: <b className="selecionavel">{log.rastreio}</b></p>}
       {log.frete && (
         <p>
@@ -286,6 +290,137 @@ function Cliente({ r }: { r: Detalhe }) {
   );
 }
 
+// ─── Entrega (0590): o endereço completo, copiar e editar ─────────────────────────────
+
+const A_CAMINHO_OU_FORA = new Set(["SAIU_PARA_ENTREGA", "ENVIADO"]);
+
+function Entrega({ r, atualizar }: { r: Detalhe; atualizar: () => void }) {
+  const log = r.logistica;
+  const [editando, setEditando] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const [modo, setModo] = useState(log?.modalidade ?? r.entrega ?? "RETIRADA");
+  const { ocupado, erro, setErro, enviar } = useEnvio<Detalhe>(() => { setEditando(false); atualizar(); });
+  const pago = r.status === "PAGAMENTO_CONFIRMADO";
+  const pode = pago && !!log && !A_CAMINHO_OU_FORA.has(log.substatus ?? "");
+  const e = log?.endereco;
+  const precisaEndereco = !!log && log.modalidade !== "RETIRADA" && !e;
+
+  function salvar(ev: React.FormEvent<HTMLFormElement>) {
+    ev.preventDefault();
+    if (modo === "RETIRADA") return void enviar(chamarApi<Detalhe>(`v1/admin/reservations/${r.id}/fulfillment`, { modalidade: "RETIRADA" }, "PUT"));
+    const lido = lerEndereco(new FormData(ev.currentTarget));
+    if ("erro" in lido) return setErro(lido.erro);
+    void enviar(chamarApi<Detalhe>(`v1/admin/reservations/${r.id}/fulfillment`, { modalidade: modo, endereco: lido.endereco }, "PUT"));
+  }
+  async function copiar() {
+    if (!e) return;
+    try { await navigator.clipboard.writeText(`${r.nome}\n${linhasDoEndereco(e).join("\n")}`); setCopiado(true); } catch { setCopiado(false); }
+  }
+
+  return (
+    <article className="card" aria-labelledby="entrega-titulo">
+      <h2 id="entrega-titulo">Entrega</h2>
+      {r.status === "RESERVADO" ? (
+        <p className="muted">{MODALIDADE[r.entrega ?? ""] ?? "A escolher"}. A entrega e o endereço são combinados depois do pagamento.</p>
+      ) : !log ? (
+        <p className="muted">Sem entrega: a reserva foi encerrada antes do pagamento.</p>
+      ) : (
+        <>
+          <p className="ent-modo"><b>{MODALIDADE[log.modalidade ?? ""] ?? "A escolher"}</b>
+            {log.modalidade === "RETIRADA" && " · a cliente mostra o código de retirada na loja"}</p>
+          {e ? (
+            <address className="ent-endereco">
+              <span>{r.nome}</span>
+              {linhasDoEndereco(e).map((l) => <span key={l}>{l}</span>)}
+            </address>
+          ) : log.modalidade !== "RETIRADA" && (
+            <p className="ent-falta">{log.substatus === "AGUARDANDO_MODALIDADE" ? "A cliente ainda não informou o endereço no site." : "Sem endereço."}{pode ? " Se ela passou pelo WhatsApp, preencha aqui." : ""}</p>
+          )}
+          {log.rastreio && <p className="muted">Rastreio: <b className="selecionavel">{log.rastreio}</b></p>}
+          {!editando && (
+            <div className="actions mt">
+              {e && <Botao variante="ghost" onClick={() => void copiar()}>Copiar endereço</Botao>}
+              {pode && <Botao variante={precisaEndereco ? "dark" : "ghost"} onClick={() => { setModo(log.modalidade ?? "RETIRADA"); setEditando(true); setCopiado(false); }}>
+                {precisaEndereco ? "Informar endereço" : "Mudar entrega"}
+              </Botao>}
+            </div>
+          )}
+          {copiado && <p role="status" className="field-help">Endereço copiado, com o nome da cliente.</p>}
+          {editando && (
+            <form className="mt" onSubmit={salvar} noValidate aria-label="Mudar a entrega">
+              <Escolha rotulo="Modalidade" value={modo} onChange={(ev) => setModo(ev.target.value)}
+                opcoes={[["RETIRADA", "Retirada na loja"], ["MOTOBOY", "Motoboy"], ["ENVIO", "Envio"]]}
+                ajuda="Trocar a modalidade vale até o frete ser pago; corrigir o endereço, até o pedido sair. A cliente recebe a confirmação no WhatsApp." />
+              {modo !== "RETIRADA" && <CamposEndereco key={modo} inicial={e} />}
+              {erro && <p className="field-error" role="alert">{erro}</p>}
+              <div className="actions mt">
+                <Botao type="submit" carregando={ocupado}>Salvar entrega</Botao>
+                <Botao variante="link" onClick={() => { setEditando(false); setErro(null); }}>Voltar</Botao>
+              </div>
+            </form>
+          )}
+        </>
+      )}
+    </article>
+  );
+}
+
+// ─── Cancelar pela loja (0590) ─────────────────────────────────────────────────────────
+
+interface Previa {
+  pode: boolean; bloqueio?: "ENCERRADA" | "CONTESTACAO" | "FRETE_EM_PAGAMENTO"; pago: boolean; pecas: number;
+  estornar: { id: string; finalidade: string; forma: string; valorCentavos: number }[]; devolverPorForaCentavos?: number;
+}
+const BLOQUEIO: Record<string, string> = {
+  ENCERRADA: "Esta reserva já foi entregue ou encerrada.",
+  CONTESTACAO: "Há uma contestação aberta neste pedido. Resolva em Contestações antes de cancelar.",
+  FRETE_EM_PAGAMENTO: "Há um PIX do frete em aberto. Espere ele ser pago ou vencer (até 30 minutos) e tente de novo.",
+};
+
+function CancelarReserva({ r, aoFechar, aoCancelar }: { r: Detalhe; aoFechar: () => void; aoCancelar: () => void }) {
+  const { dados: previa, erro: erroPrevia } = useDados<Previa>(`v1/admin/reservations/${r.id}/cancel`);
+  const { ocupado, erro, setErro, enviar } = useEnvio<Detalhe>(aoCancelar);
+  const oque = r.status === "PAGAMENTO_CONFIRMADO" ? "o pedido" : "a reserva";
+
+  function confirmar(ev: React.FormEvent<HTMLFormElement>) {
+    ev.preventDefault();
+    const motivo = String(new FormData(ev.currentTarget).get("motivo") ?? "").trim();
+    if (motivo.length < 3) return setErro("Escreva o motivo do cancelamento: ele fica na auditoria.");
+    void enviar(chamarApi<Detalhe>(`v1/admin/reservations/${r.id}/cancel`, { motivo }));
+  }
+
+  return (
+    <section className="notice cancelar-caixa" aria-labelledby="cancelar-titulo">
+      <span className="club-tag"><span className="dot" />CANCELAR</span>
+      <h2 id="cancelar-titulo">Cancelar {oque} #{r.numero}?</h2>
+      {!previa ? <Carregando erro={erroPrevia} /> : previa.bloqueio ? (
+        <>
+          <p>{BLOQUEIO[previa.bloqueio]}</p>
+          <div className="actions mt"><Botao variante="ghost" onClick={aoFechar}>Voltar</Botao></div>
+        </>
+      ) : (
+        <form onSubmit={confirmar} noValidate>
+          <ul className="cancelar-efeitos">
+            <li>{previa.pecas === 1 ? "A peça volta" : `As ${previa.pecas} peças voltam`} para o estoque e para a vitrine.</li>
+            {previa.estornar.map((p) => (
+              <li key={p.id}>Estorno de <b>{formatarReais(p.valorCentavos)}</b> ({p.finalidade === "FRETE" ? "frete" : "peças"}, {p.forma === "CARTAO" ? "cartão" : "PIX"}) pelo Mercado Pago, na hora.</li>
+            ))}
+            {previa.devolverPorForaCentavos !== undefined && (
+              <li>Esta venda foi paga fora do site: devolva <b>{formatarReais(previa.devolverPorForaCentavos)}</b> à cliente por fora. O faturamento desconta hoje.</li>
+            )}
+            <li>A cliente recebe o aviso no WhatsApp{previa.pago ? ", com o que acontece com o dinheiro" : ""}.</li>
+          </ul>
+          <Campo name="motivo" rotulo="Motivo do cancelamento" maxLength={500} autoComplete="off" ajuda="Fica na auditoria; a cliente não vê." erro={erro ?? undefined} />
+          <div className="actions mt">
+            <Botao type="submit" variante="danger" carregando={ocupado}>{previa.estornar.length ? "Cancelar e estornar" : `Cancelar ${oque}`}</Botao>
+            <Botao variante="link" onClick={aoFechar}>Voltar</Botao>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
 // ─── Linha do tempo ────────────────────────────────────────────────────────────────────
 
 interface Evento { em: string; chave: string; titulo: string; quem?: string; tom?: "whats" | "falhou" | "chamado" | "muted"; mensagem?: Mensagem }
@@ -310,6 +445,8 @@ function eventos(r: Detalhe): Evento[] {
       : a.acao === "frete.calculado" ? `Frete calculado: ${formatarReais(Number(d.valor_cents))}${d.prazo_dias !== undefined && d.prazo_dias !== null ? `, ${d.prazo_dias} ${d.prazo_dias === 1 ? "dia útil" : "dias úteis"}` : ""}`
       : a.acao === "frete.pago" ? `Frete pago: ${formatarReais(Number(d.valor_cents))}`
       : a.acao === "frete.vencido" ? "O prazo para pagar o frete venceu"
+      : a.acao === "entrega.endereco" ? "Endereço de entrega corrigido"
+      : a.acao === "pagamento.estornado" ? (d.valor_cents ? `Estorno no Mercado Pago: ${formatarReais(Number(d.valor_cents))}` : "Pagamento estornado")
       : null;
     if (a.acao === "entrega.confirmada") escolha = true;
     if (titulo) lista.push({ em: a.em, chave: `a${a.id}`, titulo, quem: quem(a.ator, a.atorNome) });
@@ -411,6 +548,8 @@ function LinhaDoTempo({ r, atualizar }: { r: Detalhe; atualizar: () => void }) {
 export function DetalheReserva({ id }: { id: string }) {
   const { dados: r, erro, recarregar } = useDados<Detalhe>(`v1/admin/reservations/${id}`);
   const atualizar = () => void recarregar();
+  const [cancelando, setCancelando] = useState(false);
+  const [cancelada, setCancelada] = useState(false);
 
   if (!r) return <Casca kicker="RESERVAS" titulo="Reserva" compacto><Carregando erro={erro} /></Casca>;
 
@@ -424,10 +563,21 @@ export function DetalheReserva({ id }: { id: string }) {
       topo={`Reserva #${r.numero}`}
       titulo={<>Reserva <em className={`titulo-num ${tomDoStatus(r.status)}`}>#{r.numero}</em></>}
       sub={sub}
-      acoes={<Link className="btn btn-ghost" href="/reservas">← Todas as reservas</Link>}
+      acoes={<>
+        <Link className="btn btn-ghost" href="/reservas">← Todas as reservas</Link>
+        {(r.status === "RESERVADO" || r.status === "PAGAMENTO_CONFIRMADO") && !cancelando && (
+          <Botao variante="danger" onClick={() => { setCancelando(true); setCancelada(false); }}>
+            Cancelar {r.status === "PAGAMENTO_CONFIRMADO" ? "pedido" : "reserva"}
+          </Botao>
+        )}
+      </>}
     >
       {erro && <div className="mb"><Aviso tipo="error" titulo={erro} /></div>}
       <Etapas r={r} />
+      <p role="status" className={cancelada && r.status === "EXPIRADO" ? "notice green mb" : "sr-only"}>
+        {cancelada && r.status === "EXPIRADO" ? "Cancelamento feito. A cliente recebe o aviso no WhatsApp." : ""}
+      </p>
+      {cancelando && <CancelarReserva r={r} aoFechar={() => setCancelando(false)} aoCancelar={() => { setCancelando(false); setCancelada(true); atualizar(); }} />}
 
       {pendente && (
         <Aviso tag="AÇÃO PENDENTE" titulo="Pedido de cancelamento">
@@ -442,7 +592,8 @@ export function DetalheReserva({ id }: { id: string }) {
       <div className="reserva-corpo">
         <Pecas r={r} />
         <Pagamentos r={r} />
-        <aside className="reserva-lado" aria-label="Cliente">
+        <aside className="reserva-lado grid" aria-label="Entrega e cliente">
+          <Entrega r={r} atualizar={atualizar} />
           <Cliente r={r} />
         </aside>
         <LinhaDoTempo r={r} atualizar={atualizar} />
