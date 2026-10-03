@@ -94,14 +94,14 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
   }
 
   /** "Minha reserva" (regra 22): o remetente é a prova; responde na conversa, sem código. */
-  async function minhaReserva(id: string, remetente: string | null): Promise<string> {
+  async function minhaReserva(id: string, remetente: string | null, menu = false): Promise<string> {
     const candidatos = candidatosDoRemetente(remetente);
     if (candidatos.length === 0 || !remetente) return await marcar(id, "SEM_NUMERO");
     const lista = await deps.banco.rpc<(Omit<ResumoReserva, "expiraEm"> & { expiraEm?: string; telefone: string })[]>(
       "whatsapp_my_reservations", { p_senders: candidatos },
     );
     if (lista.length === 0) {
-      await responder(id, remetente, mensagemWhatsApp("minhas_reservas", { reservas: [] }));
+      await responder(id, remetente, mensagemWhatsApp("minhas_reservas", { reservas: [], menu }));
       return await marcar(id, "MINHA_RESERVA");
     }
     // Para o número guardado na reserva (como o código): quem escreveu de um fixo que
@@ -110,19 +110,19 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     for (const { telefone, expiraEm, ...r } of lista) {
       porTelefone.set(telefone, [...(porTelefone.get(telefone) ?? []), { ...r, expiraEm: expiraEm ? new Date(expiraEm) : undefined }]);
     }
-    for (const [telefone, reservas] of porTelefone) await responderPara(id, telefone, mensagemWhatsApp("minhas_reservas", { reservas }));
+    for (const [telefone, reservas] of porTelefone) await responderPara(id, telefone, mensagemWhatsApp("minhas_reservas", { reservas, menu }));
     return await marcar(id, "MINHA_RESERVA");
   }
 
   /** "Ofertas": as promoções e cupons vigentes do painel, na conversa. Linha que não lê é pulada. */
-  async function ofertas(id: string, remetente: string | null): Promise<string> {
+  async function ofertas(id: string, remetente: string | null, menu = false): Promise<string> {
     if (!remetente) return await marcar(id, "SEM_NUMERO");
     const linhas = await deps.banco.rpc<unknown[]>("whatsapp_offers");
     const promocoes = linhas.flatMap((l): Promocao[] => {
       const r = promocaoDoBancoSchema.safeParse(l);
       return r.success ? [r.data] : [];
     });
-    await responder(id, remetente, mensagemWhatsApp("ofertas", { promocoes }));
+    await responder(id, remetente, mensagemWhatsApp("ofertas", { promocoes, menu }));
     return await marcar(id, "OFERTAS");
   }
 
@@ -131,9 +131,9 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
    * por número (o banco decide e já marca; a loja pode desligar no painel). Repetida ou
    * desligada, fica como conversa, sem boas-vindas: quem pediu troca espera a equipe, não o site.
    */
-  async function trocas(id: string, remetente: string | null): Promise<string> {
+  async function trocas(id: string, remetente: string | null, menu = false): Promise<string> {
     if (!remetente || !(await deps.banco.rpc<boolean>("inbound_exchange", { p_wa_message_id: id }))) return await marcar(id, "CONVERSA");
-    await responder(id, remetente, mensagemWhatsApp("trocas", {}));
+    await responder(id, remetente, mensagemWhatsApp("trocas", { menu }));
     return "TROCAS";
   }
 
@@ -159,10 +159,10 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
       case "MINHA_RESERVA":
       case "OFERTAS":
         if (!explicita && !(await liberada(id, "RESPOSTA", r, false))) return await marcar(id, "CONVERSA");
-        return r.acao === "OFERTAS" ? await ofertas(id, remetente) : await minhaReserva(id, remetente);
+        return r.acao === "OFERTAS" ? await ofertas(id, remetente, true) : await minhaReserva(id, remetente, true);
       case "TROCAS":
         await liberada(id, "TROCAS", r, true);
-        await responder(id, remetente, mensagemWhatsApp("trocas", {}));
+        await responder(id, remetente, mensagemWhatsApp("trocas", { menu: true }));
         return "TROCAS";
       case "TEXTO":
       case "EQUIPE": {
@@ -180,9 +180,8 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
    * com a equipe (o robô fica quieto); número do menu recente; troca; palavra de uma resposta
    * rápida; e, por fim, as boas-vindas com o menu. Remetente sem número (LID) não recebe nada.
    */
-  async function atendimento(id: string, remetente: string | null, texto: string): Promise<string> {
-    if (!remetente) return await marcar(id, "CONVERSA");
-    const ctx = await deps.banco.rpc<Contexto>("inbound_context", { p_wa_message_id: id });
+  async function atendimento(id: string, remetente: string | null, texto: string, ctx: Contexto | null): Promise<string> {
+    if (!remetente || !ctx) return await marcar(id, "CONVERSA");
     const respostas = ctx.ligadas ? ctx.respostas : [];
     const opcoes = respostas.map(({ numero, titulo }) => ({ numero, titulo }));
     if (opcoes.length && ehPedidoMenu(texto)) {
@@ -194,7 +193,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     const numero = lerOpcaoDoMenu(texto);
     const escolhida = numero !== null && ctx.menuRecente ? respostas.find((r) => r.numero === numero) : undefined;
     if (escolhida) return await executar(id, remetente, escolhida, true, ctx);
-    if (ehPedidoTroca(texto)) return await trocas(id, remetente);
+    if (ehPedidoTroca(texto)) return await trocas(id, remetente, opcoes.length > 0);
     const porPalavra = respostaPorPalavra(texto, respostas);
     if (porPalavra) return await executar(id, remetente, porPalavra, false, ctx);
     return await conversa(id, remetente, opcoes);
@@ -225,9 +224,12 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
 
     const pedido = lerPedidoDeCodigo(e.texto);
     if (!pedido) {
-      if (ehPedidoOfertas(e.texto)) return await ofertas(e.id, e.remetente);
-      if (ehPedidoMinhaReserva(e.texto)) return await minhaReserva(e.id, e.remetente);
-      return await atendimento(e.id, e.remetente, e.texto);
+      // O que o banco diz desta conversa (respostas, menu, pausa); sem número, nada a responder
+      const ctx = e.remetente ? await deps.banco.rpc<Contexto>("inbound_context", { p_wa_message_id: e.id }) : null;
+      const comMenu = !!ctx?.ligadas && ctx.respostas.length > 0;
+      if (ehPedidoOfertas(e.texto)) return await ofertas(e.id, e.remetente, comMenu);
+      if (ehPedidoMinhaReserva(e.texto)) return await minhaReserva(e.id, e.remetente, comMenu);
+      return await atendimento(e.id, e.remetente, e.texto, ctx);
     }
 
     const candidatos = candidatosDoRemetente(e.remetente);

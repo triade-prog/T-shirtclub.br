@@ -336,3 +336,27 @@ Deno.test("respostas desligadas: sem menu nas boas-vindas e sem resposta por pal
   assertEquals(rpcs.some((r) => r.funcao === "inbound_answer"), false);
   assertMatch(whatsapp.enviadas[0]!.texto, /a equipe te responde assim que puder\.$/);
 });
+
+Deno.test("menu ligado: trocas, ofertas e minha reserva terminam com a volta para o menu", async () => {
+  const volta = /\n\nQuer ver as outras opções\? É só mandar \*menu\* ✦$/;
+  const trocas = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  await trocas.enviar(texto("5"));
+  assertMatch(trocas.whatsapp.enviadas[0]!.texto, volta);
+
+  const ofertas = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await ofertas.enviar(texto("ofertas"))).tratamento, "OFERTAS");
+  assertMatch(ofertas.whatsapp.enviadas[0]!.texto, volta);
+
+  const minha = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await minha.enviar(texto("minha reserva"))).tratamento, "MINHA_RESERVA");
+  assertMatch(minha.whatsapp.enviadas[0]!.texto, volta);
+
+  const palavra = montar({ trocas: true, contexto: { respostas: RESPOSTAS } });
+  assertEquals((await palavra.enviar(texto("quero trocar"))).tratamento, "TROCAS");
+  assertMatch(palavra.whatsapp.enviadas[0]!.texto, volta);
+
+  // Sem as respostas rápidas (desligadas), "menu" não responde: nada de mandar a cliente para ele
+  const desligadas = montar({ contexto: { respostas: RESPOSTAS, ligadas: false } });
+  await desligadas.enviar(texto("ofertas"));
+  assertEquals(volta.test(desligadas.whatsapp.enviadas[0]!.texto), false);
+});

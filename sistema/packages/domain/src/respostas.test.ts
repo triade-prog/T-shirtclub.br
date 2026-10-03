@@ -56,6 +56,13 @@ describe("atendimento automático (0540)", () => {
       "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app\n\nComo posso te ajudar? É só responder com o número:\n*1* · Ver as peças\n*2* · Falar com a equipe",
     );
     expect(mensagemWhatsApp("resposta_rapida", { texto: "PIX ou cartão." })).toBe("PIX ou cartão.\n\nQuer ver as outras opções? É só mandar *menu* ✦");
+    // Trocas, ofertas e minha reserva terminam igual quando o menu está ligado; sem ele, não
+    const volta = /\n\nQuer ver as outras opções\? É só mandar \*menu\* ✦$/;
+    expect(mensagemWhatsApp("trocas", { menu: true })).toMatch(volta);
+    expect(mensagemWhatsApp("ofertas", { promocoes: [], menu: true })).toMatch(volta);
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [], menu: true })).toMatch(volta);
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1, status: "ENTREGUE", totalCentavos: 4999 }], menu: true })).toMatch(volta);
+    expect([mensagemWhatsApp("trocas", {}), mensagemWhatsApp("ofertas", { promocoes: [] }), mensagemWhatsApp("minhas_reservas", { reservas: [] })].some((t) => volta.test(t))).toBe(false);
     expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", final: "8809", nome: "Ana" })).toBe(
       "💬 *Ana quer falar com a equipe*\n\nNo WhatsApp da loja, a conversa do número com final 8809. O robô fica quieto nela enquanto vocês respondem.",
     );

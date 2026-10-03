@@ -143,10 +143,11 @@ export interface ParametrosMensagem {
   saiu_entrega: { numero: number };
   pedido_enviado: { numero: number; rastreio?: string };
   pedido_entregue: { numero: number; nome?: string };
-  minhas_reservas: { reservas: ResumoReserva[] };
+  /** menu: com o menu das respostas rápidas ligado, termina com o caminho de volta para ele (03/10). */
+  minhas_reservas: { reservas: ResumoReserva[]; menu?: boolean };
   /** As vigentes, na ordem de whatsapp_offers() (0340). */
-  ofertas: { promocoes: readonly Promocao[] };
-  trocas: Record<string, never>;
+  ofertas: { promocoes: readonly Promocao[]; menu?: boolean };
+  trocas: { menu?: boolean };
   /** opcoes: o menu das respostas rápidas (0540); sem ele, só o site. */
   boas_vindas: { opcoes?: readonly OpcaoMenu[] };
   menu: { opcoes: readonly OpcaoMenu[] };
@@ -312,6 +313,8 @@ const blocos = (...partes: (string | false | undefined)[]) => partes.filter(Bool
 const nomeOuNada = (nome?: string) => (nome ? primeiroNome(nome) : "");
 const linhasMenu = (opcoes: readonly OpcaoMenu[]) =>
   `Como posso te ajudar? É só responder com o número:\n${opcoes.map((o) => `*${o.numero}* · ${o.titulo}`).join("\n")}`;
+/** Fim das respostas da conversa com o menu ligado: o caminho de volta para as opções (03/10). */
+const VOLTA_MENU = "Quer ver as outras opções? É só mandar *menu* ✦";
 /** A Clubinha se apresenta nas boas-vindas (03/10). */
 const CLUBINHA = "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖";
 
@@ -493,35 +496,38 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   minhas_reservas: [
     (p) =>
       p.reservas.length === 0
-        ? blocos("Procurei aqui e não achei reservas recentes neste número. 🤔", `Para escolher suas peças ou fazer uma nova reserva:\n${SITE}`)
+        ? blocos("Procurei aqui e não achei reservas recentes neste número. 🤔", `Para escolher suas peças ou fazer uma nova reserva:\n${SITE}`, p.menu && VOLTA_MENU)
         : blocos(
           p.reservas.length === 1 ? "Achei! Esta é sua reserva recente:" : "Achei! Estas são suas reservas recentes:",
           p.reservas.map(linhaReserva).join("\n"),
           `Para ver todos os detalhes:\n${SITE}`,
+          p.menu && VOLTA_MENU,
         ),
   ],
   // Resposta a "ofertas" (27/09): as promoções e cupons vigentes do painel.
   ofertas: [
     (p) =>
       p.promocoes.length === 0
-        ? blocos("Hoje não tem oferta ativa, mas as peças estão te esperando. 💖", `Para ver as peças e reservar:\n${SITE}`)
+        ? blocos("Hoje não tem oferta ativa, mas as peças estão te esperando. 💖", `Para ver as peças e reservar:\n${SITE}`, p.menu && VOLTA_MENU)
         : blocos(
           "Separei as ofertas de hoje para você ✦",
           p.promocoes.map(linhaOferta).join("\n"),
           p.promocoes.length > 1 && "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.",
           `Para ver as peças e reservar:\n${SITE}`,
+          p.menu && VOLTA_MENU,
         ),
   ],
   // Resposta a quem fala em troca ou devolução (29/09): a política e o link; no máximo 1 vez a
   // cada 24 h por número (0460). O pedido de troca a equipe atende pelo celular.
   trocas: [
-    () =>
+    (p) =>
       blocos(
         "Sobre trocas, eu te explico! 💖",
         `Você tem até *${DIAS_TROCA} dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.`,
         `Comprou pelo site e desistiu? Nos mesmos ${DIAS_TROCA} dias você devolve e recebe o valor de volta.`,
         "Para pedir, responda aqui com o número da reserva e o que quer trocar. A equipe te responde assim que puder.",
         `A política completa:\n${SITE}/trocas`,
+        p.menu && VOLTA_MENU,
       ),
   ],
   // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310). Com
@@ -539,7 +545,7 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   // "menu" a qualquer hora (0540)
   menu: [(p) => linhasMenu(p.opcoes)],
   // Resposta rápida do painel (0540), com o caminho de volta para o menu
-  resposta_rapida: [(p) => blocos(p.texto, "Quer ver as outras opções? É só mandar *menu* ✦")],
+  resposta_rapida: [(p) => blocos(p.texto, VOLTA_MENU)],
   mensagem_teste: [
     () => blocos("✦ Teste T-shirt Club", "O envio de mensagens pelo sistema está funcionando corretamente.", "Esta é apenas uma mensagem de teste."),
   ],
