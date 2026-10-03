@@ -4,7 +4,7 @@ Preparado em 30/09/2026 para a análise jurídica (item P15 do painel de execuç
 
 - **Site:** https://tshirtclub.vercel.app. Ainda não há domínio próprio.
 - **Página da política:** https://tshirtclub.vercel.app/privacidade
-- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo). No mesmo dia, o site passou a contar as visitas sem cookie, e a política ganhou os trechos sobre isso (itens 2, 3, 5 e 7 e ponto 12 abaixo). Em 03/10/2026 entraram as mensagens de acompanhamento pelo WhatsApp (item 3 e ponto 13 abaixo).
+- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo). No mesmo dia, o site passou a contar as visitas sem cookie, e a política ganhou os trechos sobre isso (itens 2, 3, 5 e 7 e ponto 12 abaixo). Em 03/10/2026 entraram as mensagens de acompanhamento pelo WhatsApp (item 3 e ponto 13 abaixo). No mesmo dia, o painel passou a mostrar à equipe a conversa que o sistema já guardava (as mensagens recebidas, por 90 dias, e as automáticas), para o atendimento; nada novo é guardado.
 
 O documento tem quatro partes:
 
