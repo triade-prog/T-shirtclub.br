@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { QUALIDADE_FOTO_GRANDE } from "@/lib/fotos";
 import { useRef, useState } from "react";
 import { cx } from "@tshirtclub/ui";
 
@@ -35,7 +36,7 @@ export function Galeria({ fotos, nome, selo }: { fotos: { url: string; alt: stri
         >
           {fotos.map((f, i) => (
             <li key={f.url} className="relative w-full flex-none snap-start" aria-label={`Foto ${i + 1} de ${fotos.length}`}>
-              <Image src={f.url} alt={f.alt} fill priority={i === 0} sizes="(min-width: 820px) 52vw, 100vw" className="object-cover" />
+              <Image src={f.url} alt={f.alt} fill priority={i === 0} quality={QUALIDADE_FOTO_GRANDE} sizes="(min-width: 820px) 52vw, 100vw" className="object-cover" />
             </li>
           ))}
         </ul>

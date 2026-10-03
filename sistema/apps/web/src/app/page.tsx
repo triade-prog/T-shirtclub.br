@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { QUALIDADE_FOTO_GRANDE } from "@/lib/fotos";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
@@ -128,7 +129,7 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
       </div>
       {look && (
         <div className="relative min-h-[430px] border-tinta max-md:border-t-3 md:border-l-3">
-          <Image src={urlFoto(look.foto.caminho)} alt={look.foto.alt ?? look.titulo} fill priority sizes="(min-width: 768px) 60vw, 100vw" className="object-cover" />
+          <Image src={urlFoto(look.foto.caminho)} alt={look.foto.alt ?? look.titulo} fill priority quality={QUALIDADE_FOTO_GRANDE} sizes="(min-width: 768px) 60vw, 100vw" className="object-cover" />
           <Selo className="absolute left-5 top-5 -rotate-3">{look.titulo}</Selo>
           {oferta && <Selo fundo="citrino" brilho={false} className="absolute bottom-5 right-5 rotate-2">{oferta}</Selo>}
         </div>

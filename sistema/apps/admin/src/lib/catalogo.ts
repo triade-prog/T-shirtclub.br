@@ -58,6 +58,14 @@ export class ErroSemWebp extends Error {}
 export const TEXTO_SEM_WEBP = "Este navegador não converte fotos para WebP (o Safari não converte). Envie pelo Chrome, Edge ou Firefox.";
 
 /**
+ * Qualidade do WebP guardado no Storage. A cliente nunca baixa este arquivo: a loja gera a
+ * versão de cada tela (AVIF ou WebP, no tamanho certo). Guardar o original quase sem perda
+ * (03/10; antes 0,85) faz a versão da loja sair mais fiel com o mesmo peso; só o arquivo
+ * guardado cresce (limite do bucket: 15 MB).
+ */
+const QUALIDADE_ORIGINAL = 0.95;
+
+/**
  * Foto escolhida → WebP de até 1600 px no lado maior (as fotos do catálogo são WebP, 4:5,
  * cerca de 35 KB na loja). Só no navegador.
  */
@@ -70,7 +78,7 @@ export async function paraWebp(arquivo: File, maiorLado = 1600): Promise<{ blob:
   tela.width = largura;
   tela.height = altura;
   tela.getContext("2d")!.drawImage(bitmap, 0, 0, largura, altura);
-  const blob = await new Promise<Blob | null>((ok) => tela.toBlob(ok, "image/webp", 0.85));
+  const blob = await new Promise<Blob | null>((ok) => tela.toBlob(ok, "image/webp", QUALIDADE_ORIGINAL));
   if (!blob) throw new Error("webp");
   if (blob.type !== "image/webp") throw new ErroSemWebp();
   return { blob, largura, altura };

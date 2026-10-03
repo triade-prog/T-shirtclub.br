@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image, { getImageProps } from "next/image";
+import { QUALIDADE_FOTO_GRANDE } from "@/lib/fotos";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { ConteudoSlide, classeMolduraCarrossel, cx } from "@tshirtclub/ui";
@@ -32,9 +33,9 @@ const TAMANHOS = "(min-width: 1280px) 1240px, 100vw";
 const AJUSTE_FOTO = "object-cover object-top";
 
 function FotoSlide({ s, prioridade }: { s: SlideCapa; prioridade: boolean }) {
-  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} sizes={TAMANHOS} className={AJUSTE_FOTO} />;
-  const { props: { srcSet: computador } } = getImageProps({ src: s.foto, alt: "", width: 2400, height: 1350, sizes: TAMANHOS });
-  const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
+  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} quality={QUALIDADE_FOTO_GRANDE} sizes={TAMANHOS} className={AJUSTE_FOTO} />;
+  const { props: { srcSet: computador } } = getImageProps({ src: s.foto, alt: "", width: 2400, height: 1350, sizes: TAMANHOS, quality: QUALIDADE_FOTO_GRANDE });
+  const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade, quality: QUALIDADE_FOTO_GRANDE });
   return (
     <picture>
       <source media="(min-width: 768px)" srcSet={computador} />

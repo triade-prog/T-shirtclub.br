@@ -1,4 +1,5 @@
 import Image, { getImageProps } from "next/image";
+import { QUALIDADE_FOTO_GRANDE } from "@/lib/fotos";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BotaoCampanha as BotaoCampanhaUi, FotoComNome, Sobretitulo, TopoCampanha as TopoCampanhaUi, cx, universoDaPaleta, type Universo } from "@tshirtclub/ui";
@@ -32,13 +33,13 @@ function FotoCampanha({ capa, celular, prioridade = true, tamanhos = "(min-width
   if (!celular) {
     return (
       <div className={cx(moldura, "aspect-video")}>
-        <Image src={urlFoto(capa.caminho)} alt={capa.alt ?? ""} fill priority={prioridade} sizes={tamanhos} className="object-cover" />
+        <Image src={urlFoto(capa.caminho)} alt={capa.alt ?? ""} fill priority={prioridade} quality={QUALIDADE_FOTO_GRANDE} sizes={tamanhos} className="object-cover" />
       </div>
     );
   }
   // Direção de arte: a foto do celular é outra composição, não um recorte da do computador
-  const { props: { srcSet: srcComputador } } = getImageProps({ src: urlFoto(capa.caminho), alt: "", width: 2400, height: 1350, sizes: tamanhos });
-  const { props: { srcSet: srcCelular, ...img } } = getImageProps({ src: urlFoto(celular.caminho), alt: celular.alt ?? capa.alt ?? "", width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
+  const { props: { srcSet: srcComputador } } = getImageProps({ src: urlFoto(capa.caminho), alt: "", width: 2400, height: 1350, sizes: tamanhos, quality: QUALIDADE_FOTO_GRANDE });
+  const { props: { srcSet: srcCelular, ...img } } = getImageProps({ src: urlFoto(celular.caminho), alt: celular.alt ?? capa.alt ?? "", width: 1080, height: 1350, sizes: "100vw", priority: prioridade, quality: QUALIDADE_FOTO_GRANDE });
   return (
     <div className={cx(moldura, "aspect-[4/5] md:aspect-video")}>
       <picture>
@@ -83,7 +84,7 @@ export function CapitulosCampanha({ colecao, produtos, oferta, id }: { colecao: 
             </div>
             {k.foto && (
               <div className={cx("relative aspect-[4/5] overflow-hidden rounded-[24px] md:aspect-[21/9]", silencio && "md:mx-auto md:aspect-[16/10] md:w-3/4")}>
-                <Image src={urlFoto(k.foto.caminho)} alt={k.foto.alt ?? ""} fill sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />
+                <Image src={urlFoto(k.foto.caminho)} alt={k.foto.alt ?? ""} fill quality={QUALIDADE_FOTO_GRANDE} sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />
               </div>
             )}
             {pecas.length > 0 && (
