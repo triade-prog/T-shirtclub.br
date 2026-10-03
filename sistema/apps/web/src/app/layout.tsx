@@ -3,6 +3,7 @@ import { baloo, fraunces, poppins } from "./fontes";
 import { Cabecalho } from "./_layout/Cabecalho";
 import { Rodape } from "./_layout/Rodape";
 import { RegistrarServiceWorker } from "./_pwa/RegistrarServiceWorker";
+import { ContarVisita } from "./_acessos/ContarVisita";
 import { AvisoSacola } from "./_sacola/AvisoSacola";
 import { PopupVip } from "./_vip/PopupVip";
 import { buscarOfertaVip } from "@/lib/catalogo";
@@ -42,6 +43,7 @@ export default async function LayoutLoja({ children }: { children: React.ReactNo
         </div>
         <Rodape />
         <RegistrarServiceWorker />
+        <ContarVisita />
         <AvisoSacola />
         <PopupVip beneficio={await buscarOfertaVip()} />
         {anuncios && <TagGoogle id={anuncios} />}

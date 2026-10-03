@@ -1,6 +1,7 @@
 // Monta a API da loja a partir das dependências (reais no index.ts, falsas nos testes).
 
 import { criarApp } from "../_shared/app.ts";
+import { rotasAcessos } from "./acessos.ts";
 import { rotasCatalogo } from "./catalogo.ts";
 import { rotasConsulta } from "./consultas.ts";
 import { rotasReserva, type DepsReserva } from "./reservas.ts";
@@ -13,5 +14,6 @@ export function criarApiPublica(segredo: string | undefined, deps: DepsReserva) 
   rotasReserva(app, deps);
   rotasConsulta(app, deps);
   rotasVip(app, deps);
+  rotasAcessos(app, deps);
   return app;
 }

@@ -20,6 +20,7 @@ describe("repasse /api", () => {
       headers: {
         cookie: "__Host-sessao=abc; outro=1; __Host-tentativa=def",
         "x-real-ip": "200.1.2.3",
+        "user-agent": "Mozilla/5.0 (iPhone) Safari",
         "x-repasse-segredo": "falso-vindo-do-navegador",
         "x-cliente-ip": "6.6.6.6",
       },
@@ -32,6 +33,7 @@ describe("repasse /api", () => {
     const h = new Headers(init.headers);
     expect(h.get("x-repasse-segredo")).toBe("s3gredo");
     expect(h.get("x-cliente-ip")).toBe("200.1.2.3");
+    expect(h.get("x-cliente-navegador")).toBe("Mozilla/5.0 (iPhone) Safari");
     expect(h.get("cookie")).toBe("__Host-sessao=abc; __Host-tentativa=def");
   });
 

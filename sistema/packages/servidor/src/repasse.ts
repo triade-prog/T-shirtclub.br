@@ -90,6 +90,9 @@ export function criarRepasse(obterOpcoes: () => OpcoesRepasse) {
     const headers = new Headers({ "x-repasse-segredo": op.segredo, accept: "application/json" });
     const ip = ipReal(req.headers);
     if (ip) headers.set("x-cliente-ip", ip);
+    // O navegador, para a api-public separar celular de computador e deixar robôs fora dos acessos (0520)
+    const navegador = req.headers.get("user-agent")?.replace(/[^\x20-\x7e]/g, "").slice(0, 400);
+    if (navegador) headers.set("x-cliente-navegador", navegador);
     const cookie = cookiesPermitidos(req.headers.get("cookie"), op.cookies);
     if (cookie) headers.set("cookie", cookie);
     // Um por clique no pagamento (seção 08); a função confere o formato

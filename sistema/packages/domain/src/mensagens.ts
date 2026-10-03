@@ -144,6 +144,81 @@ export interface ParametrosMensagem {
   trocas: Record<string, never>;
   boas_vindas: Record<string, never>;
   mensagem_teste: Record<string, never>;
+  /** Aviso para a equipe (0510), no WhatsApp pessoal gravado no painel. */
+  aviso_loja: AvisoLoja;
+}
+
+// ─── Avisos para a equipe (0510) ────────────────────────────────────────────────────
+
+/** Os avisos que o painel liga e desliga; o banco confere a mesma lista (store_alert_types). */
+export const AVISOS_LOJA = [
+  { id: "nova_reserva", nome: "Nova reserva", quando: "Quando uma cliente reserva pelo site, com número, peças e valor" },
+  { id: "pagamento_aprovado", nome: "Pagamento aprovado", quando: "Quando o PIX ou o cartão de uma reserva (ou do frete) é aprovado" },
+  { id: "lista_vip", nome: "Entrou na lista VIP", quando: "Quando alguém se inscreve na lista VIP, com o total de inscritos" },
+  { id: "frete_calcular", nome: "Frete para calcular", quando: "Quando a cliente escolhe motoboy ou envio e manda o endereço" },
+  { id: "cancelamento", nome: "Pedido de cancelamento", quando: "Quando a cliente pede para cancelar uma reserva" },
+  { id: "pagamento_analise", nome: "Pagamento em análise", quando: "Quando um pagamento chega fora do prazo ou com valor diferente" },
+  { id: "contestacao", nome: "Contestação de pagamento", quando: "Quando a cliente contesta ou estorna um pagamento no banco ou no cartão" },
+  { id: "troca", nome: "Cliente falou em troca", quando: "Quando alguém fala em troca ou devolução no WhatsApp da loja" },
+  { id: "sistema", nome: "Alerta do sistema", quando: "Quando algo para de funcionar (pagamentos, fila, rotinas automáticas)" },
+] as const;
+
+export type TipoAvisoLoja = (typeof AVISOS_LOJA)[number]["id"];
+
+export type AvisoLoja =
+  | { tipo: "nova_reserva"; numero: number; nome: string; pecas: number; totalCentavos: number; retirada: boolean; expiraEm: Date }
+  | { tipo: "pagamento_aprovado"; numero: number; nome: string; valorCentavos: number; forma: "PIX" | "CARTAO"; frete: boolean }
+  | { tipo: "lista_vip"; nome: string | null; origem: "POPUP" | "RODAPE"; total: number }
+  | { tipo: "frete_calcular"; numero: number; modalidade: "MOTOBOY" | "ENVIO" }
+  | { tipo: "cancelamento"; numero: number }
+  | { tipo: "pagamento_analise"; numero: number; motivo: "APROVADO_APOS_TOLERANCIA" | "RESERVA_ENCERRADA" | "VALOR_DIVERGENTE" | "FRETE_ENCERRADO" }
+  | { tipo: "contestacao"; numero: number; motivo: "ESTORNO" | "CONTESTACAO" | "CANCELAMENTO" }
+  | { tipo: "troca" }
+  | { tipo: "sistema"; mensagem: string }
+  | { tipo: "teste" };
+
+const PAINEL = "admin-tshirtclub.vercel.app";
+
+const MOTIVO_ANALISE: Record<string, string> = {
+  APROVADO_APOS_TOLERANCIA: "pago depois do prazo",
+  RESERVA_ENCERRADA: "pago com a reserva já encerrada",
+  VALOR_DIVERGENTE: "valor diferente do total",
+  FRETE_ENCERRADO: "frete pago depois que a entrega mudou",
+};
+const MOTIVO_CONTESTACAO: Record<string, string> = { ESTORNO: "estorno", CONTESTACAO: "contestação", CANCELAMENTO: "cancelamento no banco" };
+
+/** Texto do aviso: curto, o que aconteceu primeiro e onde resolver no fim. */
+function textoAviso(a: AvisoLoja): string {
+  switch (a.tipo) {
+    case "nova_reserva":
+      return blocos(
+        `🛍️ *Nova reserva #${a.numero}*`,
+        `${a.nome} · ${a.pecas} ${a.pecas === 1 ? "peça" : "peças"} · ${formatarReais(a.totalCentavos)}\n${a.retirada ? "Retirada na loja" : "Quer receber em casa"} · vale até ${formatarHora(a.expiraEm)}`,
+        PAINEL,
+      );
+    case "pagamento_aprovado":
+      return blocos(
+        a.frete ? `✅ *Frete pago* · pedido #${a.numero}` : `✅ *Pagamento aprovado* · reserva #${a.numero}`,
+        `${a.nome} · ${formatarReais(a.valorCentavos)} · ${ROTULO_FORMA[a.forma] ?? a.forma}`,
+        a.frete ? "Pode preparar o envio." : "Agora é com a gente: separar as peças.",
+      );
+    case "lista_vip":
+      return blocos(`⭐ *Nova inscrição na lista VIP*${a.nome ? `: ${a.nome}` : ""}`, `Pelo ${a.origem === "RODAPE" ? "rodapé" : "pop-up"} do site · ${a.total} na lista`);
+    case "frete_calcular":
+      return blocos(`📦 *Frete para calcular* · pedido #${a.numero}`, a.modalidade === "MOTOBOY" ? "Entrega por motoboy." : "Envio pelos Correios ou transportadora.", PAINEL);
+    case "cancelamento":
+      return blocos(`↩️ *Pedido de cancelamento* · reserva #${a.numero}`, "A reserva continua valendo até a equipe decidir.", PAINEL);
+    case "pagamento_analise":
+      return blocos(`🔎 *Pagamento em análise* · reserva #${a.numero}`, `Motivo: ${MOTIVO_ANALISE[a.motivo] ?? a.motivo}.`, PAINEL);
+    case "contestacao":
+      return blocos(`⚠️ *Contestação de pagamento* · pedido #${a.numero}`, `Tipo: ${MOTIVO_CONTESTACAO[a.motivo] ?? a.motivo}. Confira antes de entregar.`, PAINEL);
+    case "troca":
+      return blocos("🔁 *Uma cliente falou em troca ou devolução*", "Ela já recebeu a política de trocas. Responda pelo WhatsApp da loja.");
+    case "sistema":
+      return blocos("⚠️ *Alerta do sistema*", a.mensagem, PAINEL);
+    case "teste":
+      return blocos("✦ *Teste dos avisos da loja*", "Está funcionando: os avisos da T-shirt Club chegam neste número.");
+  }
 }
 
 /** Uma linha da resposta a "Minha reserva" (whatsapp_my_reservations, 0155). */
@@ -434,6 +509,7 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   mensagem_teste: [
     () => blocos("✦ Teste T-shirt Club", "O envio de mensagens pelo sistema está funcionando corretamente.", "Esta é apenas uma mensagem de teste."),
   ],
+  aviso_loja: [textoAviso],
 };
 
 // ─── Notificações no painel (tela 18, G5) ────────────────────────────────────────────

@@ -1,9 +1,10 @@
 // WhatsApp no painel (F10, tela 18, G5): conexão com o QR code para reconectar, fila,
 // ritmo de envio, modo lançamento, notificações que a loja liga e desliga e mensagem de
-// teste. Toda mudança vai para a auditoria (no banco).
+// teste; e os avisos da loja para o WhatsApp da equipe (0510). Toda mudança vai para a
+// auditoria (no banco).
 
 import type { Hono } from "hono";
-import { ErroDominio, NOTIFICACOES, configWhatsappSchema, mensagemTesteSchema } from "@tshirtclub/domain";
+import { AVISOS_LOJA, ErroDominio, NOTIFICACOES, configAvisosSchema, configWhatsappSchema, mensagemTesteSchema } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { chamar } from "../_shared/erros-banco.ts";
 import { lerCorpo } from "../_shared/validar.ts";
@@ -71,6 +72,32 @@ export function rotasWhatsappAdmin(app: Hono<VarsAdmin>, deps: { banco: Banco; w
       throw new ErroDominio("RATE_LIMITED");
     }
     await chamar(deps.banco, "admin_whatsapp_test", { p_admin: admin, p_phone: telefone });
+    return c.json({ ok: true, naFila: true }, 202);
+  });
+
+  // Avisos da loja (0510): o WhatsApp da equipe e os avisos que ela desligou. A tela vê as linhas
+  // (AVISOS_LOJA), com nome e quando, e se cada uma está ligada.
+  const comAvisos = (cfg: { telefone: string | null; desligados: string[] }) => ({
+    telefone: cfg.telefone,
+    avisos: AVISOS_LOJA.map((a) => ({ id: a.id, nome: a.nome, quando: a.quando, ligado: !cfg.desligados.includes(a.id) })),
+  });
+
+  app.get("/v1/admin/whatsapp/avisos", async (c) => c.json(comAvisos(await chamar(deps.banco, "admin_store_alerts"))));
+
+  app.put("/v1/admin/whatsapp/avisos", async (c) => {
+    const dados = await lerCorpo(c, configAvisosSchema);
+    const p: Record<string, unknown> = {};
+    if (dados.telefone !== undefined) p.telefone = dados.telefone;
+    if (dados.desligados) p.desligados = dados.desligados;
+    return c.json(comAvisos(await chamar(deps.banco, "admin_update_store_alerts", { p_admin: c.get("admin").userId, p })));
+  });
+
+  app.post("/v1/admin/whatsapp/avisos/teste", async (c) => {
+    const admin = c.get("admin").userId;
+    if (!(await chamar<boolean>(deps.banco, "hit_rate_limit", { p_key: `avisos_teste:${admin}`, p_window: "1 hour", p_max: 5 }))) {
+      throw new ErroDominio("RATE_LIMITED");
+    }
+    await chamar(deps.banco, "admin_store_alert_test", { p_admin: admin });
     return c.json({ ok: true, naFila: true }, 202);
   });
 }
