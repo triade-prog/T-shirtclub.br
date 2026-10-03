@@ -5,11 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { chamarApi } from "@/lib/api";
+import { useMenuRecolhido } from "./MenuRecolhido";
 import { useDados } from "./useDados";
 import { useRepetir } from "./useRepetir";
 
 // Casca do painel V4 (docs/design/v4/painel): barra lateral com contadores, topo com o
-// estado da operação e o cabeçalho de cada tela. No celular, a barra abre pelo menu.
+// estado da operação e o cabeçalho de cada tela. No celular, a barra abre pelo menu; no
+// computador, o botão do topo recolhe a barra para só os ícones (MenuRecolhido).
 
 interface Contagem {
   reservas: { ativas: number };
@@ -55,6 +57,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
   const caminho = usePathname();
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
+  const { recolhido, alternar } = useMenuRecolhido();
   const { dados: c, recarregar } = useDados<Contagem>("v1/admin/dashboard");
   useRepetir(() => void recarregar(), 30_000, true);
 
@@ -95,7 +98,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
   return (
     <>
       <a className="skip" href="#main">Pular para o conteúdo</a>
-      <div className="panel-shell">
+      <div className={`panel-shell${recolhido ? " recolhido" : ""}`}>
         <aside className="sidebar" id="sidebar" aria-label="Menu do painel">
           <div className="brandbox">
             <Image src="/marca/logo-limao.webp" alt="T-shirt Club.br" width={132} height={58} priority />
@@ -105,9 +108,9 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
             {menu.map((m) => {
               const ativo = m.href === "/" ? caminho === "/" : caminho.startsWith(m.href);
               return (
-                <Link key={m.href} href={m.href} className={`nav-item${ativo ? " active" : ""}`} aria-current={ativo ? "page" : undefined} onClick={() => setAberto(false)}>
+                <Link key={m.href} href={m.href} className={`nav-item${ativo ? " active" : ""}`} aria-current={ativo ? "page" : undefined} onClick={() => setAberto(false)} title={recolhido ? m.rotulo : undefined}>
                   <Icone>{m.icone}</Icone>
-                  <span>{m.rotulo}</span>
+                  <span className="nav-rotulo">{m.rotulo}</span>
                   {m.n > 0 && <span className="nav-count"><span className="sr-only">: </span>{m.n}</span>}
                 </Link>
               );
@@ -126,6 +129,9 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
             <div className="top-title">
               <button className="menu-btn icon-btn" type="button" aria-label={aberto ? "Fechar menu" : "Abrir menu"} aria-expanded={aberto} aria-controls="sidebar" onClick={() => setAberto(!aberto)}>
                 <Icone><path d="M4 7h16M4 12h16M4 17h16" /></Icone>
+              </button>
+              <button className="recolher-btn icon-btn" type="button" aria-label={recolhido ? "Mostrar menu" : "Esconder menu"} aria-expanded={!recolhido} aria-controls="sidebar" title={recolhido ? "Mostrar menu" : "Esconder menu"} onClick={alternar}>
+                <Icone><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" />{recolhido ? <path d="m13 9 3 3-3 3" /> : <path d="m16 9-3 3 3 3" />}</Icone>
               </button>
               <b className="mobile-brand">T-shirt Club</b>
               <span>{topo ?? "Painel da loja"}</span>

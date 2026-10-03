@@ -346,3 +346,8 @@ ol.list{list-style:none;margin:0;padding:0}
 .wa-aviso{margin:0 0 10px;font-size:12px}
 .wa-clubinha .form-grid,.wa-config .form-grid{align-items:start}
 @media(max-width:640px){.wa-faixa{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}.wa-kpi{flex:none;padding:0 12px}}
+/* Barra lateral recolhida no computador (03/10): só os ícones, com os contadores no canto; o
+   nome de cada item segue para o leitor de tela e aparece ao passar o mouse. */
+.recolher-btn{display:none}
+@media(min-width:821px){.recolher-btn{display:grid;place-items:center;width:44px;height:44px;margin-left:-10px;border:0;background:transparent;border-radius:50%;color:var(--ink)}.recolher-btn:hover{background:var(--pink-soft)}.recolher-btn:focus-visible{outline:3px solid var(--pink);outline-offset:2px}.panel-shell{transition:grid-template-columns .22s}.panel-shell.recolhido{grid-template-columns:84px minmax(0,1fr)}.recolhido .sidebar{padding:22px 12px}.recolhido .brandbox{justify-content:center;padding:4px 0 22px}.recolhido .brandbox img{width:58px;height:26px;object-position:center}.recolhido .brandbox .admin{display:none}.recolhido .nav-item{position:relative;justify-content:center;padding:0}.recolhido .nav-rotulo{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.recolhido .nav-item .nav-count{position:absolute;top:2px;right:4px;min-width:18px;height:18px;padding:0 4px;font-size:9.5px}.recolhido .side-note{background:none;border:0;padding:0}.recolhido .side-note>:not(.logout){display:none}.recolhido .logout{text-align:center;padding:11px 0 4px;border-top-color:var(--line)}}
+@media(prefers-reduced-motion:reduce){.panel-shell{transition:none}}

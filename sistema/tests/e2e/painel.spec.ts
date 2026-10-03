@@ -806,3 +806,39 @@ test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page
   await expect(page.getByRole("list", { name: "Visitantes por dia" }).getByRole("listitem")).toHaveCount(7);
   expect(pedidos).toEqual(["?dias=30", "?dias=7"]);
 });
+
+// Barra lateral recolhida (03/10): no computador, o botão do topo deixa só os ícones (com o nome
+// para o leitor de tela e o contador no canto) e a escolha fica para a próxima tela; no celular,
+// o menu continua abrindo por cima, sem o botão de recolher.
+test("menu lateral: esconder e mostrar no computador, lembrando a escolha", async ({ page, context }) => {
+  await simularWhatsapp(page, context, (_m, caminho) =>
+    caminho === "v1/admin/dashboard" ? { ...DASH_WA, acoes: { ...DASH_WA.acoes, emPreparacao: 1 } } : undefined);
+  await page.goto(`${PAINEL}/whatsapp/configuracoes`);
+  await expect(page.getByRole("button", { name: "Esconder menu" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Abrir menu" })).toBeVisible();
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const menu = page.getByRole("complementary", { name: "Menu do painel" });
+  const esconder = page.getByRole("button", { name: "Esconder menu" });
+  await expect(esconder).toHaveAttribute("aria-expanded", "true");
+  await expect(menu.getByText("Entregas e frete")).toBeVisible();
+  await esconder.click();
+
+  const mostrar = page.getByRole("button", { name: "Mostrar menu" });
+  await expect(mostrar).toHaveAttribute("aria-expanded", "false");
+  await expect.poll(async () => (await menu.boundingBox())?.width).toBeLessThan(100);
+  // O nome sai da tela, mas continua no link para o leitor de tela
+  expect((await menu.getByText("Entregas e frete").boundingBox())?.width).toBeLessThanOrEqual(1);
+  const entregas = menu.getByRole("link", { name: /^Entregas e frete/ });
+  await expect(entregas).toBeVisible();
+  await expect(entregas.locator(".nav-count")).toHaveText(/1/);
+  await semViolacoes(page);
+
+  // Outra tela e a volta: continua recolhida (cookie lido no servidor)
+  await page.goto(`${PAINEL}/whatsapp/envios`);
+  await expect(page.getByRole("button", { name: "Mostrar menu" })).toBeVisible();
+  expect((await menu.boundingBox())?.width).toBeLessThan(100);
+  await page.getByRole("button", { name: "Mostrar menu" }).click();
+  await expect.poll(async () => (await menu.getByText("Entregas e frete").boundingBox())?.width).toBeGreaterThan(50);
+  expect((await context.cookies()).find((c) => c.name === "painel_menu")?.value).toBe("aberto");
+});
