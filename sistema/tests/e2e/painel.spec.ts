@@ -440,6 +440,83 @@ test("WhatsApp: avisos para a equipe no WhatsApp pessoal", async ({ page, contex
   expect(enviados.at(-1)!.corpo).toEqual({ telefone: null });
 });
 
+// Atendimento automático (0540) com a api-admin simulada: prévia do menu, resposta nova com as
+// palavras normalizadas, validação, ordem, desligar e a pausa.
+test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({ page, context }) => {
+  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+  const ids = ["a1111111-1111-4111-8111-111111111111", "a2222222-2222-4222-8222-222222222222", "a3333333-3333-4333-8333-333333333333"];
+  let lista = {
+    pausaHoras: 4,
+    respostas: [
+      { id: ids[0], acao: "TEXTO", titulo: "Entrega e frete", palavras: ["frete", "motoboy"], texto: "Retirada, motoboy ou envio.", ativa: true },
+      { id: ids[1], acao: "MINHA_RESERVA", titulo: "Minha reserva", palavras: [], texto: null, ativa: true },
+      { id: ids[2], acao: "EQUIPE", titulo: "Falar com a equipe", palavras: ["atendente"], texto: "Pronto! Já avisamos a equipe.", ativa: true },
+    ] as { id: string; acao: string; titulo: string; palavras: string[]; texto: string | null; ativa: boolean }[],
+  };
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+    "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
+      fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
+    "v1/admin/whatsapp/avisos": { telefone: null, avisos: [] },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho.startsWith("v1/admin/whatsapp/respostas")) {
+      const corpo = r.postData() ? r.postDataJSON() : null;
+      if (r.method() !== "GET") enviados.push({ metodo: r.method(), caminho, corpo });
+      const id = caminho.split("/").at(-1)!;
+      if (r.method() === "POST") lista.respostas.push({ id: "a4444444-4444-4444-8444-444444444444", acao: "TEXTO", texto: null, ativa: true, ...corpo });
+      else if (caminho.endsWith("/ordem")) lista.respostas = corpo.ids.map((i: string) => lista.respostas.find((x) => x.id === i)!);
+      else if (caminho.endsWith("/pausa")) lista = { ...lista, pausaHoras: corpo.pausaHoras };
+      else if (r.method() === "PUT") lista.respostas = lista.respostas.map((x) => (x.id === id ? { ...x, ...corpo } : x));
+      return rota.fulfill({ status: r.method() === "POST" ? 201 : 200, json: lista });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/whatsapp`);
+  const card = page.getByRole("region", { name: "Atendimento automático" });
+  await expect(card.locator(".previa-menu")).toHaveText("Como posso te ajudar? É só responder com o número:\n*1* · Entrega e frete\n*2* · Minha reserva\n*3* · Falar com a equipe");
+
+  // Nova resposta: palavra curta não passa; depois, palavras sem acento e sem repetir
+  await card.getByRole("button", { name: "Nova resposta" }).click();
+  const nova = card.getByRole("form", { name: "Nova resposta" });
+  await nova.getByLabel("Nome no menu").fill("Pagamento");
+  await nova.getByLabel("Palavras que disparam a resposta").fill("PIX, x");
+  await nova.getByLabel("Texto da resposta").fill("PIX ou cartão, pelo site.");
+  await nova.getByRole("button", { name: "Criar resposta" }).click();
+  await expect(nova.getByText(/“x” não serve/)).toBeVisible();
+  await nova.getByLabel("Palavras que disparam a resposta").fill("PIX, Cartão de crédito, pix");
+  await nova.getByRole("button", { name: "Criar resposta" }).click();
+  await expect(card.locator(".previa-menu")).toContainText("*4* · Pagamento");
+  expect(enviados.at(-1)).toEqual({ metodo: "POST", caminho: "v1/admin/whatsapp/respostas",
+    corpo: { titulo: "Pagamento", palavras: ["pix", "cartao de credito"], texto: "PIX ou cartão, pelo site.", ativa: true } });
+
+  // A equipe sobe para o primeiro lugar
+  await card.getByRole("button", { name: "Subir “Falar com a equipe”" }).click();
+  await expect(card.locator(".previa-menu")).toContainText("*2* · Falar com a equipe\n*3* · Minha reserva");
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/respostas/ordem", corpo: { ids: [ids[0], ids[2], ids[1], "a4444444-4444-4444-8444-444444444444"] } });
+
+  // Minha reserva desligada sai do menu; não tem texto para editar
+  await card.getByRole("button", { name: "Editar “Minha reserva”" }).click();
+  const minha = card.getByRole("form", { name: "Editar “Minha reserva”" });
+  await expect(minha.getByLabel("Texto da resposta")).toHaveCount(0);
+  await minha.getByRole("checkbox", { name: "Ativa no menu" }).click();
+  await minha.getByRole("button", { name: "Salvar" }).click();
+  await expect(card.locator(".previa-menu")).not.toContainText("Minha reserva");
+  await expect(card.getByText("Desligada")).toBeVisible();
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: `v1/admin/whatsapp/respostas/${ids[1]}`, corpo: { titulo: "Minha reserva", palavras: [], ativa: false } });
+
+  await card.getByLabel(/Horas de silêncio/).fill("6");
+  await card.getByRole("button", { name: "Salvar pausa" }).click();
+  await expect(card).toContainText("por 6 horas");
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+});
+
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.
 test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page, context }) => {
   const dias = (n: number) => Array.from({ length: n }, (_, i) => ({ dia: `2026-09-${String(i + 1).padStart(2, "0")}`, visitas: i * 3, visitantes: i }));

@@ -170,12 +170,12 @@ describe("o que a loja manda", () => {
       ],
     });
     expect(texto).toBe(
-      "Estas são suas reservas recentes:\n\n• #1049 · reservada até *14:32* · 3 peças · R$ 119,99\n• #1048 · paga · pronta para retirada\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app",
+      "Achei! Estas são suas reservas recentes:\n\n• #1049 · reservada até *14:32* · 3 peças · R$ 119,99\n• #1048 · paga · pronta para retirada\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELAMENTO_APROVADO", totalCentavos: 4999 }] }))
-      .toBe("Esta é sua reserva recente:\n\n• #1047 · encerrada (cancelamento aprovado)\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app");
+      .toBe("Achei! Esta é sua reserva recente:\n\n• #1047 · encerrada (cancelamento aprovado)\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app");
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe(
-      "Não encontramos reservas recentes neste número.\n\nPara escolher suas peças ou fazer uma nova reserva:\ntshirtclub.vercel.app",
+      "Procurei aqui e não achei reservas recentes neste número. 🤔\n\nPara escolher suas peças ou fazer uma nova reserva:\ntshirtclub.vercel.app",
     );
   });
 
@@ -191,7 +191,7 @@ describe("o que a loja manda", () => {
         quantidadeTotal: 100, quantidadeUsada: 0, limitePorCliente: 1, validadeDias: 30 },
     ];
     expect(mensagemWhatsApp("ofertas", { promocoes })).toBe(
-      "Ofertas de hoje na T-shirt Club ✦\n\n" +
+      "Separei as ofertas de hoje para você ✦\n\n" +
         "• *Club*: 3 peças por R$ 119,99\n" +
         "• *Leve mais*: 2 peças com 10% de desconto · 4 peças com 20% de desconto em peças selecionadas\n" +
         "• *Queima*: até 30% de desconto em peças selecionadas\n" +
@@ -201,7 +201,7 @@ describe("o que a loja manda", () => {
         "Para ver as peças e reservar:\ntshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("ofertas", { promocoes: promocoes.slice(0, 1) })).not.toContain("não se somam");
-    expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("No momento não temos ofertas ativas.\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app");
+    expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("Hoje não tem oferta ativa, mas as peças estão te esperando. 💖\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app");
   });
 
   it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {
@@ -213,7 +213,7 @@ describe("o que a loja manda", () => {
 
   it("resposta automática a mensagem comum: o endereço da loja e a equipe, e dá para desligar no painel", () => {
     expect(mensagemWhatsApp("boas_vindas", {})).toBe(
-      "Oi! 💖 Aqui é a T-shirt Club.\n\nPara ver as peças, reservar ou acompanhar seus pedidos:\ntshirtclub.vercel.app\n\nSe precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.",
+      "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\nPara ver as peças, reservar ou acompanhar seus pedidos:\ntshirtclub.vercel.app\n\nPrecisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.",
     );
     expect(NOTIFICACOES.find((n) => n.id === "boas_vindas")).toMatchObject({ essencial: false, modelos: ["boas_vindas"] });
   });
@@ -221,9 +221,10 @@ describe("o que a loja manda", () => {
   it("resposta sobre trocas: a política de 7 dias, o arrependimento, como pedir e o link", () => {
     expect(DIAS_TROCA).toBe(7);
     expect(mensagemWhatsApp("trocas", {})).toBe(
-      "Trocas na T-shirt Club: você tem até *7 dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.\n\n" +
+      "Sobre trocas, eu te explico! 💖\n\n" +
+        "Você tem até *7 dias* depois de receber ou retirar o pedido, com a peça sem uso e com a etiqueta.\n\n" +
         "Comprou pelo site e desistiu? Nos mesmos 7 dias você devolve e recebe o valor de volta.\n\n" +
-        "Para pedir, responda aqui com o número da reserva e o que quer trocar. Nossa equipe responde assim que puder.\n\n" +
+        "Para pedir, responda aqui com o número da reserva e o que quer trocar. A equipe te responde assim que puder.\n\n" +
         "A política completa:\ntshirtclub.vercel.app/trocas",
     );
     expect(NOTIFICACOES.find((n) => n.id === "trocas")).toMatchObject({ essencial: false, modelos: ["trocas"] });
@@ -278,6 +279,7 @@ describe("avisos para a equipe (0510)", () => {
       pagamento_analise: { tipo: "pagamento_analise", numero: 1, motivo: "VALOR_DIVERGENTE" },
       contestacao: { tipo: "contestacao", numero: 1, motivo: "CONTESTACAO" },
       troca: { tipo: "troca" },
+      atendimento: { tipo: "atendimento", final: "8809", nome: null },
       sistema: { tipo: "sistema", mensagem: "Pagamentos sem confirmação há 30 minutos" },
     };
     for (const a of AVISOS_LOJA) {

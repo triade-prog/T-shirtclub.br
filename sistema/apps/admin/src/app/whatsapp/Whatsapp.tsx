@@ -8,12 +8,13 @@ import { Aviso, Botao, Campo, Carregando, Marcar, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 import { useRepetir } from "../_painel/useRepetir";
+import { AtendimentoAutomatico } from "./Respostas";
 
 // WhatsApp (tela 18 do protótipo; sem referência V4, no estilo do painel V4): conexão do
 // número da loja (ferramenta no formato da Z-API: Z-API ou Wafly) com o QR code para
 // reconectar, fila, ritmo, modo lançamento, notificações que a loja liga e desliga,
-// mensagem de teste e os avisos da loja para o WhatsApp da equipe (0510). Tudo vai para a
-// auditoria.
+// mensagem de teste, os avisos da loja para o WhatsApp da equipe (0510) e o atendimento
+// automático: menu, respostas rápidas e pausa (0540). Tudo vai para a auditoria.
 
 interface Ritmo { intervaloMinS: number; intervaloMaxS: number; tetoHora: number }
 interface Config {
@@ -28,11 +29,12 @@ export function Whatsapp() {
   const aoSalvar = () => void recarregar();
 
   return (
-    <Casca kicker="MENSAGENS" titulo="WhatsApp" sub="Conexão do número da loja com o sistema, fila de envio e quais notificações a cliente recebe.">
+    <Casca kicker="MENSAGENS" titulo="WhatsApp" sub="Conexão do número da loja com o sistema, atendimento automático, fila de envio e quais notificações a cliente recebe.">
       {!c ? <Carregando erro={erro} /> : (
         <div className="grid split">
           <div className="stack">
             <Conexao conectado={c.conectado} aoConectar={() => void recarregar()} />
+            <AtendimentoAutomatico />
             <FormRitmo config={c} aoSalvar={aoSalvar} />
             <Notificacoes config={c} aoSalvar={aoSalvar} />
           </div>

@@ -6,7 +6,21 @@ import { criarWebhookWhatsApp } from "./app.ts";
 const SEGREDO = "s".repeat(40);
 const AGORA = new Date("2026-10-10T12:00:00Z");
 
-function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: unknown[]; limite?: boolean; boasVindas?: boolean; ofertas?: unknown[]; trocas?: boolean } = {}) {
+interface Opcoes {
+  resultado?: unknown;
+  consulta?: unknown;
+  reservas?: unknown[];
+  limite?: boolean;
+  boasVindas?: boolean;
+  ofertas?: unknown[];
+  trocas?: boolean;
+  /** inbound_context (0540): sem respostas, o robô age como antes. */
+  contexto?: Record<string, unknown>;
+  /** inbound_answer: o banco libera a resposta. */
+  liberada?: boolean;
+}
+
+function montar(opcoes: Opcoes = {}) {
   const rpcs: { funcao: string; args: Record<string, unknown> }[] = [];
   const vistas = new Set<string>();
   const banco: Banco = {
@@ -31,6 +45,10 @@ function montar(opcoes: { resultado?: unknown; consulta?: unknown; reservas?: un
             return opcoes.trocas ?? false;
           case "whatsapp_offers":
             return opcoes.ofertas ?? [];
+          case "inbound_context":
+            return { ligadas: true, pausada: false, menuRecente: false, endereco: null, horario: null, respostas: [], ...opcoes.contexto };
+          case "inbound_answer":
+            return opcoes.liberada ?? true;
           default:
             return null;
         }
@@ -71,7 +89,7 @@ Deno.test("corpo acima de 256 KB: 413 sem ler nem registrar; aviso desconhecido 
 
 Deno.test("descarta da loja, de grupo, de status/canal e antigas (G4)", async () => {
   const { enviar, rpcs } = montar();
-  assertEquals((await enviar(msg({ fromMe: true }))).tratamento, "DA_LOJA");
+  assertEquals((await enviar(msg({ fromMe: true, fromApi: true }))).tratamento, "DA_LOJA");
   assertEquals((await enviar(msg({ isGroup: true }))).tratamento, "IGNORADA");
   assertEquals((await enviar(msg({ isNewsletter: true }))).tratamento, "IGNORADA");
   assertEquals((await enviar(msg({ broadcast: true }))).tratamento, "IGNORADA");
@@ -141,11 +159,11 @@ Deno.test("ofertas: responde com as promoções vigentes do banco, pulando o que
   assertEquals((await enviar(msg({ text: { message: "Promoções?" } }))).tratamento, "OFERTAS");
   assertEquals(rpcs.some((x) => x.funcao === "inbound_welcome"), false, "não conta como mensagem comum");
   assertEquals(whatsapp.enviadas.length, 1);
-  assertMatch(whatsapp.enviadas[0]!.texto, /^Ofertas de hoje na T-shirt Club ✦\n\n• \*Club\*: 3 peças por R\$ 119,99\n\n/);
+  assertMatch(whatsapp.enviadas[0]!.texto, /^Separei as ofertas de hoje para você ✦\n\n• \*Club\*: 3 peças por R\$ 119,99\n\n/);
 
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "oferta" } }));
-  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^No momento não temos ofertas ativas\./);
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Hoje não tem oferta ativa/);
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid", text: { message: "ofertas" } }))).tratamento, "SEM_NUMERO");
 });
 
@@ -207,9 +225,114 @@ Deno.test("minha reserva: sem o nono dígito, acha as reservas e responde no nú
   assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
   assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+5577998128809"]);
   assertEquals(whatsapp.enviadas.map((m) => [m.telefone, m.texto]), [
-    ["+5577998128809", "Esta é sua reserva recente:\n\n• #1049 · reservada até *09:15* · 1 peça · R$ 49,99\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app"],
+    ["+5577998128809", "Achei! Esta é sua reserva recente:\n\n• #1049 · reservada até *09:15* · 1 peça · R$ 49,99\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app"],
   ], "vai para o número da reserva, sem o telefone no texto");
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "status" } }));
-  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Não encontramos reservas recentes neste número/);
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Procurei aqui e não achei reservas recentes/);
+});
+
+// ─── Atendimento automático (0540) ──────────────────────────────────────────────────
+
+const RESPOSTAS = [
+  { id: "r1", numero: 1, acao: "TEXTO", titulo: "Ver as peças", palavras: ["catalogo"], texto: "As peças estão em {site}" },
+  { id: "r2", numero: 2, acao: "TEXTO", titulo: "Entrega e frete", palavras: ["frete", "motoboy"], texto: "Retirada, motoboy ou envio." },
+  { id: "r3", numero: 3, acao: "TEXTO", titulo: "Horário e endereço", palavras: ["onde fica"], texto: "📍 {endereco}\n🕒 {horario}" },
+  { id: "r4", numero: 4, acao: "OFERTAS", titulo: "Ofertas", palavras: ["cupom"], texto: null },
+  { id: "r5", numero: 5, acao: "TROCAS", titulo: "Trocas", palavras: [], texto: null },
+  { id: "r6", numero: 6, acao: "EQUIPE", titulo: "Falar com a equipe", palavras: ["atendente"], texto: "Pronto! Já avisamos a equipe." },
+];
+const texto = (m: string) => msg({ text: { message: m } });
+const respondida = (rpcs: { funcao: string; args: Record<string, unknown> }[]) => rpcs.find((r) => r.funcao === "inbound_answer")?.args;
+
+Deno.test("menu: boas-vindas com as opções; o número escolhido depois responde, sempre", async () => {
+  const primeira = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS } });
+  assertEquals((await primeira.enviar(texto("Oi"))).tratamento, "BOAS_VINDAS");
+  assertMatch(primeira.whatsapp.enviadas[0]!.texto, /^Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\n.*É só responder com o número:\n\*1\* · Ver as peças\n\*2\* · Entrega e frete\n.*\n\*6\* · Falar com a equipe$/s);
+  assertEquals(primeira.rpcs.find((r) => r.funcao === "inbound_reply_sent")!.args, { p_wa_message_id: "m1", p_reply_id: "falso-1" },
+    "o id da resposta fica guardado: quando ela volta como da loja, não é a equipe");
+
+  const escolha = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  assertEquals((await escolha.enviar(texto("2"))).tratamento, "RESPOSTA");
+  assertEquals(respondida(escolha.rpcs), { p_wa_message_id: "m1", p_handled_as: "RESPOSTA", p_quick_reply: "r2", p_explicit: true });
+  assertEquals(escolha.whatsapp.enviadas[0]!.texto, "Retirada, motoboy ou envio.\n\nQuer ver as outras opções? É só mandar *menu* ✦");
+
+  // Sem o menu recente, "2" é mensagem comum
+  const semMenu = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS } });
+  assertEquals((await semMenu.enviar(texto("2"))).tratamento, "BOAS_VINDAS");
+  assertEquals(respondida(semMenu.rpcs), undefined);
+});
+
+Deno.test("menu: \"menu\" a qualquer hora, mesmo com a equipe na conversa", async () => {
+  const { enviar, rpcs, whatsapp } = montar({ contexto: { respostas: RESPOSTAS, pausada: true } });
+  assertEquals((await enviar(texto("Menu"))).tratamento, "MENU");
+  assertEquals(respondida(rpcs), { p_wa_message_id: "m1", p_handled_as: "MENU", p_quick_reply: null, p_explicit: true });
+  assertMatch(whatsapp.enviadas[0]!.texto, /^Como posso te ajudar\? É só responder com o número:\n\*1\* · Ver as peças/);
+  // Sem respostas ligadas, "menu" é mensagem comum
+  assertEquals((await montar({ contexto: { respostas: RESPOSTAS, ligadas: false } }).enviar(texto("menu"))).tratamento, "CONVERSA");
+});
+
+Deno.test("palavra: a resposta da primeira palavra achada, uma vez; preenche site, endereço e horário", async () => {
+  const frete = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await frete.enviar(texto("Boa tarde! Qual o valor do frete pra Caetité?"))).tratamento, "RESPOSTA");
+  assertEquals(respondida(frete.rpcs)!.p_explicit, false);
+  assertEquals(respondida(frete.rpcs)!.p_quick_reply, "r2");
+
+  const repetida = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS }, liberada: false });
+  assertEquals((await repetida.enviar(texto("e o frete?"))).tratamento, "CONVERSA", "repetida: fica para a equipe, sem boas-vindas");
+  assertEquals(repetida.whatsapp.enviadas.length, 0);
+  assertEquals(repetida.rpcs.some((r) => r.funcao === "inbound_welcome"), false);
+
+  const loja = montar({ contexto: { respostas: RESPOSTAS, endereco: "R. Sátiro Santos, 38", horario: "Seg a sáb, 9h às 18h" } });
+  await loja.enviar(texto("onde fica a loja?"));
+  assertMatch(loja.whatsapp.enviadas[0]!.texto, /^📍 R\. Sátiro Santos, 38\n🕒 Seg a sáb, 9h às 18h\n\n/);
+  const site = montar({ contexto: { respostas: RESPOSTAS } });
+  await site.enviar(texto("tem catálogo?"));
+  assertMatch(site.whatsapp.enviadas[0]!.texto, /^As peças estão em tshirtclub\.vercel\.app/);
+
+  // Ofertas por palavra: as promoções, sem repetir à toa
+  const cupom = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await cupom.enviar(texto("tem cupom?"))).tratamento, "OFERTAS");
+  assertEquals(respondida(cupom.rpcs), { p_wa_message_id: "m1", p_handled_as: "RESPOSTA", p_quick_reply: "r4", p_explicit: false });
+  // Troca continua com as palavras e a regra dela, antes das respostas
+  const troca = montar({ trocas: true, contexto: { respostas: RESPOSTAS } });
+  assertEquals((await troca.enviar(texto("quero trocar o frete"))).tratamento, "TROCAS");
+  assertEquals(troca.rpcs.some((r) => r.funcao === "inbound_answer"), false);
+});
+
+Deno.test("equipe: avisa pelo banco e responde com o texto do painel; trocas pelo menu sempre sai", async () => {
+  const equipe = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await equipe.enviar(texto("quero falar com um atendente"))).tratamento, "EQUIPE");
+  assertEquals(respondida(equipe.rpcs), { p_wa_message_id: "m1", p_handled_as: "EQUIPE", p_quick_reply: "r6", p_explicit: false });
+  assertEquals(equipe.whatsapp.enviadas[0]!.texto, "Pronto! Já avisamos a equipe.");
+
+  const trocas = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  assertEquals((await trocas.enviar(texto("5️⃣"))).tratamento, "TROCAS");
+  assertEquals(respondida(trocas.rpcs)!.p_handled_as, "TROCAS");
+  assertEquals(trocas.rpcs.some((r) => r.funcao === "inbound_exchange"), false, "escolhida no menu, sem o limite de 24 h");
+  assertMatch(trocas.whatsapp.enviadas[0]!.texto, /até \*7 dias\*/);
+});
+
+Deno.test("pausa: com a equipe na conversa, o robô fica quieto, menos o código", async () => {
+  const quieto = montar({ boasVindas: true, trocas: true, contexto: { respostas: RESPOSTAS, pausada: true, menuRecente: true } });
+  for (const [i, m] of ["2", "qual o frete?", "quero trocar", "Oi"].entries()) {
+    assertEquals((await quieto.enviar(msg({ messageId: `p${i}`, text: { message: m } }))).tratamento, "CONVERSA");
+  }
+  assertEquals(quieto.whatsapp.enviadas.length, 0);
+  assertEquals((await quieto.enviar(msg({ messageId: "p9" }))).tratamento, "CODIGO_ENVIADO");
+
+  // A equipe respondeu pelo celular: só o id e a conversa vão para o banco
+  const loja = montar();
+  assertEquals((await loja.enviar(msg({ messageId: "e1", fromMe: true, text: { message: "Oi Ana, temos sim!" } }))).tratamento, "DA_LOJA");
+  assertEquals(loja.rpcs, [{ funcao: "inbound_from_store", args: { p_wa_message_id: "e1", p_chat: "5577998128809" } }]);
+  assertEquals((await loja.enviar(msg({ messageId: "e2", fromMe: true, momment: AGORA.getTime() - 11 * 60_000 }))).tratamento, "DA_LOJA");
+  assertEquals((await loja.enviar(msg({ messageId: "e3", fromMe: true, phone: "123456789012345@lid" }))).tratamento, "DA_LOJA");
+  assertEquals(loja.rpcs.length, 1, "antiga ou sem número: nada");
+});
+
+Deno.test("respostas desligadas: sem menu nas boas-vindas e sem resposta por palavra", async () => {
+  const { enviar, whatsapp, rpcs } = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS, ligadas: false } });
+  assertEquals((await enviar(texto("qual o frete?"))).tratamento, "BOAS_VINDAS");
+  assertEquals(rpcs.some((r) => r.funcao === "inbound_answer"), false);
+  assertMatch(whatsapp.enviadas[0]!.texto, /a equipe te responde assim que puder\.$/);
 });

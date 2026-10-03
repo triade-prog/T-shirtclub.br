@@ -86,6 +86,16 @@ Os avisos (nova reserva, pagamento, lista VIP...) saem pela mesma fila do WhatsA
 3. O número dos avisos precisa ser diferente do WhatsApp da loja: o WhatsApp não entrega mensagem para o próprio número.
 4. Um aviso que espera mais de 12 horas na fila é descartado. O painel continua mostrando tudo.
 
+## O robô do WhatsApp não responde (ou responde quando não devia)
+
+O atendimento automático (menu, respostas rápidas e "falar com a equipe") responde às clientes no WhatsApp da loja.
+
+1. No painel, abra WhatsApp. Confira se o número está conectado e se "Respostas rápidas e menu" está ligada nas notificações.
+2. Em Atendimento automático, confira se a resposta está ativa e se a palavra está escrita como a cliente escreve (a palavra precisa aparecer inteira: "frete" não acha "fretes").
+3. A mesma resposta, disparada por palavra, sai no máximo 1 vez a cada 12 horas para a mesma pessoa. Pelo número do menu, sai sempre.
+4. Depois que alguém da equipe responde pelo celular da loja, o robô fica quieto naquela conversa pelas horas da pausa (4, mudam no painel). Se a cliente mandar "menu", ele volta.
+5. Se o robô interrompe a conversa mesmo com a equipe respondendo, a ferramenta pode não estar mandando ao sistema as mensagens enviadas pelo celular. Nesse caso, peça para a cliente escolher "Falar com a equipe", que pausa o robô do mesmo jeito.
+
 ## Mercado Pago fora do ar
 
 **Como você percebe:** clientes não conseguem gerar PIX ou pagar com cartão ("Sem conexão com a loja
