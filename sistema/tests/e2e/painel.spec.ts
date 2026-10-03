@@ -590,6 +590,7 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
     { modalidade: "ENVIO", substatus: "FRETE_VENCIDO", frete: { valorCentavos: 2500, pagarAte: "2026-10-10T15:00:00Z" }, endereco: { rua: "Rua B", numero: "5", bairro: "Centro", cidade: "Guanambi", uf: "BA" },
       reserva: reserva(1003, "Carla", "e3333333-3333-4333-8333-333333333333") },
     { modalidade: "ENVIO", substatus: "ENVIADO", rastreio: "QB123456789BR", reserva: reserva(1004, "Duda", "e4444444-4444-4444-8444-444444444444") },
+    { modalidade: "MOTOBOY", substatus: "SAIU_PARA_ENTREGA", reserva: { ...reserva(1005, "Eva", "e5555555-5555-4555-8555-555555555555"), status: "ENTREGUE", entregueEm: "2026-10-10T18:00:00Z" } },
   ] as Record<string, unknown>[];
   const respostas: Record<string, unknown> = {
     "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 1, vencidos: 1 }, emPreparacao: 1, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
@@ -602,6 +603,7 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
     if (r.method() !== "GET") {
       const corpo = r.postData() ? r.postDataJSON() : null;
       enviados.push({ metodo: r.method(), caminho, corpo });
+      if (caminho.endsWith("/deliver")) lista = lista.map((f) => ((f.reserva as { id: string }).id === caminho.split("/")[3] ? { ...f, reserva: { ...(f.reserva as object), status: "ENTREGUE", entregueEm: "2026-10-10T19:00:00Z" } } : f));
       if (caminho.endsWith("/fulfillment/substatus")) lista = lista.map((f) => ((f.reserva as { id: string }).id === caminho.split("/")[3] ? { ...f, substatus: corpo.substatus } : f));
       return rota.fulfill({ json: { ok: true } });
     }
@@ -616,6 +618,10 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await expect(coluna("Em preparação")).toContainText("29LFET");
   await expect(coluna("A caminho")).toContainText("QB123456789BR");
   await expect(coluna("Escolha da entrega")).toContainText("Nada por aqui agora.");
+  // Entregue: na última coluna, sem botões, e fora de "A caminho"
+  await expect(coluna("A caminho").getByRole("article")).toHaveCount(1);
+  await expect(coluna("Entregue").getByRole("article", { name: "#1005" })).toContainText("Entregue");
+  await expect(coluna("Entregue").getByRole("button")).toHaveCount(0);
 
   // Filtro e busca
   await page.getByRole("button", { name: "Envio", exact: true }).click();
@@ -635,6 +641,14 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await page.getByRole("article", { name: "#1001" }).getByRole("button", { name: /Marcar: Pronto para retirada/ }).click();
   await expect(coluna("Pronto para retirada").getByRole("article", { name: "#1001" })).toBeVisible();
   expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/reservations/e1111111-1111-4111-8111-111111111111/fulfillment/substatus", corpo: { substatus: "PRONTO_PARA_RETIRADA" } });
+
+  // Marcar como entregue leva o pedido para a coluna Entregue, o mais recente primeiro
+  const duda = page.getByRole("article", { name: "#1004" });
+  await duda.getByRole("button", { name: "Marcar como entregue" }).click();
+  await duda.getByRole("button", { name: "Confirmar entrega" }).click();
+  await expect(coluna("Entregue").getByRole("article")).toHaveCount(2);
+  await expect(coluna("Entregue").getByRole("article").first()).toHaveAccessibleName("#1004");
+  await expect(coluna("A caminho")).toContainText("Nada por aqui agora.");
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);

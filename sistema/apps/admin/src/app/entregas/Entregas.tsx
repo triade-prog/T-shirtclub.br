@@ -16,16 +16,17 @@ import { useRepetir } from "../_painel/useRepetir";
 // coluna por etapa, da escolha da entrega até o pedido a caminho. Sem arrastar: cada etapa tem
 // regra própria (o frete precisa do valor, o envio do rastreio, a entrega da confirmação), então
 // o pedido anda de coluna pelo botão do cartão. Busca, filtro por modalidade e atualização a
-// cada 30 segundos. ?substatus= (vindo da Operação) rola até a coluna da etapa.
+// cada 30 segundos. ?substatus= (vindo da Operação) rola até a coluna da etapa. A coluna Entregue
+// (0560) mostra os pedidos entregues nos últimos 7 dias, os mais recentes primeiro.
 
 interface Item {
   modalidade?: string; substatus: string; endereco?: Record<string, string>; codigoRetirada?: string; rastreio?: string;
   frete?: { valorCentavos: number; pagarAte?: string; pagoEm?: string };
-  reserva: { id: string; numero: number; nome: string; telefone: string; totalCentavos: number; pagaEm: string };
+  reserva: { id: string; numero: number; status?: string; nome: string; telefone: string; totalCentavos: number; pagaEm: string; entregueEm?: string | null };
   disputaAberta?: boolean;
 }
 
-type Coluna = "ESCOLHA" | "FRETE" | "PAGAR" | "PREPARO" | "RETIRADA" | "CAMINHO";
+type Coluna = "ESCOLHA" | "FRETE" | "PAGAR" | "PREPARO" | "RETIRADA" | "CAMINHO" | "ENTREGUE";
 const COLUNAS: { id: Coluna; kicker: string; titulo: string; nota: string; etapas: string[] }[] = [
   { id: "ESCOLHA", kicker: "1 · Cliente", titulo: "Escolha da entrega", nota: "Pago, falta a cliente escolher no site como recebe.", etapas: ["AGUARDANDO_MODALIDADE"] },
   { id: "FRETE", kicker: "2 · Loja", titulo: "Calcular o frete", nota: "Informe o valor: a cliente recebe no WhatsApp e tem 2 horas para pagar.", etapas: ["AGUARDANDO_CALCULO_FRETE", "FRETE_VENCIDO"] },
@@ -33,8 +34,12 @@ const COLUNAS: { id: Coluna; kicker: string; titulo: string; nota: string; etapa
   { id: "PREPARO", kicker: "4 · Loja", titulo: "Em preparação", nota: "Separe as peças e marque o próximo passo: a cliente é avisada.", etapas: ["EM_PREPARACAO"] },
   { id: "RETIRADA", kicker: "5 · Retirada", titulo: "Pronto para retirada", nota: "Esperando a cliente buscar com o código.", etapas: ["PRONTO_PARA_RETIRADA"] },
   { id: "CAMINHO", kicker: "5 · Entrega", titulo: "A caminho", nota: "Com o motoboy ou enviado. Marque como entregue ao concluir.", etapas: ["SAIU_PARA_ENTREGA", "ENVIADO"] },
+  { id: "ENTREGUE", kicker: "6 · Concluído", titulo: "Entregue", nota: "Entregues nos últimos 7 dias. Os mais antigos ficam na tela da reserva.", etapas: [] },
 ];
 const colunaDa = (substatus: string) => COLUNAS.find((c) => c.etapas.includes(substatus))?.id;
+const foiEntregue = (f: Item) => !!f.reserva.entregueEm;
+const naColuna = (f: Item, col: (typeof COLUNAS)[number]) => (col.id === "ENTREGUE" ? foiEntregue(f) : !foiEntregue(f) && col.etapas.includes(f.substatus));
+const maisRecente = (a: Item, b: Item) => (b.reserva.entregueEm ?? "").localeCompare(a.reserva.entregueEm ?? "");
 
 type Filtro = "TODAS" | "RETIRADA" | "MOTOBOY" | "ENVIO";
 const FILTROS: { id: Filtro; texto: string }[] = [
@@ -89,7 +94,8 @@ export function Entregas() {
           <div className="board-wrap" tabIndex={0} role="region" aria-label="Quadro das entregas: role para os lados para ver todas as colunas">
             <div className="kanban entregas">
               {COLUNAS.map((col) => {
-                const todos = dados.filter((f) => col.etapas.includes(f.substatus));
+                const todos = dados.filter((f) => naColuna(f, col));
+                if (col.id === "ENTREGUE") todos.sort(maisRecente);
                 const cartoes = todos.filter((f) => passa(f, filtro, busca));
                 return (
                   <section key={col.id} className={`lane${alvo === col.id ? " destaque" : ""}`} data-lane={col.id} aria-labelledby={`coluna-${col.id}`}>
@@ -110,7 +116,7 @@ export function Entregas() {
 
           <div className="kanban-footnote">
             <span className="star-mark" aria-hidden="true">✦</span>
-            <p><strong>Kanban das entregas, sem arrastar cartões.</strong> Cada etapa tem uma regra (o frete precisa do valor, o envio do rastreio, a entrega da confirmação): o pedido muda de coluna pelo botão do cartão, a cliente recebe o aviso no WhatsApp e o quadro se atualiza sozinho a cada 30 segundos. Entregue, o pedido sai do quadro e fica na reserva.</p>
+            <p><strong>Kanban das entregas, sem arrastar cartões.</strong> Cada etapa tem uma regra (o frete precisa do valor, o envio do rastreio, a entrega da confirmação): o pedido muda de coluna pelo botão do cartão, a cliente recebe o aviso no WhatsApp e o quadro se atualiza sozinho a cada 30 segundos. Entregue, o pedido vai para a última coluna e fica lá por 7 dias.</p>
           </div>
         </>
       )}
@@ -120,17 +126,19 @@ export function Entregas() {
 
 function CartaoEntrega({ f, aoMudar }: { f: Item; aoMudar: () => void }) {
   const [calculando, setCalculando] = useState(false);
-  const vencido = f.substatus === "FRETE_VENCIDO";
+  const entregue = foiEntregue(f);
+  const vencido = !entregue && f.substatus === "FRETE_VENCIDO";
   const calcular = f.substatus === "AGUARDANDO_CALCULO_FRETE" || vencido;
-  const urgente = calcular || !!f.disputaAberta;
+  const urgente = calcular || (!entregue && !!f.disputaAberta);
   const id = `cartao-${f.reserva.id}`;
 
   let tempo = `pago ${dataHora(f.reserva.pagaEm)}`;
   if (f.substatus === "AGUARDANDO_PAGAMENTO_FRETE" && f.frete?.pagarAte) tempo = `frete até ${horario(f.frete.pagarAte)}`;
   if (vencido) tempo = f.frete?.pagarAte ? `venceu ${horario(f.frete.pagarAte)}` : "frete vencido";
+  if (entregue && f.reserva.entregueEm) tempo = `entregue ${dataHora(f.reserva.entregueEm)}`;
 
   return (
-    <article className={`k-card${urgente ? " urgent" : ""}`} aria-labelledby={id}>
+    <article className={`k-card${urgente ? " urgent" : ""}${entregue ? " done" : ""}`} aria-labelledby={id}>
       <div className="k-card-head">
         <div>
           <h3 className="order-no" id={id}><Link href={`/reservas/${f.reserva.id}`}>#{f.reserva.numero}</Link></h3>
@@ -142,10 +150,11 @@ function CartaoEntrega({ f, aoMudar }: { f: Item; aoMudar: () => void }) {
       <div className="k-tags">
         <span className="k-tag blue">{MODALIDADE[f.modalidade ?? ""] ?? "Sem entrega escolhida"}</span>
         {vencido && <span className="k-tag yellow">Frete vencido</span>}
+        {entregue && <span className="k-tag green">Entregue</span>}
         {f.disputaAberta && <span className="k-tag pink">Contestação aberta</span>}
       </div>
 
-      {f.disputaAberta && <div className="k-alert">Contestação aberta: não entregue antes de resolver.</div>}
+      {f.disputaAberta && !entregue && <div className="k-alert">Contestação aberta: não entregue antes de resolver.</div>}
 
       <dl className="k-meta">
         <dt>Total</dt><dd>{formatarReais(f.reserva.totalCentavos)}</dd>
@@ -159,7 +168,7 @@ function CartaoEntrega({ f, aoMudar }: { f: Item; aoMudar: () => void }) {
       {calcular && (calculando
         ? <FormFrete reservaId={f.reserva.id} aoSalvar={aoMudar} />
         : <div className="k-actions"><button type="button" className="k-btn primary" onClick={() => setCalculando(true)}>{vencido ? "Mandar novo frete" : "Calcular o frete"}</button></div>)}
-      <AcoesEntrega reservaId={f.reserva.id} modalidade={f.modalidade} substatus={f.substatus} aoMudar={aoMudar} />
+      {!entregue && <AcoesEntrega reservaId={f.reserva.id} modalidade={f.modalidade} substatus={f.substatus} aoMudar={aoMudar} />}
     </article>
   );
 }
