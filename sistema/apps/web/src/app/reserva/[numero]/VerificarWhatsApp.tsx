@@ -6,8 +6,8 @@ import { Aviso, Botao } from "@tshirtclub/ui";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
 import { CodigoWhatsApp, type ConsultaCriada } from "../../_verificacao/CodigoWhatsApp";
 
-// Pelo link da reserva, confirmar ou trocar a entrega pede o código do WhatsApp (D13):
-// cria a consulta ENTREGA (telefone da sessão do link) e segue com o código.
+// Pelo link da reserva, motoboy e envio pedem o código do WhatsApp (D13; a retirada não pede
+// desde 03/10): cria a consulta ENTREGA (telefone da sessão do link) e segue com o código.
 
 export function VerificarWhatsApp({ reservaId, aoVerificar }: { reservaId: string; aoVerificar: () => void }) {
   const [consulta, setConsulta] = useState<ConsultaCriada | null>(null);
@@ -26,7 +26,7 @@ export function VerificarWhatsApp({ reservaId, aoVerificar }: { reservaId: strin
   return (
     <div className="grid gap-4 rounded-[18px] border-2 border-tinta bg-rosa-bruma p-4">
       <p className="m-0 text-[15px]">
-        <b>Confirme que é você.</b> Você abriu a reserva pelo link; para confirmar ou trocar a entrega, peça um código pelo seu WhatsApp.
+        <b>Confirme que é você.</b> Você abriu a reserva pelo link; para receber por motoboy ou envio, que usam o seu endereço, peça um código pelo seu WhatsApp.
       </p>
       {erro && <div role="alert"><Aviso tipo="atencao" titulo={erro} /></div>}
       {consulta ? (
