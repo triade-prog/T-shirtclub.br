@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 // da F11). Dados da empresa (E6), encarregado e prazo fiscal informados pela loja em 27/09;
 // o texto final passa pela revisão jurídica antes de a P15 fechar.
 
-const ATUALIZADA_EM = "02/10/2026";
+const ATUALIZADA_EM = "03/10/2026";
 
 export default async function Privacidade() {
   // Gerada a cada pedido, como as outras: estática, sairia sem o nonce da CSP (D29)
@@ -64,6 +64,11 @@ export default async function Privacidade() {
             entregar): execução de contrato (art. 7º, V, da LGPD).
           </li>
           <li>Enviar avisos pelo WhatsApp sobre a sua reserva (código, prazo, pagamento, entrega): execução de contrato.</li>
+          <li>
+            Acompanhar pelo WhatsApp quem reservou, comprou ou pediu atendimento (as peças de uma reserva que expirou e
+            ainda estão à venda, o retorno da equipe e, dias depois da entrega, se você gostou da compra): legítimo
+            interesse (art. 7º, IX), e você pode pedir para não receber pelo WhatsApp da loja.
+          </li>
           <li>
             Prevenir fraude e abuso, como o bloqueio de telefones com expirações repetidas: legítimo interesse
             (art. 7º, IX).

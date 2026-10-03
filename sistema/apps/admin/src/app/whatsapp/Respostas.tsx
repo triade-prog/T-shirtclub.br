@@ -43,7 +43,8 @@ export function AtendimentoAutomatico() {
       <p className="field-help">
         Quem responde é a Clubinha, a assistente virtual da loja: quem escreve recebe as boas-vindas dela com este menu. A cliente responde com o número, ou escreve uma das palavras de uma resposta
         (como “frete” ou “pix”) e recebe o texto na hora. Enviando “menu”, ela vê as opções de novo. Quando vocês respondem pelo celular da loja,
-        o robô fica quieto nessa conversa por {dados.pausaHoras} {dados.pausaHoras === 1 ? "hora" : "horas"}.
+        o robô fica quieto nessa conversa por {dados.pausaHoras} {dados.pausaHoras === 1 ? "hora" : "horas"}. Se a cliente pede a equipe e ninguém
+        responde em 20 minutos (das 8h às 20h), a Clubinha avisa a cliente que vocês já respondem e o aviso chega de novo para vocês.
       </p>
 
       <h3 className="mt">Como a cliente vê o menu</h3>

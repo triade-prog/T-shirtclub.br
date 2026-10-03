@@ -95,6 +95,8 @@ O atendimento automático (menu, respostas rápidas e "falar com a equipe") resp
 3. A mesma resposta, disparada por palavra, sai no máximo 1 vez a cada 12 horas para a mesma pessoa. Pelo número do menu, sai sempre.
 4. Depois que alguém da equipe responde pelo celular da loja, o robô fica quieto naquela conversa pelas horas da pausa (4, mudam no painel). Se a cliente mandar "menu", ele volta.
 5. Se o robô interrompe a conversa mesmo com a equipe respondendo, a ferramenta pode não estar mandando ao sistema as mensagens enviadas pelo celular. Nesse caso, peça para a cliente escolher "Falar com a equipe", que pausa o robô do mesmo jeito.
+6. Acompanhamento (0550): 20 minutos depois de a cliente pedir a equipe, se ninguém respondeu pelo celular da loja, a Clubinha avisa a cliente e vocês recebem o aviso de novo ("ainda espera a equipe"), só das 8h às 20h e uma vez por pedido. Se o aviso chega mesmo com a equipe tendo respondido, é o mesmo caso do item 5. A rotina é a "atendimento-acompanhamento" do pg_cron, a cada minuto; para parar só esta mensagem, desligue "Equipe demorou a responder" nas notificações.
+7. A mensagem de reserva expirada leva as peças que ainda estão à venda, com o link. Se a expiração bloqueou o número, ela sai sem o convite. O pós-entrega sai 2 dias depois da entrega, das 8h às 20h, e se desliga em "Pós-entrega" nas notificações.
 
 ## Mercado Pago fora do ar
 

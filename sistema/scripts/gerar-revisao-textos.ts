@@ -110,7 +110,10 @@ const EXEMPLOS: Exemplo[] = [
   { modelo: "reserva_criada", titulo: "Reserva criada: 2 peças, falta 1 para o Club", p: { nome: "Ana Paula", pecas: 2, numero: 1048, totalCentavos: 9998, expiraEm: h("14:47"), link: "https://tshirtclub.vercel.app/r#…", grupo: { qtd: 3, precoCentavos: 11999 } } },
   { modelo: "reserva_criada", titulo: "Reserva criada: 3 peças (Club)", p: { nome: "Ana Paula", pecas: 3, numero: 1048, totalCentavos: 11999, expiraEm: h("14:47"), link: "https://tshirtclub.vercel.app/r#…" } },
   { modelo: "reserva_lembrete_5min", titulo: "Lembrete de 5 minutos", p: { numero: 1048, expiraEm: h("14:47"), nome: "Ana Paula", pecas: 3 } },
-  { modelo: "reserva_expirada", titulo: "Reserva expirada", p: { numero: 1048, expiradaEm: h("14:47") } },
+  { modelo: "reserva_expirada", titulo: "Reserva expirada, com as peças que ainda estão à venda (a Clubinha recupera a venda)", p: { numero: 1048, expiradaEm: h("14:47"), nome: "Ana Paula",
+    disponiveis: [{ nome: "Limone Amalfi", slug: "limone-amalfi" }, { nome: "Estate Roma (Plus)", slug: "estate-roma" }] } },
+  { modelo: "reserva_expirada", titulo: "Reserva expirada, com as peças já vendidas", p: { numero: 1048, expiradaEm: h("14:47"), nome: "Ana Paula", disponiveis: [] } },
+  { modelo: "reserva_expirada", titulo: "Reserva expirada que bloqueou o número (sem convite)", p: { numero: 1048, expiradaEm: h("14:47"), pausada: true } },
   { modelo: "pagamento_confirmado", titulo: "Pagamento confirmado", p: { nome: "Ana Paula", numero: 1048, totalCentavos: 11999, forma: "PIX", pecas: 3 } },
   { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: depois do prazo", p: { numero: 1048 } },
   { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: valor diferente", p: { numero: 1048, valorDivergente: true } },
@@ -143,8 +146,18 @@ const EXEMPLOS: Exemplo[] = [
     { numero: 4, titulo: "Pagamento" }, { numero: 5, titulo: "Horário e endereço" }, { numero: 6, titulo: "Minha reserva" },
     { numero: 7, titulo: "Ofertas e cupons" }, { numero: 8, titulo: "Trocas e devoluções" }, { numero: 9, titulo: "Falar com a equipe" },
   ] } },
+  { modelo: "boas_vindas", titulo: "Resposta automática para quem já reservou: pelo nome e com a coleção mais nova", p: { nome: "Ana Paula", novidade: { nome: "Estate Italiana", slug: "estate-italiana" },
+    opcoes: [{ numero: 1, titulo: "Ver as peças e reservar" }, { numero: 2, titulo: "Tamanhos e medidas" }, { numero: 3, titulo: "Falar com a equipe" }] } },
   { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum), com as respostas rápidas desligadas", p: {} },
   { modelo: "resposta_rapida", titulo: "Resposta rápida (o texto vem do painel, com a volta para o menu)", p: { texto: "É tudo pelo site, com o Mercado Pago:\n• *PIX*, confirmado na hora\n• *Cartão de crédito*\n\nDepois de reservar, o link para pagar chega aqui no WhatsApp ✦" } },
+  { modelo: "atendimento_lembrete", titulo: "Acompanhamento: a cliente pediu a equipe e ninguém respondeu em 20 minutos", p: { nome: "Ana Paula" } },
+  { modelo: "pos_venda", titulo: "Acompanhamento: 2 dias depois da entrega ou retirada", p: { nome: "Ana Paula", pecas: 3 } },
+  { modelo: "aviso_loja", titulo: "Aviso para a equipe: cliente quer falar com a equipe", p: { tipo: "atendimento", nome: "Ana", telefone: "+5577998128809",
+    pedido: { numero: 1048, status: "RESERVADO" }, mensagens: ["Oi, boa tarde", "Tem a Limone Capri no Plus?"] } },
+  { modelo: "aviso_loja", titulo: "Aviso para a equipe: ninguém respondeu em 20 minutos", p: { tipo: "atendimento", lembrete: true, desde: h("14:12"), nome: "Ana",
+    telefone: "+5577998128809", pedido: { numero: 1048, status: "RESERVADO" }, mensagens: ["Tem a Limone Capri no Plus?"] } },
+  { modelo: "aviso_loja", titulo: "Aviso para a equipe: cliente falou em troca", p: { tipo: "troca", nome: "Ana", telefone: "+5577998128809",
+    pedido: { numero: 1031, status: "ENTREGUE" }, mensagens: ["Quero trocar a camiseta, ficou grande"] } },
   { modelo: "mensagem_teste", titulo: "Mensagem de teste do painel", p: {} },
 ];
 
@@ -203,7 +216,9 @@ w();
 const noPainel = new Map(NOTIFICACOES.flatMap((n) => n.modelos.map((m) => [m, n] as const)));
 for (const e of EXEMPLOS) {
   const n = noPainel.get(e.modelo);
-  const selo = n ? (n.essencial ? "essencial, sempre ligada" : `a loja liga e desliga no painel ("${n.nome}")`) : "resposta da conversa";
+  const selo = e.modelo === "aviso_loja"
+    ? "vai para o WhatsApp da equipe; liga e desliga nos avisos da loja"
+    : n ? (n.essencial ? "essencial, sempre ligada" : `a loja liga e desliga no painel ("${n.nome}")`) : "resposta da conversa";
   w(`### ${e.titulo}`);
   w();
   w(`*${selo}*`);

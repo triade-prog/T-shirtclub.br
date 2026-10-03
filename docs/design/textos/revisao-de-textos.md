@@ -239,7 +239,44 @@ Se você já pagou, pode ignorar esta mensagem. 💖
 
 Revisão: ☐
 
-### Reserva expirada
+### Reserva expirada, com as peças que ainda estão à venda (a Clubinha recupera a venda)
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Aqui é a Clubinha 💖
+
+O prazo da reserva #1048 terminou às *14:47* e nenhuma cobrança foi feita.
+
+Boa notícia: essas peças ainda estão aqui pra você
+• *Limone Amalfi*
+tshirtclub.vercel.app/produto/limone-amalfi
+• *Estate Roma (Plus)*
+tshirtclub.vercel.app/produto/estate-roma
+
+Quer garantir? É só reservar de novo pelo link ✦
+
+Ficou alguma dúvida de tamanho, frete ou pagamento? Me chama aqui que eu te ajudo.
+```
+
+Revisão: ☐
+
+### Reserva expirada, com as peças já vendidas
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Aqui é a Clubinha 💖
+
+O prazo da reserva #1048 terminou às *14:47* e nenhuma cobrança foi feita.
+
+As peças dessa reserva já não estão disponíveis, mas tem mais coisa linda te esperando:
+tshirtclub.vercel.app
+```
+
+Revisão: ☐
+
+### Reserva expirada que bloqueou o número (sem convite)
 
 *essencial, sempre ligada*
 
@@ -247,9 +284,6 @@ Revisão: ☐
 O prazo da reserva #1048 terminou às *14:47* e nenhuma cobrança foi feita.
 
 As peças voltaram a ficar disponíveis no Club.
-
-Se ainda quiser, você pode reservar novamente:
-tshirtclub.vercel.app
 ```
 
 Revisão: ☐
@@ -525,6 +559,8 @@ Achei! Estas são suas reservas recentes:
 • #1031 · paga · pronta para retirada
 • #1012 · encerrada sem pagamento
 
+Suas peças estão guardadas até o horário acima. Finalize o pagamento pelo link que chegou aqui quando você reservou, pra não perder ✦
+
 Para ver todos os detalhes:
 tshirtclub.vercel.app
 ```
@@ -536,9 +572,9 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Procurei aqui e não achei reservas recentes neste número. 🤔
+Procurei aqui e ainda não achei reservas neste número 🤔
 
-Para escolher suas peças ou fazer uma nova reserva:
+Que tal escolher as suas? As peças estão aqui:
 tshirtclub.vercel.app
 ```
 
@@ -549,14 +585,14 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Separei as ofertas de hoje para você ✦
+Separei as ofertas de hoje pra você ✦
 
 • *Club*: 3 peças por R$ 119,99
 • Cupom *VIP5*: 5% de desconto
 
 Vale sempre a oferta mais vantajosa para você: os descontos não se somam.
 
-Para ver as peças e reservar:
+Bora aproveitar? Escolhe suas peças aqui:
 tshirtclub.vercel.app
 ```
 
@@ -567,9 +603,9 @@ Revisão: ☐
 *resposta da conversa*
 
 ```text
-Hoje não tem oferta ativa, mas as peças estão te esperando. 💖
+Hoje não tem promoção ativa, mas tem peça linda te esperando 💖
 
-Para ver as peças e reservar:
+Dá uma olhada:
 tshirtclub.vercel.app
 ```
 
@@ -604,7 +640,7 @@ Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖
 Para ver as peças e reservar:
 tshirtclub.vercel.app
 
-Como posso te ajudar? É só responder com o número:
+Me conta, como posso te ajudar? É só responder com o número:
 *1* · Ver as peças e reservar
 *2* · Tamanhos e medidas
 *3* · Entrega e frete
@@ -618,6 +654,24 @@ Como posso te ajudar? É só responder com o número:
 
 Revisão: ☐
 
+### Resposta automática para quem já reservou: pelo nome e com a coleção mais nova
+
+*a loja liga e desliga no painel ("Resposta automática")*
+
+```text
+Oi, Ana! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖
+
+Nossa coleção mais nova é a *Estate Italiana* ✦ Dá uma espiada:
+tshirtclub.vercel.app/colecao/estate-italiana
+
+Me conta, como posso te ajudar? É só responder com o número:
+*1* · Ver as peças e reservar
+*2* · Tamanhos e medidas
+*3* · Falar com a equipe
+```
+
+Revisão: ☐
+
 ### Resposta automática (mensagem comum), com as respostas rápidas desligadas
 
 *a loja liga e desliga no painel ("Resposta automática")*
@@ -625,7 +679,7 @@ Revisão: ☐
 ```text
 Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖
 
-Para ver as peças, reservar ou acompanhar seus pedidos:
+Para ver as peças e reservar:
 tshirtclub.vercel.app
 
 Precisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.
@@ -644,7 +698,89 @@ Revisão: ☐
 
 Depois de reservar, o link para pagar chega aqui no WhatsApp ✦
 
-Quer ver as outras opções? É só mandar *menu* ✦
+Posso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦
+```
+
+Revisão: ☐
+
+### Acompanhamento: a cliente pediu a equipe e ninguém respondeu em 20 minutos
+
+*a loja liga e desliga no painel ("Equipe demorou a responder")*
+
+```text
+Ana, já avisei a equipe de novo, e alguém te responde por aqui o quanto antes 💖
+
+Se quiser adiantar, conta pra gente o que você precisa: a peça, o tamanho ou o número do pedido.
+```
+
+Revisão: ☐
+
+### Acompanhamento: 2 dias depois da entrega ou retirada
+
+*a loja liga e desliga no painel ("Pós-entrega")*
+
+```text
+Oi, Ana! Aqui é a Clubinha, passando pra saber: gostou das suas T-shirts? 💖
+
+Se postar uma foto usando, marca a T-shirt Club no Instagram: a gente ama ver ✦
+
+E pra saber das novidades antes de todo mundo, entra na lista VIP:
+tshirtclub.vercel.app
+```
+
+Revisão: ☐
+
+### Aviso para a equipe: cliente quer falar com a equipe
+
+*vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
+
+```text
+💬 *Ana quer falar com a equipe*
+
+📱 (77) 99812-8809
+🧾 Último pedido: #1048 · reservada, aguardando o pagamento
+
+💭 O que a cliente escreveu:
+“Oi, boa tarde”
+“Tem a Limone Capri no Plus?”
+
+Responda pelo WhatsApp da loja. O robô fica quieto nessa conversa enquanto vocês atendem.
+```
+
+Revisão: ☐
+
+### Aviso para a equipe: ninguém respondeu em 20 minutos
+
+*vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
+
+```text
+⏰ *Ana ainda espera a equipe*
+
+📱 (77) 99812-8809
+🧾 Último pedido: #1048 · reservada, aguardando o pagamento
+
+💭 O que a cliente escreveu:
+“Tem a Limone Capri no Plus?”
+
+Ela pediu a equipe às 14:12 e ainda não teve resposta pelo celular da loja. A Clubinha avisou que vocês já respondem.
+```
+
+Revisão: ☐
+
+### Aviso para a equipe: cliente falou em troca
+
+*vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
+
+```text
+🔁 *Ana falou em troca ou devolução*
+
+📱 (77) 99812-8809
+🧾 Último pedido: #1031 · entregue
+
+💭 O que a cliente escreveu:
+“Quero trocar a camiseta, ficou grande”
+
+A cliente já recebeu a política de trocas. Responda pelo WhatsApp da loja.
 ```
 
 Revisão: ☐

@@ -160,7 +160,7 @@ Deno.test({
 
       // ── "Minha reserva" no WhatsApp ──
       assertEquals(await mensagem(REMETENTE, "Minha reserva"), "MINHA_RESERVA");
-      assertEquals(whatsapp.enviadas.at(-1)!.texto, `Achei! Esta é sua reserva recente:\n\n• #${atual.numero} · paga · em preparação\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app\n\nQuer ver as outras opções? É só mandar *menu* ✦`);
+      assertEquals(whatsapp.enviadas.at(-1)!.texto, `Achei! Esta é sua reserva recente:\n\n• #${atual.numero} · paga · em preparação\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app\n\nPosso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦`);
       assertEquals(whatsapp.enviadas.at(-1)!.telefone, TELEFONE, "responde no número guardado na reserva, não no remetente");
 
       // ── O link 30 dias depois do fim: só número e estado ──

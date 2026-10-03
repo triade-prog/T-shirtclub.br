@@ -20,6 +20,7 @@ import {
   lerPedidoDeCodigo,
   mensagemWhatsApp,
   type OpcaoMenu,
+  type PecaLink,
   preencherResposta,
   type Promocao,
   promocaoDoBancoSchema,
@@ -50,6 +51,9 @@ interface Contexto {
   menuRecente: boolean;
   endereco: string | null;
   horario: string | null;
+  /** Primeiro nome da última reserva do número e a coleção mais nova (0550). */
+  nome?: string | null;
+  novidade?: PecaLink | null;
   respostas: RespostaRapida[];
 }
 
@@ -138,13 +142,13 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
   }
 
   /**
-   * Mensagem comum: responde com o endereço da loja e o menu no máximo 1 vez a cada 24 h por
-   * número (o banco decide e já marca, e a loja pode desligar no painel); a equipe segue
-   * atendendo pelo celular.
+   * Mensagem comum: a Clubinha se apresenta (pelo nome, quando sabe), mostra a coleção mais nova
+   * e o menu, no máximo 1 vez a cada 24 h por número (o banco decide e já marca, e a loja pode
+   * desligar no painel); a equipe segue atendendo pelo celular.
    */
-  async function conversa(id: string, remetente: string, opcoes: OpcaoMenu[]): Promise<string> {
+  async function conversa(id: string, remetente: string, opcoes: OpcaoMenu[], ctx: Contexto): Promise<string> {
     if (!(await deps.banco.rpc<boolean>("inbound_welcome", { p_wa_message_id: id }))) return await marcar(id, "CONVERSA");
-    await responder(id, remetente, mensagemWhatsApp("boas_vindas", opcoes.length ? { opcoes } : {}));
+    await responder(id, remetente, mensagemWhatsApp("boas_vindas", { ...(opcoes.length ? { opcoes } : {}), nome: ctx.nome, novidade: ctx.novidade }));
     return "BOAS_VINDAS";
   }
 
@@ -196,7 +200,7 @@ export function criarWebhookWhatsApp(deps: DepsWebhook) {
     if (ehPedidoTroca(texto)) return await trocas(id, remetente, opcoes.length > 0);
     const porPalavra = respostaPorPalavra(texto, respostas);
     if (porPalavra) return await executar(id, remetente, porPalavra, false, ctx);
-    return await conversa(id, remetente, opcoes);
+    return await conversa(id, remetente, opcoes, ctx);
   }
 
   async function tratar(e: EventoWhatsApp): Promise<string> {

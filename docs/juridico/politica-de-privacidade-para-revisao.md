@@ -4,7 +4,7 @@ Preparado em 30/09/2026 para a análise jurídica (item P15 do painel de execuç
 
 - **Site:** https://tshirtclub.vercel.app. Ainda não há domínio próprio.
 - **Página da política:** https://tshirtclub.vercel.app/privacidade
-- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo). No mesmo dia, o site passou a contar as visitas sem cookie, e a política ganhou os trechos sobre isso (itens 2, 3, 5 e 7 e ponto 12 abaixo).
+- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo). No mesmo dia, o site passou a contar as visitas sem cookie, e a política ganhou os trechos sobre isso (itens 2, 3, 5 e 7 e ponto 12 abaixo). Em 03/10/2026 entraram as mensagens de acompanhamento pelo WhatsApp (item 3 e ponto 13 abaixo).
 
 O documento tem quatro partes:
 
@@ -26,7 +26,7 @@ Correções podem ser feitas direto no texto da parte 2 ou em comentários à pa
   - endereço, só para entrega por motoboy ou envio.
 - **O que o site não pede:** CPF, e-mail ou data de nascimento.
 - **Pagamento:** pelo Mercado Pago. Os dados do cartão são digitados no componente do Mercado Pago e não passam pelo servidor da loja.
-- **Mensagens automáticas pelo WhatsApp:** código, reserva criada, lembrete, pagamento, entrega, resposta sobre trocas e resposta automática. O envio usa a Wafly, uma ferramenta que conecta o WhatsApp da loja ao sistema (até 02/10/2026, a Z-API).
+- **Mensagens automáticas pelo WhatsApp:** código, reserva criada, lembrete, pagamento, entrega, resposta sobre trocas, resposta automática e, desde 03/10/2026, acompanhamento: a reserva que expirou com as peças que ainda estão à venda, o aviso de que a equipe já responde e, 2 dias depois da entrega, a pergunta se a cliente gostou, com o convite para a Lista VIP. O envio usa a Wafly, uma ferramenta que conecta o WhatsApp da loja ao sistema (até 02/10/2026, a Z-API).
 - **Lista VIP:** é opcional. A cliente dá dois aceites separados: um para receber ofertas pelo WhatsApp e outro para a política de privacidade.
 - **Bloqueio automático:** um telefone com 3 reservas expiradas sem pagamento em 30 dias fica com as reservas pausadas. A equipe pode revisar e liberar pelo painel.
 - **Onde os dados ficam:**
@@ -75,6 +75,7 @@ Uma rotina diária apaga ou reduz estes dados:
 >
 > - Criar e cumprir sua reserva e seu pedido (confirmar o WhatsApp, guardar as peças, receber o pagamento, entregar): execução de contrato (art. 7º, V, da LGPD).
 > - Enviar avisos pelo WhatsApp sobre a sua reserva (código, prazo, pagamento, entrega): execução de contrato.
+> - Acompanhar pelo WhatsApp quem reservou, comprou ou pediu atendimento (as peças de uma reserva que expirou e ainda estão à venda, o retorno da equipe e, dias depois da entrega, se você gostou da compra): legítimo interesse (art. 7º, IX), e você pode pedir para não receber pelo WhatsApp da loja.
 > - Prevenir fraude e abuso, como o bloqueio de telefones com expirações repetidas: legítimo interesse (art. 7º, IX).
 > - Guardar os registros de vendas exigidos pela legislação fiscal e de consumo: cumprimento de obrigação legal (art. 7º, II).
 > - Saber quantas pessoas visitam o site e quais páginas interessam mais, para melhorar a loja: legítimo interesse (art. 7º, IX), só com totais, sem identificar ninguém.
@@ -188,6 +189,8 @@ O banco guarda o texto exato que a cliente aceitou e a data e hora do aceite.
     Recomendam criar uma página de termos?
 
 12. **Contagem de visitas.** A contagem não usa cookie nem guarda nada no aparelho, por isso o site não pede aceite. A base usada é o legítimo interesse. O código diário (hash do IP, do navegador e do dia, com chave secreta) é apagado em até 2 dias, e ficam só totais. Essa base e essa redação atendem? É preciso o teste de balanceamento (LIA) por escrito?
+
+13. **Acompanhamento pelo WhatsApp.** Desde 03/10/2026, a assistente virtual manda, só a quem já reservou, comprou ou pediu atendimento, no máximo uma de cada por pedido: as peças de uma reserva expirada que ainda estão à venda, com o link de cada uma; o aviso de que a equipe já responde, quando ninguém respondeu em 20 minutos; e, 2 dias depois da entrega, a pergunta se a cliente gostou, com o convite para a Lista VIP. A política diz "Não enviamos propaganda sem o seu pedido". Essas mensagens cabem no legítimo interesse? O convite para a Lista VIP na mensagem de pós-entrega conflita com essa frase? Precisa de um jeito automático de parar de receber (como responder "sair")?
 
 ---
 

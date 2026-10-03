@@ -80,7 +80,8 @@ Deno.test({
       /** Envia a última mensagem na fila (as anteriores já saíram ou são descartadas). */
       const enviar = async () => {
         await banco.sql`update outbox_messages set status = 'DESCARTADA'
-                         where status = 'PENDENTE' and id <> (select id from outbox_messages where status = 'PENDENTE' order by created_at desc, id desc limit 1)`;
+                         where status = 'PENDENTE' and id <> (select id from outbox_messages where status = 'PENDENTE' and next_attempt_at <= app_now()
+                                                              order by created_at desc, id desc limit 1)`;
         await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
         await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 });
         return whatsapp.enviadas.at(-1)!.texto;
@@ -117,6 +118,10 @@ Deno.test({
       const [{ qty_sold }] = await banco.sql`select qty_sold from product_variants where sku = 'ENT-01-UNI'`;
       assertEquals(qty_sold, 1, "o frete não mexe no estoque");
 
+      // O pós-entrega da Clubinha fica agendado para 2 dias depois (0550)
+      const [posVenda] = await banco.sql`select next_attempt_at > app_now() + interval '1 day' as depois from outbox_messages
+                                          where template = 'pos_venda' and reservation_id = ${r1.id}`;
+      assertEquals(posVenda?.depois, true);
       assert((await enviar()).startsWith(`Pedido #${r1.numero} entregue.`));
 
       // ── Envio com PIX do frete em aberto; a cliente troca para retirada ──
