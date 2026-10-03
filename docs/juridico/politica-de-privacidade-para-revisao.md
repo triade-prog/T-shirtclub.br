@@ -64,7 +64,7 @@ Uma rotina diária apaga ou reduz estes dados:
 > - Nome e número de WhatsApp, informados por você ao fazer uma reserva ou consultar seus pedidos.
 > - Endereço de entrega, só quando você escolhe motoboy ou envio para outra cidade.
 > - Dados do pagamento: forma, valor, data e identificador da transação. Os dados do cartão são digitados direto no ambiente do Mercado Pago; a loja não vê nem guarda o número do cartão.
-> - Mensagens que você envia ao WhatsApp da loja para pedir o código ou consultar sua reserva.
+> - Mensagens que você envia ao WhatsApp da loja (para pedir o código, consultar sua reserva ou receber as respostas automáticas) e o horário em que a equipe respondeu, sem o texto da resposta.
 > - Se você entrar na Lista VIP: o WhatsApp, o nome (se quiser informar) e a data em que aceitou receber as novidades.
 > - Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos como pedidos repetidos de código, e a verificação anti-robô da Cloudflare (Turnstile).
 > - Contagem de visitas, sem cookie: a página vista, o site ou o link de onde você chegou (como Instagram ou Google) e se o aparelho é celular, tablet ou computador. Para contar cada pessoa uma vez por dia, o sistema cria um código embaralhado a partir do endereço IP e do navegador, que muda todo dia e não permite saber quem é você. Guardamos só os totais por dia.

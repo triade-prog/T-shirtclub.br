@@ -23,7 +23,7 @@ const MAPA: Record<string, CodigoErro> = {
 };
 
 // Regras de formato: a tela já valida antes, então aqui só por segurança.
-const VALIDACAO = new Set(["23514", "23503", "22P02", "TS110", "TS111", "TS112", "TS113", "TS114", "TS120", "TS121", "TS131", "TS132", "TS133", "TS164", "TS181", "TS182", "TS183", "TS184", "TS185", "TS186", "TS187"]);
+const VALIDACAO = new Set(["23514", "23503", "22P02", "TS110", "TS111", "TS112", "TS113", "TS114", "TS120", "TS121", "TS131", "TS132", "TS133", "TS164", "TS181", "TS182", "TS183", "TS184", "TS185", "TS186", "TS187", "TS188", "TS189"]);
 
 export function traduzirErroBanco(e: unknown): unknown {
   if (!(e instanceof ErroBanco)) return e;

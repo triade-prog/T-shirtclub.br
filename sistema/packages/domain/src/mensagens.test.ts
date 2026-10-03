@@ -278,6 +278,7 @@ describe("avisos para a equipe (0510)", () => {
       pagamento_analise: { tipo: "pagamento_analise", numero: 1, motivo: "VALOR_DIVERGENTE" },
       contestacao: { tipo: "contestacao", numero: 1, motivo: "CONTESTACAO" },
       troca: { tipo: "troca" },
+      atendimento: { tipo: "atendimento", final: "8809", nome: null },
       sistema: { tipo: "sistema", mensagem: "Pagamentos sem confirmação há 30 minutos" },
     };
     for (const a of AVISOS_LOJA) {

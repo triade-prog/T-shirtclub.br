@@ -11,6 +11,7 @@ import type { Promocao } from "./preco.ts";
 const FUSO = "America/Bahia";
 /** Endereço da loja nas mensagens sem link de reserva (27/09: o da Vercel, até existir o domínio próprio). */
 const SITE = "tshirtclub.vercel.app";
+export const SITE_LOJA = SITE;
 /**
  * Política de trocas (29/09, pedido da loja): dias para pedir, contados de quando a cliente
  * recebe ou retira a peça, que precisa estar sem uso e com a etiqueta. A página /trocas, a
@@ -142,10 +143,20 @@ export interface ParametrosMensagem {
   /** As vigentes, na ordem de whatsapp_offers() (0340). */
   ofertas: { promocoes: readonly Promocao[] };
   trocas: Record<string, never>;
-  boas_vindas: Record<string, never>;
+  /** opcoes: o menu das respostas rápidas (0540); sem ele, só o site. */
+  boas_vindas: { opcoes?: readonly OpcaoMenu[] };
+  menu: { opcoes: readonly OpcaoMenu[] };
+  /** O texto do painel, já com {site}, {endereco} e {horario} preenchidos. */
+  resposta_rapida: { texto: string };
   mensagem_teste: Record<string, never>;
   /** Aviso para a equipe (0510), no WhatsApp pessoal gravado no painel. */
   aviso_loja: AvisoLoja;
+}
+
+/** Uma linha do menu do WhatsApp (0540). */
+export interface OpcaoMenu {
+  numero: number;
+  titulo: string;
 }
 
 // ─── Avisos para a equipe (0510) ────────────────────────────────────────────────────
@@ -160,6 +171,7 @@ export const AVISOS_LOJA = [
   { id: "pagamento_analise", nome: "Pagamento em análise", quando: "Quando um pagamento chega fora do prazo ou com valor diferente" },
   { id: "contestacao", nome: "Contestação de pagamento", quando: "Quando a cliente contesta ou estorna um pagamento no banco ou no cartão" },
   { id: "troca", nome: "Cliente falou em troca", quando: "Quando alguém fala em troca ou devolução no WhatsApp da loja" },
+  { id: "atendimento", nome: "Cliente quer falar com a equipe", quando: "Quando alguém escolhe “Falar com a equipe” no menu do WhatsApp da loja" },
   { id: "sistema", nome: "Alerta do sistema", quando: "Quando algo para de funcionar (pagamentos, fila, rotinas automáticas)" },
 ] as const;
 
@@ -174,6 +186,7 @@ export type AvisoLoja =
   | { tipo: "pagamento_analise"; numero: number; motivo: "APROVADO_APOS_TOLERANCIA" | "RESERVA_ENCERRADA" | "VALOR_DIVERGENTE" | "FRETE_ENCERRADO" }
   | { tipo: "contestacao"; numero: number; motivo: "ESTORNO" | "CONTESTACAO" | "CANCELAMENTO" }
   | { tipo: "troca" }
+  | { tipo: "atendimento"; final: string; nome: string | null }
   | { tipo: "sistema"; mensagem: string }
   | { tipo: "teste" };
 
@@ -214,6 +227,11 @@ function textoAviso(a: AvisoLoja): string {
       return blocos(`⚠️ *Contestação de pagamento* · pedido #${a.numero}`, `Tipo: ${MOTIVO_CONTESTACAO[a.motivo] ?? a.motivo}. Confira antes de entregar.`, PAINEL);
     case "troca":
       return blocos("🔁 *Uma cliente falou em troca ou devolução*", "Ela já recebeu a política de trocas. Responda pelo WhatsApp da loja.");
+    case "atendimento":
+      return blocos(
+        `💬 *${a.nome ? `${a.nome} quer` : "Uma cliente quer"} falar com a equipe*`,
+        `No WhatsApp da loja, a conversa do número com final ${a.final}. O robô fica quieto nela enquanto vocês respondem.`,
+      );
     case "sistema":
       return blocos("⚠️ *Alerta do sistema*", a.mensagem, PAINEL);
     case "teste":
@@ -288,6 +306,8 @@ type Versoes<M extends Modelo> = ((p: ParametrosMensagem[M]) => string)[];
 /** Blocos separados por uma linha em branco; os vazios saem. */
 const blocos = (...partes: (string | false | undefined)[]) => partes.filter(Boolean).join("\n\n");
 const nomeOuNada = (nome?: string) => (nome ? primeiroNome(nome) : "");
+const linhasMenu = (opcoes: readonly OpcaoMenu[]) =>
+  `Como podemos ajudar? Responda com o número:\n${opcoes.map((o) => `*${o.numero}* · ${o.titulo}`).join("\n")}`;
 
 const MODELOS: { [M in Modelo]: Versoes<M> } = {
   // ─── Verificação: neutras ───
@@ -497,15 +517,22 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
         `A política completa:\n${SITE}/trocas`,
       ),
   ],
-  // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310).
+  // Resposta automática a mensagem comum: no máximo 1 vez a cada 24 h por número (0310). Com
+  // as respostas rápidas ligadas, leva o menu (0540).
   boas_vindas: [
-    () =>
-      blocos(
-        "Oi! 💖 Aqui é a T-shirt Club.",
-        `Para ver as peças, reservar ou acompanhar seus pedidos:\n${SITE}`,
-        "Se precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.",
-      ),
+    (p) =>
+      p.opcoes?.length
+        ? blocos("Oi! 💖 Aqui é a T-shirt Club.", `Para ver as peças e reservar:\n${SITE}`, linhasMenu(p.opcoes))
+        : blocos(
+          "Oi! 💖 Aqui é a T-shirt Club.",
+          `Para ver as peças, reservar ou acompanhar seus pedidos:\n${SITE}`,
+          "Se precisar de ajuda, pode escrever por aqui. Nossa equipe responde assim que puder.",
+        ),
   ],
+  // "menu" a qualquer hora (0540)
+  menu: [(p) => linhasMenu(p.opcoes)],
+  // Resposta rápida do painel (0540), com o caminho de volta para o menu
+  resposta_rapida: [(p) => blocos(p.texto, "Para ver as outras opções, envie *menu*.")],
   mensagem_teste: [
     () => blocos("✦ Teste T-shirt Club", "O envio de mensagens pelo sistema está funcionando corretamente.", "Esta é apenas uma mensagem de teste."),
   ],
@@ -539,7 +566,8 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "pronto_retirada", nome: "Pronto para retirada", quando: "Quando a loja marca o pedido como pronto, com o código de retirada", essencial: false, modelos: ["pronto_retirada"] },
   { id: "saida", nome: "Saiu para entrega / enviado", quando: "Quando a loja marca a saída", essencial: false, modelos: ["saiu_entrega", "pedido_enviado"] },
   { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, modelos: ["pedido_entregue"] },
-  { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, com o endereço da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
+  { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, com o endereço da loja e o menu (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
+  { id: "respostas", nome: "Respostas rápidas e menu", quando: "Quando a cliente escolhe um número do menu ou escreve uma palavra das respostas rápidas (tamanho, frete, pix...)", essencial: false, modelos: ["resposta_rapida", "menu"] },
   { id: "trocas", nome: "Resposta sobre trocas", quando: "Quando alguém fala em troca ou devolução, com a política da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["trocas"] },
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
 ];

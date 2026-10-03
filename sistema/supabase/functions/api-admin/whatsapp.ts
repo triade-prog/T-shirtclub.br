@@ -1,10 +1,21 @@
 // WhatsApp no painel (F10, tela 18, G5): conexão com o QR code para reconectar, fila,
 // ritmo de envio, modo lançamento, notificações que a loja liga e desliga e mensagem de
-// teste; e os avisos da loja para o WhatsApp da equipe (0510). Toda mudança vai para a
-// auditoria (no banco).
+// teste; os avisos da loja para o WhatsApp da equipe (0510); e o atendimento automático
+// (0540): respostas rápidas, a ordem do menu e a pausa. Toda mudança vai para a auditoria (no banco).
 
 import type { Hono } from "hono";
-import { AVISOS_LOJA, ErroDominio, NOTIFICACOES, configAvisosSchema, configWhatsappSchema, mensagemTesteSchema } from "@tshirtclub/domain";
+import {
+  AVISOS_LOJA,
+  ErroDominio,
+  NOTIFICACOES,
+  configAvisosSchema,
+  configWhatsappSchema,
+  idSchema,
+  mensagemTesteSchema,
+  ordemRespostasSchema,
+  pausaRespostasSchema,
+  respostaRapidaSchema,
+} from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { chamar } from "../_shared/erros-banco.ts";
 import { lerCorpo } from "../_shared/validar.ts";
@@ -99,5 +110,39 @@ export function rotasWhatsappAdmin(app: Hono<VarsAdmin>, deps: { banco: Banco; w
     }
     await chamar(deps.banco, "admin_store_alert_test", { p_admin: admin });
     return c.json({ ok: true, naFila: true }, 202);
+  });
+
+  // Atendimento automático (0540): as respostas rápidas do menu, na ordem, e a pausa.
+  const resposta = (c: { req: { param: (n: string) => string } }) => {
+    const id = idSchema.safeParse(c.req.param("id"));
+    if (!id.success) throw new ErroDominio("NOT_FOUND");
+    return id.data;
+  };
+
+  app.get("/v1/admin/whatsapp/respostas", async (c) => c.json(await chamar(deps.banco, "admin_quick_replies")));
+
+  app.post("/v1/admin/whatsapp/respostas", async (c) => {
+    const dados = await lerCorpo(c, respostaRapidaSchema);
+    return c.json(await chamar(deps.banco, "admin_save_quick_reply", { p_admin: c.get("admin").userId, p: dados }), 201);
+  });
+
+  app.put("/v1/admin/whatsapp/respostas/ordem", async (c) => {
+    const { ids } = await lerCorpo(c, ordemRespostasSchema);
+    return c.json(await chamar(deps.banco, "admin_order_quick_replies", { p_admin: c.get("admin").userId, p_ids: ids }));
+  });
+
+  app.put("/v1/admin/whatsapp/respostas/pausa", async (c) => {
+    const dados = await lerCorpo(c, pausaRespostasSchema);
+    return c.json(await chamar(deps.banco, "admin_update_quick_reply_settings", { p_admin: c.get("admin").userId, p: dados }));
+  });
+
+  app.put("/v1/admin/whatsapp/respostas/:id", async (c) => {
+    const id = resposta(c);
+    const dados = await lerCorpo(c, respostaRapidaSchema);
+    return c.json(await chamar(deps.banco, "admin_save_quick_reply", { p_admin: c.get("admin").userId, p: { ...dados, id } }));
+  });
+
+  app.delete("/v1/admin/whatsapp/respostas/:id", async (c) => {
+    return c.json(await chamar(deps.banco, "admin_remove_quick_reply", { p_admin: c.get("admin").userId, p_id: resposta(c) }));
   });
 }

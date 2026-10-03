@@ -27,6 +27,8 @@ export type EventoWhatsApp =
     remetente: string | null;
     texto: string;
     deMim: boolean;
+    /** Enviada pela API (o próprio sistema), não pela equipe no celular; nem toda ferramenta manda. */
+    daApi: boolean;
     grupo: boolean;
     /** Status, canal ou lista de transmissão. */
     canal: boolean;
@@ -185,6 +187,7 @@ export function lerWebhookZapi(corpo: unknown): EventoWhatsApp {
     remetente: telefone,
     texto,
     deMim: c.fromMe === true,
+    daApi: c.fromApi === true,
     grupo: c.isGroup === true || (typeof c.phone === "string" && c.phone.includes("-group")),
     canal: c.isNewsletter === true || c.broadcast === true || c.isStatusReply === true,
     momento,
