@@ -229,6 +229,16 @@ Conclusão: a disputa só existe no HTTP/1.1 do `next start` (6 conexões); na V
 
 O LCP das três primeiras é a foto principal (campanha ou primeira foto da peça): pedida cedo e sem lazy, mas sem `fetchpriority="high"` (o `priority` do Next 16 só pré-carrega), e espera 1,4 a 1,7 s ("load delay") atrás das 7 fontes (~186 KB). Hipótese: prioridade alta na foto do topo. Ganho mínimo combinado: LCP do início −300 ms sem piorar FCP nem CLS. Sem prévia da Vercel para este ramo e sem o segredo de repasse fora da Vercel, a única medição justa é em produção: o PR publica, a medição se repete igual e, sem o ganho, a mudança sai. JS acima da meta (165 KB contra 150) fica como item separado.
 
+Resultado (03/10, PR #82 publicado e medido do mesmo jeito, 3 execuções depois de 1 de aquecimento):
+
+| Tela | LCP antes → depois | Espera da foto (load delay) | FCP | CLS |
+|---|---|---|---|---|
+| Início | 3,43 → 3,29 s (−140 ms) | 1,75 → 1,00 s | 1,16 → 1,19 s | 0,002 → 0,001 |
+| Coleção | 3,09 → 3,43 s (execuções de 2,92 a 3,56 s) | 1,50 → 1,10 s | 1,15 → 1,14 s | 0,005 → 0,046 |
+| Peça | 2,94 → 2,93 s | 1,43 → 0,91 s | 1,14 → 1,13 s | 0,001 → 0,001 |
+
+Conclusão: a foto passa a ser pedida antes, mas divide a mesma banda simulada (1,6 Mbps) com as fontes e o tempo de download dela cresce na mesma medida; o LCP quase não muda. Abaixo do ganho mínimo (−300 ms no início): a mudança saiu (PR seguinte, código como antes do #82). O que pesa antes do LCP é o total de bytes: ~186 KB de fontes pré-carregadas e a própria foto. Próximas hipóteses possíveis, se a loja quiser: foto do topo menor no celular (qualidade ou largura servida) ou menos fontes pré-carregadas, esta já medida em 27/09 sem ganho no catálogo de teste.
+
 **Regra de trabalho para desempenho (27/09, pedido da loja, para controlar o consumo de créditos):** (1) registrar o baseline; (2) definir a hipótese principal; (3) no máximo 1 ou 2 experimentos para validar ou rejeitar; (4) definir antes o ganho mínimo que justifica a mudança; (5) se o ganho não for relevante, encerrar e registrar a conclusão; (6) não criar infraestrutura de teste, proxy ou variação nova sem necessidade real para uma decisão. Reaproveitar os scripts e as medições já feitos (`lighthouse-container.sh`, `proxy-http2.mjs` e os números acima) em vez de reconstruir o ambiente.
 
 **Retirada, site, planos e privacidade (30/09):** a retirada na loja é na R. Sátiro Santos, 38, Caetité (BA), CEP 46400-000, aberta 24 horas com retirada agendada pelo WhatsApp; os dois textos estão em `app_settings` (`loja_endereco_retirada` e `loja_horario_retirada`) e entram na mensagem de pronto para retirada. O endereço da empresa na política e no rodapé (`EMPRESA.endereco`, o do CNPJ) continua o da 2ª Travessa Palestina. Sem domínio por enquanto: o site segue em tshirtclub.vercel.app. Supabase e Vercel ficam no plano gratuito até abrir a loja. A política de privacidade foi para o jurídico com `docs/juridico/politica-de-privacidade-para-revisao.md` (texto publicado, contexto e 11 pontos). A contabilidade informou 1 ano de guarda das vendas; a política segue com 5 anos (`EMPRESA.prazoFiscal`) até o jurídico confirmar, e o sistema não anonimiza reservas, pedidos e pagamentos sozinho depois do prazo.
