@@ -68,7 +68,8 @@ select ok(admin_reservation_detail((select id from t where nome = 'paga')) -> 'l
 select is(admin_reservation_detail((select id from t where nome = 'ativa')) -> 'cancelamentos' -> 0 ->> 'decididoPor', 'Carol', 'quem decidiu o cancelamento');
 select is(admin_reservation_detail((select id from t where nome = 'ativa')) -> 'transicoes' -> 1 ->> 'atorNome', 'Carol', 'e quem fez a transição');
 select ok(admin_reservation_detail((select id from t where nome = 'ativa')) -> 'auditoria' @> '[{"acao": "reserva.criada"}]', 'a auditoria da reserva');
-select is(admin_reservation_detail((select id from t where nome = 'expirada')) -> 'cliente', '{"bloqueado": false, "reservas": 1, "expiracoes30Dias": 1}'::jsonb,
+select is(admin_reservation_detail((select id from t where nome = 'expirada')) -> 'cliente',
+  '{"bloqueado": false, "reservas": 1, "expiracoes30Dias": 1, "compras": 0, "comprasCentavos": 0, "outras": [], "chat": null, "chamados": []}'::jsonb,
   'o histórico da cliente');
 select is(admin_reservation_detail(gen_random_uuid()), null, 'reserva que não existe');
 

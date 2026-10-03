@@ -351,3 +351,50 @@ ol.list{list-style:none;margin:0;padding:0}
 .recolher-btn{display:none}
 @media(min-width:821px){.recolher-btn{display:grid;place-items:center;width:44px;height:44px;margin-left:-10px;border:0;background:transparent;border-radius:50%;color:var(--ink)}.recolher-btn:hover{background:var(--pink-soft)}.recolher-btn:focus-visible{outline:3px solid var(--pink);outline-offset:2px}.panel-shell{transition:grid-template-columns .22s}.panel-shell.recolhido{grid-template-columns:84px minmax(0,1fr)}.recolhido .sidebar{padding:22px 12px}.recolhido .brandbox{justify-content:center;padding:4px 0 22px}.recolhido .brandbox img{width:58px;height:26px;object-position:center}.recolhido .brandbox .admin{display:none}.recolhido .nav-item{position:relative;justify-content:center;padding:0}.recolhido .nav-rotulo{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.recolhido .nav-item .nav-count{position:absolute;top:2px;right:4px;min-width:18px;height:18px;padding:0 4px;font-size:9.5px}.recolhido .side-note{background:none;border:0;padding:0}.recolhido .side-note>:not(.logout){display:none}.recolhido .logout{text-align:center;padding:11px 0 4px;border-top-color:var(--line)}}
 @media(prefers-reduced-motion:reduce){.panel-shell{transition:none}}
+/* Reserva v2 (0580): título menor, as etapas no topo, o próximo passo, as peças com foto e o
+   preço cheio riscado, a cliente com atalhos e a linha do tempo com as mensagens de WhatsApp. */
+.page-head.compacto{margin-bottom:22px}.page-head.compacto h1{font-size:clamp(34px,3.6vw,52px)}
+.titulo-num.reserved{color:var(--pink-dark)}.titulo-num.expired{color:var(--muted)}.titulo-num.paid,.titulo-num.ship,.titulo-num.issue{color:var(--green)}
+.etapas-caixa{margin-bottom:16px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:var(--r2)}
+.etapas{list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+.etapa{position:relative;display:grid;justify-items:center;align-content:start;text-align:center;gap:7px}
+.etapa:not(:first-child):before{content:'';position:absolute;top:14px;right:calc(50% + 19px);width:calc(100% - 32px);height:2px;background:var(--line)}
+.etapa.feita:before,.etapa.atual:before,.etapa.encerrada:before{background:var(--green)}
+.etapa-marca{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1.5px solid #d8cdd0;font-family:var(--font-baloo);font-weight:800;font-size:12px;color:var(--muted)}
+.etapa.feita .etapa-marca{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.etapa.atual .etapa-marca{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:0 0 0 4px var(--citron)}
+.etapa.encerrada .etapa-marca{background:var(--tomato-soft);border-color:#c0492c;color:#9d2f18}
+.etapa-texto{display:grid;gap:2px}.etapa-texto b{font-size:11px}.etapa-texto small{font-size:9.5px;color:var(--muted)}
+.etapa:not(.feita):not(.atual):not(.encerrada) .etapa-texto b{color:var(--muted);font-weight:700}
+@media(max-width:640px){.etapas{grid-auto-flow:row;gap:12px}.etapa{grid-template-columns:30px minmax(0,1fr);justify-items:start;align-items:center;text-align:left;gap:12px}.etapa:not(:first-child):before{top:-12px;left:14px;right:auto;width:2px;height:12px}}
+.etapas-caixa+.notice,.notice+.notice{margin-top:14px}
+.reserva-corpo{margin-top:18px;display:grid;gap:18px;align-items:start;grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);grid-template-rows:auto auto 1fr;grid-template-areas:"pecas lado" "pag lado" "linha lado"}
+.r-pecas{grid-area:pecas}.r-pag{grid-area:pag}.r-linha{grid-area:linha}.reserva-lado{grid-area:lado}
+@media(max-width:1080px){.reserva-corpo{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"pecas" "pag" "lado" "linha"}}
+.codigo-retirada{font-size:16px;letter-spacing:.08em}
+.selecionavel{user-select:all}
+.pieces{list-style:none;margin:0;padding:0}
+.piece-img{overflow:hidden}.piece-img img{width:100%;height:100%;object-fit:cover}
+.piece-img.fundo-1{background:linear-gradient(135deg,var(--green-soft),var(--pink-soft))}.piece-img.fundo-2{background:linear-gradient(135deg,var(--blue-soft),var(--lemon-soft))}
+.piece-valor{display:grid;justify-items:end;gap:1px}.piece-valor s{font-size:9.5px;color:var(--muted)}
+.kv-nota{display:block;font-size:9.5px;color:var(--muted);margin-top:2px}
+.alert-icon.fundo-verde{background:var(--green-soft)}.alert-icon.fundo-limao{background:var(--lemon-soft)}
+.cli-nome{font-size:15px;font-weight:800;margin:0}
+.cli-tel{font-size:11px;margin:2px 0 0}
+.cli-acoes{margin-top:12px}
+.cli-numeros{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0}
+.cli-numeros div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px}
+.cli-numeros dt{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.cli-numeros dd{margin:4px 0 0;font-family:var(--font-baloo);font-weight:800;font-size:16px}
+.card .cli-sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 4px;font-family:inherit;font-weight:800}
+.cli-lista{list-style:none;margin:0;padding:0;display:grid}
+.cli-lista li{display:flex;gap:10px;align-items:center;min-height:44px;border-bottom:1px solid var(--line);font-size:11px}
+.cli-lista li:last-child{border-bottom:0}
+.cli-lista a{font-weight:800;color:var(--pink-dark);min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+.cli-lista span{color:var(--muted)}
+.evento-corpo{min-width:0}
+.event .evento-linha{display:block;margin-top:2px;font-size:9.5px;color:var(--muted)}
+.event .status{padding:3px 8px;font-size:8.5px}
+.event-dot.whats{background:#c9efd3;border-color:#2f7d4a}
+.event-dot.falhou{background:var(--tomato-soft);border-color:#c0492c}
+.event-dot.chamado{background:var(--pink-soft);border-color:var(--pink-dark)}

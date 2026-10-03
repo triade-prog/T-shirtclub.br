@@ -45,13 +45,15 @@ export function Icone({ children }: { children: React.ReactNode }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">{children}</svg>;
 }
 
-export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
+export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: {
   kicker: string;
   titulo: React.ReactNode;
   sub?: string;
   /** Texto da barra de cima (padrão: "Painel da loja"). */
   topo?: string;
   acoes?: React.ReactNode;
+  /** Título menor, para telas de detalhe (a reserva). */
+  compacto?: boolean;
   children: React.ReactNode;
 }) {
   const caminho = usePathname();
@@ -144,7 +146,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, children }: {
             </div>
           </header>
           <main className="content" id="main">
-            <div className="page-head">
+            <div className={`page-head${compacto ? " compacto" : ""}`}>
               <div>
                 <div className="page-kicker">{kicker}</div>
                 <h1 className="display">{titulo}</h1>
