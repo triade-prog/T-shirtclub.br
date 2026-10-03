@@ -11,6 +11,8 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   const carrossel = page.getByRole("region", { name: "Coleções em destaque" });
   await expect(carrossel.getByRole("link", { name: /Ver Limone/ })).toHaveAttribute("href", "/colecao/limone");
   await expect(carrossel.getByRole("img", { name: "Campanha Limone" })).toBeVisible();
+  // Fotos grandes em qualidade 85 (03/10); as miniaturas seguem no padrão 75
+  await expect(carrossel.getByRole("img", { name: "Campanha Limone" })).toHaveAttribute("src", /[?&]q=85(&|$)/);
 
   await carrossel.getByRole("button", { name: "Pausar o carrossel" }).click();
   await expect(carrossel.getByRole("button", { name: "Continuar o carrossel" })).toBeVisible();

@@ -11,6 +11,8 @@ const config: NextConfig = {
   transpilePackages: ["@tshirtclub/ui", "@tshirtclub/domain", "@tshirtclub/servidor"],
   images: {
     formats: ["image/avif", "image/webp"],
+    // 75: miniaturas (o padrão); 85: fotos grandes (QUALIDADE_FOTO_GRANDE em src/lib/fotos.ts)
+    qualities: [75, 85],
     dangerouslyAllowLocalIP: origemLocal,
     remotePatterns: origem ? [{ protocol: origem.protocol === "http:" ? "http" : "https", hostname: origem.hostname, port: origem.port, pathname: "/storage/v1/object/public/catalogo/**" }] : [],
   },

@@ -167,4 +167,7 @@ test("prévia do link: arte da loja no início, capa na coleção e foto na peç
   await page.goto(`${LOJA}/produto/limone-amalfi-coast`);
   expect(await imagem()).toMatch(/\/storage\/v1\/object\/public\/catalogo\/.+/);
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Limone Amalfi Coast");
+  // Fotos da peça em qualidade 85; as miniaturas da galeria, em 75 (03/10)
+  const fotos = page.getByRole("list", { name: /Fotos de/ }).locator("img");
+  await expect(fotos.first()).toHaveAttribute("src", /[?&]q=85(&|$)/);
 });

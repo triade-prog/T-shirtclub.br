@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { QUALIDADE_FOTO_GRANDE } from "@/lib/fotos";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -128,7 +129,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         // Com banner de campanha (28/09): o banner inteiro no topo, como no carrossel do início, e
         // o nome, a descrição e o botão numa faixa menor logo abaixo (o banner já tem o título dele)
         <TopoColecaoBanner nome={colecao.nome} qtdEstampas={qtdEstampas} descricao={colecao.descricao} botao={botaoPecas}
-          foto={<Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />} />
+          foto={<Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority quality={QUALIDADE_FOTO_GRANDE} sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />} />
       ) : (
         <TopoColecaoSimples nome={colecao.nome} qtdEstampas={qtdEstampas} descricao={colecao.descricao} botao={botaoPecas}
           rotulo={lojaToda ? `Toda a loja · ${qtdEstampas}` : undefined}
@@ -214,7 +215,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
             </p>
           </div>
           <div className="relative min-h-[430px] overflow-hidden rounded-[22px] border-2 border-tinta">
-            <Image src={urlFoto(fotoFim.caminho)} alt={fotoFim.alt ?? ""} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+            <Image src={urlFoto(fotoFim.caminho)} alt={fotoFim.alt ?? ""} fill quality={QUALIDADE_FOTO_GRANDE} sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
           </div>
         </section>
       )}
