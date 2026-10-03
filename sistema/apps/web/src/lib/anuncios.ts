@@ -2,14 +2,28 @@
 // carrega depois que a cliente aceita os cookies de anúncio (LGPD); antes disso nada sai do
 // navegador. Sem GOOGLE_ADS_ID, nada disso existe: nem aviso, nem tag, nem domínio na CSP.
 
-/** ID da conta do Google Ads (AW-…); formato estrito, porque entra na URL da tag e na CSP. */
+/**
+ * ID da tag que a loja carrega: a conta do Google Ads (AW-…) ou a tag do Google (G-…), que o
+ * Google Ads passou a criar nas contas novas (03/10) e que envia as conversões para a conta
+ * ligada a ela. Formato estrito, porque entra na URL da tag e na CSP.
+ */
 export function idAnuncios(valor: string | undefined): string | null {
-  return valor && /^AW-\d{6,15}$/.test(valor) ? valor : null;
+  return valor && /^(AW-\d{6,15}|G-[A-Z0-9]{6,15})$/.test(valor) ? valor : null;
 }
 
-/** Rótulo da ação de conversão "compra" (a parte depois da barra em AW-…/rótulo). */
-export function rotuloConversao(valor: string | undefined): string | null {
-  return valor && /^[A-Za-z0-9_-]{6,40}$/.test(valor) ? valor : null;
+const ROTULO = /^[A-Za-z0-9_-]{6,40}$/;
+const DESTINO = /^AW-\d{6,15}\/[A-Za-z0-9_-]{6,40}$/;
+
+/**
+ * Para onde vai a conversão da compra (send_to do evento): o GOOGLE_ADS_ROTULO_COMPRA inteiro
+ * como o Google mostra no snippet do evento (AW-…/rótulo) ou só o rótulo, quando o ID da loja é
+ * a própria conta (AW-…). Com a tag G- e só o rótulo, não há conta para montar: null, e a compra
+ * fica contada só pela visita a /pagamento-aprovado (conversão por endereço, sem o valor).
+ */
+export function destinoCompra(id: string, valor: string | undefined): string | null {
+  if (!valor) return null;
+  if (DESTINO.test(valor)) return valor;
+  return ROTULO.test(valor) && id.startsWith("AW-") ? `${id}/${valor}` : null;
 }
 
 export const CHAVE_CONSENTIMENTO = "tc-cookies-anuncios";
@@ -28,12 +42,22 @@ export function gravarConsentimento(v: Consentimento) {
   try { localStorage.setItem(CHAVE_CONSENTIMENTO, v); } catch { /* sem armazenamento: o aviso volta na próxima visita */ }
 }
 
-/** Evento de conversão da compra: valor dos produtos em reais e o número da reserva como transação (o Google descarta a repetida). */
-export function eventoCompra(id: string, rotulo: string, reserva: { numero: number; totalCentavos: number }) {
-  return ["event", "conversion", { send_to: `${id}/${rotulo}`, value: reserva.totalCentavos / 100, currency: "BRL", transaction_id: String(reserva.numero) }] as const;
+type Evento = readonly unknown[];
+
+/**
+ * Eventos da compra, com o valor em reais e o número da reserva como transação (o Google descarta
+ * a repetida): a conversão do Google Ads, quando há destino (AW-…/rótulo), e, com a tag do Google
+ * (G-…), a compra no formato do Google Analytics ("purchase"), que o Google Ads importa de lá.
+ */
+export function eventosCompra(id: string, destino: string | null, reserva: { numero: number; totalCentavos: number }): Evento[] {
+  const dados = { value: reserva.totalCentavos / 100, currency: "BRL", transaction_id: String(reserva.numero) };
+  return [
+    ...(destino ? [["event", "conversion", { send_to: destino, ...dados }]] : []),
+    ...(id.startsWith("G-") ? [["event", "purchase", dados]] : []),
+  ];
 }
 
-type Janela = Window & { dataLayer?: unknown[]; tcCompraPendente?: readonly unknown[] };
+type Janela = Window & { dataLayer?: unknown[]; tcCompraPendente?: Evento[] };
 
 // O gtag.js lê a fila com o objeto `arguments` de cada chamada, não com um array.
 function gtag(..._args: unknown[]) {
@@ -50,7 +74,7 @@ export function carregarTag(id: string) {
   gtag("config", id);
   const w = window as Janela;
   if (w.tcCompraPendente) {
-    gtag(...w.tcCompraPendente);
+    for (const evento of w.tcCompraPendente) gtag(...evento);
     w.tcCompraPendente = undefined;
   }
   const s = document.createElement("script");
@@ -61,8 +85,9 @@ export function carregarTag(id: string) {
 }
 
 /** Registra a compra: na hora, se a tag já carregou; senão fica esperando o aceite nesta página. */
-export function registrarCompra(id: string, rotulo: string, reserva: { numero: number; totalCentavos: number }) {
-  const evento = eventoCompra(id, rotulo, reserva);
-  if (lerConsentimento() === "aceito" && document.getElementById("tag-google")) gtag(...evento);
-  else (window as Janela).tcCompraPendente = evento;
+export function registrarCompra(id: string, destino: string | null, reserva: { numero: number; totalCentavos: number }) {
+  const eventos = eventosCompra(id, destino, reserva);
+  if (eventos.length === 0) return;
+  if (lerConsentimento() === "aceito" && document.getElementById("tag-google")) for (const evento of eventos) gtag(...evento);
+  else (window as Janela).tcCompraPendente = eventos;
 }

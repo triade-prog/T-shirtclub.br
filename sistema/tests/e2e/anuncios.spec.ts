@@ -43,8 +43,8 @@ test("sem aceite, nada vai para o Google; o aviso não volta depois da escolha",
 
   // A política conta os cookies de anúncio e deixa mudar a escolha: o aviso volta
   await page.goto(`${LOJA}/privacidade`);
-  await expect(page.getByText(/Cookies de anúncio do Google só entram se você aceitar/)).toBeVisible();
-  await expect(page.getByText("Google (Google Ads), só com o seu aceite", { exact: false })).toBeVisible();
+  await expect(page.getByText(/Cookies de anúncio e de medição do Google só entram se você aceitar/)).toBeVisible();
+  await expect(page.getByText("Google (Google Ads e Google Analytics), só com o seu aceite", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Mudar minha escolha de cookies" }).click();
   await expect(aviso).toBeVisible();
   expect(tag).toEqual([]);

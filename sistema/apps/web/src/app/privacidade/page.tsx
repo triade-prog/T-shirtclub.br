@@ -82,7 +82,7 @@ export default async function Privacidade() {
           </li>
           {anuncios && (
             <li>
-              Saber quais anúncios do Google trouxeram visitas e compras, só se você aceitar os cookies de anúncio:
+              Saber quais anúncios do Google trouxeram visitas e compras e medir as visitas do site, só se você aceitar os cookies de anúncio:
               consentimento (art. 7º, I), que você pode retirar quando quiser (item 7).
             </li>
           )}
@@ -105,8 +105,8 @@ export default async function Privacidade() {
           <li>Motoboy ou transportadora: nome, telefone e endereço, só quando há entrega.</li>
           {anuncios && (
             <li>
-              Google (Google Ads), só com o seu aceite: os cookies de anúncio e, quando o pagamento é aprovado, o número
-              da reserva e o valor da compra, sem nome nem telefone.
+              Google (Google Ads e Google Analytics), só com o seu aceite: os cookies de anúncio e de medição, as páginas
+              visitadas e, quando o pagamento é aprovado, o número da reserva e o valor da compra, sem nome nem telefone.
             </li>
           )}
         </ul>
@@ -149,7 +149,7 @@ export default async function Privacidade() {
           ficam só no seu navegador. Se você instalar o site na tela inicial, o aparelho guarda também a parte visual do
           site para abrir mais rápido. A contagem de visitas não usa cookie nem guarda nada no seu aparelho.{" "}
           {anuncios
-            ? "Cookies de anúncio do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador."
+            ? "Cookies de anúncio e de medição do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador."
             : "Não usamos cookies de propaganda nem rastreamento de terceiros."}
         </p>
         {anuncios && <MudarEscolha />}

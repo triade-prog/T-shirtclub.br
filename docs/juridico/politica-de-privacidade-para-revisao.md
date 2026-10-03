@@ -33,7 +33,7 @@ Correções podem ser feitas direto no texto da parte 2 ou em comentários à pa
   - banco de dados no Supabase, em São Paulo (sa-east-1);
   - site na Vercel.
 - **Contagem de visitas:** o site conta as páginas vistas, de onde a visita chegou e se o aparelho é celular, tablet ou computador, sem cookie e sem guardar nada no aparelho. Para contar cada pessoa uma vez por dia, o servidor cria um código irreversível (hash) do IP, do navegador e do dia, com uma chave secreta do servidor. O código muda todo dia e é apagado em até 2 dias. Ficam só os totais por dia, que a equipe vê no painel.
-- **Google Ads:** está pronto no sistema, mas **não está ligado**. Sem a conta configurada, o site não mostra o aviso de cookies de anúncio nem os trechos da política sobre isso. Os trechos que entram quando a conta for ligada estão no fim da parte 2.
+- **Google Ads:** está pronto no sistema, mas **não está ligado**. A conta da loja usa a tag do Google (G-…), que mede pelo Google Analytics e passa as compras para o Google Ads (03/10); por isso os trechos falam também em medição. Sem a conta configurada, o site não mostra o aviso de cookies de anúncio nem os trechos da política sobre isso. Os trechos que entram quando a conta for ligada estão no fim da parte 2.
 
 ### Prazos de guarda que o sistema aplica sozinho
 
@@ -121,9 +121,9 @@ Uma rotina diária apaga ou reduz estes dados:
 
 ### Trechos que entram quando o Google Ads for ligado
 
-- **No item 3, novo tópico:** "Saber quais anúncios do Google trouxeram visitas e compras, só se você aceitar os cookies de anúncio: consentimento (art. 7º, I), que você pode retirar quando quiser (item 7)."
-- **No item 4, novo tópico:** "Google (Google Ads), só com o seu aceite: os cookies de anúncio e, quando o pagamento é aprovado, o número da reserva e o valor da compra, sem nome nem telefone."
-- **No item 7, a última frase é substituída por:** "Cookies de anúncio do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador." Logo abaixo aparece um botão para mudar a escolha.
+- **No item 3, novo tópico:** "Saber quais anúncios do Google trouxeram visitas e compras e medir as visitas do site, só se você aceitar os cookies de anúncio: consentimento (art. 7º, I), que você pode retirar quando quiser (item 7)."
+- **No item 4, novo tópico:** "Google (Google Ads e Google Analytics), só com o seu aceite: os cookies de anúncio e de medição, as páginas visitadas e, quando o pagamento é aprovado, o número da reserva e o valor da compra, sem nome nem telefone."
+- **No item 7, a última frase é substituída por:** "Cookies de anúncio e de medição do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador." Logo abaixo aparece um botão para mudar a escolha.
 
 ---
 

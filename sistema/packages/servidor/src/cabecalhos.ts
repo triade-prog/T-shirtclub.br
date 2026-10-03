@@ -17,10 +17,12 @@ export interface OpcoesCsp {
 const MERCADO_PAGO = ["https://sdk.mercadopago.com", "https://*.mercadopago.com", "https://*.mercadopago.com.br", "https://*.mercadolibre.com", "https://*.mlstatic.com"];
 const TURNSTILE = ["https://challenges.cloudflare.com"];
 // Google Ads (tag e conversões), pela lista da documentação do Google. O script continua preso ao
-// nonce: com 'strict-dynamic', só entra o gtag.js que o próprio código da loja insere.
+// nonce: com 'strict-dynamic', só entra o gtag.js que o próprio código da loja insere. A tag do
+// Google (G-…, 03/10) também envia pelos endereços de coleta do Google Analytics.
 const GOOGLE_ADS = {
   script: ["https://www.googletagmanager.com", "https://www.googleadservices.com", "https://googleads.g.doubleclick.net", "https://www.google.com"],
-  conexao: ["https://www.googletagmanager.com", "https://www.googleadservices.com", "https://googleads.g.doubleclick.net", "https://www.google.com", "https://www.google.com.br", "https://pagead2.googlesyndication.com"],
+  conexao: ["https://www.googletagmanager.com", "https://www.googleadservices.com", "https://googleads.g.doubleclick.net", "https://www.google.com", "https://www.google.com.br", "https://pagead2.googlesyndication.com",
+    "https://*.google-analytics.com", "https://*.analytics.google.com"],
   frame: ["https://td.doubleclick.net", "https://bid.g.doubleclick.net", "https://www.googletagmanager.com"],
 };
 

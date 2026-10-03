@@ -45,6 +45,8 @@ describe("CSP", () => {
     expect(com).toMatch(/script-src 'self' 'nonce-n' 'strict-dynamic' [^;]*https:\/\/www\.googletagmanager\.com/);
     expect(com).toMatch(/connect-src [^;]*https:\/\/googleads\.g\.doubleclick\.net/);
     expect(com).toMatch(/img-src [^;]*https:\/\/www\.google\.com\.br/);
+    // Tag do Google (G-…): coleta pelos endereços do Google Analytics
+    expect(com).toMatch(/connect-src [^;]*https:\/\/\*\.google-analytics\.com/);
     expect(com).toMatch(/frame-src [^;]*https:\/\/td\.doubleclick\.net/);
     // 'unsafe-inline' continua só no style-src-attr, como antes
     expect(com.match(/'unsafe-inline'/g)).toHaveLength(1);

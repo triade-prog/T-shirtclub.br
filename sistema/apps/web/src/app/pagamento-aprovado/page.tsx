@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { idAnuncios, rotuloConversao } from "@/lib/anuncios";
+import { destinoCompra, idAnuncios } from "@/lib/anuncios";
 import { ReservaAtiva } from "../reserva/[numero]/ReservaAtiva";
 
 // Pagamento aprovado (tráfego pago): endereço fixo para a conversão do Google Ads. A reserva
@@ -14,9 +14,9 @@ export default async function PaginaPagamentoAprovado({ searchParams }: PageProp
   // Visita sem reserva não vira página (nem conversão): vai para o início
   if (typeof reserva !== "string" || !/^\d{1,9}$/.test(reserva)) redirect("/");
   const id = idAnuncios(process.env.GOOGLE_ADS_ID);
-  const rotulo = rotuloConversao(process.env.GOOGLE_ADS_ROTULO_COMPRA);
+  const destino = id ? destinoCompra(id, process.env.GOOGLE_ADS_ROTULO_COMPRA) : null;
   return (
     <ReservaAtiva numero={Number(reserva)} numeroLoja={process.env.WHATSAPP_LOJA ?? "5577998155772"}
-      aprovado={{ conversao: id && rotulo ? { id, rotulo } : null }} />
+      aprovado={{ conversao: id ? { id, destino } : null }} />
   );
 }

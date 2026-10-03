@@ -15,7 +15,8 @@ import { ENTREGA, chaveAprovado, guardado, guardar, lembrado, lembrar, useRepeti
 const ESPERA_RESERVA_MS = 5000;
 
 /** Na página /pagamento-aprovado: a conversão do Google Ads da compra, quando configurada. */
-export interface NaPaginaAprovado { conversao: { id: string; rotulo: string } | null }
+/** id: a tag da loja (AW- ou G-); destino: o send_to da conversão do Google Ads (AW-…/rótulo), se houver. */
+export interface NaPaginaAprovado { conversao: { id: string; destino: string | null } | null }
 
 export function ReservaAtiva({ numero, numeroLoja, aprovado }: { numero: number; numeroLoja: string; aprovado?: NaPaginaAprovado }) {
   const router = useRouter();
@@ -61,7 +62,7 @@ export function ReservaAtiva({ numero, numeroLoja, aprovado }: { numero: number;
     if (reserva.status !== "PAGAMENTO_CONFIRMADO") return router.replace(`/reserva/${reserva.numero}`);
     if (lembrado(chaveAprovado(reserva.id))) return;
     lembrar(chaveAprovado(reserva.id), "1");
-    if (aprovado.conversao) registrarCompra(aprovado.conversao.id, aprovado.conversao.rotulo, reserva);
+    if (aprovado.conversao) registrarCompra(aprovado.conversao.id, aprovado.conversao.destino, reserva);
   }, [reserva, aprovado, irParaAprovado, router]);
 
   if (problema) return <Problema tipo={problema} />;
