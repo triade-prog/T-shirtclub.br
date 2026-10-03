@@ -47,6 +47,12 @@ export default async function Privacidade() {
             Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos
             como pedidos repetidos de código, e a verificação anti-robô da Cloudflare (Turnstile).
           </li>
+          <li>
+            Contagem de visitas, sem cookie: a página vista, o site ou o link de onde você chegou (como Instagram ou
+            Google) e se o aparelho é celular, tablet ou computador. Para contar cada pessoa uma vez por dia, o sistema
+            cria um código embaralhado a partir do endereço IP e do navegador, que muda todo dia e não permite saber quem
+            é você. Guardamos só os totais por dia.
+          </li>
         </ul>
         <p>Não pedimos CPF, e-mail ou data de nascimento para reservar.</p>
       </Secao>
@@ -65,6 +71,10 @@ export default async function Privacidade() {
           <li>
             Guardar os registros de vendas exigidos pela legislação fiscal e de consumo: cumprimento de obrigação legal
             (art. 7º, II).
+          </li>
+          <li>
+            Saber quantas pessoas visitam o site e quais páginas interessam mais, para melhorar a loja: legítimo interesse
+            (art. 7º, IX), só com totais, sem identificar ninguém.
           </li>
           <li>
             Mandar novidades, drops e ofertas pelo WhatsApp, só para quem entrou na Lista VIP: consentimento (art. 7º, I),
@@ -110,6 +120,7 @@ export default async function Privacidade() {
             em até 30 dias.
           </li>
           <li>Mensagens que você enviou ao WhatsApp da loja pelo sistema: o texto é apagado em até 90 dias.</li>
+          <li>Código diário da contagem de visitas: apagado em até 2 dias. Os totais por dia ficam, porque não identificam ninguém.</li>
           <li>Endereço de entrega: 90 dias depois da entrega; depois fica só a cidade.</li>
           <li>Lista VIP: até você pedir para sair; ao sair, o contato é apagado.</li>
           <li>
@@ -136,7 +147,7 @@ export default async function Privacidade() {
           O site usa cookies necessários para funcionar: um guarda as peças da sua sacola, e os outros mantêm a sua
           reserva e a sua consulta abertas depois da confirmação pelo WhatsApp. As peças que você marca como favoritas
           ficam só no seu navegador. Se você instalar o site na tela inicial, o aparelho guarda também a parte visual do
-          site para abrir mais rápido.{" "}
+          site para abrir mais rápido. A contagem de visitas não usa cookie nem guarda nada no seu aparelho.{" "}
           {anuncios
             ? "Cookies de anúncio do Google só entram se você aceitar no aviso do site; sem o aceite, nada é enviado ao Google. Para mudar a escolha, use o botão abaixo; os cookies já gravados também podem ser apagados nas configurações do navegador."
             : "Não usamos cookies de propaganda nem rastreamento de terceiros."}

@@ -113,3 +113,22 @@ test("início: troca sozinho; com movimento reduzido, começa parado", async ({ 
   await page.goto(`${LOJA}/`);
   await expect(page.getByRole("button", { name: "Continuar o carrossel" })).toBeVisible();
 });
+
+// Acessos (0520): cada página vista avisa /api/v1/visita, sem cookie; a origem só na primeira
+// página da visita. O repasse leva o navegador para a api separar celular de computador.
+test("acessos: a loja conta cada página vista, com a origem só na entrada", async ({ page, context }) => {
+  const visita = () => page.waitForRequest((r) => r.url() === `${LOJA}/api/v1/visita` && r.method() === "POST");
+  const primeira = visita();
+  await page.goto(`${LOJA}/?utm_source=instagram`);
+  expect((await primeira).postDataJSON()).toEqual({ caminho: "/", origem: "instagram" });
+
+  const segunda = visita();
+  await page.getByRole("region", { name: "Pick your story." }).getByRole("link", { name: "Limone" }).click();
+  expect((await segunda).postDataJSON()).toEqual({ caminho: "/colecao/limone" });
+  await expect(page).toHaveURL(`${LOJA}/colecao/limone`);
+
+  // Nada de cookie novo por causa da contagem
+  expect((await context.cookies()).map((c) => c.name).filter((n) => !n.startsWith("__Host-"))).toEqual([]);
+  const recebidas = await (await page.request.get("http://127.0.0.1:4010/__visitas")).json() as { caminho: string; origem?: string; navegador: string | null }[];
+  expect(recebidas.some((v) => v.caminho === "/" && v.origem === "instagram" && (v.navegador ?? "").includes("Mozilla"))).toBe(true);
+});

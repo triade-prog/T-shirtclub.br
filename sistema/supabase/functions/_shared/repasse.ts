@@ -3,6 +3,7 @@
 
 export const CABECALHO_SEGREDO = "x-repasse-segredo";
 export const CABECALHO_IP = "x-cliente-ip";
+export const CABECALHO_NAVEGADOR = "x-cliente-navegador";
 
 /** Comparação em tempo constante, para não vazar o segredo pelo tempo de resposta. */
 export function segredoConfere(recebido: string | null, esperado: string): boolean {
@@ -17,4 +18,9 @@ export function segredoConfere(recebido: string | null, esperado: string): boole
 export function ipDaCliente(headers: Headers): string | null {
   const ip = headers.get(CABECALHO_IP)?.trim();
   return ip && ip.length <= 45 ? ip : null;
+}
+
+/** O user-agent da cliente, que só o repasse grava (acessos, 0520). */
+export function navegadorDaCliente(headers: Headers): string | null {
+  return headers.get(CABECALHO_NAVEGADOR)?.slice(0, 400) || null;
 }

@@ -20,7 +20,7 @@ test("login do painel: e-mail, senha, acessível e sem erro de CSP", async ({ pa
   expect(erros).toEqual([]);
 });
 
-const TELAS = ["/", "/operacao", "/reservas", "/reservas/nova", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/vip", "/whatsapp", "/auditoria", "/conta"];
+const TELAS = ["/", "/operacao", "/reservas", "/reservas/nova", "/cancelamentos", "/entregas", "/catalogo", "/estoque", "/promocoes", "/pagamentos", "/contestacoes", "/bloqueados", "/vip", "/acessos", "/whatsapp", "/auditoria", "/conta"];
 
 test("sem sessão, as telas vão para o login e voltam depois", async ({ page }) => {
   await page.goto(`${PAINEL}/`);
@@ -370,4 +370,114 @@ test("nova reserva: escolhe a peça, vê o total, exige o motivo do desconto e r
     nome: "Ana Paula", telefone: "+5577998128809", entrega: "RETIRADA", pagamento: "DINHEIRO",
     itens: [{ produtoId: PECA, varianteId: "v1", qtd: 2 }], descontoManualCentavos: 998, motivoDesconto: "Cliente fiel", totalEsperadoCentavos: 9000,
   });
+});
+
+// Avisos da loja (0510) com a api-admin simulada: liga com o número da equipe, desliga um aviso,
+// manda o teste e para os avisos.
+test("WhatsApp: avisos para a equipe no WhatsApp pessoal", async ({ page, context }) => {
+  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+  const AVISOS = [
+    { id: "nova_reserva", nome: "Nova reserva", quando: "Quando uma cliente reserva pelo site" },
+    { id: "lista_vip", nome: "Entrou na lista VIP", quando: "Quando alguém se inscreve na lista VIP" },
+  ];
+  let avisos = { telefone: null as string | null, desligados: [] as string[] };
+  const tela = () => ({ telefone: avisos.telefone, avisos: AVISOS.map((a) => ({ ...a, ligado: !avisos.desligados.includes(a.id) })) });
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+    "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
+      fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho === "v1/admin/whatsapp/avisos") {
+      if (r.method() === "PUT") {
+        const corpo = r.postDataJSON() as Partial<typeof avisos>;
+        enviados.push({ metodo: "PUT", caminho, corpo });
+        avisos = { ...avisos, ...corpo };
+      }
+      return rota.fulfill({ json: tela() });
+    }
+    if (r.method() !== "GET") {
+      enviados.push({ metodo: r.method(), caminho, corpo: r.postData() ? r.postDataJSON() : null });
+      return rota.fulfill({ status: 202, json: { ok: true, naFila: true } });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/whatsapp`);
+  const card = page.getByRole("region", { name: "Avisos para a equipe" });
+  await expect(card).toContainText("Desligados: grave um número para começar.");
+  await expect(card.getByRole("checkbox", { name: "Avisar “Nova reserva”" })).toBeDisabled();
+
+  // Número com DDD, gravado em E.164
+  await card.getByLabel("WhatsApp que recebe os avisos").fill("77 9988");
+  await card.getByRole("button", { name: "Ligar os avisos" }).click();
+  await expect(card.getByText(/Digite o número com DDD/)).toBeVisible();
+  await expect(card.getByLabel("WhatsApp que recebe os avisos")).toHaveAttribute("aria-invalid", "true");
+  await card.getByLabel("WhatsApp que recebe os avisos").fill("(77) 99888-7777");
+  await card.getByRole("button", { name: "Ligar os avisos" }).click();
+  await expect(card).toContainText("Ligados para (77) 99888-7777.");
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/avisos", corpo: { telefone: "+5577998887777" } });
+
+  // Desliga só a lista VIP
+  // A chave muda quando o painel confirma (como as notificações da cliente)
+  await card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" }).click();
+  await expect(card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" })).not.toBeChecked();
+  expect(enviados.at(-1)!.corpo).toEqual({ desligados: ["lista_vip"] });
+  await expect(card.getByRole("checkbox", { name: "Avisar “Nova reserva”" })).toBeChecked();
+
+  await card.getByRole("button", { name: "Enviar aviso de teste" }).click();
+  await expect(card).toContainText("Aviso de teste na fila.");
+  expect(enviados.at(-1)).toMatchObject({ metodo: "POST", caminho: "v1/admin/whatsapp/avisos/teste" });
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  await card.getByRole("button", { name: "Parar os avisos" }).click();
+  await expect(card).toContainText("Desligados: grave um número para começar.");
+  expect(enviados.at(-1)!.corpo).toEqual({ telefone: null });
+});
+
+// Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.
+test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page, context }) => {
+  const dias = (n: number) => Array.from({ length: n }, (_, i) => ({ dia: `2026-09-${String(i + 1).padStart(2, "0")}`, visitas: i * 3, visitantes: i }));
+  const resposta = (n: number) => ({
+    inicio: "2026-09-01", fim: "2026-09-30", hoje: { visitas: 87, visitantes: 29 }, ontem: { visitas: 60, visitantes: 21 },
+    seteDias: { visitas: 400, visitantes: 150 }, periodo: { visitas: 1200, visitantes: 480 }, dias: dias(n),
+    paginas: [{ caminho: "/", nome: null, visitas: 700 }, { caminho: "/colecao/fe", nome: "Fé", visitas: 210 }, { caminho: "/produto/amen", nome: "Amen", visitas: 90 }],
+    origens: [{ origem: "instagram", entradas: 300 }, { origem: "direto", entradas: 120 }, { origem: "whatsapp", entradas: 60 }],
+    aparelhos: { celular: 400, tablet: 10, computador: 70 },
+  });
+  const pedidos: string[] = [];
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const url = new URL(rota.request().url());
+    if (url.pathname === "/api/v1/admin/acessos") {
+      pedidos.push(url.search);
+      return rota.fulfill({ json: resposta(Number(url.searchParams.get("dias"))) });
+    }
+    return rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/acessos`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Quem visitou");
+  const resumo = page.getByRole("region", { name: "Resumo dos acessos" });
+  await expect(resumo).toContainText("Visitantes hoje");
+  await expect(resumo).toContainText("29");
+  await expect(resumo).toContainText("1.200 páginas vistas");
+  await expect(page.getByRole("list", { name: "Visitantes por dia" }).getByRole("listitem")).toHaveCount(30);
+  await expect(page.getByRole("listitem", { name: /^Hoje: 29 visitantes, 87 páginas vistas$/ })).toHaveCount(1);
+  await expect(page.getByText("Início", { exact: true })).toBeVisible();
+  await expect(page.getByText("Fé", { exact: true })).toBeVisible();
+  await expect(page.getByText("Instagram", { exact: true })).toBeVisible();
+  await expect(page.getByText("Celular", { exact: true })).toBeVisible();
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  await page.getByRole("button", { name: "7 dias" }).click();
+  await expect(page.getByRole("list", { name: "Visitantes por dia" }).getByRole("listitem")).toHaveCount(7);
+  expect(pedidos).toEqual(["?dias=30", "?dias=7"]);
 });

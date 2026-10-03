@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Promocao } from "./preco.ts";
 import {
+  AVISOS_LOJA,
   candidatosDoRemetente,
   DIAS_TROCA,
   ehPedidoMinhaReserva,
@@ -243,5 +244,47 @@ describe("o que a loja manda", () => {
 
   it("hora sempre no fuso da loja", () => {
     expect(formatarHora(new Date("2026-10-10T03:05:00Z"))).toBe("00:05");
+  });
+});
+
+describe("avisos para a equipe (0510)", () => {
+  const expira = new Date("2026-10-10T17:32:00Z");
+  it("nova reserva: número, primeiro nome, peças, valor, entrega e prazo, com o endereço do painel", () => {
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "nova_reserva", numero: 1048, nome: "Marina", pecas: 3, totalCentavos: 11999, retirada: false, expiraEm: expira })).toBe(
+      "🛍️ *Nova reserva #1048*\n\nMarina · 3 peças · R$ 119,99\nQuer receber em casa · vale até 14:32\n\nadmin-tshirtclub.vercel.app",
+    );
+  });
+
+  it("pagamento aprovado e frete pago", () => {
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "pagamento_aprovado", numero: 1048, nome: "Marina", valorCentavos: 11999, forma: "PIX", frete: false }))
+      .toBe("✅ *Pagamento aprovado* · reserva #1048\n\nMarina · R$ 119,99 · PIX\n\nAgora é com a gente: separar as peças.");
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "pagamento_aprovado", numero: 1048, nome: "Marina", valorCentavos: 1800, forma: "CARTAO", frete: true }))
+      .toContain("✅ *Frete pago* · pedido #1048");
+  });
+
+  it("lista VIP com e sem nome, com o total", () => {
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "lista_vip", nome: "Ana", origem: "POPUP", total: 42 }))
+      .toBe("⭐ *Nova inscrição na lista VIP*: Ana\n\nPelo pop-up do site · 42 na lista");
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "lista_vip", nome: null, origem: "RODAPE", total: 1 })).toMatch(/^⭐ \*Nova inscrição na lista VIP\*\n\nPelo rodapé/);
+  });
+
+  it("todos os tipos do painel têm texto, sem telefone e sem Club.br", () => {
+    const amostras: Record<string, Parameters<typeof mensagemWhatsApp<"aviso_loja">>[1]> = {
+      nova_reserva: { tipo: "nova_reserva", numero: 1, nome: "A", pecas: 1, totalCentavos: 4999, retirada: true, expiraEm: expira },
+      pagamento_aprovado: { tipo: "pagamento_aprovado", numero: 1, nome: "A", valorCentavos: 4999, forma: "PIX", frete: false },
+      lista_vip: { tipo: "lista_vip", nome: null, origem: "POPUP", total: 1 },
+      frete_calcular: { tipo: "frete_calcular", numero: 1, modalidade: "MOTOBOY" },
+      cancelamento: { tipo: "cancelamento", numero: 1 },
+      pagamento_analise: { tipo: "pagamento_analise", numero: 1, motivo: "VALOR_DIVERGENTE" },
+      contestacao: { tipo: "contestacao", numero: 1, motivo: "CONTESTACAO" },
+      troca: { tipo: "troca" },
+      sistema: { tipo: "sistema", mensagem: "Pagamentos sem confirmação há 30 minutos" },
+    };
+    for (const a of AVISOS_LOJA) {
+      const texto = mensagemWhatsApp("aviso_loja", amostras[a.id]!);
+      expect(texto.length).toBeGreaterThan(20);
+      expect(texto).not.toMatch(/club\.br|\+55|undefined|null/i);
+    }
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "teste" })).toContain("Teste dos avisos da loja");
   });
 });

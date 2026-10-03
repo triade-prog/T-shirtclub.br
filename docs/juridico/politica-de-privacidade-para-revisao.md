@@ -4,7 +4,7 @@ Preparado em 30/09/2026 para a análise jurídica (item P15 do painel de execuç
 
 - **Site:** https://tshirtclub.vercel.app. Ainda não há domínio próprio.
 - **Página da política:** https://tshirtclub.vercel.app/privacidade
-- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo).
+- **Texto no ar desde:** 27/09/2026. Em 02/10/2026 a loja trocou a ferramenta do WhatsApp: a Wafly entrou no lugar da Z-API, e a política publicada passou a citar a Wafly (item 4 e ponto 6 abaixo). No mesmo dia, o site passou a contar as visitas sem cookie, e a política ganhou os trechos sobre isso (itens 2, 3, 5 e 7 e ponto 12 abaixo).
 
 O documento tem quatro partes:
 
@@ -32,6 +32,7 @@ Correções podem ser feitas direto no texto da parte 2 ou em comentários à pa
 - **Onde os dados ficam:**
   - banco de dados no Supabase, em São Paulo (sa-east-1);
   - site na Vercel.
+- **Contagem de visitas:** o site conta as páginas vistas, de onde a visita chegou e se o aparelho é celular, tablet ou computador, sem cookie e sem guardar nada no aparelho. Para contar cada pessoa uma vez por dia, o servidor cria um código irreversível (hash) do IP, do navegador e do dia, com uma chave secreta do servidor. O código muda todo dia e é apagado em até 2 dias. Ficam só os totais por dia, que a equipe vê no painel.
 - **Google Ads:** está pronto no sistema, mas **não está ligado**. Sem a conta configurada, o site não mostra o aviso de cookies de anúncio nem os trechos da política sobre isso. Os trechos que entram quando a conta for ligada estão no fim da parte 2.
 
 ### Prazos de guarda que o sistema aplica sozinho
@@ -43,6 +44,7 @@ Uma rotina diária apaga ou reduz estes dados:
 | Códigos de verificação, sessões e tentativas de reserva não concluídas | apagados em 30 dias |
 | IP, guardado apenas como código irreversível (hash) | apagado em 30 dias |
 | Texto das mensagens recebidas no WhatsApp pelo sistema | apagado em 90 dias |
+| Código diário da contagem de visitas (hash de IP, navegador e dia) | apagado em até 2 dias (só os totais por dia ficam) |
 | Endereço de entrega | reduzido a cidade e UF 90 dias depois da entrega |
 | Reservas, pedidos e pagamentos | **não são apagados nem anonimizados automaticamente** (ver o ponto 1 da parte 4) |
 
@@ -65,6 +67,7 @@ Uma rotina diária apaga ou reduz estes dados:
 > - Mensagens que você envia ao WhatsApp da loja para pedir o código ou consultar sua reserva.
 > - Se você entrar na Lista VIP: o WhatsApp, o nome (se quiser informar) e a data em que aceitou receber as novidades.
 > - Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos como pedidos repetidos de código, e a verificação anti-robô da Cloudflare (Turnstile).
+> - Contagem de visitas, sem cookie: a página vista, o site ou o link de onde você chegou (como Instagram ou Google) e se o aparelho é celular, tablet ou computador. Para contar cada pessoa uma vez por dia, o sistema cria um código embaralhado a partir do endereço IP e do navegador, que muda todo dia e não permite saber quem é você. Guardamos só os totais por dia.
 >
 > Não pedimos CPF, e-mail ou data de nascimento para reservar.
 >
@@ -74,6 +77,7 @@ Uma rotina diária apaga ou reduz estes dados:
 > - Enviar avisos pelo WhatsApp sobre a sua reserva (código, prazo, pagamento, entrega): execução de contrato.
 > - Prevenir fraude e abuso, como o bloqueio de telefones com expirações repetidas: legítimo interesse (art. 7º, IX).
 > - Guardar os registros de vendas exigidos pela legislação fiscal e de consumo: cumprimento de obrigação legal (art. 7º, II).
+> - Saber quantas pessoas visitam o site e quais páginas interessam mais, para melhorar a loja: legítimo interesse (art. 7º, IX), só com totais, sem identificar ninguém.
 > - Mandar novidades, drops e ofertas pelo WhatsApp, só para quem entrou na Lista VIP: consentimento (art. 7º, I), que você retira quando quiser pedindo pelo WhatsApp da loja.
 >
 > Não enviamos propaganda sem o seu pedido e não vendemos seus dados.
@@ -92,6 +96,7 @@ Uma rotina diária apaga ou reduz estes dados:
 >
 > - Códigos de verificação, sessões, tentativas de reserva não concluídas e dados técnicos de segurança: apagados em até 30 dias.
 > - Mensagens que você enviou ao WhatsApp da loja pelo sistema: o texto é apagado em até 90 dias.
+> - Código diário da contagem de visitas: apagado em até 2 dias. Os totais por dia ficam, porque não identificam ninguém.
 > - Endereço de entrega: 90 dias depois da entrega; depois fica só a cidade.
 > - Lista VIP: até você pedir para sair; ao sair, o contato é apagado.
 > - Reservas, pedidos e pagamentos: pelo prazo exigido pela legislação fiscal e de consumo (5 anos). Depois, são anonimizados.
@@ -104,7 +109,7 @@ Uma rotina diária apaga ou reduz estes dados:
 >
 > **7. O que fica no seu aparelho**
 >
-> O site usa cookies necessários para funcionar: um guarda as peças da sua sacola, e os outros mantêm a sua reserva e a sua consulta abertas depois da confirmação pelo WhatsApp. As peças que você marca como favoritas ficam só no seu navegador. Se você instalar o site na tela inicial, o aparelho guarda também a parte visual do site para abrir mais rápido. Não usamos cookies de propaganda nem rastreamento de terceiros.
+> O site usa cookies necessários para funcionar: um guarda as peças da sua sacola, e os outros mantêm a sua reserva e a sua consulta abertas depois da confirmação pelo WhatsApp. As peças que você marca como favoritas ficam só no seu navegador. Se você instalar o site na tela inicial, o aparelho guarda também a parte visual do site para abrir mais rápido. A contagem de visitas não usa cookie nem guarda nada no seu aparelho. Não usamos cookies de propaganda nem rastreamento de terceiros.
 >
 > **8. Segurança**
 >
@@ -181,6 +186,8 @@ O banco guarda o texto exato que a cliente aceitou e a data e hora do aceite.
     - trocas em até 7 dias e direito de arrependimento (art. 49 do CDC), na página https://tshirtclub.vercel.app/trocas.
 
     Recomendam criar uma página de termos?
+
+12. **Contagem de visitas.** A contagem não usa cookie nem guarda nada no aparelho, por isso o site não pede aceite. A base usada é o legítimo interesse. O código diário (hash do IP, do navegador e do dia, com chave secreta) é apagado em até 2 dias, e ficam só totais. Essa base e essa redação atendem? É preciso o teste de balanceamento (LIA) por escrito?
 
 ---
 

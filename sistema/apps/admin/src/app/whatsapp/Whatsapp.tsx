@@ -11,8 +11,9 @@ import { useRepetir } from "../_painel/useRepetir";
 
 // WhatsApp (tela 18 do protótipo; sem referência V4, no estilo do painel V4): conexão do
 // número da loja (ferramenta no formato da Z-API: Z-API ou Wafly) com o QR code para
-// reconectar, fila, ritmo, modo lançamento, notificações que a loja liga e desliga e
-// mensagem de teste. Tudo vai para a auditoria.
+// reconectar, fila, ritmo, modo lançamento, notificações que a loja liga e desliga,
+// mensagem de teste e os avisos da loja para o WhatsApp da equipe (0510). Tudo vai para a
+// auditoria.
 
 interface Ritmo { intervaloMinS: number; intervaloMaxS: number; tetoHora: number }
 interface Config {
@@ -37,6 +38,7 @@ export function Whatsapp() {
           </div>
           <div className="stack">
             <FilaHoje fila={c.fila} />
+            <AvisosEquipe />
             <Teste />
           </div>
         </div>
@@ -141,6 +143,66 @@ function Notificacoes({ config, aoSalvar }: { config: Config; aoSalvar: () => vo
         ))}
       </div>
       {erro && <p className="field-error" role="alert">{erro}</p>}
+    </section>
+  );
+}
+
+interface Avisos { telefone: string | null; avisos: { id: string; nome: string; quando: string; ligado: boolean }[] }
+
+/** +5577998887777 → (77) 99888-7777 */
+function telefoneNaTela(e164: string | null): string {
+  const d = (e164 ?? "").replace(/^\+55/, "");
+  return /^\d{10,11}$/.test(d) ? `(${d.slice(0, 2)}) ${d.slice(2, -4)}-${d.slice(-4)}` : "";
+}
+
+// Avisos da loja (0510): o WhatsApp pessoal da equipe recebe nova reserva, pagamento aprovado,
+// inscrição na lista VIP e o que pede ação. Sai pela mesma fila, depois das mensagens das clientes.
+function AvisosEquipe() {
+  const { dados: a, erro: erroDados, recarregar } = useDados<Avisos>("v1/admin/whatsapp/avisos");
+  const [testado, setTestado] = useState(false);
+  const salvar = useEnvio<Avisos>(() => void recarregar());
+  const teste = useEnvio(() => setTestado(true));
+  if (!a) return <section className="card"><h2>Avisos para a equipe</h2><Carregando erro={erroDados} /></section>;
+  const desligados = a.avisos.filter((x) => !x.ligado).map((x) => x.id);
+
+  function gravar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setTestado(false);
+    const d = String(new FormData(e.currentTarget).get("telefoneAvisos") ?? "").replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
+    if (!/^\d{10,11}$/.test(d)) return salvar.setErro("Digite o número com DDD, como (77) 99815-5772.");
+    void salvar.enviar(chamarApi<Avisos>("v1/admin/whatsapp/avisos", { telefone: `+55${d}` }, "PUT"));
+  }
+
+  return (
+    <section className="card" aria-labelledby="avisos-titulo">
+      <h2 id="avisos-titulo">Avisos para a equipe</h2>
+      <p className="field-help">
+        A loja manda no seu WhatsApp pessoal cada nova reserva, pagamento aprovado, inscrição na lista VIP e o que precisa de ação. Use um número
+        diferente do WhatsApp da loja. Os avisos saem pela mesma fila, depois das mensagens das clientes.
+      </p>
+      <form className="mt" onSubmit={gravar} noValidate key={a.telefone ?? "sem"}>
+        <Campo name="telefoneAvisos" rotulo="WhatsApp que recebe os avisos" inputMode="tel" autoComplete="off" placeholder="(77) 99815-5772" maxLength={20}
+          defaultValue={telefoneNaTela(a.telefone)} erro={salvar.erro ?? undefined} />
+        <div className="actions mt">
+          <Botao type="submit" carregando={salvar.ocupado}>{a.telefone ? "Trocar número" : "Ligar os avisos"}</Botao>
+          {a.telefone && <Botao variante="ghost" carregando={teste.ocupado} onClick={() => { setTestado(false); void teste.enviar(chamarApi("v1/admin/whatsapp/avisos/teste", {})); }}>Enviar aviso de teste</Botao>}
+          {a.telefone && <Botao variante="link" disabled={salvar.ocupado} onClick={() => void salvar.enviar(chamarApi<Avisos>("v1/admin/whatsapp/avisos", { telefone: null }, "PUT"))}>Parar os avisos</Botao>}
+        </div>
+      </form>
+      {a.telefone
+        ? <p className="field-help" role="status">{testado ? "Aviso de teste na fila. Ele sai no próximo envio." : `Ligados para ${telefoneNaTela(a.telefone)}.`}</p>
+        : <p className="field-help">Desligados: grave um número para começar.</p>}
+      {teste.erro && <p className="field-error" role="alert">{teste.erro}</p>}
+      <div className="mt">
+        {a.avisos.map((x) => (
+          <div key={x.id} className="notif">
+            <div><b>{x.nome}</b><p>{x.quando}</p></div>
+            <Marcar rotulo={x.ligado ? "Ligado" : "Desligado"} aria-label={`Avisar “${x.nome}”`} checked={x.ligado} disabled={salvar.ocupado || !a.telefone}
+              onChange={(e) => void salvar.enviar(chamarApi<Avisos>("v1/admin/whatsapp/avisos",
+                { desligados: e.target.checked ? desligados.filter((id) => id !== x.id) : [...desligados, x.id] }, "PUT"))} />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

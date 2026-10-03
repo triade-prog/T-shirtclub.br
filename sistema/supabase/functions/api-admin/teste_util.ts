@@ -16,6 +16,8 @@ export interface Cenario {
   fatorVerificado?: boolean;
   turnstileOk?: boolean;
   limiteMfaOk?: boolean;
+  /** Limite por chave (hit_rate_limit); undefined segue o limiteMfaOk. */
+  limite?: (chave: string) => boolean | undefined;
   tokensVencidos?: Set<string>;
   erroAjuste?: ErroBanco;
   /** Autenticadores além do f1 (Minha conta). */
@@ -47,7 +49,7 @@ export function montar(cen: Cenario = {}) {
           case "admin_is_active":
             return args.p_user_id === ADMIN && (cen.ativo ?? true);
           case "hit_rate_limit":
-            return cen.limiteMfaOk ?? true;
+            return cen.limite?.(String(args.p_key)) ?? cen.limiteMfaOk ?? true;
           case "log_audit":
             auditoria.push(String(args.p_action));
             return 1;

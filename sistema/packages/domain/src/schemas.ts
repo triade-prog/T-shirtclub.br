@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { normalizarTelefone } from "./telefone.ts";
 import { LIMITES_PADRAO } from "./carrinho.ts";
+import { AVISOS_LOJA, type TipoAvisoLoja } from "./mensagens.ts";
 
 export const telefoneSchema = z.string().trim().max(30).transform((valor, ctx) => {
   const r = normalizarTelefone(valor);
@@ -249,6 +250,12 @@ export const periodoComercialSchema = z.object({ periodo: z.enum(["HOJE", "7_DIA
 
 /** POST /v1/admin/whatsapp/test: só para números da equipe. */
 export const mensagemTesteSchema = z.object({ telefone: telefoneSchema });
+
+/** PUT /v1/admin/whatsapp/avisos (0510): o WhatsApp da equipe (null desliga) e os avisos desligados. */
+export const configAvisosSchema = z.object({
+  telefone: telefoneSchema.nullable().optional(),
+  desligados: z.array(z.enum(AVISOS_LOJA.map((a) => a.id) as [TipoAvisoLoja, ...TipoAvisoLoja[]])).max(AVISOS_LOJA.length).optional(),
+});
 
 /** PUT /v1/admin/account/password (tela 22) */
 export const trocarSenhaSchema = z

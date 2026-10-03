@@ -12,3 +12,4 @@ export * from "./cookies.ts";
 export * from "./autenticador.ts";
 export * from "./vip-textos.ts";
 export * from "./vip.ts";
+export * from "./acessos.ts";

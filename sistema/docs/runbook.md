@@ -77,6 +77,15 @@ para a outra só pelos segredos das Edge Functions, sem publicar código.
 saído. A fila não tenta de novo, para não mandar duas vezes: confira a conversa no celular da loja
 e, se não chegou, mande pelo próprio WhatsApp.
 
+## Os avisos da equipe não chegam
+
+Os avisos (nova reserva, pagamento, lista VIP...) saem pela mesma fila do WhatsApp da loja, depois das mensagens das clientes.
+
+1. No painel, abra WhatsApp → Avisos para a equipe. Confira se o número está gravado e se o aviso está ligado.
+2. Toque em **Enviar aviso de teste**. Se não chegar em alguns minutos, olhe a fila na mesma tela. Se o WhatsApp da loja estiver desconectado, nada sai: veja "WhatsApp caiu".
+3. O número dos avisos precisa ser diferente do WhatsApp da loja: o WhatsApp não entrega mensagem para o próprio número.
+4. Um aviso que espera mais de 12 horas na fila é descartado. O painel continua mostrando tudo.
+
 ## Mercado Pago fora do ar
 
 **Como você percebe:** clientes não conseguem gerar PIX ou pagar com cartão ("Sem conexão com a loja

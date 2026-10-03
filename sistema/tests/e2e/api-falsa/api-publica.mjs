@@ -75,6 +75,7 @@ const home = [
 ];
 
 const buscasRevalidacao = new Map();
+const visitas = [];
 const tentativas = new Map();
 const reservas = new Map();
 const pagamentos = new Map();
@@ -133,6 +134,13 @@ http.createServer(async (req, res) => {
       if (!b?.consentimento || !b?.privacidade || String(b?.telefone ?? "").replace(/\D/g, "").length < 10) return erro(res, 400, "VALIDATION_ERROR");
       return responder(res, 201, { novo: true, cupom: { codigo: "VIP10", modo: "PERCENTUAL", valor: 10, minimoCentavos: null } });
     }
+    // Acessos (0520): cada página vista; o teste da loja lê o que chegou em /__visitas
+    if (m === "POST" && p === "v1/visita") {
+      visitas.push({ ...(await lerCorpo(req)), navegador: req.headers["x-cliente-navegador"] ?? null });
+      res.writeHead(204);
+      return res.end();
+    }
+    if (m === "GET" && url.pathname === "/__visitas") return responder(res, 200, visitas);
     if (m === "GET" && p === "v1/catalog/products") {
       const c = url.searchParams.get("collection");
       return responder(res, 200, c === null ? [cartao, avulsa] : c === "club-editions" ? [avulsa] : ["limone", "estate-italiana"].includes(c) ? [cartao] : []);
