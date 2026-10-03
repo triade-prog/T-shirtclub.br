@@ -18,6 +18,10 @@ interface Opcoes {
   contexto?: Record<string, unknown>;
   /** inbound_answer: o banco libera a resposta. */
   liberada?: boolean;
+  /** Chamados (0550): o que o banco devolve a ticket_command, inbound_ticket e ticket_rate. */
+  comando?: unknown;
+  chamado?: unknown;
+  nota?: unknown;
 }
 
 function montar(opcoes: Opcoes = {}) {
@@ -49,6 +53,12 @@ function montar(opcoes: Opcoes = {}) {
             return { ligadas: true, pausada: false, menuRecente: false, endereco: null, horario: null, respostas: [], ...opcoes.contexto };
           case "inbound_answer":
             return opcoes.liberada ?? true;
+          case "ticket_command":
+            return opcoes.comando ?? { equipe: false };
+          case "inbound_ticket":
+            return opcoes.chamado ?? { numero: 12, novo: true };
+          case "ticket_rate":
+            return opcoes.nota ?? { ok: true, numero: 12, nota: args.p_nota };
           default:
             return null;
         }
@@ -123,15 +133,16 @@ Deno.test("respostas: outro número, referência inválida e bloqueio", async ()
   assertEquals(aguarde.whatsapp.enviadas.length, 0);
 });
 
-Deno.test("sem número (LID), conversa comum, consulta e excesso de mensagens", async () => {
+Deno.test("sem número (LID), dúvida depois das boas-vindas, consulta e excesso de mensagens", async () => {
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid" }))).tratamento, "SEM_NUMERO");
-  assertEquals((await montar().enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
+  // Depois das boas-vindas, a pergunta vira chamado (0550)
+  assertEquals((await montar().enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CHAMADO");
   assertEquals((await montar({ reservas: [] }).enviar(msg({ phone: "123456789012345@lid", text: { message: "Minha reserva" } }))).tratamento,
     "SEM_NUMERO");
   assertEquals((await montar({ limite: false }).enviar(msg())).tratamento, "LIMITE");
 });
 
-Deno.test("mensagem comum: resposta automática com o site quando o banco libera; senão, só conversa", async () => {
+Deno.test("mensagem comum: resposta automática com o site quando o banco libera; senão, a dúvida vira chamado", async () => {
   const liberada = montar({ boasVindas: true });
   assertEquals((await liberada.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "BOAS_VINDAS");
   assertEquals(liberada.rpcs.find((x) => x.funcao === "inbound_welcome")!.args, { p_wa_message_id: "m1" });
@@ -141,8 +152,11 @@ Deno.test("mensagem comum: resposta automática com o site quando o banco libera
   assertEquals(liberada.rpcs.some((x) => x.funcao === "inbound_mark"), false, "o banco já marcou BOAS_VINDAS");
 
   const jaRecebeu = montar({ boasVindas: false });
-  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
-  assertEquals(jaRecebeu.whatsapp.enviadas.length, 0);
+  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CHAMADO");
+  assertMatch(jaRecebeu.whatsapp.enviadas[0]!.texto, /^Essa eu vou deixar com a equipe/);
+  const soOi = montar({ boasVindas: false });
+  assertEquals((await soOi.enviar(msg({ text: { message: "Oi" } }))).tratamento, "CONVERSA");
+  assertEquals(soOi.whatsapp.enviadas.length, 0);
 
   const lid = montar({ boasVindas: true });
   assertEquals((await lid.enviar(msg({ phone: "123456789012345@lid", text: { message: "Oi" } }))).tratamento, "CONVERSA");
@@ -367,4 +381,47 @@ Deno.test("menu ligado: trocas, ofertas e minha reserva terminam com a volta par
   const desligadas = montar({ contexto: { respostas: RESPOSTAS, ligadas: false } });
   await desligadas.enviar(texto("ofertas"));
   assertEquals(volta.test(desligadas.whatsapp.enviadas[0]!.texto), false);
+});
+
+Deno.test("chamado: a dúvida que a Clubinha não sabe responder passa para a equipe; cumprimento não", async () => {
+  const duvida = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await duvida.enviar(texto("Vocês fazem embrulho pra presente?"))).tratamento, "CHAMADO");
+  assertEquals(duvida.rpcs.find((r) => r.funcao === "inbound_ticket")!.args, { p_wa_message_id: "m1" });
+  assertMatch(duvida.whatsapp.enviadas[0]!.texto, /^Essa eu vou deixar com a equipe, tá\?/);
+
+  // Já tinha chamado aberto: entra nele, sem repetir a resposta
+  const junto = montar({ contexto: { respostas: RESPOSTAS }, chamado: { numero: 12, novo: false } });
+  assertEquals((await junto.enviar(texto("e o prazo pra Guanambi?"))).tratamento, "CHAMADO");
+  assertEquals(junto.whatsapp.enviadas.length, 0);
+
+  const obrigada = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await obrigada.enviar(texto("Obrigada!"))).tratamento, "CONVERSA");
+  assertEquals(obrigada.rpcs.some((r) => r.funcao === "inbound_ticket"), false);
+
+  // Com o chamado aberto (pausa), o robô fica quieto
+  const pausada = montar({ contexto: { respostas: RESPOSTAS, pausada: true } });
+  assertEquals((await pausada.enviar(texto("alguém aí?"))).tratamento, "CONVERSA");
+  assertEquals(pausada.rpcs.some((r) => r.funcao === "inbound_ticket"), false);
+});
+
+Deno.test("chamado: a equipe assume e finaliza respondendo o aviso; de outro número é mensagem comum", async () => {
+  const equipe = montar({ comando: { equipe: true, resultado: "RESOLVIDO", numero: 12, nome: "Ana", notaPedida: true } });
+  assertEquals((await equipe.enviar(texto("resolvido 12"))).tratamento, "COMANDO");
+  assertEquals(equipe.rpcs.find((r) => r.funcao === "ticket_command")!.args, { p_wa_message_id: "m1", p_acao: "RESOLVER", p_numero: 12 });
+  assertEquals(equipe.whatsapp.enviadas[0], { telefone: "+5577998128809", texto: "✅ Chamado #12 da Ana finalizado. A Clubinha agradeceu e pediu a nota do atendimento." });
+
+  const cliente = montar({ boasVindas: true });
+  assertEquals((await cliente.enviar(texto("assumi 12"))).tratamento, "BOAS_VINDAS", "de quem não é da equipe, segue como mensagem comum");
+});
+
+Deno.test("chamado: depois do encerramento, a nota de 1 a 5 vem antes do número do menu", async () => {
+  const nota = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true, avaliacaoPendente: true } });
+  assertEquals((await nota.enviar(texto("5"))).tratamento, "AVALIACAO");
+  assertEquals(nota.rpcs.find((r) => r.funcao === "ticket_rate")!.args, { p_wa_message_id: "m1", p_nota: 5 });
+  assertMatch(nota.whatsapp.enviadas[0]!.texto, /^Obrigada pela nota \*5\*! Fico muito feliz 💖\n\nPosso te ajudar/);
+
+  // Sem nota pendente, "5" é a opção do menu
+  const menu = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  await menu.enviar(texto("5"));
+  assertEquals(menu.rpcs.some((r) => r.funcao === "ticket_rate"), false);
 });

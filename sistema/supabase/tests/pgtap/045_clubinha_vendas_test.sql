@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(25);
 
 -- Clubinha vendedora (0550): aviso para a equipe com os dados da cliente (e sem eles depois de
 -- enviado), boas-vindas com o nome e a coleção mais nova, reserva expirada com as peças que
@@ -12,6 +12,9 @@ insert into admin_users (id, name) values ('00000000-0000-4000-8000-0000000000d1
 -- 14:00 de um sábado na loja (America/Bahia): dentro do horário de atendimento
 select set_app_clock(timestamptz '2026-10-10 14:00:00-03' - now());
 select admin_update_store_alerts(:admin, '{"telefone": "+5577998887777"}');
+create function pg_temp.chamado(p_chat text) returns bigint language sql as $$
+  select id from whatsapp_tickets where chat = p_chat order by id desc limit 1
+$$;
 create function pg_temp.aviso(p_chave text) returns jsonb language sql as $$
   select params - 'tipo' from outbox_messages where dedupe_key = 'aviso:' || p_chave
 $$;
@@ -57,24 +60,27 @@ select is(inbound_context('b2') -> 'nome', 'null'::jsonb, 'número sem reserva: 
 select inbound_register('b3', '5577991112222', 'tem a Limone Capri no plus?');
 select inbound_register('b4', '5577991112222', '9');
 select inbound_answer('b4', 'EQUIPE', null, true);
-select is(pg_temp.aviso('atendimento:' || (select id from whatsapp_inbound where wa_message_id = 'b4')),
+select is(pg_temp.aviso('atendimento:chamado:' || pg_temp.chamado('5577991112222')),
+  jsonb_build_object('chamado', pg_temp.chamado('5577991112222'), 'motivo', 'EQUIPE') ||
   '{"nome": "Marina", "telefone": "+5577991112222", "final": "2222", "pedido": {"numero": 1048, "status": "RESERVADO", "substatus": null},
     "mensagens": ["oi, boa tarde", "tem a Limone Capri no plus?"]}'::jsonb,
-  'nome, telefone, final, último pedido e as mensagens, sem o número do menu');
+  'o chamado, o nome, o telefone, o final, o último pedido e as mensagens, sem o número do menu');
 
--- ── Troca, com os dados da cliente ──
-insert into whatsapp_inbound (wa_message_id, from_wa_id, text) values ('t1', '5577991112222', 'quero trocar a minha');
+-- ── Troca, com os dados da cliente (a conversa chega sem o nono dígito) ──
+insert into whatsapp_inbound (wa_message_id, from_wa_id, text) values ('t1', '557791112222', 'quero trocar a minha');
 update whatsapp_inbound set handled_as = 'TROCAS' where wa_message_id = 't1';
-select is((select (p ->> 'nome', p ->> 'telefone', p -> 'mensagens' ->> -1) from pg_temp.aviso('troca:' || (select id from whatsapp_inbound where wa_message_id = 't1')) p)::text,
-  '(Marina,+5577991112222,"quero trocar a minha")', 'aviso de troca com o nome, o telefone e o que ela escreveu');
+select is((select (p ->> 'nome', p ->> 'telefone', p ->> 'motivo', p -> 'mensagens' ->> -1) from pg_temp.aviso('troca:chamado:' || pg_temp.chamado('557791112222')) p)::text,
+  '(Marina,+5577991112222,TROCA,"quero trocar a minha")', 'troca abre o chamado e o aviso tem o nome, o telefone e o que ela escreveu');
 
 -- ── Depois de enviado, o aviso fica sem o telefone e sem as mensagens ──
 update outbox_messages set status = 'ENVIANDO' where dedupe_key like 'aviso:troca:%';
 select ok((select params ? 'telefone' from outbox_messages where dedupe_key like 'aviso:troca:%'), 'enquanto sai, o aviso tem o telefone');
 select outbox_result((select id from outbox_messages where dedupe_key like 'aviso:troca:%'), true, 'wa-1');
 select is((select params from outbox_messages where dedupe_key like 'aviso:troca:%'),
+  jsonb_build_object('chamado', pg_temp.chamado('557791112222'), 'motivo', 'TROCA') ||
   '{"tipo": "troca", "nome": "Marina", "final": "2222", "pedido": {"numero": 1048, "status": "RESERVADO", "substatus": null}}'::jsonb,
-  'enviado, ficam só o nome, o final e o pedido');
+  'enviado, ficam só o chamado, o nome, o final e o pedido');
+select ticket_resolve(pg_temp.chamado('557791112222'), 'PAINEL');
 
 -- ── Equipe demorou ──
 select is(whatsapp_team_followup(), 0, 'antes de 20 minutos, nada');
@@ -98,6 +104,8 @@ select inbound_register('d2', '5577995556666', 'menu');
 select inbound_answer('d2', 'MENU');
 select set_app_clock(timestamptz '2026-10-10 14:45:00-03' - now());
 select is(whatsapp_team_followup(), 0, 'a equipe respondeu ou a cliente voltou ao menu: nada');
+select is((select (status, taken_via)::text from whatsapp_tickets where chat = '5577993334444'), '(EM_ATENDIMENTO,CELULAR)',
+  'a equipe respondeu pelo celular: o chamado passa a em atendimento sozinho');
 
 -- Fora do horário espera; às 8h acompanha
 select set_app_clock(timestamptz '2026-10-10 22:30:00-03' - now());

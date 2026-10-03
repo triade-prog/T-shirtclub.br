@@ -41,7 +41,7 @@ export default async function Privacidade() {
             Dados do pagamento: forma, valor, data e identificador da transação. Os dados do cartão são digitados
             direto no ambiente do Mercado Pago; a loja não vê nem guarda o número do cartão.
           </li>
-          <li>Mensagens que você envia ao WhatsApp da loja (para pedir o código, consultar sua reserva ou receber as respostas automáticas) e o horário em que a equipe respondeu, sem o texto da resposta.</li>
+          <li>Mensagens que você envia ao WhatsApp da loja (para pedir o código, consultar sua reserva ou receber as respostas automáticas), o horário em que a equipe respondeu, sem o texto da resposta, e a nota que você der ao atendimento.</li>
           <li>Se você entrar na Lista VIP: o WhatsApp, o nome (se quiser informar) e a data em que aceitou receber as novidades.</li>
           <li>
             Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos

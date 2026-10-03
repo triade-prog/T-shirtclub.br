@@ -386,6 +386,7 @@ test("WhatsApp: avisos para a equipe no WhatsApp pessoal", async ({ page, contex
     "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
     "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
       fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
+    "v1/admin/whatsapp/chamados": { abertos: [], finalizados: [], notas: { media: null, total: 0 } },
   };
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
   await page.route("**/api/v1/admin/**", async (rota) => {
@@ -458,6 +459,7 @@ test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({
     "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
       fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
     "v1/admin/whatsapp/avisos": { telefone: null, avisos: [] },
+    "v1/admin/whatsapp/chamados": { abertos: [], finalizados: [], notas: { media: null, total: 0 } },
   };
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
   await page.route("**/api/v1/admin/**", async (rota) => {
@@ -512,6 +514,65 @@ test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({
   await card.getByLabel(/Horas de silêncio/).fill("6");
   await card.getByRole("button", { name: "Salvar pausa" }).click();
   await expect(card).toContainText("por 6 horas");
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+});
+
+// Chamados (0550) com a api-admin simulada: abertos com o motivo, o telefone e o que a cliente
+// escreveu; assumir e finalizar; finalizado com a nota e a média.
+test("WhatsApp: chamados abertos, assumir e finalizar", async ({ page, context }) => {
+  const enviados: string[] = [];
+  const base = { nome: "Ana", telefone: "+5577998128809", final: "8809", pedido: { numero: 1048, status: "RESERVADO" }, notaPedida: false, nota: null,
+    assumidoEm: null, assumidoVia: null, resolvidoEm: null, resolvidoVia: null };
+  let lista = {
+    abertos: [{ ...base, numero: 12, status: "ABERTO", motivo: "DUVIDA", abertoEm: "2026-10-10T17:00:00Z", mensagens: ["Vocês fazem embrulho pra presente?"] }],
+    finalizados: [{ ...base, numero: 11, status: "RESOLVIDO", motivo: "EQUIPE", abertoEm: "2026-10-10T13:00:00Z", mensagens: [], resolvidoEm: "2026-10-10T14:00:00Z",
+      resolvidoVia: "WHATSAPP", notaPedida: true, nota: 5 }],
+    notas: { media: 5, total: 1 },
+  };
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+    "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
+      fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
+    "v1/admin/whatsapp/avisos": { telefone: null, avisos: [] },
+    "v1/admin/whatsapp/respostas": { pausaHoras: 4, respostas: [] },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho.startsWith("v1/admin/whatsapp/chamados")) {
+      if (r.method() === "POST") {
+        enviados.push(caminho);
+        const [aberto] = lista.abertos;
+        if (caminho.endsWith("/assumir")) lista = { ...lista, abertos: [{ ...aberto!, status: "EM_ATENDIMENTO", assumidoEm: "2026-10-10T17:05:00Z", assumidoVia: "PAINEL" }] };
+        else lista = { ...lista, abertos: [], finalizados: [{ ...aberto!, status: "RESOLVIDO", resolvidoEm: "2026-10-10T17:10:00Z", resolvidoVia: "PAINEL", notaPedida: true }, ...lista.finalizados] };
+      }
+      return rota.fulfill({ json: lista });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/whatsapp`);
+  const card = page.getByRole("region", { name: "Chamados" });
+  await expect(card).toContainText("Nota média nos últimos 30 dias: 5 (1 nota)");
+  const abertos = card.getByRole("list", { name: "Chamados abertos" });
+  await expect(abertos).toContainText("Ana");
+  await expect(abertos).toContainText("Dúvida que a Clubinha não respondeu");
+  await expect(abertos).toContainText("(77) 99812-8809");
+  await expect(abertos).toContainText("“Vocês fazem embrulho pra presente?”");
+  await expect(card.getByRole("list", { name: "Chamados finalizados" })).toContainText("pelo WhatsApp · nota 5 de 5");
+
+  await card.getByRole("button", { name: "Assumir o chamado #12" }).click();
+  await expect(abertos).toContainText("Em atendimento");
+  await expect(abertos).toContainText("pelo painel");
+  await expect(card.getByRole("button", { name: "Assumir o chamado #12" })).toHaveCount(0);
+
+  await card.getByRole("button", { name: "Finalizar o chamado #12" }).click();
+  await expect(card).toContainText("Nenhum chamado aberto agora.");
+  await expect(card.getByRole("list", { name: "Chamados finalizados" })).toContainText("nota pedida");
+  expect(enviados).toEqual(["v1/admin/whatsapp/chamados/12/assumir", "v1/admin/whatsapp/chamados/12/finalizar"]);
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);

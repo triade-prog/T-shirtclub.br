@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { AVISOS_LOJA, mensagemWhatsApp, NOTIFICACOES } from "./mensagens.ts";
 import {
   ehPedidoMenu,
+  lerComandoChamado,
+  lerNota,
   lerOpcaoDoMenu,
+  precisaDeAtendimento,
   normalizarPalavra,
   preencherResposta,
   respostaPorPalavra,
@@ -86,14 +89,14 @@ describe("Clubinha vendedora (0550)", () => {
         "💭 O que a cliente escreveu:\n“tem a Limone Capri no plus?”\n\nResponda pelo WhatsApp da loja. O robô fica quieto nessa conversa enquanto vocês atendem.",
     );
     expect(mensagemWhatsApp("aviso_loja", { tipo: "troca", ...cliente, pedido: null, mensagens: [] })).toBe(
-      "🔁 *Marina falou em troca ou devolução*\n\n📱 (77) 99111-2222\n🧾 Ainda sem pedido neste número\n\nA cliente já recebeu a política de trocas. Responda pelo WhatsApp da loja.",
+      "🔁 *Marina falou em troca ou devolução*\n\n📱 (77) 99111-2222\n🧾 Ainda sem pedido neste número\n\nA cliente já recebeu a política de trocas. Responda à Marina pelo WhatsApp da loja.",
     );
     // Depois de enviado, o aviso perde o telefone e as mensagens: fica o final
     expect(mensagemWhatsApp("aviso_loja", { tipo: "troca", nome: null, final: "2222" })).toMatch(/^🔁 \*Uma cliente falou em troca ou devolução\*\n\n📱 Número com final 2222\n/);
     expect(mensagemWhatsApp("aviso_loja", { tipo: "troca" })).toContain("📱 O WhatsApp não mostrou o número");
     expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", ...cliente, telefone: "+351912345678" })).toContain("📱 +351912345678");
     expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", ...cliente, lembrete: true, desde: new Date("2026-10-10T17:00:00Z") })).toMatch(
-      /^⏰ \*Marina ainda espera a equipe\*[\s\S]*Ela pediu a equipe às 14:00 e ainda não teve resposta pelo celular da loja\. A Clubinha avisou que vocês já respondem\.$/,
+      /^⏰ \*Marina ainda espera a equipe\*[\s\S]*O chamado abriu às 14:00 e ninguém assumiu ainda\. A Clubinha avisou a cliente que vocês já respondem\.$/,
     );
   });
 
@@ -120,5 +123,57 @@ describe("Clubinha vendedora (0550)", () => {
     );
     expect(mensagemWhatsApp("pos_venda", {})).toMatch(/^Oi! Aqui é a Clubinha, passando pra saber: gostou da sua T-shirt\? 💖/);
     expect(NOTIFICACOES.filter((n) => ["atendimento_lembrete", "pos_venda"].includes(n.id)).map((n) => n.essencial)).toEqual([false, false]);
+  });
+});
+
+describe("chamados (0550)", () => {
+  it("comando da equipe: assumir e finalizar, com o número do chamado", () => {
+    expect(["assumi 12", "Assumi #12", "atendendo 12", "assumir chamado 12"].map(lerComandoChamado)).toEqual(Array(4).fill({ acao: "ASSUMIR", numero: 12 }));
+    expect(["resolvido 12", "Resolvido #12!", "finalizado 12", "fechar 12", "encerrado: 12"].map(lerComandoChamado)).toEqual(Array(5).fill({ acao: "RESOLVER", numero: 12 }));
+    expect(["resolvido", "assumi", "12", "já resolvi o 12", "resolvido 12 obrigada"].map(lerComandoChamado)).toEqual(Array(5).fill(null));
+  });
+
+  it("nota de 1 a 5", () => {
+    expect(["5", "nota 4", "3 estrelas", "2/5", "⭐⭐⭐⭐⭐", "1!"].map(lerNota)).toEqual([5, 4, 3, 2, 5, 1]);
+    expect(["0", "6", "10", "5 camisetas", "nota", "⭐ linda"].map(lerNota)).toEqual([null, null, null, null, null, null]);
+  });
+
+  it("dúvida que pede uma pessoa: pergunta ou frase; cumprimento e agradecimento, não", () => {
+    expect(["vocês fazem embrulho?", "quero a camiseta azul", "Tem no plus?", "prazo pra Guanambi"].every(precisaDeAtendimento)).toBe(true);
+    expect(["Obrigada!", "ok", "bom dia", "oi, tudo bem?", "👍", "valeu, até mais", "amei"].some(precisaDeAtendimento)).toBe(false);
+  });
+
+  it("textos: dúvida passada, encerramento com a nota, agradecimento e a resposta à equipe", () => {
+    expect(mensagemWhatsApp("chamado_aberto", {})).toBe("Essa eu vou deixar com a equipe, tá? Já passei sua mensagem, e alguém te responde por aqui o quanto antes 💖");
+    expect(mensagemWhatsApp("atendimento_encerrado", { nome: "Ana Paula" })).toBe(
+      "Prontinho, Ana! A equipe finalizou seu atendimento 💖\n\nDe 1 a 5, quanto você dá para o nosso atendimento? É só responder com o número ✦",
+    );
+    expect(mensagemWhatsApp("avaliacao_recebida", { nota: 5, menu: true })).toBe(
+      "Obrigada pela nota *5*! Fico muito feliz 💖\n\nPosso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦",
+    );
+    expect(mensagemWhatsApp("avaliacao_recebida", { nota: 2 })).toBe("Obrigada pela sinceridade! Vou passar pra equipe, pra gente melhorar 💖");
+    expect(mensagemWhatsApp("chamado_equipe", { resultado: "ASSUMIDO", numero: 12, nome: "Ana" })).toBe("👍 Chamado #12 da Ana é seu. Ao terminar, mande *resolvido 12*.");
+    expect(mensagemWhatsApp("chamado_equipe", { resultado: "RESOLVIDO", numero: 12, nome: "Ana", notaPedida: true })).toBe(
+      "✅ Chamado #12 da Ana finalizado. A Clubinha agradeceu e pediu a nota do atendimento.",
+    );
+    expect(mensagemWhatsApp("chamado_equipe", { resultado: "NAO_ENCONTRADO", numero: 99 })).toBe("Não achei o chamado #99. Confira o número no aviso.");
+  });
+
+  it("avisos do chamado: o número, o motivo e como assumir e finalizar", () => {
+    const cliente = { nome: "Ana", telefone: "+5577998128809", pedido: null, mensagens: ["vocês fazem embrulho?"] };
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", chamado: 12, motivo: "DUVIDA", ...cliente })).toBe(
+      "🎫 *Chamado #12* · Ana mandou uma dúvida que a Clubinha não soube responder\n\n📱 (77) 99812-8809\n🧾 Ainda sem pedido neste número\n\n" +
+        "💭 O que a cliente escreveu:\n“vocês fazem embrulho?”\n\nResponda à Ana pelo WhatsApp da loja. Aqui, mande *assumi 12* ao começar e *resolvido 12* ao terminar.",
+    );
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", chamado: 12, motivo: "EQUIPE", ...cliente, nome: null })).toMatch(
+      /^🎫 \*Chamado #12\* · Uma cliente quer falar com a equipe\n[\s\S]*Responda à cliente pelo WhatsApp da loja\./,
+    );
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "troca", chamado: 13, ...cliente })).toMatch(/^🎫 \*Chamado #13\* · Ana falou em troca ou devolução\n[\s\S]*\*resolvido 13\* ao terminar\.$/);
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "atendimento", chamado: 12, lembrete: true, ...cliente })).toMatch(/^⏰ \*Chamado #12\* · Ana ainda espera a equipe[\s\S]*Mande \*assumi 12\* ao começar\.$/);
+    expect(mensagemWhatsApp("aviso_loja", { tipo: "avaliacao", chamado: 12, nome: "Ana", nota: 2 })).toBe(
+      "⭐ *Nota 2 de 5* · chamado #12\n\nAna avaliou o atendimento. Vale falar com ela para entender o que faltou.",
+    );
+    expect(AVISOS_LOJA.some((a) => a.id === "avaliacao")).toBe(true);
+    expect(NOTIFICACOES.find((n) => n.id === "chamados")).toMatchObject({ essencial: false, modelos: ["chamado_aberto", "atendimento_encerrado", "avaliacao_recebida"] });
   });
 });

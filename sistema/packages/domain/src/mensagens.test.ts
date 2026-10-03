@@ -285,6 +285,7 @@ describe("avisos para a equipe (0510)", () => {
       contestacao: { tipo: "contestacao", numero: 1, motivo: "CONTESTACAO" },
       troca: { tipo: "troca" },
       atendimento: { tipo: "atendimento", final: "8809", nome: null },
+      avaliacao: { tipo: "avaliacao", chamado: 12, nome: null, nota: 5 },
       sistema: { tipo: "sistema", mensagem: "Pagamentos sem confirmação há 30 minutos" },
     };
     for (const a of AVISOS_LOJA) {

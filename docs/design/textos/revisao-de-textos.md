@@ -730,12 +730,106 @@ tshirtclub.vercel.app
 
 Revisão: ☐
 
+### Chamado: a dúvida que a Clubinha não soube responder passa para a equipe
+
+*a loja liga e desliga no painel ("Chamados")*
+
+```text
+Essa eu vou deixar com a equipe, tá? Já passei sua mensagem, e alguém te responde por aqui o quanto antes 💖
+```
+
+Revisão: ☐
+
+### Chamado finalizado pela equipe: agradecimento e pedido de nota
+
+*a loja liga e desliga no painel ("Chamados")*
+
+```text
+Prontinho, Ana! A equipe finalizou seu atendimento 💖
+
+De 1 a 5, quanto você dá para o nosso atendimento? É só responder com o número ✦
+```
+
+Revisão: ☐
+
+### Nota 4 ou 5
+
+*a loja liga e desliga no painel ("Chamados")*
+
+```text
+Obrigada pela nota *5*! Fico muito feliz 💖
+
+Posso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦
+```
+
+Revisão: ☐
+
+### Nota de 1 a 3
+
+*a loja liga e desliga no painel ("Chamados")*
+
+```text
+Obrigada pela sinceridade! Vou passar pra equipe, pra gente melhorar 💖
+
+Posso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦
+```
+
+Revisão: ☐
+
+### Para a equipe: depois de "assumi 12"
+
+*resposta da conversa*
+
+```text
+👍 Chamado #12 da Ana é seu. Ao terminar, mande *resolvido 12*.
+```
+
+Revisão: ☐
+
+### Para a equipe: depois de "resolvido 12"
+
+*resposta da conversa*
+
+```text
+✅ Chamado #12 da Ana finalizado. A Clubinha agradeceu e pediu a nota do atendimento.
+```
+
+Revisão: ☐
+
+### Para a equipe: número de chamado errado
+
+*resposta da conversa*
+
+```text
+Não achei o chamado #99. Confira o número no aviso.
+```
+
+Revisão: ☐
+
+### Aviso para a equipe: chamado de dúvida que a Clubinha não respondeu
+
+*vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
+
+```text
+🎫 *Chamado #12* · Ana mandou uma dúvida que a Clubinha não soube responder
+
+📱 (77) 99812-8809
+🧾 Último pedido: #1048 · reservada, aguardando o pagamento
+
+💭 O que a cliente escreveu:
+“Vocês fazem embrulho pra presente?”
+
+Responda à Ana pelo WhatsApp da loja. Aqui, mande *assumi 12* ao começar e *resolvido 12* ao terminar.
+```
+
+Revisão: ☐
+
 ### Aviso para a equipe: cliente quer falar com a equipe
 
 *vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
 
 ```text
-💬 *Ana quer falar com a equipe*
+🎫 *Chamado #12* · Ana quer falar com a equipe
 
 📱 (77) 99812-8809
 🧾 Último pedido: #1048 · reservada, aguardando o pagamento
@@ -744,17 +838,17 @@ Revisão: ☐
 “Oi, boa tarde”
 “Tem a Limone Capri no Plus?”
 
-Responda pelo WhatsApp da loja. O robô fica quieto nessa conversa enquanto vocês atendem.
+Responda à Ana pelo WhatsApp da loja. Aqui, mande *assumi 12* ao começar e *resolvido 12* ao terminar.
 ```
 
 Revisão: ☐
 
-### Aviso para a equipe: ninguém respondeu em 20 minutos
+### Aviso para a equipe: ninguém assumiu o chamado em 20 minutos
 
 *vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
 
 ```text
-⏰ *Ana ainda espera a equipe*
+⏰ *Chamado #12* · Ana ainda espera a equipe
 
 📱 (77) 99812-8809
 🧾 Último pedido: #1048 · reservada, aguardando o pagamento
@@ -762,7 +856,7 @@ Revisão: ☐
 💭 O que a cliente escreveu:
 “Tem a Limone Capri no Plus?”
 
-Ela pediu a equipe às 14:12 e ainda não teve resposta pelo celular da loja. A Clubinha avisou que vocês já respondem.
+O chamado abriu às 14:12 e ninguém assumiu ainda. A Clubinha avisou a cliente que vocês já respondem. Mande *assumi 12* ao começar.
 ```
 
 Revisão: ☐
@@ -772,7 +866,7 @@ Revisão: ☐
 *vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
 
 ```text
-🔁 *Ana falou em troca ou devolução*
+🎫 *Chamado #13* · Ana falou em troca ou devolução
 
 📱 (77) 99812-8809
 🧾 Último pedido: #1031 · entregue
@@ -780,7 +874,19 @@ Revisão: ☐
 💭 O que a cliente escreveu:
 “Quero trocar a camiseta, ficou grande”
 
-A cliente já recebeu a política de trocas. Responda pelo WhatsApp da loja.
+A cliente já recebeu a política de trocas. Responda à Ana pelo WhatsApp da loja. Aqui, mande *assumi 13* ao começar e *resolvido 13* ao terminar.
+```
+
+Revisão: ☐
+
+### Aviso para a equipe: nota do atendimento
+
+*vai para o WhatsApp da equipe; liga e desliga nos avisos da loja*
+
+```text
+⭐ *Nota 5 de 5* · chamado #12
+
+Ana avaliou o atendimento.
 ```
 
 Revisão: ☐

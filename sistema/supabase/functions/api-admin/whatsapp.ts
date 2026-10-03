@@ -1,7 +1,8 @@
 // WhatsApp no painel (F10, tela 18, G5): conexão com o QR code para reconectar, fila,
 // ritmo de envio, modo lançamento, notificações que a loja liga e desliga e mensagem de
 // teste; os avisos da loja para o WhatsApp da equipe (0510); e o atendimento automático
-// (0540): respostas rápidas, a ordem do menu e a pausa. Toda mudança vai para a auditoria (no banco).
+// (0540): respostas rápidas, a ordem do menu e a pausa; e os chamados (0550). Toda mudança vai
+// para a auditoria (no banco).
 
 import type { Hono } from "hono";
 import {
@@ -144,5 +145,22 @@ export function rotasWhatsappAdmin(app: Hono<VarsAdmin>, deps: { banco: Banco; w
 
   app.delete("/v1/admin/whatsapp/respostas/:id", async (c) => {
     return c.json(await chamar(deps.banco, "admin_remove_quick_reply", { p_admin: c.get("admin").userId, p_id: resposta(c) }));
+  });
+
+  // Chamados (0550): os abertos e os finalizados da semana; assumir e finalizar pelo painel.
+  const chamado = (c: { req: { param: (n: string) => string } }) => {
+    const n = c.req.param("numero");
+    if (!/^[1-9][0-9]{0,8}$/.test(n)) throw new ErroDominio("NOT_FOUND");
+    return Number(n);
+  };
+
+  app.get("/v1/admin/whatsapp/chamados", async (c) => c.json(await chamar(deps.banco, "admin_tickets")));
+
+  app.post("/v1/admin/whatsapp/chamados/:numero/assumir", async (c) => {
+    return c.json(await chamar(deps.banco, "admin_take_ticket", { p_admin: c.get("admin").userId, p_id: chamado(c) }));
+  });
+
+  app.post("/v1/admin/whatsapp/chamados/:numero/finalizar", async (c) => {
+    return c.json(await chamar(deps.banco, "admin_resolve_ticket", { p_admin: c.get("admin").userId, p_id: chamado(c) }));
   });
 }

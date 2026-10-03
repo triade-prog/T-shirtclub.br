@@ -10,7 +10,8 @@
 // entrega seguem no tom da loja, e código, erro e bloqueio ficam neutros.
 // A Clubinha vende (0550): chama pelo nome quando sabe, mostra a coleção mais nova, termina cada
 // resposta com o próximo passo e acompanha (reserva não paga com as peças que ainda estão à
-// venda, equipe que demorou a responder e pós-entrega).
+// venda, equipe que demorou a responder e pós-entrega). O que precisa de gente vira um chamado
+// numerado, que a equipe assume e finaliza; ao finalizar, a Clubinha pede uma nota de 1 a 5.
 
 import { formatarReais } from "./dinheiro.ts";
 import type { Promocao } from "./preco.ts";
@@ -163,12 +164,23 @@ export interface ParametrosMensagem {
   resposta_rapida: { texto: string };
   /** A cliente pediu a equipe e ninguém respondeu (0550). */
   atendimento_lembrete: { nome?: string };
+  /** A dúvida que a Clubinha não soube responder virou chamado (0550). */
+  chamado_aberto: Record<string, never>;
+  /** A equipe finalizou o chamado: a Clubinha agradece e pede a nota (0550). */
+  atendimento_encerrado: { nome?: string };
+  /** A cliente deu a nota; menu: com o menu ligado, a volta para ele. */
+  avaliacao_recebida: { nota: number; menu?: boolean };
+  /** Resposta à equipe no WhatsApp, depois de "assumi 12" ou "resolvido 12" (0550). */
+  chamado_equipe: { resultado: ResultadoComando; numero: number; nome?: string | null; notaPedida?: boolean };
   /** Dias depois da entrega ou retirada (0550). */
   pos_venda: { nome?: string; pecas?: number };
   mensagem_teste: Record<string, never>;
   /** Aviso para a equipe (0510), no WhatsApp pessoal gravado no painel. */
   aviso_loja: AvisoLoja;
 }
+
+export type ResultadoComando = "ASSUMIDO" | "RESOLVIDO" | "JA_ASSUMIDO" | "JA_RESOLVIDO" | "NAO_ENCONTRADO";
+export type MotivoChamado = "EQUIPE" | "TROCA" | "DUVIDA";
 
 /** Nome e endereço (slug) de uma peça ou coleção, para o link no site. */
 export interface PecaLink {
@@ -194,7 +206,8 @@ export const AVISOS_LOJA = [
   { id: "pagamento_analise", nome: "Pagamento em análise", quando: "Quando um pagamento chega fora do prazo ou com valor diferente" },
   { id: "contestacao", nome: "Contestação de pagamento", quando: "Quando a cliente contesta ou estorna um pagamento no banco ou no cartão" },
   { id: "troca", nome: "Cliente falou em troca", quando: "Quando alguém fala em troca ou devolução no WhatsApp da loja" },
-  { id: "atendimento", nome: "Cliente quer falar com a equipe", quando: "Quando alguém escolhe “Falar com a equipe” no menu do WhatsApp da loja" },
+  { id: "atendimento", nome: "Chamado no WhatsApp", quando: "Quando alguém escolhe “Falar com a equipe” ou manda uma dúvida que a Clubinha não sabe responder, com o número do chamado" },
+  { id: "avaliacao", nome: "Nota do atendimento", quando: "Quando a cliente dá a nota de 1 a 5 depois que vocês finalizam o chamado" },
   { id: "sistema", nome: "Alerta do sistema", quando: "Quando algo para de funcionar (pagamentos, fila, rotinas automáticas)" },
 ] as const;
 
@@ -208,8 +221,9 @@ export type AvisoLoja =
   | { tipo: "cancelamento"; numero: number }
   | { tipo: "pagamento_analise"; numero: number; motivo: "APROVADO_APOS_TOLERANCIA" | "RESERVA_ENCERRADA" | "VALOR_DIVERGENTE" | "FRETE_ENCERRADO" }
   | { tipo: "contestacao"; numero: number; motivo: "ESTORNO" | "CONTESTACAO" | "CANCELAMENTO" }
-  | ({ tipo: "troca" } & ClienteAviso)
-  | ({ tipo: "atendimento"; lembrete?: boolean; desde?: Date } & ClienteAviso)
+  | ({ tipo: "troca"; chamado?: number; motivo?: MotivoChamado } & ClienteAviso)
+  | ({ tipo: "atendimento"; chamado?: number; motivo?: MotivoChamado; lembrete?: boolean; desde?: Date } & ClienteAviso)
+  | { tipo: "avaliacao"; chamado: number; nome?: string | null; nota: number }
   | { tipo: "sistema"; mensagem: string }
   | { tipo: "teste" };
 
@@ -233,6 +247,10 @@ const STATUS_EQUIPE: Record<ResumoReserva["status"], string> = {
   ENTREGUE: "entregue",
   EXPIRADO: "encerrada sem pagamento",
 };
+
+const aCliente = (nome?: string | null) => (nome ? `à ${nome}` : "à cliente");
+/** Como a equipe avisa a Clubinha, respondendo o aviso. */
+const comandos = (n: number) => `Aqui, mande *assumi ${n}* ao começar e *resolvido ${n}* ao terminar.`;
 
 /** O telefone, o último pedido e o que a cliente escreveu, para a equipe atender sem procurar. */
 function sobreACliente(a: ClienteAviso): (string | false)[] {
@@ -280,24 +298,38 @@ function textoAviso(a: AvisoLoja): string {
       return blocos(`🔎 *Pagamento em análise* · reserva #${a.numero}`, `Motivo: ${MOTIVO_ANALISE[a.motivo] ?? a.motivo}.`, PAINEL);
     case "contestacao":
       return blocos(`⚠️ *Contestação de pagamento* · pedido #${a.numero}`, `Tipo: ${MOTIVO_CONTESTACAO[a.motivo] ?? a.motivo}. Confira antes de entregar.`, PAINEL);
-    case "troca":
+    case "troca": {
+      const titulo = `${a.nome ?? "Uma cliente"} falou em troca ou devolução`;
       return blocos(
-        `🔁 *${a.nome ?? "Uma cliente"} falou em troca ou devolução*`,
+        a.chamado ? `🎫 *Chamado #${a.chamado}* · ${titulo}` : `🔁 *${titulo}*`,
         ...sobreACliente(a),
-        "A cliente já recebeu a política de trocas. Responda pelo WhatsApp da loja.",
+        `A cliente já recebeu a política de trocas. Responda ${aCliente(a.nome)} pelo WhatsApp da loja.${a.chamado ? ` ${comandos(a.chamado)}` : ""}`,
       );
-    case "atendimento":
-      return a.lembrete
-        ? blocos(
-          `⏰ *${a.nome ?? "Uma cliente"} ainda espera a equipe*`,
+    }
+    case "atendimento": {
+      const quem = a.nome ?? "Uma cliente";
+      if (a.lembrete) {
+        return blocos(
+          a.chamado ? `⏰ *Chamado #${a.chamado}* · ${quem} ainda espera a equipe` : `⏰ *${quem} ainda espera a equipe*`,
           ...sobreACliente(a),
-          `Ela pediu a equipe${a.desde ? ` às ${formatarHora(a.desde)}` : ""} e ainda não teve resposta pelo celular da loja. A Clubinha avisou que vocês já respondem.`,
-        )
-        : blocos(
-          `💬 *${a.nome ? `${a.nome} quer` : "Uma cliente quer"} falar com a equipe*`,
-          ...sobreACliente(a),
-          "Responda pelo WhatsApp da loja. O robô fica quieto nessa conversa enquanto vocês atendem.",
+          `O chamado abriu${a.desde ? ` às ${formatarHora(a.desde)}` : ""} e ninguém assumiu ainda. A Clubinha avisou a cliente que vocês já respondem.` +
+            (a.chamado ? ` Mande *assumi ${a.chamado}* ao começar.` : ""),
         );
+      }
+      const titulo = a.motivo === "DUVIDA" ? `${quem} mandou uma dúvida que a Clubinha não soube responder` : `${quem} quer falar com a equipe`;
+      return blocos(
+        a.chamado ? `🎫 *Chamado #${a.chamado}* · ${titulo}` : `💬 *${titulo}*`,
+        ...sobreACliente(a),
+        a.chamado
+          ? `Responda ${aCliente(a.nome)} pelo WhatsApp da loja. ${comandos(a.chamado)}`
+          : "Responda pelo WhatsApp da loja. O robô fica quieto nessa conversa enquanto vocês atendem.",
+      );
+    }
+    case "avaliacao":
+      return blocos(
+        `⭐ *Nota ${a.nota} de 5* · chamado #${a.chamado}`,
+        `${a.nome ?? "A cliente"} avaliou o atendimento.${a.nota <= 3 ? " Vale falar com ela para entender o que faltou." : ""}`,
+      );
     case "sistema":
       return blocos("⚠️ *Alerta do sistema*", a.mensagem, PAINEL);
     case "teste":
@@ -636,6 +668,42 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
         "Se quiser adiantar, conta pra gente o que você precisa: a peça, o tamanho ou o número do pedido.",
       ),
   ],
+  // Chamados (0550): a dúvida passa para a equipe; o encerramento pede a nota.
+  chamado_aberto: [
+    () => "Essa eu vou deixar com a equipe, tá? Já passei sua mensagem, e alguém te responde por aqui o quanto antes 💖",
+  ],
+  atendimento_encerrado: [
+    (p) =>
+      blocos(
+        `Prontinho${p.nome ? `, ${nomeOuNada(p.nome)}` : ""}! A equipe finalizou seu atendimento 💖`,
+        "De 1 a 5, quanto você dá para o nosso atendimento? É só responder com o número ✦",
+      ),
+  ],
+  avaliacao_recebida: [
+    (p) =>
+      blocos(
+        p.nota >= 4 ? `Obrigada pela nota *${p.nota}*! Fico muito feliz 💖` : "Obrigada pela sinceridade! Vou passar pra equipe, pra gente melhorar 💖",
+        p.menu && VOLTA_MENU,
+      ),
+  ],
+  // Para a equipe, no número dos avisos: neutra
+  chamado_equipe: [
+    (p) => {
+      const quem = p.nome ? ` da ${p.nome}` : "";
+      switch (p.resultado) {
+        case "ASSUMIDO":
+          return `👍 Chamado #${p.numero}${quem} é seu. Ao terminar, mande *resolvido ${p.numero}*.`;
+        case "RESOLVIDO":
+          return `✅ Chamado #${p.numero}${quem} finalizado.${p.notaPedida ? " A Clubinha agradeceu e pediu a nota do atendimento." : " A Clubinha voltou a responder na conversa."}`;
+        case "JA_ASSUMIDO":
+          return `O chamado #${p.numero} já está em atendimento. Ao terminar, mande *resolvido ${p.numero}*.`;
+        case "JA_RESOLVIDO":
+          return `O chamado #${p.numero} já foi finalizado.`;
+        case "NAO_ENCONTRADO":
+          return `Não achei o chamado #${p.numero}. Confira o número no aviso.`;
+      }
+    },
+  ],
   // Acompanhamento (0550): dias depois da entrega ou retirada.
   pos_venda: [
     (p) =>
@@ -681,7 +749,8 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "boas_vindas", nome: "Resposta automática", quando: "Quando alguém manda uma mensagem comum, a Clubinha se apresenta com o site e o menu (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["boas_vindas"] },
   { id: "respostas", nome: "Respostas rápidas e menu", quando: "Quando a cliente escolhe um número do menu ou escreve uma palavra das respostas rápidas (tamanho, frete, pix...)", essencial: false, modelos: ["resposta_rapida", "menu"] },
   { id: "trocas", nome: "Resposta sobre trocas", quando: "Quando alguém fala em troca ou devolução, com a política da loja (no máximo 1 vez a cada 24 horas por número)", essencial: false, modelos: ["trocas"] },
-  { id: "atendimento_lembrete", nome: "Equipe demorou a responder", quando: "Quando a cliente pede a equipe e ninguém responde em 20 minutos, a Clubinha avisa que vocês já respondem (das 8h às 20h, 1 vez por pedido)", essencial: false, modelos: ["atendimento_lembrete"] },
+  { id: "chamados", nome: "Chamados", quando: "Quando a Clubinha passa uma dúvida para a equipe, e quando vocês finalizam o chamado (com o pedido de nota de 1 a 5)", essencial: false, modelos: ["chamado_aberto", "atendimento_encerrado", "avaliacao_recebida"] },
+  { id: "atendimento_lembrete", nome: "Equipe demorou a responder", quando: "Quando um chamado fica 20 minutos sem ninguém assumir, a Clubinha avisa a cliente que vocês já respondem (das 8h às 20h, 1 vez por chamado)", essencial: false, modelos: ["atendimento_lembrete"] },
   { id: "pos_venda", nome: "Pós-entrega", quando: "2 dias depois da entrega ou retirada, a Clubinha pergunta se a cliente gostou e convida para a lista VIP (das 8h às 20h)", essencial: false, modelos: ["pos_venda"] },
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
 ];
