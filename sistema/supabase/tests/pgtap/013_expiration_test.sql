@@ -62,8 +62,8 @@ select is((select budget_used_cents from promotions where id = '00000000-0000-40
 select is((select status from cancellation_requests), 'PREJUDICADA'::cancel_status, 'pedido de cancelamento pendente fica prejudicado (R4)');
 select is((select params from outbox_messages where template = 'reserva_expirada'),
   jsonb_build_object('numero', (select (v -> 'reserva' ->> 'numero')::int from t where nome = 'r1'), 'expiradaEm', (select v -> 'reserva' -> 'expiraEm' from t where nome = 'r1'),
-                     'nome', 'Marina', 'pecas', 1),
-  'mensagem "reserva expirada" na fila, com nome e peças completados da reserva (0330)');
+                     'nome', 'Marina', 'pecas', 1, 'disponiveis', '[{"nome": "Teddy Rosa", "slug": "teddy-1"}]'::jsonb),
+  'mensagem "reserva expirada" na fila, com nome e peças completados da reserva (0330) e a peça que voltou à venda (0550)');
 select is((select count(*)::int from audit_log where action = 'reserva.expirada'), 1, 'expiração na auditoria');
 select is(outbox_claim() ->> 'template', 'reserva_expirada', 'o lembrete da reserva que expirou é descartado, a expiração sai');
 select is(expire_reservation((select pg_temp.id(v) from t where nome = 'r1'), 'PRAZO_ESGOTADO'), false, 'expirar de novo não faz nada');

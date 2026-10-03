@@ -79,5 +79,68 @@ export const respostaRapidaSchema = z.object({
 /** PUT /v1/admin/whatsapp/respostas/ordem */
 export const ordemRespostasSchema = z.object({ ids: z.array(z.uuid()).min(1).max(MAX_RESPOSTAS) });
 
-/** PUT /v1/admin/whatsapp/respostas/pausa */
-export const pausaRespostasSchema = z.object({ pausaHoras: z.number().int().min(1).max(48) });
+/**
+ * PUT /v1/admin/whatsapp/respostas/pausa: a pausa do robô e (0570) o horário de atendimento e os
+ * minutos até o lembrete. Ao menos um; o início vem antes do fim.
+ */
+export const pausaRespostasSchema = z
+  .object({
+    pausaHoras: z.number().int().min(1).max(48).optional(),
+    inicioHora: z.number().int().min(0).max(23).optional(),
+    fimHora: z.number().int().min(1).max(24).optional(),
+    lembreteMinutos: z.number().int().min(5).max(240).optional(),
+  })
+  .strict()
+  .refine((p) => Object.keys(p).length > 0, { message: "Nada para salvar" })
+  .refine((p) => p.inicioHora === undefined || p.fimHora === undefined || p.inicioHora < p.fimHora, { message: "O início vem antes do fim" });
+
+// ─── Painel de WhatsApp (0570) ──────────────────────────────────────────────────────
+
+/** POST /v1/admin/whatsapp/conversa: o número vai no corpo, fora do endereço e dos registros. */
+export const conversaSchema = z.object({ chat: z.string().regex(/^[0-9A-Za-z@._:-]{3,60}$/) }).strict();
+
+/** Filtros do histórico da fila (aba Envios). */
+export const FILTROS_ENVIO = ["FILA", "ENVIADA", "FALHOU", "DESCARTADA"] as const;
+export type FiltroEnvio = (typeof FILTROS_ENVIO)[number];
+
+// ─── Chamados (0550) ────────────────────────────────────────────────────────────────
+
+export type AcaoChamado = "ASSUMIR" | "RESOLVER";
+
+/**
+ * Comando da equipe no WhatsApp, respondendo ao aviso: "assumi 12", "atendendo #12",
+ * "resolvido 12", "finalizado 12". O banco confere se veio do número dos avisos.
+ */
+export function lerComandoChamado(texto: string): { acao: AcaoChamado; numero: number } | null {
+  const m = /^(assumi|assumir|assumido|atendendo|resolvido|resolvida|resolver|finalizado|finalizada|finalizar|fechado|fechar|encerrado|encerrar)[\s:]*(?:chamado\s*)?#?\s*(\d{1,9})[.!]*$/
+    .exec(normalizarTexto(texto));
+  if (!m) return null;
+  return { acao: /^(assum|atend)/.test(m[1]!) ? "ASSUMIR" : "RESOLVER", numero: Number(m[2]) };
+}
+
+/** A nota do atendimento: "5", "nota 4", "3 estrelas", "⭐⭐⭐⭐⭐". */
+export function lerNota(texto: string): number | null {
+  const estrelas = [...texto.trim()].filter((c) => c === "⭐").length;
+  if (estrelas >= 1 && estrelas <= 5 && texto.replace(/⭐|\s|️/g, "") === "") return estrelas;
+  const m = /^(?:nota\s*)?([1-5])(?:\s*(?:estrelas?|de 5|\/5))?[.!]*$/.exec(normalizarTexto(texto));
+  return m ? Number(m[1]) : null;
+}
+
+/** Palavras de cumprimento, agradecimento e confirmação: sozinhas, não são uma dúvida. */
+const SEM_DUVIDA = new Set([
+  "oi", "ola", "oie", "opa", "eai", "e", "ai", "bom", "boa", "dia", "tarde", "noite", "tudo", "bem", "td", "bom", "blz", "beleza",
+  "ok", "okay", "certo", "ta", "sim", "nao", "obrigada", "obrigado", "obg", "brigada", "valeu", "vlw", "show", "top", "otimo", "otima",
+  "perfeito", "perfeita", "entendi", "combinado", "tchau", "ate", "mais", "logo", "amei", "lindo", "linda", "kkk", "kkkk", "rs", "haha",
+  "voce", "vc", "voces", "vcs", "e", "como", "vai",
+]);
+
+/**
+ * Mensagem que a Clubinha não sabe responder e que parece pedir uma pessoa: tem pergunta, ou
+ * duas palavras ou mais que não são só cumprimento ou agradecimento. "Obrigada!", "ok" e
+ * "bom dia" não abrem chamado.
+ */
+export function precisaDeAtendimento(texto: string): boolean {
+  const palavras = normalizarTexto(texto).replace(/[^a-z0-9 ]+/g, " ").split(" ").filter(Boolean);
+  if (palavras.length === 0 || palavras.every((p) => SEM_DUVIDA.has(p))) return false;
+  return texto.includes("?") || palavras.length >= 2;
+}

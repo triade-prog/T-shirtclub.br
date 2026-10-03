@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Política de privacidade" };
 // da F11). Dados da empresa (E6), encarregado e prazo fiscal informados pela loja em 27/09;
 // o texto final passa pela revisão jurídica antes de a P15 fechar.
 
-const ATUALIZADA_EM = "02/10/2026";
+const ATUALIZADA_EM = "03/10/2026";
 
 export default async function Privacidade() {
   // Gerada a cada pedido, como as outras: estática, sairia sem o nonce da CSP (D29)
@@ -41,7 +41,7 @@ export default async function Privacidade() {
             Dados do pagamento: forma, valor, data e identificador da transação. Os dados do cartão são digitados
             direto no ambiente do Mercado Pago; a loja não vê nem guarda o número do cartão.
           </li>
-          <li>Mensagens que você envia ao WhatsApp da loja (para pedir o código, consultar sua reserva ou receber as respostas automáticas) e o horário em que a equipe respondeu, sem o texto da resposta.</li>
+          <li>Mensagens que você envia ao WhatsApp da loja (para pedir o código, consultar sua reserva ou receber as respostas automáticas), o horário em que a equipe respondeu, sem o texto da resposta, e a nota que você der ao atendimento.</li>
           <li>Se você entrar na Lista VIP: o WhatsApp, o nome (se quiser informar) e a data em que aceitou receber as novidades.</li>
           <li>
             Dados técnicos de segurança: o endereço IP, guardado de forma protegida (não legível), para limitar abusos
@@ -64,6 +64,11 @@ export default async function Privacidade() {
             entregar): execução de contrato (art. 7º, V, da LGPD).
           </li>
           <li>Enviar avisos pelo WhatsApp sobre a sua reserva (código, prazo, pagamento, entrega): execução de contrato.</li>
+          <li>
+            Acompanhar pelo WhatsApp quem reservou, comprou ou pediu atendimento (as peças de uma reserva que expirou e
+            ainda estão à venda, o retorno da equipe e, dias depois da entrega, se você gostou da compra): legítimo
+            interesse (art. 7º, IX), e você pode pedir para não receber pelo WhatsApp da loja.
+          </li>
           <li>
             Prevenir fraude e abuso, como o bloqueio de telefones com expirações repetidas: legítimo interesse
             (art. 7º, IX).

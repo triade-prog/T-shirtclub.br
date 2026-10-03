@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const PAINEL = "http://localhost:3001";
@@ -372,117 +372,168 @@ test("nova reserva: escolhe a peça, vê o total, exige o motivo do desconto e r
   });
 });
 
-// Avisos da loja (0510) com a api-admin simulada: liga com o número da equipe, desliga um aviso,
-// manda o teste e para os avisos.
-test("WhatsApp: avisos para a equipe no WhatsApp pessoal", async ({ page, context }) => {
-  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
-  const AVISOS = [
-    { id: "nova_reserva", nome: "Nova reserva", quando: "Quando uma cliente reserva pelo site" },
-    { id: "lista_vip", nome: "Entrou na lista VIP", quando: "Quando alguém se inscreve na lista VIP" },
-  ];
-  let avisos = { telefone: null as string | null, desligados: [] as string[] };
-  const tela = () => ({ telefone: avisos.telefone, avisos: AVISOS.map((a) => ({ ...a, ligado: !avisos.desligados.includes(a.id) })) });
-  const respostas: Record<string, unknown> = {
-    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
-    "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
-      fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
-  };
+// WhatsApp em abas (0570) com a api-admin simulada. Base comum: o painel logado, o resumo do
+// WhatsApp e os chamados; cada teste responde o que a aba dele pede (tratar) e registra os envios.
+const DASH_WA = { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } };
+const configWa = (extra: Record<string, unknown> = {}) => ({
+  conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
+  fila: { pendentes: 2, enviadasHoje: 42, falhasHoje: 1, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [], ...extra,
+});
+const SEM_CHAMADOS = { abertos: [], finalizados: [], notas: { media: null, total: 0 } };
+type Envio = { metodo: string; caminho: string; corpo: unknown };
+async function simularWhatsapp(page: Page, context: BrowserContext, tratar: (metodo: string, caminho: string, corpo: unknown, busca: URLSearchParams) => unknown) {
+  const enviados: Envio[] = [];
   await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
   await page.route("**/api/v1/admin/**", async (rota) => {
     const r = rota.request();
-    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
-    if (caminho === "v1/admin/whatsapp/avisos") {
-      if (r.method() === "PUT") {
-        const corpo = r.postDataJSON() as Partial<typeof avisos>;
-        enviados.push({ metodo: "PUT", caminho, corpo });
-        avisos = { ...avisos, ...corpo };
-      }
-      return rota.fulfill({ json: tela() });
-    }
-    if (r.method() !== "GET") {
-      enviados.push({ metodo: r.method(), caminho, corpo: r.postData() ? r.postDataJSON() : null });
-      return rota.fulfill({ status: 202, json: { ok: true, naFila: true } });
-    }
-    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+    const url = new URL(r.url());
+    const caminho = url.pathname.replace(/^\/api\//, "");
+    const corpo = r.postData() ? r.postDataJSON() : null;
+    if (r.method() !== "GET") enviados.push({ metodo: r.method(), caminho, corpo });
+    const resposta = tratar(r.method(), caminho, corpo, url.searchParams);
+    if (resposta !== undefined) return rota.fulfill({ json: resposta });
+    const base: Record<string, unknown> = { "v1/admin/dashboard": DASH_WA, "v1/admin/whatsapp": configWa(), "v1/admin/whatsapp/chamados": SEM_CHAMADOS };
+    return caminho in base ? rota.fulfill({ json: base[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+  return enviados;
+}
+const semViolacoes = async (page: Page) => {
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+};
+
+// Atendimento: a faixa do topo, as conversas (quem precisa de vocês primeiro), a conversa inteira
+// em balões, a ficha com o chamado e as reservas, assumir e os números; no celular, uma coisa por vez.
+test("WhatsApp: atendimento com faixa, conversas, conversa em balões e ficha", async ({ page, context }) => {
+  const ha = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
+  let chamado = { numero: 12, status: "ABERTO", motivo: "DUVIDA", abertoEm: ha(30), assumidoEm: null as string | null, assumidoVia: null as string | null, assumidoPor: null as string | null,
+    lembreteEm: null, resolvidoEm: null, resolvidoVia: null, resolvidoPor: null, notaPedida: false, nota: null };
+  const antigo = { ...chamado, numero: 11, status: "RESOLVIDO", motivo: "EQUIPE", abertoEm: ha(3000), resolvidoEm: ha(2900), resolvidoVia: "WHATSAPP", notaPedida: true, nota: 5 };
+  const conversas = () => [
+    { chat: "5577998128809", telefone: "+5577998128809", nome: "Ana", ultima: { em: ha(28), texto: "é pra amanhã", como: "CHAMADO" }, equipeRespondeuEm: null, chamado },
+    { chat: "5577991110002", telefone: "+5577991110002", nome: "Bia", ultima: { em: ha(90), texto: "qual o frete?", como: "RESPOSTA" }, equipeRespondeuEm: null, chamado: null },
+  ];
+  const conversa = () => ({
+    chat: "5577998128809", telefone: "+5577998128809", nome: "Ana", bloqueado: false,
+    eventos: [
+      { tipo: "ENVIO", em: ha(2000), id: "12345678-0000-4000-8000-000000000000", modelo: "pedido_entregue", params: { numero: 1031 }, status: "LIDA", erro: null, tentativas: 1 },
+      { tipo: "CLIENTE", em: ha(40), texto: "qual o frete?", como: "RESPOSTA", resposta: { titulo: "Entrega e frete", acao: "TEXTO", texto: "Você escolhe *depois* de pagar." } },
+      { tipo: "CLIENTE", em: ha(30), texto: "Vocês fazem embrulho pra presente?", como: "CHAMADO", resposta: null },
+      { tipo: "CHAMADO", em: ha(30), evento: "ABERTO", numero: 12, motivo: "DUVIDA", via: null, por: null, nota: null },
+      { tipo: "EQUIPE", em: ha(5) },
+    ],
+    reservas: [{ id: "e1111111-1111-4111-8111-111111111111", numero: 1048, status: "RESERVADO", totalCentavos: 4999, criadaEm: ha(50), expiraEm: null, entregueEm: null, substatus: null }],
+    chamados: [chamado, antigo],
+  });
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, _c, busca) => {
+    if (caminho === "v1/admin/whatsapp/chamados") return { abertos: chamado.status === "RESOLVIDO" ? [] : [chamado], finalizados: [antigo], notas: { media: 5, total: 1 } };
+    if (caminho === "v1/admin/whatsapp/conversas") return conversas();
+    if (caminho === "v1/admin/whatsapp/conversa") return conversa();
+    if (caminho === "v1/admin/whatsapp/chamados/12/assumir") { chamado = { ...chamado, status: "EM_ATENDIMENTO", assumidoEm: ha(0), assumidoVia: "PAINEL", assumidoPor: "Carol" }; return SEM_CHAMADOS; }
+    if (caminho === "v1/admin/whatsapp/numeros") return { dias: Number(busca.get("dias")), conversas: 12, soClubinha: 9, chamados: 3, abertos: 1, porMotivo: { EQUIPE: 1, TROCA: 1, DUVIDA: 1 },
+      minutosAteAssumir: 14, minutosAteFinalizar: 95, lembretes: 1, notas: { media: 4.5, total: 2, porNota: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 } } };
+    return metodo === "GET" ? undefined : SEM_CHAMADOS;
   });
 
   await page.goto(`${PAINEL}/whatsapp`);
-  const card = page.getByRole("region", { name: "Avisos para a equipe" });
-  await expect(card).toContainText("Desligados: grave um número para começar.");
-  await expect(card.getByRole("checkbox", { name: "Avisar “Nova reserva”" })).toBeDisabled();
+  await expect(page.getByRole("navigation", { name: "Áreas do WhatsApp" }).getByRole("link", { name: "Atendimento" })).toHaveAttribute("aria-current", "page");
+  const faixa = page.getByRole("region", { name: "Resumo do WhatsApp" });
+  await expect(faixa).toContainText("Conectado");
+  await expect(faixa).toContainText("1 chamado aberto");
+  await expect(faixa).toContainText("30 min esperando a equipe");
+  await expect(faixa).toContainText("42 enviadas hoje");
+  await expect(faixa.getByRole("link", { name: "1 falha hoje" })).toHaveAttribute("href", "/whatsapp/envios?status=FALHOU");
 
-  // Número com DDD, gravado em E.164
-  await card.getByLabel("WhatsApp que recebe os avisos").fill("77 9988");
-  await card.getByRole("button", { name: "Ligar os avisos" }).click();
-  await expect(card.getByText(/Digite o número com DDD/)).toBeVisible();
-  await expect(card.getByLabel("WhatsApp que recebe os avisos")).toHaveAttribute("aria-invalid", "true");
-  await card.getByLabel("WhatsApp que recebe os avisos").fill("(77) 99888-7777");
-  await card.getByRole("button", { name: "Ligar os avisos" }).click();
-  await expect(card).toContainText("Ligados para (77) 99888-7777.");
-  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/avisos", corpo: { telefone: "+5577998887777" } });
+  // Quem precisa de vocês primeiro; "Todas" mostra a Bia também
+  const lista = page.getByRole("list", { name: "Conversas" });
+  await expect(page.getByRole("button", { name: /Precisa de vocês/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(lista.getByRole("listitem")).toHaveCount(1);
+  await page.getByRole("button", { name: "Todas", exact: true }).click();
+  await expect(lista.getByRole("listitem")).toHaveCount(2);
+  await page.getByLabel("Buscar conversa").fill("#12");
+  await expect(lista.getByRole("listitem")).toHaveCount(1);
 
-  // Desliga só a lista VIP
-  // A chave muda quando o painel confirma (como as notificações da cliente)
-  await card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" }).click();
-  await expect(card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" })).not.toBeChecked();
-  expect(enviados.at(-1)!.corpo).toEqual({ desligados: ["lista_vip"] });
-  await expect(card.getByRole("checkbox", { name: "Avisar “Nova reserva”" })).toBeChecked();
+  // A conversa inteira, com o número no corpo do pedido
+  await lista.getByRole("button", { name: /Ana/ }).click();
+  await expect(page.getByRole("heading", { name: "Ana", level: 2 })).toBeFocused();
+  expect(enviados.find((e) => e.caminho === "v1/admin/whatsapp/conversa")).toEqual({ metodo: "POST", caminho: "v1/admin/whatsapp/conversa", corpo: { chat: "5577998128809" } });
+  const bolhas = page.getByRole("list", { name: "Conversa com Ana" });
+  await expect(bolhas).toContainText("Mensagem automática · Pedido entregue");
+  await expect(bolhas).toContainText("#1031");
+  await expect(bolhas).toContainText("Respondeu: Entrega e frete");
+  await expect(bolhas.locator("b", { hasText: "depois" })).toBeVisible();
+  await expect(bolhas).toContainText("Chamado #12 aberto · Dúvida que a Clubinha não respondeu");
+  await expect(bolhas).toContainText("Respondeu pelo celular da loja");
+  await expect(page.getByRole("link", { name: /Abrir no WhatsApp/ })).toHaveAttribute("href", "https://wa.me/5577998128809");
 
-  await card.getByRole("button", { name: "Enviar aviso de teste" }).click();
-  await expect(card).toContainText("Aviso de teste na fila.");
-  expect(enviados.at(-1)).toMatchObject({ metodo: "POST", caminho: "v1/admin/whatsapp/avisos/teste" });
+  // A ficha: o chamado, as reservas e os anteriores; assumir pelo painel
+  const ficha = page.getByRole("complementary", { name: "Ficha da cliente" });
+  await expect(ficha.getByRole("link", { name: "#1048" })).toHaveAttribute("href", "/reservas/e1111111-1111-4111-8111-111111111111");
+  await expect(ficha).toContainText("nota 5 de 5");
+  await ficha.getByRole("button", { name: "Assumir o chamado #12" }).click();
+  await expect(ficha).toContainText("assumido por Carol pelo painel");
+  await expect(ficha.getByRole("button", { name: "Assumir o chamado #12" })).toHaveCount(0);
+  expect(enviados.some((e) => e.caminho === "v1/admin/whatsapp/chamados/12/assumir")).toBe(true);
 
-  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-  expect(axe.violations.map((v) => v.id)).toEqual([]);
+  // Números do atendimento
+  const numeros = page.getByRole("region", { name: "Números do atendimento" });
+  await expect(numeros).toContainText("75%");
+  await expect(numeros).toContainText("14 min");
+  await numeros.getByRole("button", { name: "30 dias" }).click();
+  await expect(numeros.getByRole("button", { name: "30 dias" })).toHaveAttribute("aria-pressed", "true");
+  await semViolacoes(page);
 
-  await card.getByRole("button", { name: "Parar os avisos" }).click();
-  await expect(card).toContainText("Desligados: grave um número para começar.");
-  expect(enviados.at(-1)!.corpo).toEqual({ telefone: null });
+  // No celular, a conversa toma a tela e volta para a lista
+  await page.getByRole("button", { name: "← Conversas" }).click();
+  await expect(lista).toBeVisible();
+  // No computador, as três colunas juntas
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await lista.getByRole("button", { name: /Ana/ }).click();
+  await expect(lista).toBeVisible();
+  await expect(ficha).toBeVisible();
+  await expect(page.getByRole("button", { name: "← Conversas" })).toBeHidden();
+  await semViolacoes(page);
 });
 
-// Atendimento automático (0540) com a api-admin simulada: prévia do menu, resposta nova com as
-// palavras normalizadas, validação, ordem, desligar e a pausa.
-test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({ page, context }) => {
-  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+// Clubinha: o menu na ordem, a prévia num celular (negrito e endereço reais, os dois defeitos da
+// tela antiga), resposta nova com as palavras normalizadas, ordem, desligar e o horário.
+test("WhatsApp: Clubinha com menu, prévia no celular e horário de atendimento", async ({ page, context }) => {
   const ids = ["a1111111-1111-4111-8111-111111111111", "a2222222-2222-4222-8222-222222222222", "a3333333-3333-4333-8333-333333333333"];
   let lista = {
-    pausaHoras: 4,
+    pausaHoras: 4, atendimento: { inicioHora: 8, fimHora: 20, lembreteMinutos: 20 }, loja: { endereco: "R. Sátiro Santos, 38", horario: "Aberto 24 horas" },
     respostas: [
-      { id: ids[0], acao: "TEXTO", titulo: "Entrega e frete", palavras: ["frete", "motoboy"], texto: "Retirada, motoboy ou envio.", ativa: true },
+      { id: ids[0], acao: "TEXTO", titulo: "Horário e endereço", palavras: ["endereco"], texto: "A loja fica aqui:\n📍 {endereco}", ativa: true },
       { id: ids[1], acao: "MINHA_RESERVA", titulo: "Minha reserva", palavras: [], texto: null, ativa: true },
       { id: ids[2], acao: "EQUIPE", titulo: "Falar com a equipe", palavras: ["atendente"], texto: "Pronto! Já avisamos a equipe.", ativa: true },
     ] as { id: string; acao: string; titulo: string; palavras: string[]; texto: string | null; ativa: boolean }[],
   };
-  const respostas: Record<string, unknown> = {
-    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 0, vencidos: 0 }, emPreparacao: 0, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
-    "v1/admin/whatsapp": { conectado: true, modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 9, tetoHora: 120 }, ritmoLancamento: { intervaloMinS: 2, intervaloMaxS: 5, tetoHora: 600 },
-      fila: { pendentes: 0, enviadasHoje: 0, falhasHoje: 0, descartadasHoje: 0, maisAntigaPendente: null }, notificacoes: [] },
-    "v1/admin/whatsapp/avisos": { telefone: null, avisos: [] },
-  };
-  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
-  await page.route("**/api/v1/admin/**", async (rota) => {
-    const r = rota.request();
-    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
-    if (caminho.startsWith("v1/admin/whatsapp/respostas")) {
-      const corpo = r.postData() ? r.postDataJSON() : null;
-      if (r.method() !== "GET") enviados.push({ metodo: r.method(), caminho, corpo });
-      const id = caminho.split("/").at(-1)!;
-      if (r.method() === "POST") lista.respostas.push({ id: "a4444444-4444-4444-8444-444444444444", acao: "TEXTO", texto: null, ativa: true, ...corpo });
-      else if (caminho.endsWith("/ordem")) lista.respostas = corpo.ids.map((i: string) => lista.respostas.find((x) => x.id === i)!);
-      else if (caminho.endsWith("/pausa")) lista = { ...lista, pausaHoras: corpo.pausaHoras };
-      else if (r.method() === "PUT") lista.respostas = lista.respostas.map((x) => (x.id === id ? { ...x, ...corpo } : x));
-      return rota.fulfill({ status: r.method() === "POST" ? 201 : 200, json: lista });
-    }
-    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, corpo) => {
+    if (!caminho.startsWith("v1/admin/whatsapp/respostas")) return undefined;
+    const c = corpo as Record<string, never>;
+    const id = caminho.split("/").at(-1)!;
+    if (metodo === "POST") lista.respostas.push({ id: "a4444444-4444-4444-8444-444444444444", acao: "TEXTO", texto: null, ativa: true, ...c });
+    else if (caminho.endsWith("/ordem")) lista.respostas = (c.ids as string[]).map((i) => lista.respostas.find((x) => x.id === i)!);
+    else if (caminho.endsWith("/pausa")) lista = { ...lista, pausaHoras: c.pausaHoras, atendimento: { inicioHora: c.inicioHora, fimHora: c.fimHora, lembreteMinutos: c.lembreteMinutos } };
+    else if (metodo === "PUT") lista.respostas = lista.respostas.map((x) => (x.id === id ? { ...x, ...c } : x));
+    return lista;
   });
 
-  await page.goto(`${PAINEL}/whatsapp`);
-  const card = page.getByRole("region", { name: "Atendimento automático" });
-  await expect(card.locator(".previa-menu")).toHaveText("Como posso te ajudar? É só responder com o número:\n*1* · Entrega e frete\n*2* · Minha reserva\n*3* · Falar com a equipe");
+  await page.goto(`${PAINEL}/whatsapp/clubinha`);
+  const celular = page.locator(".wa-celular");
+  await expect(celular).toContainText("1 · Horário e endereço");
+  await expect(celular.locator("b", { hasText: /^1$/ })).toBeVisible();
+  await expect(celular).not.toContainText("*1*");
+  // O texto da opção mostra o endereço da loja, não {endereco}
+  const menu = page.getByRole("region", { name: "Menu da Clubinha" });
+  await expect(menu).toContainText("📍 R. Sátiro Santos, 38");
+  await expect(menu).not.toContainText("{endereco}");
+  await menu.getByRole("button", { name: "Ver no celular “Horário e endereço”" }).click();
+  await expect(celular).toContainText("A loja fica aqui:");
+  await expect(celular).toContainText("Manda menu que eu te mostro as opções");
 
   // Nova resposta: palavra curta não passa; depois, palavras sem acento e sem repetir
-  await card.getByRole("button", { name: "Nova resposta" }).click();
-  const nova = card.getByRole("form", { name: "Nova resposta" });
+  await menu.getByRole("button", { name: "Nova resposta" }).click();
+  const nova = menu.getByRole("form", { name: "Nova resposta" });
   await nova.getByLabel("Nome no menu").fill("Pagamento");
   await nova.getByLabel("Palavras que disparam a resposta").fill("PIX, x");
   await nova.getByLabel("Texto da resposta").fill("PIX ou cartão, pelo site.");
@@ -490,28 +541,225 @@ test("WhatsApp: atendimento automático com menu e respostas rápidas", async ({
   await expect(nova.getByText(/“x” não serve/)).toBeVisible();
   await nova.getByLabel("Palavras que disparam a resposta").fill("PIX, Cartão de crédito, pix");
   await nova.getByRole("button", { name: "Criar resposta" }).click();
-  await expect(card.locator(".previa-menu")).toContainText("*4* · Pagamento");
+  await expect(celular).toContainText("4 · Pagamento");
   expect(enviados.at(-1)).toEqual({ metodo: "POST", caminho: "v1/admin/whatsapp/respostas",
     corpo: { titulo: "Pagamento", palavras: ["pix", "cartao de credito"], texto: "PIX ou cartão, pelo site.", ativa: true } });
 
-  // A equipe sobe para o primeiro lugar
-  await card.getByRole("button", { name: "Subir “Falar com a equipe”" }).click();
-  await expect(card.locator(".previa-menu")).toContainText("*2* · Falar com a equipe\n*3* · Minha reserva");
+  // A equipe sobe; Minha reserva desligada sai do menu
+  await menu.getByRole("button", { name: "Subir “Falar com a equipe”" }).click();
+  await expect(celular).toContainText("2 · Falar com a equipe");
   expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/respostas/ordem", corpo: { ids: [ids[0], ids[2], ids[1], "a4444444-4444-4444-8444-444444444444"] } });
-
-  // Minha reserva desligada sai do menu; não tem texto para editar
-  await card.getByRole("button", { name: "Editar “Minha reserva”" }).click();
-  const minha = card.getByRole("form", { name: "Editar “Minha reserva”" });
+  await menu.getByRole("button", { name: "Editar “Minha reserva”" }).click();
+  const minha = menu.getByRole("form", { name: "Editar “Minha reserva”" });
   await expect(minha.getByLabel("Texto da resposta")).toHaveCount(0);
   await minha.getByRole("checkbox", { name: "Ativa no menu" }).click();
   await minha.getByRole("button", { name: "Salvar" }).click();
-  await expect(card.locator(".previa-menu")).not.toContainText("Minha reserva");
-  await expect(card.getByText("Desligada")).toBeVisible();
-  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: `v1/admin/whatsapp/respostas/${ids[1]}`, corpo: { titulo: "Minha reserva", palavras: [], ativa: false } });
+  await expect(celular).not.toContainText("Minha reserva");
+  await expect(menu.getByText("Desligada")).toBeVisible();
 
-  await card.getByLabel(/Horas de silêncio/).fill("6");
-  await card.getByRole("button", { name: "Salvar pausa" }).click();
-  await expect(card).toContainText("por 6 horas");
+  // Horário de atendimento: início antes do fim
+  const horario = page.getByRole("form", { name: "Horário de atendimento" });
+  await horario.getByLabel("Começa às (hora)").fill("21");
+  await horario.getByRole("button", { name: "Salvar horário" }).click();
+  await expect(horario.getByText(/vem depois do início/)).toBeVisible();
+  await horario.getByLabel("Começa às (hora)").fill("9");
+  await horario.getByLabel("Termina às (hora)").fill("18");
+  await horario.getByLabel("Minutos até o lembrete").fill("30");
+  await horario.getByLabel("Horas de silêncio da Clubinha").fill("6");
+  await horario.getByRole("button", { name: "Salvar horário" }).click();
+  await expect(page.getByRole("form", { name: "Horário de atendimento" })).toContainText("Das 9h às 18h, se ninguém assumir um chamado em 30 minutos");
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/respostas/pausa", corpo: { inicioHora: 9, fimHora: 18, lembreteMinutos: 30, pausaHoras: 6 } });
+  await semViolacoes(page);
+});
+
+// Mensagens automáticas: por etapa, com a prévia do texto e o liga e desliga.
+test("WhatsApp: mensagens automáticas por etapa, com a prévia", async ({ page, context }) => {
+  let posVenda = false;
+  const notificacoes = () => [
+    { id: "codigo", nome: "Código de verificação", quando: "Quando a cliente pede o código", essencial: true, ligada: true },
+    { id: "pedido_entregue", nome: "Pedido entregue", quando: "Quando a loja confirma a entrega", essencial: false, ligada: true },
+    { id: "pos_venda", nome: "Pós-entrega", quando: "2 dias depois da entrega", essencial: false, ligada: posVenda },
+  ];
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, corpo) => {
+    if (caminho === "v1/admin/settings/whatsapp") posVenda = (corpo as { notificacoes: { pos_venda: boolean } }).notificacoes.pos_venda;
+    if (caminho === "v1/admin/whatsapp" || caminho === "v1/admin/settings/whatsapp") return configWa({ notificacoes: notificacoes() });
+    return undefined;
+  });
+
+  await page.goto(`${PAINEL}/whatsapp/mensagens`);
+  const reserva = page.getByRole("region", { name: "Reserva" });
+  await expect(reserva).toContainText("Essencial");
+  const entrega = page.getByRole("region", { name: "Entrega" });
+  await entrega.getByText("Ver a mensagem").click();
+  await expect(entrega).toContainText("#1048");
+  const pos = page.getByRole("region", { name: "Pós-venda" });
+  await expect(pos).toContainText("0 de 1 ligada");
+  await pos.getByRole("checkbox", { name: "Enviar “Pós-entrega”" }).click();
+  await expect(pos).toContainText("1 de 1 ligada");
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/settings/whatsapp", corpo: { notificacoes: { pos_venda: true } } });
+  await semViolacoes(page);
+});
+
+// Envios: o histórico com o filtro vindo da faixa, o motivo da falha, "Tentar de novo" e o ritmo.
+test("WhatsApp: envios com falha, tentar de novo e ritmo", async ({ page, context }) => {
+  const falhou = { id: "f1111111-1111-4111-8111-111111111111", telefone: "+5577998128809", modelo: "pedido_entregue", params: { numero: 1048 }, status: "FALHOU", tentativas: 5,
+    criadaEm: "2026-10-03T12:00:00Z", enviadaEm: null, entregueEm: null, proximaTentativa: null, erro: "recusada", nome: "Ana",
+    reserva: { id: "e1111111-1111-4111-8111-111111111111", numero: 1048 }, naoReenvia: null as string | null };
+  const semLink = { ...falhou, id: "f2222222-2222-4222-8222-222222222222", modelo: "reserva_criada", params: { numero: 1049, nome: "Bia", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-03T13:00:00Z" },
+    nome: "Bia", reserva: { id: "e2222222-2222-4222-8222-222222222222", numero: 1049 }, naoReenvia: "SEM_LINK" };
+  const dias = Array.from({ length: 7 }, (_, i) => ({ dia: `2026-09-${String(27 + i).padStart(2, "0")}`, enviadas: i * 5, falhas: i === 6 ? 2 : 0, descartadas: 0 }));
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, _c, busca) => {
+    if (caminho === "v1/admin/whatsapp/envios") return { mensagens: busca.get("status") === "FALHOU" ? [falhou, semLink] : [], dias };
+    if (caminho.endsWith("/reenviar")) { falhou.status = "PENDENTE"; falhou.naoReenvia = "STATUS"; return { ok: true }; }
+    if (caminho === "v1/admin/settings/whatsapp") return configWa();
+    return undefined;
+  });
+
+  await page.goto(`${PAINEL}/whatsapp/envios?status=FALHOU`);
+  await expect(page.getByRole("button", { name: "Falharam" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("region", { name: "Enviadas por dia" }).getByRole("table")).toContainText("2");
+  const lista = page.getByRole("list", { name: "Mensagens da fila" });
+  await expect(lista).toContainText("Falhou depois de 5 tentativas: recusada");
+  await expect(lista).toContainText("Tinha o link da reserva, que não fica guardado.");
+  await expect(lista.getByRole("button", { name: /Tentar de novo/ })).toHaveCount(1);
+  const tentar = lista.getByRole("button", { name: /Tentar de novo/ });
+  await expect(tentar).toHaveAccessibleName(/Pedido entregue para Ana/);
+  await tentar.click();
+  await expect(page.getByRole("status").filter({ hasText: "de volta na fila" })).toContainText("Pedido entregue para Ana: de volta na fila.");
+  expect(enviados.find((e) => e.caminho.endsWith("/reenviar"))).toEqual({ metodo: "POST", caminho: `v1/admin/whatsapp/envios/${falhou.id}/reenviar`, corpo: {} });
+
+  await page.getByRole("button", { name: "Todas", exact: true }).click();
+  await expect(page.getByText("Nenhuma mensagem neste período.")).toBeVisible();
+
+  const ritmo = page.getByRole("form", { name: "Ritmo de envio" });
+  await ritmo.getByLabel("Intervalo máximo (segundos)").fill("3");
+  await ritmo.getByRole("button", { name: "Salvar ritmo" }).click();
+  await expect(ritmo.getByText(/maior que o mínimo/)).toBeVisible();
+  await ritmo.getByLabel("Intervalo máximo (segundos)").fill("12");
+  await ritmo.getByRole("button", { name: "Salvar ritmo" }).click();
+  await expect.poll(() => enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/settings/whatsapp",
+    corpo: { modoLancamento: false, ritmo: { intervaloMinS: 4, intervaloMaxS: 12, tetoHora: 120 } } });
+  await semViolacoes(page);
+});
+
+// Configurações: desconectado em destaque, avisos para a equipe e um teste só, já com o número.
+test("WhatsApp: configurações com avisos para a equipe e teste", async ({ page, context }) => {
+  const AVISOS = [
+    { id: "nova_reserva", nome: "Nova reserva", quando: "Quando uma cliente reserva pelo site" },
+    { id: "lista_vip", nome: "Entrou na lista VIP", quando: "Quando alguém se inscreve na lista VIP" },
+  ];
+  let avisos = { telefone: null as string | null, desligados: [] as string[] };
+  const tela = () => ({ telefone: avisos.telefone, avisos: AVISOS.map((a) => ({ ...a, ligado: !avisos.desligados.includes(a.id) })) });
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, corpo) => {
+    if (caminho === "v1/admin/whatsapp") return configWa({ conectado: false });
+    if (caminho === "v1/admin/whatsapp/avisos") { if (metodo === "PUT") avisos = { ...avisos, ...(corpo as object) }; return tela(); }
+    if (caminho === "v1/admin/whatsapp/test") return { ok: true, naFila: true };
+    return undefined;
+  });
+
+  await page.goto(`${PAINEL}/whatsapp/configuracoes`);
+  await expect(page.getByRole("region", { name: "Resumo do WhatsApp" })).toContainText("Desconectado");
+  await expect(page.getByRole("link", { name: "Conectar agora" })).toHaveAttribute("href", "/whatsapp/configuracoes");
+  await expect(page.getByRole("button", { name: "Mostrar QR code" })).toBeVisible();
+
+  const card = page.getByRole("region", { name: "Avisos para a equipe" });
+  await expect(card).toContainText("Desligados: grave um número para começar.");
+  await expect(card.getByRole("checkbox", { name: "Avisar “Nova reserva”" })).toBeDisabled();
+  await card.getByLabel("WhatsApp que recebe os avisos").fill("77 9988");
+  await card.getByRole("button", { name: "Ligar os avisos" }).click();
+  await expect(card.getByText(/Digite o número com DDD/)).toBeVisible();
+  await card.getByLabel("WhatsApp que recebe os avisos").fill("(77) 99888-7777");
+  await card.getByRole("button", { name: "Ligar os avisos" }).click();
+  await expect(card).toContainText("Ligados para (77) 99888-7777.");
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/whatsapp/avisos", corpo: { telefone: "+5577998887777" } });
+  await card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" }).click();
+  await expect(card.getByRole("checkbox", { name: "Avisar “Entrou na lista VIP”" })).not.toBeChecked();
+  expect(enviados.at(-1)!.corpo).toEqual({ desligados: ["lista_vip"] });
+
+  // Um teste só, já com o número da equipe
+  const teste = page.getByRole("form", { name: "Testar o envio" });
+  await expect(teste.getByLabel("WhatsApp da equipe")).toHaveValue("(77) 99888-7777");
+  await teste.getByRole("button", { name: "Enviar teste" }).click();
+  await expect(teste).toContainText("Mensagem na fila.");
+  expect(enviados.at(-1)).toEqual({ metodo: "POST", caminho: "v1/admin/whatsapp/test", corpo: { telefone: "+5577998887777" } });
+  await expect(page.getByRole("button", { name: "Enviar aviso de teste" })).toHaveCount(0);
+  await semViolacoes(page);
+
+  await card.getByRole("button", { name: "Parar os avisos" }).click();
+  await expect(card).toContainText("Desligados: grave um número para começar.");
+});
+
+// Entregas e frete em Kanban (03/10) com a api-admin simulada: uma coluna por etapa, contagem,
+// filtro por modalidade, busca, o botão do cartão muda a etapa e a etapa da Operação em destaque.
+test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", async ({ page, context }) => {
+  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+  const reserva = (n: number, nome: string, id: string) => ({ id, numero: n, nome, telefone: "+5577998128809", totalCentavos: 4999, pagaEm: "2026-10-10T13:00:00Z" });
+  let lista = [
+    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111") },
+    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
+      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222") },
+    { modalidade: "ENVIO", substatus: "FRETE_VENCIDO", frete: { valorCentavos: 2500, pagarAte: "2026-10-10T15:00:00Z" }, endereco: { rua: "Rua B", numero: "5", bairro: "Centro", cidade: "Guanambi", uf: "BA" },
+      reserva: reserva(1003, "Carla", "e3333333-3333-4333-8333-333333333333") },
+    { modalidade: "ENVIO", substatus: "ENVIADO", rastreio: "QB123456789BR", reserva: reserva(1004, "Duda", "e4444444-4444-4444-8444-444444444444") },
+    { modalidade: "MOTOBOY", substatus: "SAIU_PARA_ENTREGA", reserva: { ...reserva(1005, "Eva", "e5555555-5555-4555-8555-555555555555"), status: "ENTREGUE", entregueEm: "2026-10-10T18:00:00Z" } },
+  ] as Record<string, unknown>[];
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 1, vencidos: 1 }, emPreparacao: 1, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho === "v1/admin/fulfillments") return rota.fulfill({ json: lista });
+    if (r.method() !== "GET") {
+      const corpo = r.postData() ? r.postDataJSON() : null;
+      enviados.push({ metodo: r.method(), caminho, corpo });
+      if (caminho.endsWith("/deliver")) lista = lista.map((f) => ((f.reserva as { id: string }).id === caminho.split("/")[3] ? { ...f, reserva: { ...(f.reserva as object), status: "ENTREGUE", entregueEm: "2026-10-10T19:00:00Z" } } : f));
+      if (caminho.endsWith("/fulfillment/substatus")) lista = lista.map((f) => ((f.reserva as { id: string }).id === caminho.split("/")[3] ? { ...f, substatus: corpo.substatus } : f));
+      return rota.fulfill({ json: { ok: true } });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/entregas?substatus=FRETE_VENCIDO`);
+  const coluna = (titulo: string) => page.getByRole("region", { name: titulo, exact: true });
+  await expect(coluna("Calcular o frete")).toHaveClass(/destaque/);
+  await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(2);
+  await expect(coluna("Calcular o frete")).toContainText("Frete vencido");
+  await expect(coluna("Em preparação")).toContainText("29LFET");
+  await expect(coluna("A caminho")).toContainText("QB123456789BR");
+  await expect(coluna("Escolha da entrega")).toContainText("Nada por aqui agora.");
+  // Entregue: na última coluna, sem botões, e fora de "A caminho"
+  await expect(coluna("A caminho").getByRole("article")).toHaveCount(1);
+  await expect(coluna("Entregue").getByRole("article", { name: "#1005" })).toContainText("Entregue");
+  await expect(coluna("Entregue").getByRole("button")).toHaveCount(0);
+
+  // Filtro e busca
+  await page.getByRole("button", { name: "Envio", exact: true }).click();
+  await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(1);
+  await expect(coluna("Em preparação")).toContainText("Nada com este filtro.");
+  await page.getByRole("button", { name: "Todas", exact: true }).click();
+  await page.getByLabel("Buscar pedido").fill("bia");
+  await expect(page.getByRole("article")).toHaveCount(1);
+  await page.getByLabel("Buscar pedido").fill("");
+
+  // Calcular o frete abre o formulário no cartão
+  const bia = page.getByRole("article", { name: "#1002" });
+  await bia.getByRole("button", { name: "Calcular o frete" }).click();
+  await expect(bia.getByLabel("Valor do frete (R$)")).toBeVisible();
+
+  // O botão do cartão leva o pedido para a próxima coluna
+  await page.getByRole("article", { name: "#1001" }).getByRole("button", { name: /Marcar: Pronto para retirada/ }).click();
+  await expect(coluna("Pronto para retirada").getByRole("article", { name: "#1001" })).toBeVisible();
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/reservations/e1111111-1111-4111-8111-111111111111/fulfillment/substatus", corpo: { substatus: "PRONTO_PARA_RETIRADA" } });
+
+  // Marcar como entregue leva o pedido para a coluna Entregue, o mais recente primeiro
+  const duda = page.getByRole("article", { name: "#1004" });
+  await duda.getByRole("button", { name: "Marcar como entregue" }).click();
+  await duda.getByRole("button", { name: "Confirmar entrega" }).click();
+  await expect(coluna("Entregue").getByRole("article")).toHaveCount(2);
+  await expect(coluna("Entregue").getByRole("article").first()).toHaveAccessibleName("#1004");
+  await expect(coluna("A caminho")).toContainText("Nada por aqui agora.");
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);

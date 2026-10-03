@@ -20,7 +20,7 @@ select is((select string_agg(action, ',' order by position) from whatsapp_quick_
 
 -- ── Primeira mensagem: sem menu recente, sem pausa ──
 select inbound_register('m1', '5577991110001', 'oi');
-select is(pg_temp.ctx('m1') - 'respostas', '{"ligadas": true, "pausada": false, "menuRecente": false, "endereco": null, "horario": null}'::jsonb,
+select is(pg_temp.ctx('m1') - 'respostas' - 'nome' - 'novidade' - 'chamados' - 'avaliacaoPendente', '{"ligadas": true, "pausada": false, "menuRecente": false, "endereco": null, "horario": null}'::jsonb,
   'ligadas, sem pausa e sem menu recente');
 select is((select jsonb_build_object('n', jsonb_array_length(c -> 'respostas'), 'primeira', c -> 'respostas' -> 0 -> 'numero', 'titulo', c -> 'respostas' -> 0 ->> 'titulo')
              from pg_temp.ctx('m1') c),
@@ -65,8 +65,9 @@ select is((select cardinality(reply_ids) from whatsapp_inbound where wa_message_
 select admin_update_store_alerts(:admin, '{"telefone": "+5577998887777"}');
 select inbound_register('e1', '5577991110003', 'quero falar com atendente');
 select is(inbound_answer('e1', 'EQUIPE', pg_temp.resposta('Falar com a equipe'), false), true, 'pedido da equipe');
-select is((select params - 'tipo' from outbox_messages where template = 'aviso_loja' and params ->> 'tipo' = 'atendimento'),
-  '{"final": "0003", "nome": null}'::jsonb, 'aviso para a equipe com o final do número');
+select is((select params - 'tipo' - 'chamado' from outbox_messages where template = 'aviso_loja' and params ->> 'tipo' = 'atendimento'),
+  '{"motivo": "EQUIPE", "final": "0003", "nome": null, "telefone": "+5577991110003", "pedido": null, "mensagens": ["quero falar com atendente"]}'::jsonb,
+  'aviso para a equipe com o telefone e o que a cliente escreveu (0550)');
 select inbound_register('e2', '5577991110003', 'oi?');
 select is((pg_temp.ctx('e2') ->> 'pausada')::boolean, true, 'pedida a equipe, o robô fica quieto');
 select inbound_register('e3', '5577991110003', 'atendente');

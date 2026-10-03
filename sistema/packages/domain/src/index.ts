@@ -14,3 +14,4 @@ export * from "./vip-textos.ts";
 export * from "./vip.ts";
 export * from "./acessos.ts";
 export * from "./respostas.ts";
+export * from "./exemplos-mensagens.ts";

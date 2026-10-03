@@ -8,8 +8,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CODIGOS_ERRO, type CodigoErro } from "../packages/domain/src/erros.ts";
 import { textoCupom, textoErro, textoRecusaCartao, TEXTO_SEM_CONEXAO, type ContextoErro } from "../packages/domain/src/textos.ts";
-import { mensagemWhatsApp, NOTIFICACOES, type Modelo, type ParametrosMensagem } from "../packages/domain/src/mensagens.ts";
-import type { MotivoCupom, Promocao } from "../packages/domain/src/preco.ts";
+import { mensagemWhatsApp, NOTIFICACOES } from "../packages/domain/src/mensagens.ts";
+import type { MotivoCupom } from "../packages/domain/src/preco.ts";
+import { EXEMPLOS_MENSAGENS } from "../packages/domain/src/exemplos-mensagens.ts";
 
 const SAIDA = resolve(dirname(fileURLToPath(import.meta.url)), "../../docs/design/textos/revisao-de-textos.md");
 
@@ -90,63 +91,7 @@ const RECUSAS: [string, string][] = [
   ["outro", "Qualquer outro motivo"],
 ];
 
-// Horários de exemplo no fuso da loja (UTC-3): 17:32 UTC = 14:32
-const h = (hhmm: string) => new Date(`2026-10-10T${String(Number(hhmm.slice(0, 2)) + 3).padStart(2, "0")}:${hhmm.slice(3)}:00Z`);
-const periodo = { inicio: new Date("2026-09-01T00:00:00Z"), fim: new Date("2026-12-31T00:00:00Z") };
-const promocoes: Promocao[] = [
-  { ...periodo, id: "p1", nome: "Club", tipo: "COMPRE_MAIS", modo: "PRECO_POR_GRUPO", escopo: "TODOS", produtos: [], umaPorCliente: false, grupo: { qtd: 3, precoCentavos: 11999 } },
-  { ...periodo, id: "p2", nome: "Boas-vindas VIP", tipo: "CUPOM", escopo: "TODOS", produtos: [], codigo: "VIP5", modo: "PERCENTUAL", valor: 5,
-    quantidadeTotal: 1000, quantidadeUsada: 0, limitePorCliente: 1, validadeDias: 30 },
-];
-
-type Exemplo = { [M in Modelo]: { modelo: M; titulo: string; p: ParametrosMensagem[M] } }[Modelo];
-const EXEMPLOS: Exemplo[] = [
-  { modelo: "codigo_verificacao", titulo: "Código de verificação", p: { codigo: "482193", minutos: 5 } },
-  { modelo: "numero_diferente", titulo: "Pedido de código de outro número", p: {} },
-  { modelo: "sem_numero", titulo: "WhatsApp não mostrou o número (LID)", p: {} },
-  { modelo: "referencia_invalida", titulo: "Pedido de código com referência errada", p: {} },
-  { modelo: "codigo_bloqueado", titulo: "Muitas tentativas de código", p: { ate: h("14:47") } },
-  { modelo: "reserva_criada", titulo: "Reserva criada: 1 peça", p: { nome: "Ana Paula", pecas: 1, numero: 1048, totalCentavos: 4999, expiraEm: h("14:47"), link: "https://tshirtclub.vercel.app/r#…" } },
-  { modelo: "reserva_criada", titulo: "Reserva criada: 2 peças, falta 1 para o Club", p: { nome: "Ana Paula", pecas: 2, numero: 1048, totalCentavos: 9998, expiraEm: h("14:47"), link: "https://tshirtclub.vercel.app/r#…", grupo: { qtd: 3, precoCentavos: 11999 } } },
-  { modelo: "reserva_criada", titulo: "Reserva criada: 3 peças (Club)", p: { nome: "Ana Paula", pecas: 3, numero: 1048, totalCentavos: 11999, expiraEm: h("14:47"), link: "https://tshirtclub.vercel.app/r#…" } },
-  { modelo: "reserva_lembrete_5min", titulo: "Lembrete de 5 minutos", p: { numero: 1048, expiraEm: h("14:47"), nome: "Ana Paula", pecas: 3 } },
-  { modelo: "reserva_expirada", titulo: "Reserva expirada", p: { numero: 1048, expiradaEm: h("14:47") } },
-  { modelo: "pagamento_confirmado", titulo: "Pagamento confirmado", p: { nome: "Ana Paula", numero: 1048, totalCentavos: 11999, forma: "PIX", pecas: 3 } },
-  { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: depois do prazo", p: { numero: 1048 } },
-  { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: valor diferente", p: { numero: 1048, valorDivergente: true } },
-  { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: frete", p: { numero: 1048, frete: true } },
-  { modelo: "telefone_bloqueado", titulo: "Telefone bloqueado", p: {} },
-  { modelo: "telefone_liberado", titulo: "Telefone liberado", p: {} },
-  { modelo: "bloqueio_mantido", titulo: "Bloqueio mantido", p: {} },
-  { modelo: "cancelamento_recebido", titulo: "Cancelamento recebido", p: { numero: 1048, expiraEm: h("14:47") } },
-  { modelo: "cancelamento_aprovado", titulo: "Cancelamento aprovado", p: { numero: 1048 } },
-  { modelo: "cancelamento_recusado", titulo: "Cancelamento recusado", p: { numero: 1048, expiraEm: h("14:47") } },
-  { modelo: "entrega_confirmada", titulo: "Entrega escolhida: retirada", p: { numero: 1048, modalidade: "RETIRADA" } },
-  { modelo: "entrega_confirmada", titulo: "Entrega escolhida: motoboy ou envio", p: { numero: 1048, modalidade: "MOTOBOY" } },
-  { modelo: "frete_calculado", titulo: "Frete calculado", p: { numero: 1048, valorCentavos: 1500, pagarAte: h("16:32") } },
-  { modelo: "frete_confirmado", titulo: "Frete pago", p: { numero: 1048 } },
-  { modelo: "pronto_retirada", titulo: "Pronto para retirada", p: { numero: 1048, codigo: "K7Q2", endereco: "R. Sátiro Santos, 38 - Caetité, BA, 46400-000", horario: "Aberto 24 horas, com retirada agendada: responda esta mensagem para combinar o horário." } },
-  { modelo: "saiu_entrega", titulo: "Saiu para entrega", p: { numero: 1048 } },
-  { modelo: "pedido_enviado", titulo: "Pedido enviado (com rastreio)", p: { numero: 1048, rastreio: "QB123456789BR" } },
-  { modelo: "pedido_entregue", titulo: "Pedido entregue", p: { numero: 1048, nome: "Ana Paula" } },
-  { modelo: "minhas_reservas", titulo: "Resposta a \"Minha reserva\": com reservas", p: { reservas: [
-    { numero: 1048, status: "RESERVADO", pecas: 3, totalCentavos: 11999, expiraEm: h("14:47") },
-    { numero: 1031, status: "PAGAMENTO_CONFIRMADO", totalCentavos: 4999, substatus: "PRONTO_PARA_RETIRADA" },
-    { numero: 1012, status: "EXPIRADO", motivoEncerramento: "PRAZO_ESGOTADO", totalCentavos: 9998 },
-  ] } },
-  { modelo: "minhas_reservas", titulo: "Resposta a \"Minha reserva\": sem reservas", p: { reservas: [] } },
-  { modelo: "ofertas", titulo: "Resposta a \"ofertas\"", p: { promocoes } },
-  { modelo: "ofertas", titulo: "Resposta a \"ofertas\": sem ofertas", p: { promocoes: [] } },
-  { modelo: "trocas", titulo: "Resposta sobre trocas", p: {} },
-  { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum), com o menu", p: { opcoes: [
-    { numero: 1, titulo: "Ver as peças e reservar" }, { numero: 2, titulo: "Tamanhos e medidas" }, { numero: 3, titulo: "Entrega e frete" },
-    { numero: 4, titulo: "Pagamento" }, { numero: 5, titulo: "Horário e endereço" }, { numero: 6, titulo: "Minha reserva" },
-    { numero: 7, titulo: "Ofertas e cupons" }, { numero: 8, titulo: "Trocas e devoluções" }, { numero: 9, titulo: "Falar com a equipe" },
-  ] } },
-  { modelo: "boas_vindas", titulo: "Resposta automática (mensagem comum), com as respostas rápidas desligadas", p: {} },
-  { modelo: "resposta_rapida", titulo: "Resposta rápida (o texto vem do painel, com a volta para o menu)", p: { texto: "É tudo pelo site, com o Mercado Pago:\n• *PIX*, confirmado na hora\n• *Cartão de crédito*\n\nDepois de reservar, o link para pagar chega aqui no WhatsApp ✦" } },
-  { modelo: "mensagem_teste", titulo: "Mensagem de teste do painel", p: {} },
-];
+const EXEMPLOS = EXEMPLOS_MENSAGENS;
 
 const linha = (...c: string[]) => `| ${c.map((x) => x.replace(/\|/g, "\\|")).join(" | ")} |`;
 const L: string[] = [];
@@ -203,7 +148,9 @@ w();
 const noPainel = new Map(NOTIFICACOES.flatMap((n) => n.modelos.map((m) => [m, n] as const)));
 for (const e of EXEMPLOS) {
   const n = noPainel.get(e.modelo);
-  const selo = n ? (n.essencial ? "essencial, sempre ligada" : `a loja liga e desliga no painel ("${n.nome}")`) : "resposta da conversa";
+  const selo = e.modelo === "aviso_loja"
+    ? "vai para o WhatsApp da equipe; liga e desliga nos avisos da loja"
+    : n ? (n.essencial ? "essencial, sempre ligada" : `a loja liga e desliga no painel ("${n.nome}")`) : "resposta da conversa";
   w(`### ${e.titulo}`);
   w();
   w(`*${selo}*`);

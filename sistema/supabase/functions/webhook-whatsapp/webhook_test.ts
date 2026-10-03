@@ -18,6 +18,10 @@ interface Opcoes {
   contexto?: Record<string, unknown>;
   /** inbound_answer: o banco libera a resposta. */
   liberada?: boolean;
+  /** Chamados (0550): o que o banco devolve a ticket_command, inbound_ticket e ticket_rate. */
+  comando?: unknown;
+  chamado?: unknown;
+  nota?: unknown;
 }
 
 function montar(opcoes: Opcoes = {}) {
@@ -49,6 +53,12 @@ function montar(opcoes: Opcoes = {}) {
             return { ligadas: true, pausada: false, menuRecente: false, endereco: null, horario: null, respostas: [], ...opcoes.contexto };
           case "inbound_answer":
             return opcoes.liberada ?? true;
+          case "ticket_command":
+            return opcoes.comando ?? { equipe: false };
+          case "inbound_ticket":
+            return opcoes.chamado ?? { numero: 12, novo: true };
+          case "ticket_rate":
+            return opcoes.nota ?? { ok: true, numero: 12, nota: args.p_nota };
           default:
             return null;
         }
@@ -123,15 +133,16 @@ Deno.test("respostas: outro número, referência inválida e bloqueio", async ()
   assertEquals(aguarde.whatsapp.enviadas.length, 0);
 });
 
-Deno.test("sem número (LID), conversa comum, consulta e excesso de mensagens", async () => {
+Deno.test("sem número (LID), dúvida depois das boas-vindas, consulta e excesso de mensagens", async () => {
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid" }))).tratamento, "SEM_NUMERO");
-  assertEquals((await montar().enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
+  // Depois das boas-vindas, a pergunta vira chamado (0550)
+  assertEquals((await montar().enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CHAMADO");
   assertEquals((await montar({ reservas: [] }).enviar(msg({ phone: "123456789012345@lid", text: { message: "Minha reserva" } }))).tratamento,
     "SEM_NUMERO");
   assertEquals((await montar({ limite: false }).enviar(msg())).tratamento, "LIMITE");
 });
 
-Deno.test("mensagem comum: resposta automática com o site quando o banco libera; senão, só conversa", async () => {
+Deno.test("mensagem comum: resposta automática com o site quando o banco libera; senão, a dúvida vira chamado", async () => {
   const liberada = montar({ boasVindas: true });
   assertEquals((await liberada.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "BOAS_VINDAS");
   assertEquals(liberada.rpcs.find((x) => x.funcao === "inbound_welcome")!.args, { p_wa_message_id: "m1" });
@@ -141,8 +152,11 @@ Deno.test("mensagem comum: resposta automática com o site quando o banco libera
   assertEquals(liberada.rpcs.some((x) => x.funcao === "inbound_mark"), false, "o banco já marcou BOAS_VINDAS");
 
   const jaRecebeu = montar({ boasVindas: false });
-  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CONVERSA");
-  assertEquals(jaRecebeu.whatsapp.enviadas.length, 0);
+  assertEquals((await jaRecebeu.enviar(msg({ text: { message: "Oi, tem a Limone?" } }))).tratamento, "CHAMADO");
+  assertMatch(jaRecebeu.whatsapp.enviadas[0]!.texto, /^Essa eu vou deixar com a equipe/);
+  const soOi = montar({ boasVindas: false });
+  assertEquals((await soOi.enviar(msg({ text: { message: "Oi" } }))).tratamento, "CONVERSA");
+  assertEquals(soOi.whatsapp.enviadas.length, 0);
 
   const lid = montar({ boasVindas: true });
   assertEquals((await lid.enviar(msg({ phone: "123456789012345@lid", text: { message: "Oi" } }))).tratamento, "CONVERSA");
@@ -159,11 +173,11 @@ Deno.test("ofertas: responde com as promoções vigentes do banco, pulando o que
   assertEquals((await enviar(msg({ text: { message: "Promoções?" } }))).tratamento, "OFERTAS");
   assertEquals(rpcs.some((x) => x.funcao === "inbound_welcome"), false, "não conta como mensagem comum");
   assertEquals(whatsapp.enviadas.length, 1);
-  assertMatch(whatsapp.enviadas[0]!.texto, /^Separei as ofertas de hoje para você ✦\n\n• \*Club\*: 3 peças por R\$ 119,99\n\n/);
+  assertMatch(whatsapp.enviadas[0]!.texto, /^Separei as ofertas de hoje pra você ✦\n\n• \*Club\*: 3 peças por R\$ 119,99\n\n/);
 
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "oferta" } }));
-  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Hoje não tem oferta ativa/);
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Hoje não tem promoção ativa/);
   assertEquals((await montar().enviar(msg({ phone: "123456789012345@lid", text: { message: "ofertas" } }))).tratamento, "SEM_NUMERO");
 });
 
@@ -225,11 +239,13 @@ Deno.test("minha reserva: sem o nono dígito, acha as reservas e responde no nú
   assertEquals((await enviar(msg({ phone: "557798128809", text: { message: "minhas reservas" } }))).tratamento, "MINHA_RESERVA");
   assertEquals(rpcs.find((r) => r.funcao === "whatsapp_my_reservations")!.args.p_senders, ["+5577998128809"]);
   assertEquals(whatsapp.enviadas.map((m) => [m.telefone, m.texto]), [
-    ["+5577998128809", "Achei! Esta é sua reserva recente:\n\n• #1049 · reservada até *09:15* · 1 peça · R$ 49,99\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app"],
+    ["+5577998128809", "Achei! Esta é sua reserva recente:\n\n• #1049 · reservada até *09:15* · 1 peça · R$ 49,99\n\n" +
+      "Suas peças estão guardadas até o horário acima. Finalize o pagamento pelo link que chegou aqui quando você reservou, pra não perder ✦\n\n" +
+      "Para ver todos os detalhes:\ntshirtclub.vercel.app"],
   ], "vai para o número da reserva, sem o telefone no texto");
   const vazio = montar();
   await vazio.enviar(msg({ text: { message: "status" } }));
-  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Procurei aqui e não achei reservas recentes/);
+  assertMatch(vazio.whatsapp.enviadas[0]!.texto, /^Procurei aqui e ainda não achei reservas/);
 });
 
 // ─── Atendimento automático (0540) ──────────────────────────────────────────────────
@@ -255,7 +271,13 @@ Deno.test("menu: boas-vindas com as opções; o número escolhido depois respond
   const escolha = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
   assertEquals((await escolha.enviar(texto("2"))).tratamento, "RESPOSTA");
   assertEquals(respondida(escolha.rpcs), { p_wa_message_id: "m1", p_handled_as: "RESPOSTA", p_quick_reply: "r2", p_explicit: true });
-  assertEquals(escolha.whatsapp.enviadas[0]!.texto, "Retirada, motoboy ou envio.\n\nQuer ver as outras opções? É só mandar *menu* ✦");
+  assertEquals(escolha.whatsapp.enviadas[0]!.texto, "Retirada, motoboy ou envio.\n\nPosso te ajudar em mais alguma coisa? Manda *menu* que eu te mostro as opções ✦");
+
+  // Pelo nome da última reserva do número e com a coleção mais nova (0550)
+  const conhecida = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS, nome: "Marina", novidade: { nome: "Estate Italiana", slug: "estate-italiana" } } });
+  await conhecida.enviar(texto("Boa tarde"));
+  assertMatch(conhecida.whatsapp.enviadas[0]!.texto,
+    /^Oi, Marina! Eu sou a Clubinha[^\n]*\n\nNossa coleção mais nova é a \*Estate Italiana\* ✦ Dá uma espiada:\ntshirtclub\.vercel\.app\/colecao\/estate-italiana\n\nMe conta/);
 
   // Sem o menu recente, "2" é mensagem comum
   const semMenu = montar({ boasVindas: true, contexto: { respostas: RESPOSTAS } });
@@ -267,7 +289,7 @@ Deno.test("menu: \"menu\" a qualquer hora, mesmo com a equipe na conversa", asyn
   const { enviar, rpcs, whatsapp } = montar({ contexto: { respostas: RESPOSTAS, pausada: true } });
   assertEquals((await enviar(texto("Menu"))).tratamento, "MENU");
   assertEquals(respondida(rpcs), { p_wa_message_id: "m1", p_handled_as: "MENU", p_quick_reply: null, p_explicit: true });
-  assertMatch(whatsapp.enviadas[0]!.texto, /^Como posso te ajudar\? É só responder com o número:\n\*1\* · Ver as peças/);
+  assertMatch(whatsapp.enviadas[0]!.texto, /^Me conta, como posso te ajudar\? É só responder com o número:\n\*1\* · Ver as peças/);
   // Sem respostas ligadas, "menu" é mensagem comum
   assertEquals((await montar({ contexto: { respostas: RESPOSTAS, ligadas: false } }).enviar(texto("menu"))).tratamento, "CONVERSA");
 });
@@ -335,4 +357,71 @@ Deno.test("respostas desligadas: sem menu nas boas-vindas e sem resposta por pal
   assertEquals((await enviar(texto("qual o frete?"))).tratamento, "BOAS_VINDAS");
   assertEquals(rpcs.some((r) => r.funcao === "inbound_answer"), false);
   assertMatch(whatsapp.enviadas[0]!.texto, /a equipe te responde assim que puder\.$/);
+});
+
+Deno.test("menu ligado: trocas, ofertas e minha reserva terminam com a volta para o menu", async () => {
+  const volta = /\n\nPosso te ajudar em mais alguma coisa\? Manda \*menu\* que eu te mostro as opções ✦$/;
+  const trocas = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  await trocas.enviar(texto("5"));
+  assertMatch(trocas.whatsapp.enviadas[0]!.texto, volta);
+
+  const ofertas = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await ofertas.enviar(texto("ofertas"))).tratamento, "OFERTAS");
+  assertMatch(ofertas.whatsapp.enviadas[0]!.texto, volta);
+
+  const minha = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await minha.enviar(texto("minha reserva"))).tratamento, "MINHA_RESERVA");
+  assertMatch(minha.whatsapp.enviadas[0]!.texto, volta);
+
+  const palavra = montar({ trocas: true, contexto: { respostas: RESPOSTAS } });
+  assertEquals((await palavra.enviar(texto("quero trocar"))).tratamento, "TROCAS");
+  assertMatch(palavra.whatsapp.enviadas[0]!.texto, volta);
+
+  // Sem as respostas rápidas (desligadas), "menu" não responde: nada de mandar a cliente para ele
+  const desligadas = montar({ contexto: { respostas: RESPOSTAS, ligadas: false } });
+  await desligadas.enviar(texto("ofertas"));
+  assertEquals(volta.test(desligadas.whatsapp.enviadas[0]!.texto), false);
+});
+
+Deno.test("chamado: a dúvida que a Clubinha não sabe responder passa para a equipe; cumprimento não", async () => {
+  const duvida = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await duvida.enviar(texto("Vocês fazem embrulho pra presente?"))).tratamento, "CHAMADO");
+  assertEquals(duvida.rpcs.find((r) => r.funcao === "inbound_ticket")!.args, { p_wa_message_id: "m1" });
+  assertMatch(duvida.whatsapp.enviadas[0]!.texto, /^Essa eu vou deixar com a equipe, tá\?/);
+
+  // Já tinha chamado aberto: entra nele, sem repetir a resposta
+  const junto = montar({ contexto: { respostas: RESPOSTAS }, chamado: { numero: 12, novo: false } });
+  assertEquals((await junto.enviar(texto("e o prazo pra Guanambi?"))).tratamento, "CHAMADO");
+  assertEquals(junto.whatsapp.enviadas.length, 0);
+
+  const obrigada = montar({ contexto: { respostas: RESPOSTAS } });
+  assertEquals((await obrigada.enviar(texto("Obrigada!"))).tratamento, "CONVERSA");
+  assertEquals(obrigada.rpcs.some((r) => r.funcao === "inbound_ticket"), false);
+
+  // Com o chamado aberto (pausa), o robô fica quieto
+  const pausada = montar({ contexto: { respostas: RESPOSTAS, pausada: true } });
+  assertEquals((await pausada.enviar(texto("alguém aí?"))).tratamento, "CONVERSA");
+  assertEquals(pausada.rpcs.some((r) => r.funcao === "inbound_ticket"), false);
+});
+
+Deno.test("chamado: a equipe assume e finaliza respondendo o aviso; de outro número é mensagem comum", async () => {
+  const equipe = montar({ comando: { equipe: true, resultado: "RESOLVIDO", numero: 12, nome: "Ana", notaPedida: true } });
+  assertEquals((await equipe.enviar(texto("resolvido 12"))).tratamento, "COMANDO");
+  assertEquals(equipe.rpcs.find((r) => r.funcao === "ticket_command")!.args, { p_wa_message_id: "m1", p_acao: "RESOLVER", p_numero: 12 });
+  assertEquals(equipe.whatsapp.enviadas[0], { telefone: "+5577998128809", texto: "✅ Chamado #12 da Ana finalizado. A Clubinha agradeceu e pediu a nota do atendimento." });
+
+  const cliente = montar({ boasVindas: true });
+  assertEquals((await cliente.enviar(texto("assumi 12"))).tratamento, "BOAS_VINDAS", "de quem não é da equipe, segue como mensagem comum");
+});
+
+Deno.test("chamado: depois do encerramento, a nota de 1 a 5 vem antes do número do menu", async () => {
+  const nota = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true, avaliacaoPendente: true } });
+  assertEquals((await nota.enviar(texto("5"))).tratamento, "AVALIACAO");
+  assertEquals(nota.rpcs.find((r) => r.funcao === "ticket_rate")!.args, { p_wa_message_id: "m1", p_nota: 5 });
+  assertMatch(nota.whatsapp.enviadas[0]!.texto, /^Obrigada pela nota \*5\*! Fico muito feliz 💖\n\nPosso te ajudar/);
+
+  // Sem nota pendente, "5" é a opção do menu
+  const menu = montar({ contexto: { respostas: RESPOSTAS, menuRecente: true } });
+  await menu.enviar(texto("5"));
+  assertEquals(menu.rpcs.some((r) => r.funcao === "ticket_rate"), false);
 });

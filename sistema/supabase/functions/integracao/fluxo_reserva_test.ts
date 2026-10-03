@@ -128,7 +128,9 @@ Deno.test({
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE' and reservation_id <> ${reserva.id}`;
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
       assertEquals((await despacharOutbox({ banco, whatsapp, dormir: () => Promise.resolve(), orcamentoMs: 5000, sorteio: () => 0 })).enviadas, 1);
-      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^O prazo da reserva #${reserva.numero} terminou às \\*\\d{2}:\\d{2}\\* e nenhuma cobrança foi feita\\.`));
+      // A Clubinha recupera a venda (0550): a peça voltou à venda e vai com o link
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, new RegExp(`^Oi, [^!]+! Aqui é a Clubinha 💖\\n\\nO prazo da reserva #${reserva.numero} terminou às \\*\\d{2}:\\d{2}\\* e nenhuma cobrança foi feita\\.`));
+      assertMatch(whatsapp.enviadas.at(-1)!.texto, /\n• \*Teddy Integração\*\ntshirtclub\.vercel\.app\/produto\/integracao-1\n/);
       const disponivel = await (await pedir("/v1/cart/quote", { itens: [{ produtoId: PRODUTO, varianteId: VARIANTE, qtd: 1 }] })).json();
       assertEquals(disponivel.totalCentavos, 4999, "a peça voltou para a loja");
 

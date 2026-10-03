@@ -3,7 +3,7 @@
 // sai e quando (outbox_claim); aqui só se monta o texto e se envia. Recusa da ferramenta volta
 // para a fila; envio incerto (sem resposta a tempo) não, para não mandar a mesma mensagem duas vezes.
 
-import { mensagemWhatsApp, type Modelo, type ParametrosMensagem } from "@tshirtclub/domain";
+import { mensagemWhatsApp, parametrosDaFila, sorteioDaMensagem, type Modelo, type ParametrosMensagem } from "@tshirtclub/domain";
 import type { Banco } from "../_shared/banco.ts";
 import { EnvioIncerto, type WhatsAppProvider } from "../_shared/whatsapp.ts";
 
@@ -24,13 +24,6 @@ interface Pedido {
   intervalo: { minS: number; maxS: number };
 }
 
-const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
-
-/** Datas voltam do banco como texto; os textos das mensagens usam Date. */
-function parametros(p: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(p).map(([k, v]) => [k, typeof v === "string" && ISO.test(v) ? new Date(v) : v]));
-}
-
 export async function despacharOutbox(deps: DepsOutbox): Promise<{ enviadas: number; falhas: number }> {
   const inicio = Date.now();
   const orcamento = deps.orcamentoMs ?? 25_000;
@@ -42,7 +35,8 @@ export async function despacharOutbox(deps: DepsOutbox): Promise<{ enviadas: num
     const p = await deps.banco.rpc<Pedido | null>("outbox_claim");
     if (!p) break;
     try {
-      const texto = mensagemWhatsApp(p.template as Modelo, parametros(p.params) as unknown as ParametrosMensagem[Modelo], sorteio());
+      // A versão do texto sai do id (0570): o painel mostra exatamente o que a cliente recebeu
+      const texto = mensagemWhatsApp(p.template as Modelo, parametrosDaFila(p.params) as unknown as ParametrosMensagem[Modelo], sorteioDaMensagem(p.id));
       const envio = await deps.whatsapp.enviarTexto(p.telefone, texto);
       await deps.banco.rpc("outbox_result", { p_id: p.id, p_ok: true, p_provider_message_id: envio.id });
       enviadas++;

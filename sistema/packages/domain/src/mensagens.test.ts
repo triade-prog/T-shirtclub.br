@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { Promocao } from "./preco.ts";
 import {
   AVISOS_LOJA,
+  sorteioDaMensagem,
+  textoDaFila,
   candidatosDoRemetente,
   DIAS_TROCA,
   ehPedidoMinhaReserva,
@@ -170,12 +172,17 @@ describe("o que a loja manda", () => {
       ],
     });
     expect(texto).toBe(
-      "Achei! Estas são suas reservas recentes:\n\n• #1049 · reservada até *14:32* · 3 peças · R$ 119,99\n• #1048 · paga · pronta para retirada\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app",
+      "Achei! Estas são suas reservas recentes:\n\n• #1049 · reservada até *14:32* · 3 peças · R$ 119,99\n• #1048 · paga · pronta para retirada\n\n" +
+        "Suas peças estão guardadas até o horário acima. Finalize o pagamento pelo link que chegou aqui quando você reservou, pra não perder ✦\n\n" +
+        "Para ver todos os detalhes:\ntshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELAMENTO_APROVADO", totalCentavos: 4999 }] }))
       .toBe("Achei! Esta é sua reserva recente:\n\n• #1047 · encerrada (cancelamento aprovado)\n\nPara ver todos os detalhes:\ntshirtclub.vercel.app");
+    // A paga que falta escolher a entrega ganha o próximo passo
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1046, status: "PAGAMENTO_CONFIRMADO", totalCentavos: 4999, substatus: "AGUARDANDO_MODALIDADE" }] }))
+      .toContain("\n\nFalta só escolher como você quer receber, e é rapidinho pelo site 💖\n\n");
     expect(mensagemWhatsApp("minhas_reservas", { reservas: [] })).toBe(
-      "Procurei aqui e não achei reservas recentes neste número. 🤔\n\nPara escolher suas peças ou fazer uma nova reserva:\ntshirtclub.vercel.app",
+      "Procurei aqui e ainda não achei reservas neste número 🤔\n\nQue tal escolher as suas? As peças estão aqui:\ntshirtclub.vercel.app",
     );
   });
 
@@ -191,17 +198,17 @@ describe("o que a loja manda", () => {
         quantidadeTotal: 100, quantidadeUsada: 0, limitePorCliente: 1, validadeDias: 30 },
     ];
     expect(mensagemWhatsApp("ofertas", { promocoes })).toBe(
-      "Separei as ofertas de hoje para você ✦\n\n" +
+      "Separei as ofertas de hoje pra você ✦\n\n" +
         "• *Club*: 3 peças por R$ 119,99\n" +
         "• *Leve mais*: 2 peças com 10% de desconto · 4 peças com 20% de desconto em peças selecionadas\n" +
         "• *Queima*: até 30% de desconto em peças selecionadas\n" +
         "• Cupom *BEMVINDA10*: R$ 10,00 de desconto em compras a partir de R$ 90,00\n" +
         "• Cupom *INSTA15*: 15% de desconto (até R$ 30,00)\n\n" +
         "Vale sempre a oferta mais vantajosa para você: os descontos não se somam.\n\n" +
-        "Para ver as peças e reservar:\ntshirtclub.vercel.app",
+        "Bora aproveitar? Escolhe suas peças aqui:\ntshirtclub.vercel.app",
     );
     expect(mensagemWhatsApp("ofertas", { promocoes: promocoes.slice(0, 1) })).not.toContain("não se somam");
-    expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("Hoje não tem oferta ativa, mas as peças estão te esperando. 💖\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app");
+    expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("Hoje não tem promoção ativa, mas tem peça linda te esperando 💖\n\nDá uma olhada:\ntshirtclub.vercel.app");
   });
 
   it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {
@@ -213,7 +220,7 @@ describe("o que a loja manda", () => {
 
   it("resposta automática a mensagem comum: o endereço da loja e a equipe, e dá para desligar no painel", () => {
     expect(mensagemWhatsApp("boas_vindas", {})).toBe(
-      "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\nPara ver as peças, reservar ou acompanhar seus pedidos:\ntshirtclub.vercel.app\n\nPrecisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.",
+      "Oi! Eu sou a Clubinha, a assistente virtual da T-shirt Club 💖\n\nPara ver as peças e reservar:\ntshirtclub.vercel.app\n\nPrecisa de ajuda com outra coisa? Pode escrever por aqui, que a equipe te responde assim que puder.",
     );
     expect(NOTIFICACOES.find((n) => n.id === "boas_vindas")).toMatchObject({ essencial: false, modelos: ["boas_vindas"] });
   });
@@ -280,6 +287,7 @@ describe("avisos para a equipe (0510)", () => {
       contestacao: { tipo: "contestacao", numero: 1, motivo: "CONTESTACAO" },
       troca: { tipo: "troca" },
       atendimento: { tipo: "atendimento", final: "8809", nome: null },
+      avaliacao: { tipo: "avaliacao", chamado: 12, nome: null, nota: 5 },
       sistema: { tipo: "sistema", mensagem: "Pagamentos sem confirmação há 30 minutos" },
     };
     for (const a of AVISOS_LOJA) {
@@ -288,5 +296,27 @@ describe("avisos para a equipe (0510)", () => {
       expect(texto).not.toMatch(/club\.br|\+55|undefined|null/i);
     }
     expect(mensagemWhatsApp("aviso_loja", { tipo: "teste" })).toContain("Teste dos avisos da loja");
+  });
+});
+
+describe("textos da fila no painel (0570)", () => {
+  it("o sorteio sai do id: o mesmo id, a mesma versão", () => {
+    expect(sorteioDaMensagem("ffffffff-0000-4000-8000-000000000000")).toBeCloseTo(1, 5);
+    expect(sorteioDaMensagem("00000000-ffff-4000-8000-000000000000")).toBe(0);
+    expect(sorteioDaMensagem("80000000-0000-4000-8000-000000000000")).toBe(0.5);
+    expect(sorteioDaMensagem("x")).toBe(0);
+  });
+
+  it("monta o texto que a cliente recebeu, com as datas e sem o link apagado", () => {
+    const id = "12345678-0000-4000-8000-000000000000";
+    expect(textoDaFila("pedido_entregue", { numero: 1001 }, id)).toBe(mensagemWhatsApp("pedido_entregue", { numero: 1001 }, sorteioDaMensagem(id)));
+    expect(textoDaFila("frete_calculado", { numero: 7, valorCentavos: 1500, pagarAte: "2026-10-03T19:00:00Z" }, id)).toContain("16:00");
+    const reserva = textoDaFila("reserva_criada", { numero: 9, nome: "Ana", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-03T19:00:00Z" }, id);
+    expect(reserva).toContain("(link da reserva)");
+  });
+
+  it("sem dados para montar, ou modelo desconhecido: null", () => {
+    expect(textoDaFila("frete_calculado", {}, "x")).toBeNull();
+    expect(textoDaFila("nao_existe", {}, "x")).toBeNull();
   });
 });
