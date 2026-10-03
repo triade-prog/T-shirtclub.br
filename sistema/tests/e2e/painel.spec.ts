@@ -578,6 +578,68 @@ test("WhatsApp: chamados abertos, assumir e finalizar", async ({ page, context }
   expect(axe.violations.map((v) => v.id)).toEqual([]);
 });
 
+// Entregas e frete em Kanban (03/10) com a api-admin simulada: uma coluna por etapa, contagem,
+// filtro por modalidade, busca, o botão do cartão muda a etapa e a etapa da Operação em destaque.
+test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", async ({ page, context }) => {
+  const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
+  const reserva = (n: number, nome: string, id: string) => ({ id, numero: n, nome, telefone: "+5577998128809", totalCentavos: 4999, pagaEm: "2026-10-10T13:00:00Z" });
+  let lista = [
+    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111") },
+    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
+      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222") },
+    { modalidade: "ENVIO", substatus: "FRETE_VENCIDO", frete: { valorCentavos: 2500, pagarAte: "2026-10-10T15:00:00Z" }, endereco: { rua: "Rua B", numero: "5", bairro: "Centro", cidade: "Guanambi", uf: "BA" },
+      reserva: reserva(1003, "Carla", "e3333333-3333-4333-8333-333333333333") },
+    { modalidade: "ENVIO", substatus: "ENVIADO", rastreio: "QB123456789BR", reserva: reserva(1004, "Duda", "e4444444-4444-4444-8444-444444444444") },
+  ] as Record<string, unknown>[];
+  const respostas: Record<string, unknown> = {
+    "v1/admin/dashboard": { reservas: { ativas: 0 }, acoes: { cancelamentosPendentes: 0, fretes: { aguardandoCalculo: 1, vencidos: 1 }, emPreparacao: 1, pagamentosEmAnalise: 0, disputasAbertas: 0, telefonesBloqueados: 0 }, whatsapp: { conectado: true } },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const r = rota.request();
+    const caminho = new URL(r.url()).pathname.replace(/^\/api\//, "");
+    if (caminho === "v1/admin/fulfillments") return rota.fulfill({ json: lista });
+    if (r.method() !== "GET") {
+      const corpo = r.postData() ? r.postDataJSON() : null;
+      enviados.push({ metodo: r.method(), caminho, corpo });
+      if (caminho.endsWith("/fulfillment/substatus")) lista = lista.map((f) => ((f.reserva as { id: string }).id === caminho.split("/")[3] ? { ...f, substatus: corpo.substatus } : f));
+      return rota.fulfill({ json: { ok: true } });
+    }
+    return caminho in respostas ? rota.fulfill({ json: respostas[caminho] }) : rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/entregas?substatus=FRETE_VENCIDO`);
+  const coluna = (titulo: string) => page.getByRole("region", { name: titulo, exact: true });
+  await expect(coluna("Calcular o frete")).toHaveClass(/destaque/);
+  await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(2);
+  await expect(coluna("Calcular o frete")).toContainText("Frete vencido");
+  await expect(coluna("Em preparação")).toContainText("29LFET");
+  await expect(coluna("A caminho")).toContainText("QB123456789BR");
+  await expect(coluna("Escolha da entrega")).toContainText("Nada por aqui agora.");
+
+  // Filtro e busca
+  await page.getByRole("button", { name: "Envio", exact: true }).click();
+  await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(1);
+  await expect(coluna("Em preparação")).toContainText("Nada com este filtro.");
+  await page.getByRole("button", { name: "Todas", exact: true }).click();
+  await page.getByLabel("Buscar pedido").fill("bia");
+  await expect(page.getByRole("article")).toHaveCount(1);
+  await page.getByLabel("Buscar pedido").fill("");
+
+  // Calcular o frete abre o formulário no cartão
+  const bia = page.getByRole("article", { name: "#1002" });
+  await bia.getByRole("button", { name: "Calcular o frete" }).click();
+  await expect(bia.getByLabel("Valor do frete (R$)")).toBeVisible();
+
+  // O botão do cartão leva o pedido para a próxima coluna
+  await page.getByRole("article", { name: "#1001" }).getByRole("button", { name: /Marcar: Pronto para retirada/ }).click();
+  await expect(coluna("Pronto para retirada").getByRole("article", { name: "#1001" })).toBeVisible();
+  expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/reservations/e1111111-1111-4111-8111-111111111111/fulfillment/substatus", corpo: { substatus: "PRONTO_PARA_RETIRADA" } });
+
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+});
+
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.
 test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page, context }) => {
   const dias = (n: number) => Array.from({ length: n }, (_, i) => ({ dia: `2026-09-${String(i + 1).padStart(2, "0")}`, visitas: i * 3, visitantes: i }));
