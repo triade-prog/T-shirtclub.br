@@ -1,16 +1,19 @@
 // WhatsApp no painel (F10, tela 18, G5): conexão com o QR code para reconectar, fila,
 // ritmo de envio, modo lançamento, notificações que a loja liga e desliga e mensagem de
 // teste; os avisos da loja para o WhatsApp da equipe (0510); e o atendimento automático
-// (0540): respostas rápidas, a ordem do menu e a pausa; e os chamados (0550). Toda mudança vai
-// para a auditoria (no banco).
+// (0540): respostas rápidas, a ordem do menu e a pausa; os chamados (0550); e (0570) as conversas,
+// o histórico da fila com "Tentar de novo", os números do atendimento e o horário de atendimento.
+// Toda mudança vai para a auditoria (no banco).
 
 import type { Hono } from "hono";
 import {
   AVISOS_LOJA,
   ErroDominio,
+  FILTROS_ENVIO,
   NOTIFICACOES,
   configAvisosSchema,
   configWhatsappSchema,
+  conversaSchema,
   idSchema,
   mensagemTesteSchema,
   ordemRespostasSchema,
@@ -162,5 +165,37 @@ export function rotasWhatsappAdmin(app: Hono<VarsAdmin>, deps: { banco: Banco; w
 
   app.post("/v1/admin/whatsapp/chamados/:numero/finalizar", async (c) => {
     return c.json(await chamar(deps.banco, "admin_resolve_ticket", { p_admin: c.get("admin").userId, p_id: chamado(c) }));
+  });
+
+  // Painel em abas (0570). Conversas: a lista e a conversa inteira (o número vai no corpo, para
+  // ficar fora do endereço e dos registros de acesso). Os textos da fila a tela monta.
+  app.get("/v1/admin/whatsapp/conversas", async (c) => c.json(await chamar(deps.banco, "admin_wa_conversations")));
+
+  app.post("/v1/admin/whatsapp/conversa", async (c) => {
+    const { chat } = await lerCorpo(c, conversaSchema);
+    return c.json(await chamar(deps.banco, "admin_wa_conversation", { p_chat: chat }));
+  });
+
+  // Envios: o histórico da fila (7 dias, ou até 30) e "Tentar de novo" na que falhou.
+  app.get("/v1/admin/whatsapp/envios", async (c) => {
+    const status = c.req.query("status");
+    const dias = c.req.query("dias") ?? "7";
+    if ((status !== undefined && !(FILTROS_ENVIO as readonly string[]).includes(status)) || !/^([1-9]|[12][0-9]|30)$/.test(dias)) {
+      throw new ErroDominio("VALIDATION_ERROR");
+    }
+    return c.json(await chamar(deps.banco, "admin_outbox_list", { p_status: status ?? null, p_dias: Number(dias) }));
+  });
+
+  app.post("/v1/admin/whatsapp/envios/:id/reenviar", async (c) => {
+    const id = idSchema.safeParse(c.req.param("id"));
+    if (!id.success) throw new ErroDominio("NOT_FOUND");
+    return c.json(await chamar(deps.banco, "admin_outbox_retry", { p_admin: c.get("admin").userId, p_id: id.data }));
+  });
+
+  // Números do atendimento: 7 ou 30 dias.
+  app.get("/v1/admin/whatsapp/numeros", async (c) => {
+    const dias = c.req.query("dias") ?? "7";
+    if (dias !== "7" && dias !== "30") throw new ErroDominio("VALIDATION_ERROR");
+    return c.json(await chamar(deps.banco, "admin_wa_report", { p_dias: Number(dias) }));
   });
 }

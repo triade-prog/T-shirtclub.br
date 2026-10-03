@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { Promocao } from "./preco.ts";
 import {
   AVISOS_LOJA,
+  sorteioDaMensagem,
+  textoDaFila,
   candidatosDoRemetente,
   DIAS_TROCA,
   ehPedidoMinhaReserva,
@@ -294,5 +296,27 @@ describe("avisos para a equipe (0510)", () => {
       expect(texto).not.toMatch(/club\.br|\+55|undefined|null/i);
     }
     expect(mensagemWhatsApp("aviso_loja", { tipo: "teste" })).toContain("Teste dos avisos da loja");
+  });
+});
+
+describe("textos da fila no painel (0570)", () => {
+  it("o sorteio sai do id: o mesmo id, a mesma versão", () => {
+    expect(sorteioDaMensagem("ffffffff-0000-4000-8000-000000000000")).toBeCloseTo(1, 5);
+    expect(sorteioDaMensagem("00000000-ffff-4000-8000-000000000000")).toBe(0);
+    expect(sorteioDaMensagem("80000000-0000-4000-8000-000000000000")).toBe(0.5);
+    expect(sorteioDaMensagem("x")).toBe(0);
+  });
+
+  it("monta o texto que a cliente recebeu, com as datas e sem o link apagado", () => {
+    const id = "12345678-0000-4000-8000-000000000000";
+    expect(textoDaFila("pedido_entregue", { numero: 1001 }, id)).toBe(mensagemWhatsApp("pedido_entregue", { numero: 1001 }, sorteioDaMensagem(id)));
+    expect(textoDaFila("frete_calculado", { numero: 7, valorCentavos: 1500, pagarAte: "2026-10-03T19:00:00Z" }, id)).toContain("16:00");
+    const reserva = textoDaFila("reserva_criada", { numero: 9, nome: "Ana", pecas: 1, totalCentavos: 4999, expiraEm: "2026-10-03T19:00:00Z" }, id);
+    expect(reserva).toContain("(link da reserva)");
+  });
+
+  it("sem dados para montar, ou modelo desconhecido: null", () => {
+    expect(textoDaFila("frete_calculado", {}, "x")).toBeNull();
+    expect(textoDaFila("nao_existe", {}, "x")).toBeNull();
   });
 });

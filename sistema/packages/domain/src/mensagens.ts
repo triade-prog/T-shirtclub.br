@@ -755,6 +755,37 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "bloqueio", nome: "Bloqueio e desbloqueio do telefone", quando: "Quando o telefone é bloqueado, liberado ou mantido bloqueado", essencial: false, modelos: ["telefone_bloqueado", "telefone_liberado", "bloqueio_mantido"] },
 ];
 
+/**
+ * Sorteio fixo de cada mensagem da fila, tirado do id (0570): a fila escolhe a versão do texto
+ * por ele, e o painel monta exatamente o texto que saiu.
+ */
+export function sorteioDaMensagem(id: string): number {
+  const hex = id.replace(/[^0-9a-f]/gi, "").slice(0, 8);
+  return hex.length === 8 ? parseInt(hex, 16) / 0x1_0000_0000 : 0;
+}
+
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+/** As datas voltam do banco como texto; os textos das mensagens usam Date. */
+export function parametrosDaFila(p: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(p).map(([k, v]) => [k, typeof v === "string" && DATA_ISO.test(v) ? new Date(v) : v]));
+}
+
+/**
+ * O texto de uma mensagem da fila como a cliente recebeu (painel, 0570). O link da reserva sai do
+ * banco depois do envio: no lugar dele, "(link da reserva)". Sem os dados para montar, null.
+ */
+export function textoDaFila(modelo: string, params: Record<string, unknown>, id: string): string | null {
+  if (!(modelo in MODELOS)) return null;
+  try {
+    const p = parametrosDaFila(modelo === "reserva_criada" && !params.link ? { ...params, link: "(link da reserva)" } : params);
+    const texto = mensagemWhatsApp(modelo as Modelo, p as never, sorteioDaMensagem(id));
+    return /undefined|NaN|Invalid Date/.test(texto) ? null : texto;
+  } catch {
+    return null;
+  }
+}
+
 /** Texto da mensagem; `sorteio` escolhe a versão (0 a 1). */
 export function mensagemWhatsApp<M extends Modelo>(modelo: M, parametros: ParametrosMensagem[M], sorteio: number = Math.random()): string {
   const versoes = MODELOS[modelo] as Versoes<M>;

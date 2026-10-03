@@ -79,8 +79,29 @@ export const respostaRapidaSchema = z.object({
 /** PUT /v1/admin/whatsapp/respostas/ordem */
 export const ordemRespostasSchema = z.object({ ids: z.array(z.uuid()).min(1).max(MAX_RESPOSTAS) });
 
-/** PUT /v1/admin/whatsapp/respostas/pausa */
-export const pausaRespostasSchema = z.object({ pausaHoras: z.number().int().min(1).max(48) });
+/**
+ * PUT /v1/admin/whatsapp/respostas/pausa: a pausa do robô e (0570) o horário de atendimento e os
+ * minutos até o lembrete. Ao menos um; o início vem antes do fim.
+ */
+export const pausaRespostasSchema = z
+  .object({
+    pausaHoras: z.number().int().min(1).max(48).optional(),
+    inicioHora: z.number().int().min(0).max(23).optional(),
+    fimHora: z.number().int().min(1).max(24).optional(),
+    lembreteMinutos: z.number().int().min(5).max(240).optional(),
+  })
+  .strict()
+  .refine((p) => Object.keys(p).length > 0, { message: "Nada para salvar" })
+  .refine((p) => p.inicioHora === undefined || p.fimHora === undefined || p.inicioHora < p.fimHora, { message: "O início vem antes do fim" });
+
+// ─── Painel de WhatsApp (0570) ──────────────────────────────────────────────────────
+
+/** POST /v1/admin/whatsapp/conversa: o número vai no corpo, fora do endereço e dos registros. */
+export const conversaSchema = z.object({ chat: z.string().regex(/^[0-9A-Za-z@._:-]{3,60}$/) }).strict();
+
+/** Filtros do histórico da fila (aba Envios). */
+export const FILTROS_ENVIO = ["FILA", "ENVIADA", "FALHOU", "DESCARTADA"] as const;
+export type FiltroEnvio = (typeof FILTROS_ENVIO)[number];
 
 // ─── Chamados (0550) ────────────────────────────────────────────────────────────────
 
