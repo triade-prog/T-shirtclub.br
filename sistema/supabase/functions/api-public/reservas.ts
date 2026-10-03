@@ -346,12 +346,13 @@ export function rotasReserva(app: Hono, deps: DepsReserva): void {
   });
 
   // Entrega (regra 17, F8): confirmar ou trocar a modalidade e o endereço. Pelo link da
-  // reserva, pede antes o código do WhatsApp (D13): só a sessão do telefone mexe aqui.
+  // reserva, motoboy e envio pedem antes o código do WhatsApp (D13), porque levam o endereço;
+  // a retirada na loja não pede (03/10, teste da loja: o código travava a escolha mais simples).
   app.put("/v1/reservations/:id/fulfillment", async (c) => {
     const id = idDaRota(c);
     const sessao = await sessaoDaReserva(deps.banco, c, id);
-    if (sessao.escopo !== "TELEFONE") throw new ErroDominio("PHONE_VERIFICATION_REQUIRED");
     const dados = await lerCorpo(c, entregaSchema);
+    if (sessao.escopo !== "TELEFONE" && dados.modalidade !== "RETIRADA") throw new ErroDominio("PHONE_VERIFICATION_REQUIRED");
     const r = await chamar<ErroJson & { logistica: unknown }>(deps.banco, "set_fulfillment", {
       p_reservation_id: id, p_phone: sessao.telefone, p_mode: dados.modalidade, p_address: "endereco" in dados ? dados.endereco : null,
     });

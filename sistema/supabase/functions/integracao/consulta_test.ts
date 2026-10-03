@@ -142,8 +142,10 @@ Deno.test({
         p_payment_id: pagamento.id,
         p: { status: "APROVADO", aprovadoEm: new Date().toISOString(), valorCentavos: 4999, moeda: "BRL", referencia: pagamento.id, statusProvedor: "approved" },
       });
-      const semCodigo = await outro("PUT", `/v1/reservations/${atual.id}/fulfillment`, { modalidade: "RETIRADA" });
-      assertEquals([semCodigo.status, (await semCodigo.json()).erro.codigo], [401, "PHONE_VERIFICATION_REQUIRED"], "entrega pelo link pede o código (T24)");
+      // Motoboy e envio levam o endereço: pelo link, pedem o código (T24). A retirada não pede desde 03/10.
+      const semCodigo = await outro("PUT", `/v1/reservations/${atual.id}/fulfillment`,
+        { modalidade: "MOTOBOY", endereco: { cep: "45000-000", rua: "Rua das Flores", numero: "12", bairro: "Centro", cidade: "Caetité", uf: "BA" } });
+      assertEquals([semCodigo.status, (await semCodigo.json()).erro.codigo], [401, "PHONE_VERIFICATION_REQUIRED"], "motoboy pelo link pede o código (T24)");
 
       // ── Código pedido pelo link para liberar a entrega (D13) ──
       const e = await (await outro("POST", "/v1/lookup-attempts", { motivo: "ENTREGA", reservaId: atual.id })).json();

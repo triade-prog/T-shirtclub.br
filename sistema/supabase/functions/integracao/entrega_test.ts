@@ -94,7 +94,7 @@ Deno.test({
       assertEquals((await ver(r1)).logistica.substatus, "AGUARDANDO_MODALIDADE");
 
       const peloLink = await chamarApi(r1.cookieLink, `${r1.id}/fulfillment`, "PUT", { modalidade: "MOTOBOY", endereco: ENDERECO });
-      assertEquals([peloLink.status, (await peloLink.json()).erro.codigo], [401, "PHONE_VERIFICATION_REQUIRED"], "pelo link, pede o código antes (D13)");
+      assertEquals([peloLink.status, (await peloLink.json()).erro.codigo], [401, "PHONE_VERIFICATION_REQUIRED"], "pelo link, motoboy pede o código antes (D13)");
       assertEquals((await chamarApi(r1.cookie, `${r1.id}/fulfillment`, "PUT", { modalidade: "MOTOBOY" })).status, 400);
       const confirmada = await (await chamarApi(r1.cookie, `${r1.id}/fulfillment`, "PUT", { modalidade: "MOTOBOY", endereco: ENDERECO })).json();
       assertEquals(confirmada.logistica.substatus, "AGUARDANDO_CALCULO_FRETE");
@@ -141,6 +141,15 @@ Deno.test({
       assertMatch(retirada.logistica.codigoRetirada, /^[2-9A-HJ-NP-Z]{6}$/);
       assert((await processarPagamentos({ banco, pagamentos })).cancelados >= 1);
       assertEquals(pagamentos.pagamentos.get(mpFrete)!.status, "CANCELADO", "o PIX do frete antigo é cancelado no provedor");
+
+      // ── Pelo link, a retirada na loja não pede o código (03/10); motoboy e envio continuam pedindo ──
+      const r3 = await reservar("+5577998150003", "RETIRADA");
+      await chamarApi(r3.cookie, `${r3.id}/payments`, "POST", CARTAO);
+      assertEquals((await chamarApi(r3.cookieLink, `${r3.id}/fulfillment`, "PUT", { modalidade: "ENVIO", endereco: ENDERECO })).status, 401);
+      const retiradaPeloLink = await chamarApi(r3.cookieLink, `${r3.id}/fulfillment`, "PUT", { modalidade: "RETIRADA" });
+      assertEquals(retiradaPeloLink.status, 200, "pelo link, a retirada vale sem o código");
+      assertEquals((await retiradaPeloLink.json()).logistica.substatus, "EM_PREPARACAO");
+      assertMatch(await enviar(), new RegExp(`O pedido #${r3.numero} será retirado na loja`));
     } finally {
       await banco.sql`update outbox_messages set sent_at = sent_at - interval '1 hour' where sent_at is not null`;
       await banco.sql`update outbox_messages set status = 'DESCARTADA' where status = 'PENDENTE'`;
