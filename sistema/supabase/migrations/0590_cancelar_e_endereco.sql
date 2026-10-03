@@ -323,4 +323,26 @@ begin
   return admin_reservation_detail(r.id);
 end $$;
 
+-- ─── Quadro de Entregas (pedido da loja: "temos que melhorar isso também") ─────────────
+-- Igual à 0560, mais as peças de cada pedido e desde quando ele está na etapa (o cartão mostra
+-- o tempo parado).
+create or replace function admin_list_fulfillments(p_substatus fulfillment_substatus default null) returns jsonb
+language sql stable
+security definer
+set search_path = public
+as $$
+  select coalesce(jsonb_agg(fulfillment_json(f, true) || jsonb_build_object(
+    'reserva', jsonb_build_object('id', r.id, 'numero', r.number, 'status', r.status, 'nome', r.customer_name, 'telefone', r.phone_e164,
+                                  'totalCentavos', r.total_cents, 'pagaEm', r.payment_confirmed_at, 'entregueEm', r.delivered_at),
+    'disputaAberta', has_open_dispute(r.id),
+    'desde', f.updated_at,
+    'pecas', (select coalesce(jsonb_agg(jsonb_build_object('nome', i.name_snapshot, 'tamanho', size_label(i.size_snapshot), 'qtd', i.qty)
+                                        order by i.name_snapshot, i.size_snapshot), '[]')
+                from reservation_items i where i.reservation_id = r.id))
+    order by r.payment_confirmed_at), '[]')
+  from fulfillments f join reservations r on r.id = f.reservation_id
+  where (r.status = 'PAGAMENTO_CONFIRMADO' and (p_substatus is null or f.substatus = p_substatus))
+     or (p_substatus is null and r.status = 'ENTREGUE' and r.delivered_at >= app_now() - interval '7 days')
+$$;
+
 call lock_down_public();

@@ -695,9 +695,10 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
   const reserva = (n: number, nome: string, id: string) => ({ id, numero: n, nome, telefone: "+5577998128809", totalCentavos: 4999, pagaEm: "2026-10-10T13:00:00Z" });
   let lista = [
-    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111") },
-    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
-      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222") },
+    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111"),
+      desde: new Date().toISOString(), pecas: [{ nome: "Limone Amalfi", tamanho: "Único · P ao 42", qtd: 1 }, { nome: "Pomodoro", tamanho: "Plus · 44 ao 48", qtd: 2 }] },
+    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { cep: "46400000", rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
+      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222"), desde: new Date(Date.now() - 50 * 3_600_000).toISOString() },
     { modalidade: "ENVIO", substatus: "FRETE_VENCIDO", frete: { valorCentavos: 2500, pagarAte: "2026-10-10T15:00:00Z" }, endereco: { rua: "Rua B", numero: "5", bairro: "Centro", cidade: "Guanambi", uf: "BA" },
       reserva: reserva(1003, "Carla", "e3333333-3333-4333-8333-333333333333") },
     { modalidade: "ENVIO", substatus: "ENVIADO", rastreio: "QB123456789BR", reserva: reserva(1004, "Duda", "e4444444-4444-4444-8444-444444444444") },
@@ -728,7 +729,26 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await expect(coluna("Calcular o frete")).toContainText("Frete vencido");
   await expect(coluna("Em preparação")).toContainText("29LFET");
   await expect(coluna("A caminho")).toContainText("QB123456789BR");
-  await expect(coluna("Escolha da entrega")).toContainText("Nada por aqui agora.");
+  // Coluna vazia fica fininha, só com o nome e o 0
+  await expect(coluna("Escolha da entrega")).toHaveClass(/vazia/);
+  await expect(coluna("Escolha da entrega")).toContainText("0");
+  // Resumo: com a loja (calcular, preparar, a caminho), esperando a cliente, parados e entregues
+  const resumo = page.getByRole("region", { name: "Resumo das entregas" });
+  await expect(resumo).toContainText("4 com a loja");
+  await expect(resumo).toContainText("0 esperando a cliente");
+  await expect(resumo).toContainText("1 parado há mais de 1 dia");
+  await expect(resumo).toContainText("1 entregue em 7 dias");
+  // O cartão: peças, tempo na etapa (vermelho depois de 2 dias), endereço com Copiar, WhatsApp e Ver pedido
+  await expect(page.getByRole("article", { name: "#1001" })).toContainText("3 peças: Limone Amalfi, Pomodoro (Plus) × 2");
+  await expect(page.getByRole("article", { name: "#1002" }).locator(".k-time")).toHaveClass(/atrasado/);
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("button", { name: "Copiar o endereço do pedido #1002" })).toBeVisible();
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: /WhatsApp de Bia/ })).toHaveAttribute("href", /^https:\/\/wa\.me\/5577998128809/);
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: "Ver pedido #1002" })).toHaveAttribute("href", "/reservas/e2222222-2222-4222-8222-222222222222");
+  // Só o que é com a loja
+  await resumo.getByRole("button", { name: /com a loja/ }).click();
+  await expect(coluna("Pronto para retirada")).toHaveCount(0);
+  await expect(coluna("Calcular o frete")).toBeVisible();
+  await resumo.getByRole("button", { name: /com a loja/ }).click();
   // Entregue: na última coluna, sem botões, e fora de "A caminho"
   await expect(coluna("A caminho").getByRole("article")).toHaveCount(1);
   await expect(coluna("Entregue").getByRole("article", { name: "#1005" })).toContainText("Entregue");
@@ -759,7 +779,7 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await duda.getByRole("button", { name: "Confirmar entrega" }).click();
   await expect(coluna("Entregue").getByRole("article")).toHaveCount(2);
   await expect(coluna("Entregue").getByRole("article").first()).toHaveAccessibleName("#1004");
-  await expect(coluna("A caminho")).toContainText("Nada por aqui agora.");
+  await expect(coluna("A caminho")).toHaveClass(/vazia/);
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);

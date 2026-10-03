@@ -13,7 +13,7 @@ export const cepNaTela = (cep: string) => (/^\d{8}$/.test(cep) ? `${cep.slice(0,
 
 /** O endereço em duas linhas, como vai na etiqueta. */
 export function linhasDoEndereco(e: Endereco): [string, string] {
-  return [`${e.rua}, ${e.numero}${e.complemento ? `, ${e.complemento}` : ""}`, `${e.bairro} · ${e.cidade}/${e.uf} · CEP ${cepNaTela(e.cep)}`];
+  return [`${e.rua}, ${e.numero}${e.complemento ? `, ${e.complemento}` : ""}`, `${e.bairro} · ${e.cidade}/${e.uf}${e.cep ? ` · CEP ${cepNaTela(e.cep)}` : ""}`];
 }
 
 export function CamposEndereco({ inicial }: { inicial?: Partial<Endereco> | null }) {

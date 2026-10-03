@@ -1,5 +1,5 @@
 begin;
-select plan(30);
+select plan(32);
 
 -- Cancelar pela loja e entrega pelo painel (0590).
 
@@ -111,6 +111,12 @@ select is((select (substatus, address ->> 'numero')::text from fulfillments wher
   '(AGUARDANDO_CALCULO_FRETE,40)', 'corrigir o endereço não muda a etapa');
 select is((select count(*) from outbox_messages where template = 'entrega_confirmada' and reservation_id = (select id from t where nome = 'dinheiro')
             and params ->> 'alterado' = 'true'), 1::bigint, 'e a cliente recebe a confirmação da correção');
+
+-- O quadro de Entregas: as peças e desde quando o pedido está na etapa
+select is((select i -> 'pecas' -> 0 ->> 'nome' from jsonb_array_elements(admin_list_fulfillments()) i
+            where i -> 'reserva' ->> 'id' = (select id::text from t where nome = 'dinheiro')), 'Limone Amalfi', 'o quadro mostra as peças');
+select ok((select (i ->> 'desde') is not null from jsonb_array_elements(admin_list_fulfillments()) i
+            where i -> 'reserva' ->> 'id' = (select id::text from t where nome = 'dinheiro')), 'e desde quando está na etapa');
 
 -- Cancelar a venda em dinheiro: devolve por fora e o faturamento desconta
 select is((admin_cancel_preview((select id from t where nome = 'dinheiro')) ->> 'devolverPorForaCentavos')::int, 4999, 'a venda em dinheiro devolve por fora');
