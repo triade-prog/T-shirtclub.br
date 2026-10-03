@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { formatarReais } from "@tshirtclub/domain";
-import { CartaoLook, PickYourStory, SecaoVitrine, Selo, Sobretitulo, classeCartaoLook, classeFotoStory, classeGradeLooks } from "@tshirtclub/ui";
+import { CartaoLook, PickYourStory, SecaoVitrine, Selo, Sobretitulo, classeCartaoLook, classeGradeLooks } from "@tshirtclub/ui";
 import { buscarCatalogo, urlFoto, type BlocoInicio, type CartaoProduto, type Colecao, type Foto, type Look, type OfertaClub } from "@/lib/catalogo";
 import { COOKIE_SACOLA } from "@/lib/sacola";
 import { textoOferta } from "@/lib/vitrine";
@@ -142,18 +142,14 @@ function Capa({ look, selo, oferta, fotos = [] }: { look?: Look; selo?: string |
   );
 }
 
-// Pick your story (28/09): o desenho está em packages/ui (o mesmo da prévia do painel); aqui, a
-// foto de cada círculo: a escolhida no painel (0440), inteira, ou, sem ela, a peça mais nova da
-// coleção (a foto de campanha não cabe no círculo). O título vem do painel (bloco de coleções).
+// Pick your story (28/09): o desenho está em packages/ui (o mesmo da prévia do painel). Desde
+// 02/10, cada círculo é o ícone escolhido no painel (0500), sem foto: as fotos pesavam no início.
+// O título vem do painel (bloco de coleções).
 function Colecoes({ titulo, colecoes }: { titulo: string | null; colecoes: Colecao[] }) {
   return (
-    <PickYourStory titulo={titulo} Link={Link} itens={colecoes.map((c) => {
-      const foto = c.fotoStory ?? c.fotos?.[0] ?? c.capa;
-      return {
-        id: c.id, nome: c.nome, href: `/colecao/${c.slug}`, cor: c.cor,
-        foto: foto && <Image src={urlFoto(foto.caminho)} alt="" fill sizes="(min-width: 768px) 90px, 66px" className={classeFotoStory(Boolean(c.fotoStory))} />,
-      };
-    })} />
+    <PickYourStory titulo={titulo} Link={Link} itens={colecoes.map((c) => ({
+      id: c.id, nome: c.nome, href: `/colecao/${c.slug}`, cor: c.cor, icone: c.iconeStory,
+    }))} />
   );
 }
 

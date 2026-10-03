@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ICONES_STORY } from "@tshirtclub/ui";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
 import { paraSlug } from "@/lib/catalogo";
 import { CORES, PALETAS, type Colecao, type PaginaProdutos, type ProdutoLinha } from "@/lib/tiposCatalogo";
@@ -16,7 +17,7 @@ import { PreviaColecao, type RascunhoColecao } from "../../PreviaColecao";
 
 // Página da coleção (28/09): cada coleção tem a sua, como as peças, com o formulário e a prévia na
 // loja lado a lado. Coleções (D20): nome, slug, texto curto, cor entre as 5 aprovadas, capa, ordem,
-// ativa e a foto do círculo do Pick your story no início (0440). Campanha (0420, D35 e D36): nome
+// ativa e o ícone do círculo do Pick your story no início (0500; antes, uma foto). Campanha (0420, D35 e D36): nome
 // da campanha, edição, temporada, paleta, foto do celular (4:5) e até 3 capítulos editoriais com
 // foto e as estampas de cada um. A lista fica em Catálogo → Coleções.
 
@@ -68,7 +69,7 @@ export function PaginaColecao({ id }: { id: string | null }) {
   );
 }
 
-type Campos = Pick<RascunhoColecao, "descricao" | "chamada" | "cor" | "posicao" | "ativa" | "campanha" | "edicao" | "temporada" | "paleta" | "campanhaAtiva">;
+type Campos = Pick<RascunhoColecao, "descricao" | "chamada" | "cor" | "posicao" | "ativa" | "campanha" | "edicao" | "temporada" | "paleta" | "campanhaAtiva" | "iconeStory">;
 
 /** Os campos sem estado próprio, como estão no formulário (para salvar e para a prévia). */
 function lerCampos(f: FormData): Campos {
@@ -78,6 +79,7 @@ function lerCampos(f: FormData): Campos {
     posicao: Number(f.get("posicao") ?? 0) || 0, ativa: f.get("ativa") === "on",
     campanha: texto("campanha"), edicao: texto("edicao"), temporada: texto("temporada"),
     paleta: String(f.get("paleta") ?? "CLUB") as Campos["paleta"], campanhaAtiva: f.get("campanhaAtiva") === "on",
+    iconeStory: texto("iconeStory"),
   };
 }
 
@@ -86,7 +88,6 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
   const [slug, setSlug] = useState(colecao?.slug ?? "");
   const [capa, setCapa] = useState<string | null>(colecao?.capa?.caminho ?? null);
   const [capaCelular, setCapaCelular] = useState<string | null>(colecao?.capaCelular?.caminho ?? null);
-  const [fotoStory, setFotoStory] = useState<string | null>(colecao?.fotoStory?.caminho ?? null);
   const [capitulos, setCapitulos] = useState<CapituloForm[]>(
     (colecao?.capitulos ?? []).map((k) => ({ rotulo: k.rotulo, titulo: k.titulo, texto: k.texto ?? "", foto: k.foto?.caminho ?? null, alt: k.foto?.alt ?? "", produtos: k.produtos })));
   const faltas = faltasDaCampanha(capa, capaCelular, capitulos.map((k) => ({ foto: k.foto, vazio: !(k.rotulo.trim() || k.titulo.trim() || k.foto || k.produtos.length) })));
@@ -96,6 +97,7 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
     descricao: colecao?.descricao ?? null, chamada: colecao?.chamada ?? null, cor: colecao?.cor ?? "LIMAO",
     posicao: colecao?.posicao ?? 0, ativa: colecao?.ativa ?? true, campanha: colecao?.campanha ?? null, edicao: colecao?.edicao ?? null,
     temporada: colecao?.temporada ?? null, paleta: colecao?.paleta ?? "CLUB", campanhaAtiva: colecao?.campanhaAtiva ?? false,
+    iconeStory: colecao?.iconeStory ?? null,
   }));
 
   function salvar(e: React.FormEvent<HTMLFormElement>) {
@@ -116,7 +118,7 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
       capa: capa ? { caminho: capa, alt } : null, posicao: c.posicao, ativa: c.ativa,
       campanha: c.campanha, edicao: c.edicao, temporada: c.temporada, paleta: c.paleta, campanhaAtiva: c.campanhaAtiva,
       capaCelular: capaCelular ? { caminho: capaCelular, alt: altCelular } : null,
-      fotoStory: fotoStory ? { caminho: fotoStory } : null,
+      iconeStory: c.iconeStory,
       capitulos: preenchidos.map((k) => ({ rotulo: k.rotulo.trim(), titulo: k.titulo.trim(), texto: k.texto.trim() || null, foto: k.foto ? { caminho: k.foto, alt: k.alt.trim() } : null, produtos: k.produtos })),
     };
     void enviar(colecao ? chamarApi(`v1/admin/collections/${colecao.id}`, corpo, "PUT") : chamarApi("v1/admin/collections", corpo));
@@ -136,11 +138,7 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
           <div className="full"><EnvioFoto destino="colecao" caminho={capa} aoEnviar={setCapa} rotulo="Capa (16:9, 1920 × 1080)" proporcao={CAPA} /></div>
           {capa && <div className="full"><Campo name="alt" rotulo="Descrição da capa" maxLength={200} defaultValue={colecao?.capa?.alt ?? ""} /></div>}
           <div className="full"><Marcar name="ativa" rotulo="Coleção ativa (aparece na loja)" defaultChecked={colecao?.ativa ?? true} /></div>
-          <div className="full">
-            <EnvioFoto destino="colecao" caminho={fotoStory} aoEnviar={setFotoStory} rotulo="Foto do Pick your story (círculo no início)" />
-            <p className="field-help">{fotoStory ? "O círculo mostra a foto inteira, sobre a cor da coleção (lettering com fundo transparente fica melhor)." : "Sem foto, o círculo mostra a peça mais nova da coleção."}</p>
-            {fotoStory && <Botao variante="link" onClick={() => setFotoStory(null)}>Voltar para a peça mais nova</Botao>}
-          </div>
+          <div className="full"><EscolhaIcone inicial={colecao?.iconeStory ?? null} /></div>
 
           <h3 className="full" style={{ marginTop: 10 }}>Campanha</h3>
           <p className="field-help full" style={{ marginTop: -6 }}>
@@ -155,7 +153,7 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
           <Campo name="campanha" rotulo="Nome da campanha (opcional)" maxLength={60} defaultValue={colecao?.campanha ?? ""} placeholder="Ciao, Estate!" />
           <Escolha name="paleta" rotulo="Universo da página" defaultValue={colecao?.paleta ?? "CLUB"} opcoes={PALETAS} ajuda="Muda o ritmo e o detalhe da página; as cores são as da marca (D38)." />
           <Campo name="edicao" rotulo="Edição (opcional)" maxLength={30} defaultValue={colecao?.edicao ?? ""} placeholder="Coleção 01" />
-          <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="SS26" />
+          <Campo name="temporada" rotulo="Temporada (opcional)" maxLength={20} defaultValue={colecao?.temporada ?? ""} placeholder="Spring e Summer 2027" />
           <div className="full"><EnvioFoto destino="colecao" caminho={capaCelular} aoEnviar={setCapaCelular} rotulo="Foto do celular (4:5, 1080 × 1350, sem texto)" proporcao={CELULAR} /></div>
           {capaCelular && <div className="full"><Campo name="altCelular" rotulo="Descrição da foto do celular" maxLength={200} defaultValue={colecao?.capaCelular?.alt ?? ""} /></div>}
 
@@ -172,12 +170,35 @@ export function FormColecao({ colecao, colecoes, aoFechar, aoSalvar }: { colecao
         <div className="com-previa-lado">
           <PreviaColecao outras={colecoes} r={{
             ...campos, id: colecao?.id ?? null, nome, slug,
-            capa: capa ? { caminho: capa } : null, capaCelular: capaCelular ? { caminho: capaCelular } : null, fotoStory: fotoStory ? { caminho: fotoStory } : null,
-            produtos: colecao?.produtos ?? 0, pecaMaisNova: colecao?.pecaMaisNova ?? null,
+            capa: capa ? { caminho: capa } : null, capaCelular: capaCelular ? { caminho: capaCelular } : null,
+            produtos: colecao?.produtos ?? 0,
           }} />
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Ícone do círculo do Pick your story (02/10, 0500): a grade dos ícones da loja, um para cada
+ * coleção, no lugar da foto (as fotos pesavam no início). Fica na cor da coleção.
+ */
+function EscolhaIcone({ inicial }: { inicial: string | null }) {
+  const valido = inicial && Object.hasOwn(ICONES_STORY, inicial) ? inicial : "camiseta";
+  return (
+    <fieldset className="icones-story" aria-describedby="icone-story-ajuda">
+      <legend>Ícone do Pick your story (círculo no início)</legend>
+      <div className="opcoes">
+        {Object.entries(ICONES_STORY).map(([chave, { rotulo, Icone }]) => (
+          <label key={chave} className="icone-opcao" title={rotulo}>
+            <input type="radio" name="iconeStory" value={chave} defaultChecked={chave === valido} />
+            <span aria-hidden="true"><Icone strokeWidth={1.6} /></span>
+            <span className="sr-only">{rotulo}</span>
+          </label>
+        ))}
+      </div>
+      <span className="field-help" id="icone-story-ajuda">Fica na cor da coleção, sobre o fundo claro dela. Escolha um que lembre a história.</span>
+    </fieldset>
   );
 }
 

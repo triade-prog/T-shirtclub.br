@@ -41,6 +41,9 @@ export const colecaoEntradaSchema = z.object({
   /** Foto do círculo do Pick your story (0440); null volta para a peça mais nova. Sem descrição:
    *  o nome da coleção vem logo abaixo. Opcional: um painel antigo que não manda não apaga. */
   fotoStory: z.object({ caminho: caminhoSchema }).nullable().optional(),
+  /** Ícone do círculo do Pick your story (0500), no lugar da foto; a lista fica na loja
+   *  (packages/ui, ICONES_STORY). null volta para a camiseta; sem o campo, não apaga. */
+  iconeStory: z.string().regex(/^[a-z_]{1,30}$/, "VALIDATION_ERROR").nullable().optional(),
   paleta: z.enum(PALETAS_COLECAO).optional(),
   /** Campanha ligada na loja (0430): gravada desligada até as fotos limpas serem aprovadas. */
   campanhaAtiva: z.boolean().optional(),

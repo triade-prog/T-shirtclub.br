@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./tema.css": "./src/tema.css"
@@ -12,10 +14,12 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
-    "react": "^19"
+    "react": "^19",
+    "lucide-react": "^1.48.0"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
+    "lucide-react": "^1.48.0",
     "react": "^19.3.0"
   }
 }
