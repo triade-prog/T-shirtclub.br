@@ -31,10 +31,13 @@ const TAMANHOS = "(min-width: 1280px) 1240px, 100vw";
 // (29/09, pedido da loja), porque os rostos das campanhas ficam no alto da foto.
 const AJUSTE_FOTO = "object-cover object-top";
 
+// A foto do primeiro slide é o maior elemento da tela (LCP): além de pré-carregada (priority),
+// vai com prioridade alta, para não esperar atrás das fontes (medição em produção de 03/10).
 function FotoSlide({ s, prioridade }: { s: SlideCapa; prioridade: boolean }) {
-  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} sizes={TAMANHOS} className={AJUSTE_FOTO} />;
+  const fetchPriority = prioridade ? "high" : undefined;
+  if (!s.fotoCelular) return <Image src={s.foto} alt={s.alt} fill priority={prioridade} fetchPriority={fetchPriority} sizes={TAMANHOS} className={AJUSTE_FOTO} />;
   const { props: { srcSet: computador } } = getImageProps({ src: s.foto, alt: "", width: 2400, height: 1350, sizes: TAMANHOS });
-  const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
+  const { props: { srcSet: celular, ...img } } = getImageProps({ src: s.fotoCelular, alt: s.alt, width: 1080, height: 1350, sizes: "100vw", priority: prioridade, fetchPriority });
   return (
     <picture>
       <source media="(min-width: 768px)" srcSet={computador} />

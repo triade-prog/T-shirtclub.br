@@ -35,7 +35,8 @@ export function Galeria({ fotos, nome, selo }: { fotos: { url: string; alt: stri
         >
           {fotos.map((f, i) => (
             <li key={f.url} className="relative w-full flex-none snap-start" aria-label={`Foto ${i + 1} de ${fotos.length}`}>
-              <Image src={f.url} alt={f.alt} fill priority={i === 0} sizes="(min-width: 820px) 52vw, 100vw" className="object-cover" />
+              {/* A primeira foto é o maior elemento da tela (LCP): prioridade alta, além de pré-carregada (03/10) */}
+              <Image src={f.url} alt={f.alt} fill priority={i === 0} fetchPriority={i === 0 ? "high" : undefined} sizes="(min-width: 820px) 52vw, 100vw" className="object-cover" />
             </li>
           ))}
         </ul>

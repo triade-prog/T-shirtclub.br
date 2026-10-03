@@ -18,6 +18,7 @@ test("coleção: capa, chamada, faixa do Club antes das peças e o trio completo
   await page.goto(`${LOJA}/colecao/limone`);
   await expect(page.getByRole("heading", { level: 1, name: "Limone." })).toBeVisible();
   await expect(page.getByRole("img", { name: "Campanha Limone" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Campanha Limone" })).toHaveAttribute("fetchpriority", "high");
   await expect(page.getByText("Limões, listras e o verão italiano que não acaba.")).toBeVisible();
 
   const faixa = page.getByRole("region", { name: "Monte seu Club: 3 de 3" });
@@ -167,4 +168,7 @@ test("prévia do link: arte da loja no início, capa na coleção e foto na peç
   await page.goto(`${LOJA}/produto/limone-amalfi-coast`);
   expect(await imagem()).toMatch(/\/storage\/v1\/object\/public\/catalogo\/.+/);
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Limone Amalfi Coast");
+  // A primeira foto da peça é o LCP: prioridade alta, só ela (03/10)
+  await expect(page.getByRole("list", { name: /Fotos de/ }).locator("img").first()).toHaveAttribute("fetchpriority", "high");
+  await expect(page.locator("main img[fetchpriority=high]")).toHaveCount(1);
 });
