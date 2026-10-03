@@ -128,7 +128,7 @@ export default async function PaginaColecao({ params, searchParams }: PageProps<
         // Com banner de campanha (28/09): o banner inteiro no topo, como no carrossel do início, e
         // o nome, a descrição e o botão numa faixa menor logo abaixo (o banner já tem o título dele)
         <TopoColecaoBanner nome={colecao.nome} qtdEstampas={qtdEstampas} descricao={colecao.descricao} botao={botaoPecas}
-          foto={<Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority fetchPriority="high" sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />} />
+          foto={<Image src={urlFoto(colecao.capa.caminho)} alt={colecao.capa.alt ?? ""} fill priority sizes="(min-width: 1280px) 1240px, 100vw" className="object-cover" />} />
       ) : (
         <TopoColecaoSimples nome={colecao.nome} qtdEstampas={qtdEstampas} descricao={colecao.descricao} botao={botaoPecas}
           rotulo={lojaToda ? `Toda a loja · ${qtdEstampas}` : undefined}

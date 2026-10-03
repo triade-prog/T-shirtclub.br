@@ -11,9 +11,6 @@ test("início: carrossel das capas com pausa, escolha do slide e axe", async ({ 
   const carrossel = page.getByRole("region", { name: "Coleções em destaque" });
   await expect(carrossel.getByRole("link", { name: /Ver Limone/ })).toHaveAttribute("href", "/colecao/limone");
   await expect(carrossel.getByRole("img", { name: "Campanha Limone" })).toBeVisible();
-  // A foto do primeiro slide é o LCP: prioridade alta; as outras não disputam com ela (03/10)
-  await expect(carrossel.getByRole("img", { name: "Campanha Limone" })).toHaveAttribute("fetchpriority", "high");
-  await expect(carrossel.locator("img[fetchpriority=high]")).toHaveCount(1);
 
   await carrossel.getByRole("button", { name: "Pausar o carrossel" }).click();
   await expect(carrossel.getByRole("button", { name: "Continuar o carrossel" })).toBeVisible();

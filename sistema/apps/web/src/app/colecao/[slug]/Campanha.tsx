@@ -29,18 +29,16 @@ function FotoCampanha({ capa, celular, prioridade = true, tamanhos = "(min-width
   capa: Foto; celular: Foto | null | undefined; prioridade?: boolean; tamanhos?: string;
 }) {
   const moldura = "relative overflow-hidden rounded-[24px]";
-  // A foto do topo é o maior elemento da tela (LCP): prioridade alta, além de pré-carregada (03/10)
-  const fetchPriority = prioridade ? "high" : undefined;
   if (!celular) {
     return (
       <div className={cx(moldura, "aspect-video")}>
-        <Image src={urlFoto(capa.caminho)} alt={capa.alt ?? ""} fill priority={prioridade} fetchPriority={fetchPriority} sizes={tamanhos} className="object-cover" />
+        <Image src={urlFoto(capa.caminho)} alt={capa.alt ?? ""} fill priority={prioridade} sizes={tamanhos} className="object-cover" />
       </div>
     );
   }
   // Direção de arte: a foto do celular é outra composição, não um recorte da do computador
   const { props: { srcSet: srcComputador } } = getImageProps({ src: urlFoto(capa.caminho), alt: "", width: 2400, height: 1350, sizes: tamanhos });
-  const { props: { srcSet: srcCelular, ...img } } = getImageProps({ src: urlFoto(celular.caminho), alt: celular.alt ?? capa.alt ?? "", width: 1080, height: 1350, sizes: "100vw", priority: prioridade, fetchPriority });
+  const { props: { srcSet: srcCelular, ...img } } = getImageProps({ src: urlFoto(celular.caminho), alt: celular.alt ?? capa.alt ?? "", width: 1080, height: 1350, sizes: "100vw", priority: prioridade });
   return (
     <div className={cx(moldura, "aspect-[4/5] md:aspect-video")}>
       <picture>
