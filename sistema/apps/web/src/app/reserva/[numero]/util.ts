@@ -20,7 +20,9 @@ export interface Reserva {
   id: string;
   numero: number;
   status: StatusReserva;
-  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO" | null;
+  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO" | "CANCELADA_PELA_LOJA" | null;
+  /** Quando o pagamento foi confirmado (o pedido pago cancelado pela loja tem estorno, 0590). */
+  pagaEm?: string | null;
   entrega?: Modalidade;
   subtotalCentavos: number;
   descontoCentavos: number;

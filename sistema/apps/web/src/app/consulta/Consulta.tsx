@@ -18,7 +18,7 @@ interface Resumo {
   id: string;
   numero: number;
   status: "RESERVADO" | "PAGAMENTO_CONFIRMADO" | "ENTREGUE" | "EXPIRADO";
-  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO";
+  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO" | "CANCELADA_PELA_LOJA";
   totalCentavos: number;
   pecas?: number;
   expiraEm?: string;
@@ -42,7 +42,8 @@ function acao(r: Resumo): string {
   if (r.status === "RESERVADO") return r.expiraEm ? `Pague até ${horario(r.expiraEm)} · Pagar →` : "Pagar →";
   if (r.status === "PAGAMENTO_CONFIRMADO") return `${SUBSTATUS[r.substatus ?? "AGUARDANDO_MODALIDADE"] ?? "Pago"} · Ver pedido →`;
   if (r.status === "ENTREGUE") return "Concluído · Ver pedido →";
-  return r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? "Cancelamento aprovado" : "Prazo esgotado";
+  return r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? "Cancelamento aprovado"
+    : r.motivoEncerramento === "CANCELADA_PELA_LOJA" ? "Cancelada pela loja" : "Prazo esgotado";
 }
 
 export function Consulta() {

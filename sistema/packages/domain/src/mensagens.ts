@@ -145,7 +145,13 @@ export interface ParametrosMensagem {
   cancelamento_recebido: { numero: number; expiraEm: Date };
   cancelamento_aprovado: { numero: number };
   cancelamento_recusado: { numero: number; expiraEm: Date };
-  entrega_confirmada: { numero: number; modalidade: "RETIRADA" | "MOTOBOY" | "ENVIO" };
+  /** alterado: a loja corrigiu o endereço pelo painel (0590). */
+  entrega_confirmada: { numero: number; modalidade: "RETIRADA" | "MOTOBOY" | "ENVIO"; alterado?: boolean };
+  /**
+   * A loja cancelou (0590). pago: o pedido já estava pago; estornoCentavos e forma: o estorno pelo
+   * Mercado Pago; porFora: venda paga fora do site, a equipe combina a devolução.
+   */
+  reserva_cancelada: { numero: number; nome?: string; pago: boolean; estornoCentavos?: number; forma?: "PIX" | "CARTAO"; porFora?: boolean };
   frete_calculado: { numero: number; valorCentavos: number; pagarAte: Date };
   frete_confirmado: { numero: number };
   pronto_retirada: { numero: number; codigo: string; endereco?: string; horario?: string };
@@ -341,7 +347,7 @@ function textoAviso(a: AvisoLoja): string {
 export interface ResumoReserva {
   numero: number;
   status: "RESERVADO" | "PAGAMENTO_CONFIRMADO" | "ENTREGUE" | "EXPIRADO";
-  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO";
+  motivoEncerramento?: "PRAZO_ESGOTADO" | "CANCELAMENTO_APROVADO" | "CANCELADA_PELA_LOJA";
   pecas?: number;
   totalCentavos: number;
   expiraEm?: Date;
@@ -371,7 +377,8 @@ function linhaReserva(r: ResumoReserva): string {
     case "ENTREGUE":
       return `• #${r.numero} · entregue`;
     default:
-      return `• #${r.numero} · encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)" : " sem pagamento"}`;
+      return `• #${r.numero} · encerrada${r.motivoEncerramento === "CANCELAMENTO_APROVADO" ? " (cancelamento aprovado)"
+        : r.motivoEncerramento === "CANCELADA_PELA_LOJA" ? " (cancelada pela loja)" : " sem pagamento"}`;
   }
 }
 
@@ -541,6 +548,19 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
       ),
   ],
   cancelamento_aprovado: [(p) => blocos("Cancelamento aprovado.", `A reserva #${p.numero} foi encerrada e nenhuma cobrança foi feita.`)],
+  // A loja cancelou (0590): o que acontece com o dinheiro, sem o motivo interno
+  reserva_cancelada: [
+    (p) =>
+      blocos(
+        `${p.nome ? `Oi, ${p.nome}! ${p.pago ? "Seu pedido" : "Sua reserva"}` : p.pago ? "O pedido" : "A reserva"} #${p.numero} foi ${p.pago ? "cancelado" : "cancelada"} pela loja.`,
+        !p.pago
+          ? "As peças voltaram para a vitrine e nenhuma cobrança foi feita."
+          : p.estornoCentavos
+          ? `Devolvemos *${formatarReais(p.estornoCentavos)}* pelo Mercado Pago, no mesmo meio do pagamento: ${p.forma === "CARTAO" ? "no cartão, o valor aparece na fatura em até 2 faturas, conforme o banco." : "no PIX, o valor volta para a conta de origem em instantes."}`
+          : "A equipe vai falar com você por aqui para combinar a devolução do valor.",
+        "Se tiver alguma dúvida, é só responder esta mensagem.",
+      ),
+  ],
   cancelamento_recusado: [
     (p) =>
       blocos(
@@ -553,7 +573,9 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
   // ─── Entrega (regras 17 e 18): sem telefone no texto; o endereço só na retirada ───
   entrega_confirmada: [
     (p) =>
-      p.modalidade === "RETIRADA"
+      p.alterado
+        ? blocos("Endereço atualizado! 💖", `Corrigimos o endereço de entrega do pedido #${p.numero}.`, "Se algo estiver diferente, é só responder esta mensagem.")
+        : p.modalidade === "RETIRADA"
         ? blocos("Combinado! 💖", `O pedido #${p.numero} será retirado na loja.`, "Avisamos por aqui assim que ele estiver pronto.")
         : blocos("Endereço recebido! 💖", `Agora vamos calcular o frete do pedido #${p.numero}.`, "Assim que o valor estiver pronto, enviamos por aqui."),
   ],
@@ -736,6 +758,7 @@ export const NOTIFICACOES: Notificacao[] = [
   { id: "reserva_criada", nome: "Reserva criada", quando: "Ao criar a reserva, com itens, total, horário de expiração e link", essencial: true, modelos: ["reserva_criada"] },
   { id: "lembrete", nome: "Lembrete de 5 minutos", quando: "Quando faltam 5 minutos para expirar", essencial: true, modelos: ["reserva_lembrete_5min"] },
   { id: "pagamento_confirmado", nome: "Pagamento confirmado", quando: "Quando o provedor confirma o pagamento", essencial: true, modelos: ["pagamento_confirmado"] },
+  { id: "reserva_cancelada", nome: "Cancelada pela loja", quando: "Quando a loja cancela a reserva ou o pedido, com o estorno quando já estava pago", essencial: true, modelos: ["reserva_cancelada"] },
   { id: "reserva_expirada", nome: "Reserva expirada", quando: "Quando o prazo termina sem pagamento, com as peças da reserva que ainda estão à venda e o link de cada uma", essencial: true, modelos: ["reserva_expirada"] },
   { id: "cancelamento_recebido", nome: "Cancelamento recebido", quando: "Quando a cliente pede cancelamento", essencial: false, modelos: ["cancelamento_recebido"] },
   { id: "cancelamento_decisao", nome: "Decisão do cancelamento", quando: "Quando a loja aprova ou recusa", essencial: false, modelos: ["cancelamento_aprovado", "cancelamento_recusado"] },

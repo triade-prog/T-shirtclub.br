@@ -211,11 +211,27 @@ describe("o que a loja manda", () => {
     expect(mensagemWhatsApp("ofertas", { promocoes: [] })).toBe("Hoje não tem promoção ativa, mas tem peça linda te esperando 💖\n\nDá uma olhada:\ntshirtclub.vercel.app");
   });
 
+  it("cancelada pela loja (0590): não paga, paga com estorno no PIX ou no cartão, e paga fora do site", () => {
+    expect(mensagemWhatsApp("reserva_cancelada", { numero: 1048, nome: "Ana", pago: false })).toBe(
+      "Oi, Ana! Sua reserva #1048 foi cancelada pela loja.\n\nAs peças voltaram para a vitrine e nenhuma cobrança foi feita.\n\nSe tiver alguma dúvida, é só responder esta mensagem.",
+    );
+    expect(mensagemWhatsApp("reserva_cancelada", { numero: 1048, pago: true, estornoCentavos: 4999, forma: "PIX" })).toBe(
+      "O pedido #1048 foi cancelado pela loja.\n\nDevolvemos *R$ 49,99* pelo Mercado Pago, no mesmo meio do pagamento: no PIX, o valor volta para a conta de origem em instantes.\n\nSe tiver alguma dúvida, é só responder esta mensagem.",
+    );
+    expect(mensagemWhatsApp("reserva_cancelada", { numero: 1048, pago: true, estornoCentavos: 4999, forma: "CARTAO" })).toContain("no cartão, o valor aparece na fatura");
+    expect(mensagemWhatsApp("reserva_cancelada", { numero: 1048, pago: true, porFora: true })).toContain("combinar a devolução do valor");
+    expect(mensagemWhatsApp("entrega_confirmada", { numero: 1048, modalidade: "MOTOBOY", alterado: true })).toBe(
+      "Endereço atualizado! 💖\n\nCorrigimos o endereço de entrega do pedido #1048.\n\nSe algo estiver diferente, é só responder esta mensagem.",
+    );
+    expect(mensagemWhatsApp("minhas_reservas", { reservas: [{ numero: 1047, status: "EXPIRADO", motivoEncerramento: "CANCELADA_PELA_LOJA", totalCentavos: 4999 }] }))
+      .toContain("#1047 · encerrada (cancelada pela loja)");
+  });
+
   it("notificações do painel: toda mensagem da fila tem linha, e as essenciais não desligam", () => {
     const cobertos = new Set(NOTIFICACOES.flatMap((n) => n.modelos));
     for (const m of ["reserva_criada", "cancelamento_aprovado", "saiu_entrega", "bloqueio_mantido", "frete_confirmado"]) expect(cobertos.has(m as never)).toBe(true);
     expect(new Set(NOTIFICACOES.map((n) => n.id)).size).toBe(NOTIFICACOES.length);
-    expect(NOTIFICACOES.filter((n) => n.essencial).map((n) => n.id)).toEqual(["codigo", "reserva_criada", "lembrete", "pagamento_confirmado", "reserva_expirada"]);
+    expect(NOTIFICACOES.filter((n) => n.essencial).map((n) => n.id)).toEqual(["codigo", "reserva_criada", "lembrete", "pagamento_confirmado", "reserva_cancelada", "reserva_expirada"]);
   });
 
   it("resposta automática a mensagem comum: o endereço da loja e a equipe, e dá para desligar no painel", () => {

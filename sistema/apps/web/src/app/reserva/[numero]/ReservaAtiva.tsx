@@ -243,13 +243,16 @@ function Limitada({ reserva }: { reserva: Reserva }) {
 
 function Expirada({ reserva }: { reserva: Reserva }) {
   const cancelada = reserva.motivoEncerramento === "CANCELAMENTO_APROVADO";
+  const pelaLoja = reserva.motivoEncerramento === "CANCELADA_PELA_LOJA";
+  const paga = pelaLoja && !!reserva.pagaEm;
   const fim = reserva.expiradaEm ?? reserva.expiraEm;
   return (
     <Moldura numero={reserva.numero} selo="EXPIRADO">
       <Cronometro relogio={RELOGIO_ENCERRADO} ate={horario(fim)} />
       <p className="m-0 text-[15px]">
-        {cancelada ? "Seu pedido de cancelamento foi aprovado e as peças voltaram para a loja." : "O pagamento não chegou a tempo e as peças voltaram para a loja."}{" "}
-        <b>Nada foi cobrado.</b>
+        {paga ? "Este pedido foi cancelado pela loja." : pelaLoja ? "Esta reserva foi cancelada pela loja e as peças voltaram para a vitrine."
+          : cancelada ? "Seu pedido de cancelamento foi aprovado e as peças voltaram para a loja." : "O pagamento não chegou a tempo e as peças voltaram para a loja."}{" "}
+        <b>{paga ? "O valor volta pelo mesmo meio do pagamento; os detalhes chegaram no seu WhatsApp." : "Nada foi cobrado."}</b>
       </p>
       <p className="m-0 text-sm text-tinta-suave">Se ainda quiser, é só reservar de novo. O estoque pode ter mudado.</p>
       <Link href="/" className="inline-flex min-h-13 items-center justify-center rounded-pilula border-2 border-tinta px-6 text-[15px] font-bold shadow-adesivo">

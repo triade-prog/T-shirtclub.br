@@ -10,6 +10,7 @@ import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
 import { useRepetir } from "../_painel/useRepetir";
 import { CascaWhatsapp, useWhatsapp } from "./_wa/CascaWhatsapp";
+import { conversaPedida, esquecerConversaPedida } from "./_wa/abrirConversa";
 import { Numeros } from "./_wa/Numeros";
 import {
   MOTIVO, STATUS_CHAMADO, STATUS_ENVIO, VIA, haQuanto, linkWhatsapp, nomeDoModelo, tomDaEspera, tomDoEnvio,
@@ -55,7 +56,10 @@ function CaixaDeEntrada() {
   useRepetir(() => void recarregar(), 30_000, true);
   const [filtro, setFiltro] = useState<Filtro | null>(null);
   const [busca, setBusca] = useState("");
-  const [chat, setChat] = useState<string | null>(null);
+  // Vindo da reserva ("Ver conversa"): abre a conversa pedida (no servidor e na primeira
+  // pintura não há dados, então a tela é a mesma dos dois lados)
+  const [chat, setChat] = useState<string | null>(() => (typeof window === "undefined" ? null : conversaPedida()));
+  useEffect(() => esquecerConversaPedida(), []);
   if (!dados) return <section className="card"><Carregando erro={erro} /></section>;
 
   const precisam = dados.filter((c) => aberto(c.chamado));
@@ -68,7 +72,9 @@ function CaixaDeEntrada() {
       || (c.chamado && `#${c.chamado.numero}` === b));
   // Quem espera há mais tempo primeiro (sem dono antes de em atendimento)
   if (atual === "PRECISA") lista.sort((x, y) => (x.chamado!.status === y.chamado!.status ? x.chamado!.abertoEm.localeCompare(y.chamado!.abertoEm) : x.chamado!.status === "ABERTO" ? -1 : 1));
-  const selecionada = dados.find((c) => c.chat === chat) ?? null;
+  // A conversa pedida pode não estar na lista (mais de 30 dias sem mensagem): abre assim mesmo
+  const selecionada = dados.find((c) => c.chat === chat)
+    ?? (chat ? { chat, telefone: null, nome: null, ultima: null, equipeRespondeuEm: null, chamado: null } : null);
   const aoMudar = () => { void recarregar(); recarregarChamados(); };
 
   return (

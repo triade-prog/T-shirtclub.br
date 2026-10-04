@@ -412,6 +412,62 @@ A reserva #1048 foi encerrada e nenhuma cobrança foi feita.
 
 Revisão: ☐
 
+### Cancelada pela loja: reserva não paga
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Sua reserva #1048 foi cancelada pela loja.
+
+As peças voltaram para a vitrine e nenhuma cobrança foi feita.
+
+Se tiver alguma dúvida, é só responder esta mensagem.
+```
+
+Revisão: ☐
+
+### Cancelada pela loja: pedido pago, com estorno no PIX
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Seu pedido #1048 foi cancelado pela loja.
+
+Devolvemos *R$ 119,99* pelo Mercado Pago, no mesmo meio do pagamento: no PIX, o valor volta para a conta de origem em instantes.
+
+Se tiver alguma dúvida, é só responder esta mensagem.
+```
+
+Revisão: ☐
+
+### Cancelada pela loja: pedido pago, com estorno no cartão
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Seu pedido #1048 foi cancelado pela loja.
+
+Devolvemos *R$ 119,99* pelo Mercado Pago, no mesmo meio do pagamento: no cartão, o valor aparece na fatura em até 2 faturas, conforme o banco.
+
+Se tiver alguma dúvida, é só responder esta mensagem.
+```
+
+Revisão: ☐
+
+### Cancelada pela loja: venda paga fora do site
+
+*essencial, sempre ligada*
+
+```text
+Oi, Ana! Seu pedido #1048 foi cancelado pela loja.
+
+A equipe vai falar com você por aqui para combinar a devolução do valor.
+
+Se tiver alguma dúvida, é só responder esta mensagem.
+```
+
+Revisão: ☐
+
 ### Cancelamento recusado
 
 *a loja liga e desliga no painel ("Decisão do cancelamento")*
@@ -450,6 +506,20 @@ Endereço recebido! 💖
 Agora vamos calcular o frete do pedido #1048.
 
 Assim que o valor estiver pronto, enviamos por aqui.
+```
+
+Revisão: ☐
+
+### Endereço corrigido pela loja
+
+*a loja liga e desliga no painel ("Modalidade de entrega confirmada")*
+
+```text
+Endereço atualizado! 💖
+
+Corrigimos o endereço de entrega do pedido #1048.
+
+Se algo estiver diferente, é só responder esta mensagem.
 ```
 
 Revisão: ☐

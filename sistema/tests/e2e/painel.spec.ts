@@ -695,9 +695,10 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   const enviados: { metodo: string; caminho: string; corpo: unknown }[] = [];
   const reserva = (n: number, nome: string, id: string) => ({ id, numero: n, nome, telefone: "+5577998128809", totalCentavos: 4999, pagaEm: "2026-10-10T13:00:00Z" });
   let lista = [
-    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111") },
-    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
-      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222") },
+    { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", codigoRetirada: "29LFET", reserva: reserva(1001, "Ana", "e1111111-1111-4111-8111-111111111111"),
+      desde: new Date().toISOString(), pecas: [{ nome: "Limone Amalfi", tamanho: "Único · P ao 42", qtd: 1 }, { nome: "Pomodoro", tamanho: "Plus · 44 ao 48", qtd: 2 }] },
+    { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", endereco: { cep: "46400000", rua: "Rua A", numero: "10", bairro: "Centro", cidade: "Caetité", uf: "BA" },
+      reserva: reserva(1002, "Bia", "e2222222-2222-4222-8222-222222222222"), desde: new Date(Date.now() - 50 * 3_600_000).toISOString() },
     { modalidade: "ENVIO", substatus: "FRETE_VENCIDO", frete: { valorCentavos: 2500, pagarAte: "2026-10-10T15:00:00Z" }, endereco: { rua: "Rua B", numero: "5", bairro: "Centro", cidade: "Guanambi", uf: "BA" },
       reserva: reserva(1003, "Carla", "e3333333-3333-4333-8333-333333333333") },
     { modalidade: "ENVIO", substatus: "ENVIADO", rastreio: "QB123456789BR", reserva: reserva(1004, "Duda", "e4444444-4444-4444-8444-444444444444") },
@@ -728,7 +729,26 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await expect(coluna("Calcular o frete")).toContainText("Frete vencido");
   await expect(coluna("Em preparação")).toContainText("29LFET");
   await expect(coluna("A caminho")).toContainText("QB123456789BR");
-  await expect(coluna("Escolha da entrega")).toContainText("Nada por aqui agora.");
+  // Coluna vazia fica fininha, só com o nome e o 0
+  await expect(coluna("Escolha da entrega")).toHaveClass(/vazia/);
+  await expect(coluna("Escolha da entrega")).toContainText("0");
+  // Resumo: com a loja (calcular, preparar, a caminho), esperando a cliente, parados e entregues
+  const resumo = page.getByRole("region", { name: "Resumo das entregas" });
+  await expect(resumo).toContainText("4 com a loja");
+  await expect(resumo).toContainText("0 esperando a cliente");
+  await expect(resumo).toContainText("1 parado há mais de 1 dia");
+  await expect(resumo).toContainText("1 entregue em 7 dias");
+  // O cartão: peças, tempo na etapa (vermelho depois de 2 dias), endereço com Copiar, WhatsApp e Ver pedido
+  await expect(page.getByRole("article", { name: "#1001" })).toContainText("3 peças: Limone Amalfi, Pomodoro (Plus) × 2");
+  await expect(page.getByRole("article", { name: "#1002" }).locator(".k-time")).toHaveClass(/atrasado/);
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("button", { name: "Copiar o endereço do pedido #1002" })).toBeVisible();
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: /WhatsApp de Bia/ })).toHaveAttribute("href", /^https:\/\/wa\.me\/5577998128809/);
+  await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: "Ver pedido #1002" })).toHaveAttribute("href", "/reservas/e2222222-2222-4222-8222-222222222222");
+  // Só o que é com a loja
+  await resumo.getByRole("button", { name: /com a loja/ }).click();
+  await expect(coluna("Pronto para retirada")).toHaveCount(0);
+  await expect(coluna("Calcular o frete")).toBeVisible();
+  await resumo.getByRole("button", { name: /com a loja/ }).click();
   // Entregue: na última coluna, sem botões, e fora de "A caminho"
   await expect(coluna("A caminho").getByRole("article")).toHaveCount(1);
   await expect(coluna("Entregue").getByRole("article", { name: "#1005" })).toContainText("Entregue");
@@ -759,7 +779,7 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await duda.getByRole("button", { name: "Confirmar entrega" }).click();
   await expect(coluna("Entregue").getByRole("article")).toHaveCount(2);
   await expect(coluna("Entregue").getByRole("article").first()).toHaveAccessibleName("#1004");
-  await expect(coluna("A caminho")).toContainText("Nada por aqui agora.");
+  await expect(coluna("A caminho")).toHaveClass(/vazia/);
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
@@ -805,4 +825,217 @@ test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page
   await page.getByRole("button", { name: "7 dias" }).click();
   await expect(page.getByRole("list", { name: "Visitantes por dia" }).getByRole("listitem")).toHaveCount(7);
   expect(pedidos).toEqual(["?dias=30", "?dias=7"]);
+});
+
+// Barra lateral recolhida (03/10): no computador, o botão do topo deixa só os ícones (com o nome
+// para o leitor de tela e o contador no canto) e a escolha fica para a próxima tela; no celular,
+// o menu continua abrindo por cima, sem o botão de recolher.
+test("menu lateral: esconder e mostrar no computador, lembrando a escolha", async ({ page, context }) => {
+  await simularWhatsapp(page, context, (_m, caminho) =>
+    caminho === "v1/admin/dashboard" ? { ...DASH_WA, acoes: { ...DASH_WA.acoes, emPreparacao: 1 } } : undefined);
+  await page.goto(`${PAINEL}/whatsapp/configuracoes`);
+  await expect(page.getByRole("button", { name: "Esconder menu" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Abrir menu" })).toBeVisible();
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const menu = page.getByRole("complementary", { name: "Menu do painel" });
+  const esconder = page.getByRole("button", { name: "Esconder menu" });
+  await expect(esconder).toHaveAttribute("aria-expanded", "true");
+  await expect(menu.getByText("Entregas e frete")).toBeVisible();
+  await esconder.click();
+
+  const mostrar = page.getByRole("button", { name: "Mostrar menu" });
+  await expect(mostrar).toHaveAttribute("aria-expanded", "false");
+  await expect.poll(async () => (await menu.boundingBox())?.width).toBeLessThan(100);
+  // O nome sai da tela, mas continua no link para o leitor de tela
+  expect((await menu.getByText("Entregas e frete").boundingBox())?.width).toBeLessThanOrEqual(1);
+  const entregas = menu.getByRole("link", { name: /^Entregas e frete/ });
+  await expect(entregas).toBeVisible();
+  await expect(entregas.locator(".nav-count")).toHaveText(/1/);
+  await semViolacoes(page);
+
+  // Outra tela e a volta: continua recolhida (cookie lido no servidor)
+  await page.goto(`${PAINEL}/whatsapp/envios`);
+  await expect(page.getByRole("button", { name: "Mostrar menu" })).toBeVisible();
+  expect((await menu.boundingBox())?.width).toBeLessThan(100);
+  await page.getByRole("button", { name: "Mostrar menu" }).click();
+  await expect.poll(async () => (await menu.getByText("Entregas e frete").boundingBox())?.width).toBeGreaterThan(50);
+  expect((await context.cookies()).find((c) => c.name === "painel_menu")?.value).toBe("aberto");
+});
+
+// Reserva v2 (0580): um status só nas etapas, o próximo passo, a peça com o preço cheio riscado e
+// o motivo do desconto, o número do Mercado Pago, a linha do tempo com as mensagens de WhatsApp
+// (texto e "Tentar de novo") e os chamados, e a cliente com atalho para a conversa no Atendimento.
+test("reserva: etapas, peças, linha do tempo com o WhatsApp e atalho para a conversa", async ({ page, context }) => {
+  const R = "e1111111-1111-4111-8111-111111111111";
+  const t = (h: string) => `2026-10-03T${h}:00.000Z`;
+  const detalhe = {
+    id: R, numero: 1001, status: "PAGAMENTO_CONFIRMADO", nome: "Ana Paula", telefone: "+5577981239809", entrega: "RETIRADA", canal: "PAINEL",
+    subtotalCentavos: 4999, descontoCentavos: 4599, totalCentavos: 400, cupom: null,
+    criadaEm: t("04:36"), expiraEm: t("05:36"), pagaEm: t("04:38"), forma: "PIX",
+    itens: [{ produtoId: "p1", varianteId: "v1", nome: "When Life Gives You Lemons", tamanho: "UNICO", rotuloTamanho: "Único · P ao 42", qtd: 1,
+      precoTabelaCentavos: 4999, descontoCentavos: 4599, totalCentavos: 400, capa: null }],
+    descontos: [{ tipo: "MANUAL", valorCentavos: 4599, rotulo: "Desconto da loja" }],
+    manual: { criadaPor: "Carol", motivoDesconto: "teste" },
+    logistica: { modalidade: "RETIRADA", substatus: "EM_PREPARACAO", confirmadaEm: t("04:38"), codigoRetirada: "29LFET" },
+    pagamentos: [{ id: "pg1", finalidade: "PRODUTOS", forma: "PIX", status: "APROVADO", valorCentavos: 400, criadoEm: t("04:37"), aprovadoEm: t("04:38"),
+      provedor: "mercadopago", idProvedor: "123456789" }],
+    cancelamentos: [],
+    transicoes: [
+      { evento: "T1", para: "RESERVADO", ator: "ADMIN", atorNome: "Carol", motivo: "Reserva manual pelo painel", em: t("04:36") },
+      { evento: "T2", de: "RESERVADO", para: "PAGAMENTO_CONFIRMADO", ator: "PROVEDOR", em: t("04:38") },
+    ],
+    auditoria: [{ id: 1, em: t("04:36"), ator: "ADMIN", atorNome: "Carol", acao: "reserva.manual" }],
+    mensagens: [
+      { id: "m1", modelo: "pagamento_confirmado", params: { nome: "Ana Paula", numero: 1001, totalCentavos: 400, forma: "PIX", pecas: 1 }, status: "LIDA",
+        tentativas: 1, criadaEm: t("04:38"), enviadaEm: t("04:38") },
+      { id: "m2", modelo: "entrega_confirmada", params: { numero: 1001, modalidade: "RETIRADA" }, status: "FALHOU", tentativas: 5,
+        criadaEm: t("05:01"), erro: "recusada" },
+    ],
+    cliente: { bloqueado: false, reservas: 2, expiracoes30Dias: 0, compras: 2, comprasCentavos: 3400, chat: "5577981239809",
+      outras: [{ id: "e2222222-2222-4222-8222-222222222222", numero: 1000, status: "ENTREGUE", totalCentavos: 3000, criadaEm: t("01:00") }],
+      chamados: [{ numero: 12, status: "RESOLVIDO", motivo: "DUVIDA", abertoEm: t("05:10"), assumidoEm: t("05:12"), assumidoVia: "PAINEL", assumidoPor: "Carol",
+        resolvidoEm: t("05:20"), resolvidoVia: "PAINEL", resolvidoPor: "Carol", notaPedida: true, nota: 5 }] },
+  };
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho) => {
+    if (caminho === `v1/admin/reservations/${R}`) return detalhe;
+    if (caminho === "v1/admin/whatsapp/envios/m2/reenviar") return { ok: true };
+    if (caminho === "v1/admin/whatsapp/conversas") return [];
+    if (metodo === "POST" && caminho === "v1/admin/whatsapp/conversa") {
+      return { chat: "5577981239809", telefone: "+5577981239809", nome: "Ana", bloqueado: false, eventos: [], reservas: [], chamados: [] };
+    }
+    return undefined;
+  });
+
+  await page.goto(`${PAINEL}/reservas/${R}`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Reserva #1001");
+  await expect(page.getByText("Ana Paula · R$ 4,00 · venda pelo painel, por Carol")).toBeVisible();
+  // Um status só: a etapa alcançada
+  const etapas = page.getByRole("region", { name: "Etapas da reserva" });
+  await expect(etapas.locator("[aria-current=step]")).toContainText("Em preparação");
+  await expect(etapas.getByRole("listitem")).toHaveCount(6);
+  await expect(page.getByRole("heading", { name: "Separar as peças e avisar que está pronta" })).toBeVisible();
+  await expect(page.getByText("29LFET")).toBeVisible();
+
+  // Peça com o preço cheio riscado, o motivo junto do desconto e o número do Mercado Pago
+  const pecas = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Peças" }) });
+  await expect(pecas.locator(".piece s")).toHaveText(/R\$\s49,99/);
+  await expect(pecas.locator(".piece-price")).toHaveText(/R\$\s4,00/);
+  await expect(pecas.getByText("Motivo: teste")).toBeVisible();
+  await expect(page.getByText("Mercado Pago nº 123456789")).toBeVisible();
+
+  // Linha do tempo: tudo, na ordem
+  const linha = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Linha do tempo" }) });
+  await expect(linha.locator(".event > .evento-corpo > b")).toHaveText([
+    "Reserva criada", "Pagamento aprovado", "Entrega combinada: Retirada na loja", "WhatsApp: Pagamento confirmado",
+    "WhatsApp: Modalidade de entrega confirmada", "Chamado #12 aberto", "Chamado #12 finalizado", "Agora: Separar as peças e avisar que está pronta",
+  ]);
+  await expect(linha.getByText(/Mercado Pago/)).toBeVisible();
+  await expect(linha.getByText(/Carol · Reserva manual pelo painel/)).toBeVisible();
+  await linha.getByText("Ver o texto").first().click();
+  await expect(linha.locator(".bolha").first()).toContainText("1001");
+  await expect(linha.getByText("Falhou depois de 5 tentativas: recusada")).toBeVisible();
+  await semViolacoes(page);
+  await linha.getByRole("button", { name: /Tentar de novo/ }).click();
+  await expect(linha.getByRole("status")).toHaveText("De volta na fila. Ela sai no próximo envio.");
+  expect(enviados.some((e) => e.caminho === "v1/admin/whatsapp/envios/m2/reenviar")).toBe(true);
+
+  // A cliente: compras, outra reserva e a conversa no Atendimento (sem o número no endereço)
+  const cliente = page.getByRole("complementary", { name: "Entrega e cliente" });
+  await expect(cliente.getByRole("link", { name: "#1000" })).toHaveAttribute("href", "/reservas/e2222222-2222-4222-8222-222222222222");
+  await expect(cliente.getByText("R$ 34,00")).toBeVisible();
+  await cliente.getByRole("link", { name: "Ver conversa" }).click();
+  await expect(page).toHaveURL(`${PAINEL}/whatsapp`);
+  await expect.poll(() => enviados.find((e) => e.caminho === "v1/admin/whatsapp/conversa")?.corpo).toEqual({ chat: "5577981239809" });
+});
+
+// Cancelar pela loja e entrega pelo painel (0590). Base: um pedido pago com motoboy, sem endereço.
+function pedidoPago(extra: Record<string, unknown> = {}) {
+  const t = (h: string) => `2026-10-03T${h}:00.000Z`;
+  return {
+    id: "e3333333-3333-4333-8333-333333333333", numero: 1002, status: "PAGAMENTO_CONFIRMADO", nome: "Bia Santos", telefone: "+5577990001111",
+    entrega: "MOTOBOY", canal: "SITE", subtotalCentavos: 4999, descontoCentavos: 0, totalCentavos: 4999, criadaEm: t("10:00"), expiraEm: t("11:00"),
+    pagaEm: t("10:05"), itens: [{ produtoId: "p1", nome: "Limone Amalfi", qtd: 1, precoTabelaCentavos: 4999, totalCentavos: 4999 }], descontos: [],
+    logistica: { modalidade: "MOTOBOY", substatus: "AGUARDANDO_MODALIDADE", codigoRetirada: "K7Q2AB" },
+    pagamentos: [{ id: "pg1", finalidade: "PRODUTOS", forma: "PIX", status: "APROVADO", valorCentavos: 4999, criadoEm: t("10:04"), aprovadoEm: t("10:05"), idProvedor: "999" }],
+    cancelamentos: [], transicoes: [{ evento: "T1", para: "RESERVADO", ator: "CLIENTE", em: t("10:00") }, { evento: "T2", para: "PAGAMENTO_CONFIRMADO", ator: "PROVEDOR", em: t("10:05") }],
+    auditoria: [], mensagens: [], cliente: { bloqueado: false, reservas: 1, expiracoes30Dias: 0, compras: 1, comprasCentavos: 4999, outras: [], chamados: [] },
+    ...extra,
+  };
+}
+
+test("reserva: a loja cancela o pedido pago, com o estorno, e vê o que acontece antes", async ({ page, context }) => {
+  const R = "e3333333-3333-4333-8333-333333333333";
+  let detalhe = pedidoPago();
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho) => {
+    if (caminho === `v1/admin/reservations/${R}`) return detalhe;
+    if (caminho === `v1/admin/reservations/${R}/cancel` && metodo === "GET") {
+      return { pode: true, pago: true, pecas: 1, estornar: [{ id: "pg1", finalidade: "PRODUTOS", forma: "PIX", valorCentavos: 4999 }] };
+    }
+    if (caminho === `v1/admin/reservations/${R}/cancel`) {
+      detalhe = pedidoPago({ status: "EXPIRADO", motivoEncerramento: "CANCELADA_PELA_LOJA", expiradaEm: "2026-10-03T12:00:00.000Z",
+        pagamentos: [{ ...pedidoPago().pagamentos[0], status: "ESTORNADO" }] });
+      return detalhe;
+    }
+    return undefined;
+  });
+  await page.goto(`${PAINEL}/reservas/${R}`);
+  await page.getByRole("button", { name: "Cancelar pedido" }).click();
+  const caixa = page.getByRole("region", { name: "Cancelar o pedido #1002?" });
+  await expect(caixa).toContainText("A peça volta para o estoque e para a vitrine.");
+  await expect(caixa).toContainText(/Estorno de R\$\s49,99 \(peças, PIX\) pelo Mercado Pago, na hora\./);
+  await semViolacoes(page);
+  await caixa.getByRole("button", { name: "Cancelar e estornar" }).click();
+  await expect(caixa.getByText("Escreva o motivo do cancelamento: ele fica na auditoria.")).toBeVisible();
+  await caixa.getByLabel("Motivo do cancelamento").fill("Peça com defeito");
+  await caixa.getByRole("button", { name: "Cancelar e estornar" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Cancelamento feito" })).toBeVisible();
+  expect(enviados.find((e) => e.caminho === `v1/admin/reservations/${R}/cancel`)?.corpo).toEqual({ motivo: "Peça com defeito" });
+  await expect(page.getByRole("region", { name: "Etapas da reserva" }).locator("[aria-current=step]")).toContainText("Cancelada");
+  await expect(page.getByRole("button", { name: /Cancelar (pedido|reserva)/ })).toHaveCount(0);
+});
+
+test("reserva: a loja informa o endereço do motoboy e copia para a etiqueta", async ({ page, context }) => {
+  const R = "e3333333-3333-4333-8333-333333333333";
+  const endereco = { cep: "46400000", rua: "R. Sátiro Santos", numero: "38", bairro: "Centro", cidade: "Caetité", uf: "BA" };
+  let detalhe = pedidoPago();
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho) => {
+    if (caminho === `v1/admin/reservations/${R}`) return detalhe;
+    if (caminho === `v1/admin/reservations/${R}/fulfillment` && metodo === "PUT") {
+      detalhe = pedidoPago({ logistica: { modalidade: "MOTOBOY", substatus: "AGUARDANDO_CALCULO_FRETE", confirmadaEm: "2026-10-03T10:30:00.000Z", endereco } });
+      return detalhe;
+    }
+    return undefined;
+  });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+  await page.goto(`${PAINEL}/reservas/${R}`);
+  const entrega = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Entrega", exact: true }) });
+  await expect(entrega).toContainText("A cliente ainda não informou o endereço no site.");
+  await entrega.getByRole("button", { name: "Informar endereço" }).click();
+  const form = entrega.getByRole("form", { name: "Mudar a entrega" });
+  await form.getByLabel("CEP").fill("46400-000");
+  await form.getByRole("button", { name: "Salvar entrega" }).click();
+  await expect(form.getByRole("alert")).toHaveText("Falta a rua do endereço.");
+  await form.getByLabel("Rua").fill("R. Sátiro Santos");
+  await form.getByLabel("Número").fill("38");
+  await form.getByLabel("Bairro").fill("Centro");
+  await semViolacoes(page);
+  await form.getByRole("button", { name: "Salvar entrega" }).click();
+  await expect(entrega.locator("address")).toContainText("R. Sátiro Santos, 38");
+  await expect(entrega.locator("address")).toContainText("Centro · Caetité/BA · CEP 46400-000");
+  expect(enviados.find((e) => e.caminho === `v1/admin/reservations/${R}/fulfillment`)?.corpo).toEqual({ modalidade: "MOTOBOY", endereco });
+  await expect(entrega.getByRole("button", { name: "Copiar endereço" })).toBeVisible();
+});
+
+test("nova reserva: motoboy já pago pede o endereço; pelo link, não", async ({ page, context }) => {
+  await simularWhatsapp(page, context, () => undefined);
+  await page.goto(`${PAINEL}/reservas/nova`);
+  await page.getByLabel("Entrega").selectOption("MOTOBOY");
+  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toHaveCount(0);
+  await page.getByLabel("Já pago em dinheiro").check();
+  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toBeVisible();
+  await expect(page.getByLabel("Cidade")).toHaveValue("Caetité");
+  await semViolacoes(page);
+  await page.getByLabel("Cliente paga pelo link").check();
+  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toHaveCount(0);
 });
