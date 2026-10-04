@@ -87,7 +87,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
     { href: "/catalogo", rotulo: "Catálogo", icone: ICONES.catalogo, n: 0 },
     { href: "/estoque", rotulo: "Estoque", icone: ICONES.estoque, n: 0 },
     { href: "/promocoes", rotulo: "Promoções", icone: ICONES.promocoes, n: 0 },
-    { href: "/pagamentos", rotulo: "Pagamentos em análise", icone: ICONES.pagamentos, n: c?.acoes.pagamentosEmAnalise ?? 0 },
+    { href: "/pagamentos", rotulo: "Pagamentos", icone: ICONES.pagamentos, n: c?.acoes.pagamentosEmAnalise ?? 0 },
     { href: "/contestacoes", rotulo: "Contestações", icone: ICONES.contestacoes, n: c?.acoes.disputasAbertas ?? 0 },
     { href: "/bloqueados", rotulo: "Bloqueios", icone: ICONES.bloqueados, n: c?.acoes.telefonesBloqueados ?? 0 },
     { href: "/vip", rotulo: "Lista VIP", icone: ICONES.vip, n: 0 },

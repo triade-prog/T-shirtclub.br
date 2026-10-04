@@ -67,7 +67,7 @@ const FILTROS: { id: Filtro; texto: string }[] = [
 
 const MOTIVO: Record<Motivo, { texto: string; href: string }> = {
   CANCELAMENTO: { texto: "Cancelamento", href: "/cancelamentos" },
-  PAGAMENTO_EM_ANALISE: { texto: "Pagamento em análise", href: "/pagamentos" },
+  PAGAMENTO_EM_ANALISE: { texto: "Pagamento em análise", href: "/pagamentos?aba=analise" },
   CONTESTACAO: { texto: "Contestação", href: "/contestacoes" },
   FRETE_VENCIDO: { texto: "Frete vencido", href: "/entregas?substatus=FRETE_VENCIDO" },
 };

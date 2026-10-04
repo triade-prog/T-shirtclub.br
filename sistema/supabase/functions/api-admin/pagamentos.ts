@@ -1,5 +1,5 @@
-// Pagamentos no painel (D6, G2): fila de análise (estornar ou converter em novo pedido) e
-// disputas de pagamentos já confirmados que voltaram (estorno, contestação).
+// Pagamentos no painel (D6, G2): fila de análise (estornar ou converter em novo pedido),
+// disputas de pagamentos já confirmados que voltaram (estorno, contestação) e o histórico.
 
 import type { Hono } from "hono";
 import { ErroDominio, idSchema, resolverAnaliseSchema, resolverDisputaSchema } from "@tshirtclub/domain";
@@ -15,6 +15,8 @@ export interface DepsPagamentosAdmin {
   banco: Banco;
   pagamentos: PaymentProvider;
 }
+
+const GRUPOS = ["TODOS", "APROVADO", "AGUARDANDO", "EM_ANALISE", "ESTORNADO", "NAO_PAGO"];
 
 function status(v: string | undefined): string | null {
   const s = v ?? "ABERTA";
@@ -50,6 +52,13 @@ export function rotasPagamentosAdmin(app: Hono<VarsAdmin>, { banco, pagamentos }
     }
     await chamar(banco, "review_refunded", { p_review_id: id.data, p_admin: admin, p_note: nota ?? null });
     return c.json({ resolucao });
+  });
+
+  // Histórico (0600): todos os pagamentos, dos mais novos aos mais antigos, por grupo
+  app.get("/v1/admin/payments", async (c) => {
+    const grupo = c.req.query("grupo") ?? "TODOS";
+    if (!GRUPOS.includes(grupo)) throw new ErroDominio("VALIDATION_ERROR");
+    return c.json(await chamar(banco, "admin_list_payments", { p_grupo: grupo === "TODOS" ? null : grupo }));
   });
 
   app.get("/v1/admin/payment-disputes", async (c) =>

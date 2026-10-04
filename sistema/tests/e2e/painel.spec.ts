@@ -801,6 +801,62 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   expect((await whats.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 });
 
+// Histórico de cancelamentos e de pagamentos (0600) com a api-admin simulada: o cancelamento feito
+// pela loja aparece em Cancelamentos → Histórico, e Pagamentos abre com todos os pagamentos.
+test("Cancelamentos e Pagamentos: o histórico com o cancelamento da loja e todos os pagamentos", async ({ page, context }) => {
+  const reserva = { id: "e1111111-1111-4111-8111-111111111111", numero: 1001, status: "EXPIRADO", nome: "teste", telefone: "+5577998128809", totalCentavos: 400 };
+  const pagamentos = [
+    { id: "p2", status: "PENDENTE", grupo: "AGUARDANDO", forma: "PIX", finalidade: "PRODUTOS", valorCentavos: 4999, criadoEm: "2026-10-03T22:00:00Z",
+      reserva: { ...reserva, id: "e2222222-2222-4222-8222-222222222222", numero: 1002, nome: "Ana", status: "RESERVADO", totalCentavos: 4999 } },
+    { id: "p1", status: "ESTORNADO", grupo: "ESTORNADO", forma: "PIX", finalidade: "PRODUTOS", valorCentavos: 400, criadoEm: "2026-10-03T13:00:00Z",
+      aprovadoEm: "2026-10-03T13:01:00Z", estornadoEm: "2026-10-03T20:30:00Z", idProvedor: "128700000", reserva },
+  ];
+  const pedidos: string[] = [];
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const url = new URL(rota.request().url());
+    const caminho = url.pathname.replace(/^\/api\//, "");
+    pedidos.push(caminho + url.search);
+    if (caminho === "v1/admin/cancellation-requests") return rota.fulfill({ json: [] });
+    if (caminho === "v1/admin/store-cancellations") {
+      return rota.fulfill({ json: [{ id: reserva.id, canceladaEm: "2026-10-03T20:30:00Z", canceladaPor: "Carol", motivo: "Teste de estorno", pago: true, estornoCentavos: 400, reserva }] });
+    }
+    if (caminho === "v1/admin/payment-reviews") return rota.fulfill({ json: [] });
+    if (caminho === "v1/admin/payments") {
+      const grupo = url.searchParams.get("grupo");
+      return rota.fulfill({ json: { totais: { AGUARDANDO: 1, ESTORNADO: 1 }, itens: pagamentos.filter((p) => grupo === "TODOS" || p.grupo === grupo) } });
+    }
+    return rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+
+  await page.goto(`${PAINEL}/cancelamentos`);
+  await expect(page.getByText("Nenhum pedido esperando decisão.")).toBeVisible();
+  await page.getByRole("button", { name: "Histórico" }).click();
+  const cartao = page.getByRole("region", { name: "Cancelamento da loja, reserva #1001" });
+  await expect(cartao).toContainText("Cancelado pela loja");
+  await expect(cartao).toContainText("“Teste de estorno”");
+  await expect(cartao).toContainText("por Carol");
+  await expect(cartao).toContainText("Estorno de R$ 4,00 no Mercado Pago");
+  let axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  await page.goto(`${PAINEL}/pagamentos`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pagamentos");
+  const lista = page.getByRole("list", { name: "Pagamentos" });
+  await expect(lista.getByRole("listitem")).toHaveCount(2);
+  await expect(lista.getByRole("listitem").first()).toContainText("Aguardando pagamento");
+  await expect(lista.getByRole("listitem").last()).toContainText("Mercado Pago nº 128700000");
+  await expect(lista.getByRole("listitem").last()).toContainText("Estornado em");
+  await expect(page.getByRole("button", { name: "Todos · 2" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Estornados · 1" }).click();
+  await expect(lista.getByRole("listitem")).toHaveCount(1);
+  expect(pedidos).toContain("v1/admin/payments?grupo=ESTORNADO");
+  await page.getByRole("button", { name: /^Em análise/ }).first().click();
+  await expect(page.getByText("Nenhum pagamento esperando decisão.")).toBeVisible();
+  axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  expect(axe.violations.map((v) => v.id)).toEqual([]);
+});
+
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.
 test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page, context }) => {
   const dias = (n: number) => Array.from({ length: n }, (_, i) => ({ dia: `2026-09-${String(i + 1).padStart(2, "0")}`, visitas: i * 3, visitantes: i }));

@@ -423,3 +423,9 @@ ol.list{list-style:none;margin:0;padding:0}
 .top-whats svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .top-whats:hover{background:#1ebe5a}.top-whats:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
 @media(max-width:820px){.top-whats{display:none}}
+/* Pagamentos (0600): o histórico com os filtros por grupo; a cor do número segue o grupo */
+.pag-filtros{margin:0 0 14px}
+.pag-lista{list-style:none;margin:0;padding:0}
+.pag-selos{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap}
+.res-id.pag-aprovado{background:var(--green-soft);color:var(--green)}.res-id.pag-em_analise{background:var(--lemon-soft);color:#5c4a00}
+.res-id.pag-estornado,.res-id.pag-nao_pago{background:#f3eded;color:#7d676f}
