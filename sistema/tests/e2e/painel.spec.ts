@@ -829,14 +829,18 @@ test("Cancelamentos e Pagamentos: o histórico com o cancelamento da loja e todo
     return rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
   });
 
+  // Sem pedido pendente, a tela já abre no Histórico
   await page.goto(`${PAINEL}/cancelamentos`);
-  await expect(page.getByText("Nenhum pedido esperando decisão.")).toBeVisible();
-  await page.getByRole("button", { name: "Histórico" }).click();
+  await expect(page.getByRole("button", { name: "Histórico" })).toHaveAttribute("aria-pressed", "true");
   const cartao = page.getByRole("region", { name: "Cancelamento da loja, reserva #1001" });
   await expect(cartao).toContainText("Cancelado pela loja");
   await expect(cartao).toContainText("“Teste de estorno”");
   await expect(cartao).toContainText("por Carol");
   await expect(cartao).toContainText("Estorno de R$ 4,00 no Mercado Pago");
+  await page.getByRole("button", { name: "Pendentes" }).click();
+  await expect(page.getByText("Nenhum pedido esperando decisão.")).toBeVisible();
+  await page.getByRole("button", { name: "Ver o histórico" }).click();
+  await expect(cartao).toBeVisible();
   let axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
 
