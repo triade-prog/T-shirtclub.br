@@ -728,10 +728,11 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(2);
   await expect(coluna("Calcular o frete")).toContainText("Frete vencido");
   await expect(coluna("Em preparação")).toContainText("29LFET");
-  await expect(coluna("A caminho")).toContainText("QB123456789BR");
-  // Coluna vazia fica fininha, só com o nome e o 0
-  await expect(coluna("Escolha da entrega")).toHaveClass(/vazia/);
-  await expect(coluna("Escolha da entrega")).toContainText("0");
+  await expect(coluna("Retirada e a caminho")).toContainText("QB123456789BR");
+  // O mesmo quadro da Operação: 5 colunas, a vazia com o 0 e o aviso
+  await expect(page.locator(".kanban .lane")).toHaveCount(5);
+  await expect(coluna("Com a cliente")).toContainText("Nada por aqui agora.");
+  await expect(coluna("Com a cliente").locator(".lane-count")).toHaveText("0");
   // Resumo: com a loja (calcular, preparar, a caminho), esperando a cliente, parados e entregues
   const resumo = page.getByRole("region", { name: "Resumo das entregas" });
   await expect(resumo).toContainText("4 com a loja");
@@ -739,20 +740,22 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
   await expect(resumo).toContainText("1 parado há mais de 1 dia");
   await expect(resumo).toContainText("1 entregue em 7 dias");
   // O cartão: peças, tempo na etapa (vermelho depois de 2 dias), endereço com Copiar, WhatsApp e Ver pedido
-  await expect(page.getByRole("article", { name: "#1001" })).toContainText("3 peças: Limone Amalfi, Pomodoro (Plus) × 2");
+  await expect(page.getByRole("article", { name: "#1001" }).locator(".order-name")).toHaveText("Ana · 3 peças");
+  await expect(page.getByRole("article", { name: "#1001" }).locator(".k-pecas")).toHaveText("Limone Amalfi, Pomodoro (Plus) × 2");
   await expect(page.getByRole("article", { name: "#1002" }).locator(".k-time")).toHaveClass(/atrasado/);
+  await expect(page.getByRole("article", { name: "#1002" })).toContainText(/Próximo passo\s*Calcular o frete/);
   await expect(page.getByRole("article", { name: "#1002" }).getByRole("button", { name: "Copiar o endereço do pedido #1002" })).toBeVisible();
   await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: /WhatsApp de Bia/ })).toHaveAttribute("href", /^https:\/\/wa\.me\/5577998128809/);
   await expect(page.getByRole("article", { name: "#1002" }).getByRole("link", { name: "Ver pedido #1002" })).toHaveAttribute("href", "/reservas/e2222222-2222-4222-8222-222222222222");
   // Só o que é com a loja
-  await resumo.getByRole("button", { name: /com a loja/ }).click();
-  await expect(coluna("Pronto para retirada")).toHaveCount(0);
-  await expect(coluna("Calcular o frete")).toBeVisible();
-  await resumo.getByRole("button", { name: /com a loja/ }).click();
-  // Entregue: na última coluna, sem botões, e fora de "A caminho"
-  await expect(coluna("A caminho").getByRole("article")).toHaveCount(1);
-  await expect(coluna("Entregue").getByRole("article", { name: "#1005" })).toContainText("Entregue");
-  await expect(coluna("Entregue").getByRole("button")).toHaveCount(0);
+  await page.getByRole("button", { name: "Com a loja", exact: true }).click();
+  await expect(coluna("Entregues")).toContainText("Nada com este filtro.");
+  await expect(coluna("Calcular o frete").getByRole("article")).toHaveCount(2);
+  await page.getByRole("button", { name: "Todas", exact: true }).click();
+  // Entregue: na última coluna, sem botões, e fora de "Retirada e a caminho"
+  await expect(coluna("Retirada e a caminho").getByRole("article")).toHaveCount(1);
+  await expect(coluna("Entregues").getByRole("article", { name: "#1005" })).toContainText("Entregue");
+  await expect(coluna("Entregues").getByRole("button")).toHaveCount(0);
 
   // Filtro e busca
   await page.getByRole("button", { name: "Envio", exact: true }).click();
@@ -770,24 +773,32 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
 
   // O botão do cartão leva o pedido para a próxima coluna
   await page.getByRole("article", { name: "#1001" }).getByRole("button", { name: /Marcar: Pronto para retirada/ }).click();
-  await expect(coluna("Pronto para retirada").getByRole("article", { name: "#1001" })).toBeVisible();
+  await expect(coluna("Retirada e a caminho").getByRole("article", { name: "#1001" })).toBeVisible();
   expect(enviados.at(-1)).toEqual({ metodo: "PUT", caminho: "v1/admin/reservations/e1111111-1111-4111-8111-111111111111/fulfillment/substatus", corpo: { substatus: "PRONTO_PARA_RETIRADA" } });
 
   // Marcar como entregue leva o pedido para a coluna Entregue, o mais recente primeiro
   const duda = page.getByRole("article", { name: "#1004" });
   await duda.getByRole("button", { name: "Marcar como entregue" }).click();
   await duda.getByRole("button", { name: "Confirmar entrega" }).click();
-  await expect(coluna("Entregue").getByRole("article")).toHaveCount(2);
-  await expect(coluna("Entregue").getByRole("article").first()).toHaveAccessibleName("#1004");
-  await expect(coluna("A caminho")).toHaveClass(/vazia/);
+  await expect(coluna("Entregues").getByRole("article")).toHaveCount(2);
+  await expect(coluna("Entregues").getByRole("article").first()).toHaveAccessibleName("#1004");
+  await expect(coluna("Retirada e a caminho").getByRole("article")).toHaveCount(1);
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
 
-  // No computador, a coluna com 1 ou 2 pedidos tem a largura dos cartões: o cartão não estica
-  await page.setViewportSize({ width: 1600, height: 900 });
-  await expect.poll(async () => (await coluna("Pronto para retirada").boundingBox())?.width).toBeLessThanOrEqual(340);
-  expect((await coluna("Entregue").boundingBox())?.width).toBeLessThanOrEqual(640);
+  // No computador, as 5 colunas lado a lado e do mesmo tamanho, como no Kanban do dia
+  await page.setViewportSize({ width: 1800, height: 900 });
+  await expect.poll(async () => (await coluna("Com a cliente").boundingBox())?.width).toBeGreaterThan(262);
+  const larguras = await page.locator(".kanban .lane").evaluateAll((ls) => ls.map((l) => Math.round(l.getBoundingClientRect().width)));
+  expect(new Set(larguras).size).toBe(1);
+  const tops = await page.locator(".kanban .lane").evaluateAll((ls) => ls.map((l) => Math.round(l.getBoundingClientRect().top)));
+  expect(new Set(tops).size).toBe(1);
+  // No topo, ao lado de "Operação online", o acesso rápido ao WhatsApp Web
+  const whats = page.getByRole("banner").getByRole("link", { name: "WhatsApp (abre o WhatsApp Web em outra aba)" });
+  await expect(whats).toHaveAttribute("href", "https://web.whatsapp.com/");
+  await expect(whats).toHaveAttribute("target", "_blank");
+  expect((await whats.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 });
 
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.

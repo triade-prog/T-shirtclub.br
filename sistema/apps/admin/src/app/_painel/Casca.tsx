@@ -142,6 +142,10 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
               {c && (c.whatsapp.conectado
                 ? <span className="status-live">Operação online</span>
                 : <span className="status issue">WhatsApp desconectado</span>)}
+              {/* Acesso rápido (03/10, pedido da loja): o WhatsApp Web da loja numa aba nova, para responder as clientes */}
+              <a className="top-whats" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" title="Abrir o WhatsApp Web">
+                <Icone>{ICONES.whatsapp}</Icone>WhatsApp<span className="sr-only"> (abre o WhatsApp Web em outra aba)</span>
+              </a>
               <div className="avatar" role="img" aria-label="Loja T-shirt Club">TC</div>
             </div>
           </header>

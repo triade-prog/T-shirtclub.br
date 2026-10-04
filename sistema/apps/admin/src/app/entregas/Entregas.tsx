@@ -13,14 +13,15 @@ import { Carregando } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useRepetir } from "../_painel/useRepetir";
 
-// Entregas e frete em Kanban (03/10). v2, pedido da loja ("temos que melhorar isso também"):
-// sem rolar para o lado no computador, como nos quadros do Trello e do Linear: as colunas com
-// pedidos dividem a largura e as vazias viram uma faixa fina com o nome e o 0. No celular, uma
-// coluna embaixo da outra. No topo, o resumo (com a loja, esperando a cliente, parados, entregues)
-// e o filtro "Só o que é com a loja". O cartão mostra as peças, há quanto tempo o pedido está na
-// etapa (amarelo depois de 1 dia, vermelho depois de 2 nas etapas da loja), o endereço com
-// "Copiar", o WhatsApp da cliente e "Ver pedido". Sem arrastar: cada etapa tem regra própria, o
-// pedido anda pelo botão do cartão. ?substatus= (vindo da Operação) destaca a coluna.
+// Entregas e frete em Kanban (03/10). v3, pedido da loja ("quero que use o mesmo formato do Kanban
+// do dia"): o mesmo quadro da Operação, com 5 colunas do mesmo tamanho e as mesmas cores (Etapa 01,
+// Prioridade, Etapa 02, Etapa 03, Final), o resumo em pílulas, a busca com os filtros e a nota do
+// rodapé. Etapa 01 é o que espera a cliente (escolher a entrega ou pagar o frete); Prioridade é o
+// frete a calcular (ou vencido); Etapa 02, a preparação; Etapa 03, a retirada e o que está a
+// caminho; Final, os entregues da semana. O cartão mostra as peças, o próximo passo, há quanto
+// tempo o pedido está na etapa (amarelo depois de 1 dia, vermelho depois de 2 nas etapas da loja),
+// o endereço com "Copiar", o WhatsApp da cliente e "Ver pedido". Sem arrastar: cada etapa tem
+// regra própria, o pedido anda pelo botão do cartão. ?substatus= (vindo da Operação) destaca a coluna.
 
 interface Item {
   modalidade?: string; substatus: string; endereco?: Endereco; codigoRetirada?: string; rastreio?: string;
@@ -31,21 +32,32 @@ interface Item {
   pecas?: { nome: string; tamanho?: string; qtd: number }[];
 }
 
-type Coluna = "ESCOLHA" | "FRETE" | "PAGAR" | "PREPARO" | "RETIRADA" | "CAMINHO" | "ENTREGUE";
-type Dono = "LOJA" | "CLIENTE" | "FIM";
-const COLUNAS: { id: Coluna; dono: Dono; titulo: string; nota: string; etapas: string[] }[] = [
-  { id: "ESCOLHA", dono: "CLIENTE", titulo: "Escolha da entrega", nota: "Pago, falta a cliente escolher como recebe. Se ela respondeu pelo WhatsApp, preencha na reserva.", etapas: ["AGUARDANDO_MODALIDADE"] },
-  { id: "FRETE", dono: "LOJA", titulo: "Calcular o frete", nota: "Informe o valor: a cliente recebe no WhatsApp e tem 2 horas para pagar.", etapas: ["AGUARDANDO_CALCULO_FRETE", "FRETE_VENCIDO"] },
-  { id: "PAGAR", dono: "CLIENTE", titulo: "Frete a pagar", nota: "Esperando a cliente pagar o frete pelo site.", etapas: ["AGUARDANDO_PAGAMENTO_FRETE"] },
-  { id: "PREPARO", dono: "LOJA", titulo: "Em preparação", nota: "Separe as peças e marque o próximo passo: a cliente é avisada.", etapas: ["EM_PREPARACAO"] },
-  { id: "RETIRADA", dono: "CLIENTE", titulo: "Pronto para retirada", nota: "Esperando a cliente buscar com o código.", etapas: ["PRONTO_PARA_RETIRADA"] },
-  { id: "CAMINHO", dono: "LOJA", titulo: "A caminho", nota: "Com o motoboy ou enviado. Marque como entregue ao concluir.", etapas: ["SAIU_PARA_ENTREGA", "ENVIADO"] },
-  { id: "ENTREGUE", dono: "FIM", titulo: "Entregue", nota: "Nos últimos 7 dias. Os mais antigos ficam na tela da reserva.", etapas: [] },
+// Os ids são os da Operação: as colunas ganham as mesmas cores (data-lane)
+type Coluna = "AGUARDANDO" | "ACAO" | "PAGO" | "ENTREGA" | "CONCLUIDO";
+const COLUNAS: { id: Coluna; kicker: string; titulo: string; nota: string; etapas: string[] }[] = [
+  { id: "AGUARDANDO", kicker: "Etapa 01", titulo: "Com a cliente", nota: "Falta a cliente escolher a entrega ou pagar o frete. Se ela respondeu pelo WhatsApp, preencha na reserva.", etapas: ["AGUARDANDO_MODALIDADE", "AGUARDANDO_PAGAMENTO_FRETE"] },
+  { id: "ACAO", kicker: "Prioridade", titulo: "Calcular o frete", nota: "Informe o valor: a cliente recebe no WhatsApp e tem 2 horas para pagar.", etapas: ["AGUARDANDO_CALCULO_FRETE", "FRETE_VENCIDO"] },
+  { id: "PAGO", kicker: "Etapa 02", titulo: "Em preparação", nota: "Separe as peças e marque o próximo passo: a cliente é avisada.", etapas: ["EM_PREPARACAO"] },
+  { id: "ENTREGA", kicker: "Etapa 03", titulo: "Retirada e a caminho", nota: "Esperando a retirada, com o motoboy ou enviado. Marque como entregue ao concluir.", etapas: ["PRONTO_PARA_RETIRADA", "SAIU_PARA_ENTREGA", "ENVIADO"] },
+  { id: "CONCLUIDO", kicker: "Final", titulo: "Entregues", nota: "Nos últimos 7 dias. Os mais antigos ficam na tela da reserva.", etapas: [] },
 ];
-const DONO: Record<Dono, string> = { LOJA: "Com a loja", CLIENTE: "Com a cliente", FIM: "Concluído" };
+/** Quem dá o próximo passo em cada etapa. */
+const COM_A_CLIENTE = ["AGUARDANDO_MODALIDADE", "AGUARDANDO_PAGAMENTO_FRETE", "PRONTO_PARA_RETIRADA"];
+/** O próximo passo, em palavras da loja (como na Operação). */
+const PASSO: Record<string, string> = {
+  AGUARDANDO_MODALIDADE: "Cliente escolher a entrega",
+  AGUARDANDO_CALCULO_FRETE: "Calcular o frete",
+  FRETE_VENCIDO: "Mandar novo frete",
+  AGUARDANDO_PAGAMENTO_FRETE: "Cliente pagar o frete",
+  EM_PREPARACAO: "Preparar o pedido",
+  PRONTO_PARA_RETIRADA: "Cliente buscar",
+  SAIU_PARA_ENTREGA: "Confirmar a entrega",
+  ENVIADO: "Confirmar a entrega",
+};
 const colunaDa = (substatus: string) => COLUNAS.find((c) => c.etapas.includes(substatus))?.id;
 const foiEntregue = (f: Item) => !!f.reserva.entregueEm;
-const naColuna = (f: Item, col: (typeof COLUNAS)[number]) => (col.id === "ENTREGUE" ? foiEntregue(f) : !foiEntregue(f) && col.etapas.includes(f.substatus));
+const comALoja = (f: Item) => !foiEntregue(f) && !COM_A_CLIENTE.includes(f.substatus);
+const naColuna = (f: Item, col: (typeof COLUNAS)[number]) => (col.id === "CONCLUIDO" ? foiEntregue(f) : !foiEntregue(f) && col.etapas.includes(f.substatus));
 const maisRecente = (a: Item, b: Item) => (b.reserva.entregueEm ?? "").localeCompare(a.reserva.entregueEm ?? "");
 
 const HORA = 3_600_000;
@@ -60,19 +72,20 @@ function haQuanto(iso: string, agora: number): string {
 }
 /** Parado na etapa da loja: amarelo depois de 1 dia, vermelho depois de 2. */
 function tomDaEspera(f: Item, agora: number): "" | "atencao" | "atrasado" {
-  if (!f.desde || foiEntregue(f) || COLUNAS.find((c) => c.etapas.includes(f.substatus))?.dono !== "LOJA") return "";
+  if (!f.desde || !comALoja(f)) return "";
   const h = (agora - new Date(f.desde).getTime()) / HORA;
   return h >= 48 ? "atrasado" : h >= 24 ? "atencao" : "";
 }
 
-type Filtro = "TODAS" | "RETIRADA" | "MOTOBOY" | "ENVIO";
+type Filtro = "TODAS" | "LOJA" | "RETIRADA" | "MOTOBOY" | "ENVIO";
 const FILTROS: { id: Filtro; texto: string }[] = [
-  { id: "TODAS", texto: "Todas" }, { id: "RETIRADA", texto: "Retirada" }, { id: "MOTOBOY", texto: "Motoboy" }, { id: "ENVIO", texto: "Envio" },
+  { id: "TODAS", texto: "Todas" }, { id: "LOJA", texto: "Com a loja" }, { id: "RETIRADA", texto: "Retirada" }, { id: "MOTOBOY", texto: "Motoboy" }, { id: "ENVIO", texto: "Envio" },
 ];
 
 const soDigitos = (s: string) => s.replace(/\D/g, "");
 function passa(f: Item, filtro: Filtro, busca: string): boolean {
-  if (filtro !== "TODAS" && f.modalidade !== filtro) return false;
+  if (filtro === "LOJA" && !comALoja(f)) return false;
+  if (filtro !== "TODAS" && filtro !== "LOJA" && f.modalidade !== filtro) return false;
   const b = busca.trim().toLowerCase().replace(/^#/, "");
   if (!b) return true;
   return String(f.reserva.numero).includes(b) || f.reserva.nome.toLowerCase().includes(b)
@@ -86,7 +99,6 @@ export function Entregas() {
   const [agora, setAgora] = useState(() => Date.now());
   useRepetir(() => { void recarregar(); setAgora(Date.now()); }, 30_000, true);
   const [filtro, setFiltro] = useState<Filtro>("TODAS");
-  const [soLoja, setSoLoja] = useState(false);
   const [busca, setBusca] = useState("");
   const atualizar = () => void recarregar();
 
@@ -98,75 +110,65 @@ export function Entregas() {
   }, [carregado, alvo]);
 
   const abertos = (dados ?? []).filter((f) => !foiEntregue(f));
-  const comLoja = abertos.filter((f) => COLUNAS.find((c) => c.etapas.includes(f.substatus))?.dono === "LOJA");
-  const parados = abertos.filter((f) => tomDaEspera(f, agora) !== "");
+  const comLoja = abertos.filter(comALoja).length;
+  const parados = abertos.filter((f) => tomDaEspera(f, agora) !== "").length;
   const entregues = (dados ?? []).filter(foiEntregue).length;
-  const colunas = COLUNAS.filter((c) => !soLoja || c.dono === "LOJA");
 
   return (
-    <Casca kicker="LOGÍSTICA" compacto titulo={<>Entregas <em className="kanban-em">e frete</em></>}
-      sub="Cada pedido pago numa coluna, da escolha da entrega até chegar na cliente.">
+    <Casca kicker="LOGÍSTICA" titulo={<>Entregas <em className="kanban-em">e frete.</em></>}
+      sub="Cada pedido pago pelo próximo passo, da escolha da entrega até chegar na cliente. O botão de cada cartão leva o pedido para a próxima etapa.">
       {!dados ? <Carregando erro={erro} /> : (
         <>
-          <section className="ent-resumo" aria-label="Resumo das entregas">
-            <button type="button" className={`ent-kpi${soLoja ? " ativo" : ""}${comLoja.length ? " destaque" : ""}`} aria-pressed={soLoja} onClick={() => setSoLoja(!soLoja)}>
-              <b>{comLoja.length}</b> com a loja<span className="ent-kpi-dica">{soLoja ? "mostrando só estes" : "ver só estes"}</span>
-            </button>
-            <div className="ent-kpi"><b>{abertos.length - comLoja.length}</b> esperando a cliente</div>
-            <div className={`ent-kpi${parados.length ? " atrasado" : ""}`}><b>{parados.length}</b> {parados.length === 1 ? "parado" : "parados"} há mais de 1 dia</div>
-            <div className="ent-kpi"><b>{entregues}</b> {entregues === 1 ? "entregue" : "entregues"} em 7 dias</div>
+          <section className="quick-summary" aria-label="Resumo das entregas">
+            <span className="qs"><span className="qs-dot yellow" /><b>{comLoja}</b> com a loja</span>
+            <span className="qs"><span className="qs-dot" /><b>{abertos.length - comLoja}</b> esperando a cliente</span>
+            <span className="qs"><span className="qs-dot blue" /><b>{parados}</b> {parados === 1 ? "parado" : "parados"} há mais de 1 dia</span>
+            <span className="qs"><span className="qs-dot green" /><b>{entregues}</b> {entregues === 1 ? "entregue" : "entregues"} em 7 dias</span>
           </section>
 
           <div className="board-toolbar">
             <label className="board-search">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
               <span className="sr-only">Buscar pedido</span>
-              <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por número, nome ou telefone" />
+              <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente, telefone ou #pedido" />
             </label>
-            <div className="board-filters" role="group" aria-label="Filtrar por entrega">
+            <div className="board-filters" role="group" aria-label="Filtrar cartões">
               {FILTROS.map((f) => (
-                <button key={f.id} type="button" aria-pressed={filtro === f.id} className={`filter-chip${filtro === f.id ? " active" : ""}`} onClick={() => setFiltro(f.id)}>
+                <button key={f.id} type="button" aria-pressed={filtro === f.id}
+                  className={`filter-chip${filtro === f.id ? " active" : ""}${f.id === "LOJA" ? " attention" : ""}`} onClick={() => setFiltro(f.id)}>
                   {f.texto}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="board-wrap" tabIndex={0} role="region" aria-label="Quadro das entregas">
+          <div className="board-wrap" tabIndex={0} role="region" aria-label="Quadro das entregas: role para os lados para ver todas as colunas">
             <div className="kanban entregas">
-              {colunas.map((col) => {
+              {COLUNAS.map((col) => {
                 const todos = dados.filter((f) => naColuna(f, col));
-                if (col.id === "ENTREGUE") todos.sort(maisRecente);
+                if (col.id === "CONCLUIDO") todos.sort(maisRecente);
                 const cartoes = todos.filter((f) => passa(f, filtro, busca));
-                const vazia = todos.length === 0 && alvo !== col.id;
                 return (
-                  <section key={col.id} className={`lane${vazia ? " vazia" : ` cartoes-${Math.min(Math.max(cartoes.length, 1), 3)}`}${alvo === col.id ? " destaque" : ""}`} data-lane={col.id} aria-labelledby={`coluna-${col.id}`}>
+                  <section key={col.id} className={`lane${alvo === col.id ? " destaque" : ""}`} data-lane={col.id} aria-labelledby={`coluna-${col.id}`}>
                     <div className="lane-head">
-                      <div>
-                        <div className="lane-kicker">{COLUNAS.indexOf(col) + 1} · {DONO[col.dono]}</div>
-                        <h2 className="lane-title" id={`coluna-${col.id}`}>{col.titulo}</h2>
-                      </div>
+                      <div><div className="lane-kicker">{col.kicker}</div><h2 className="lane-title" id={`coluna-${col.id}`}>{col.titulo}</h2></div>
                       <span className="lane-count" aria-label={`${todos.length} ${todos.length === 1 ? "pedido" : "pedidos"}`}>{todos.length}</span>
                     </div>
-                    {!vazia && (
-                      <>
-                        <p className="lane-note">{col.nota}</p>
-                        <div className="cards-stack">
-                          {cartoes.map((f) => <CartaoEntrega key={f.reserva.id} f={f} agora={agora} aoMudar={atualizar} />)}
-                          {cartoes.length === 0 && <div className="empty-slot">{todos.length > 0 ? "Nada com este filtro." : "Nada por aqui agora."}</div>}
-                        </div>
-                      </>
-                    )}
+                    <p className="lane-note">{col.nota}</p>
+                    <div className="cards-stack">
+                      {cartoes.map((f) => <CartaoEntrega key={f.reserva.id} f={f} agora={agora} aoMudar={atualizar} />)}
+                      {cartoes.length === 0 && <div className="empty-slot">{todos.length > 0 ? "Nada com este filtro." : "Nada por aqui agora."}</div>}
+                    </div>
                   </section>
                 );
               })}
             </div>
           </div>
 
-          <details className="kanban-ajuda">
-            <summary>Como funciona o quadro</summary>
-            <p>Sem arrastar cartões: cada etapa tem uma regra (o frete precisa do valor, o envio do rastreio, a entrega da confirmação), então o pedido muda de coluna pelo botão do cartão e a cliente recebe o aviso no WhatsApp. O quadro se atualiza sozinho a cada 30 segundos. Colunas vazias ficam fininhas; entregue, o pedido fica 7 dias na última coluna.</p>
-          </details>
+          <div className="kanban-footnote">
+            <span className="star-mark" aria-hidden="true">✦</span>
+            <p><strong>Kanban das entregas, sem arrastar cartões.</strong> Cada etapa tem uma regra (o frete precisa do valor, o envio do rastreio, a entrega da confirmação): o pedido muda de coluna pelo botão do cartão, a cliente recebe o aviso no WhatsApp e o quadro se atualiza sozinho a cada 30 segundos. Entregue, o pedido fica 7 dias na última coluna.</p>
+          </div>
         </>
       )}
     </Casca>
@@ -200,21 +202,21 @@ function CartaoEntrega({ f, agora, aoMudar }: { f: Item; agora: number; aoMudar:
       <div className="k-card-head">
         <div>
           <h3 className="order-no" id={id}><Link href={`/reservas/${f.reserva.id}`}>#{f.reserva.numero}</Link></h3>
-          <div className="order-name">{f.reserva.nome}</div>
+          <div className="order-name">{f.reserva.nome}{nPecas ? ` · ${nPecas} ${nPecas === 1 ? "peça" : "peças"}` : ""}</div>
         </div>
         <span className={`k-time${urgente ? " urgent" : ""}${espera ? ` ${espera}` : ""}`} title={f.desde ? `Nesta etapa desde ${dataHora(f.desde)}` : undefined}>{tempo}</span>
       </div>
 
       {nPecas > 0 && (
         <p className="k-pecas">
-          <b>{nPecas} {nPecas === 1 ? "peça" : "peças"}:</b> {pecas.map((p) => `${p.nome}${p.tamanho && !/^Único/.test(p.tamanho) ? ` (${p.tamanho.split(" · ")[0]})` : ""}${p.qtd > 1 ? ` × ${p.qtd}` : ""}`).join(", ")}
+          {pecas.map((p) => `${p.nome}${p.tamanho && !/^Único/.test(p.tamanho) ? ` (${p.tamanho.split(" · ")[0]})` : ""}${p.qtd > 1 ? ` × ${p.qtd}` : ""}`).join(", ")}
         </p>
       )}
 
       <div className="k-tags">
         <span className="k-tag blue">{MODALIDADE[f.modalidade ?? ""] ?? "Sem entrega escolhida"}</span>
         {vencido && <span className="k-tag yellow">Frete vencido</span>}
-        {entregue && <span className="k-tag green">Entregue</span>}
+        {entregue ? <span className="k-tag green">Entregue</span> : <span className={`k-tag${comALoja(f) ? " yellow" : " pink"}`}>{comALoja(f) ? "Com a loja" : "Com a cliente"}</span>}
         {f.disputaAberta && <span className="k-tag pink">Contestação aberta</span>}
       </div>
 
@@ -222,6 +224,7 @@ function CartaoEntrega({ f, agora, aoMudar }: { f: Item; agora: number; aoMudar:
 
       <dl className="k-meta">
         <dt>Total</dt><dd>{formatarReais(f.reserva.totalCentavos)}</dd>
+        {!entregue && PASSO[f.substatus] && <><dt>Próximo passo</dt><dd>{PASSO[f.substatus]}</dd></>}
         {f.codigoRetirada && f.modalidade === "RETIRADA" && <><dt>Código de retirada</dt><dd>{f.codigoRetirada}</dd></>}
         {f.frete && <><dt>Frete</dt><dd>{formatarReais(f.frete.valorCentavos)}{f.frete.pagoEm ? " · pago" : ""}</dd></>}
         {f.rastreio && <><dt>Rastreio</dt><dd>{f.rastreio}</dd></>}
