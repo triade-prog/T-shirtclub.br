@@ -32,3 +32,17 @@ Deno.test("disputas: listar e resolver com observação (G2)", async () => {
   assertEquals((await m.pedir(`/v1/admin/payment-disputes/${ANALISE}/resolve`, { nota: "" })).status, 400);
   assertEquals((await m.pedir(`/v1/admin/payment-disputes/${ANALISE}/resolve`, { nota: "Banco decidiu a favor da loja" })).status, 200);
 });
+
+Deno.test("histórico: todos os pagamentos ou por grupo; grupo desconhecido é recusado", async () => {
+  const m = await logado({ rpcExtra: (f) => (f === "admin_list_payments" ? { totais: { APROVADO: 1 }, itens: [{ id: "p1" }] } : undefined) });
+  assertEquals((await (await m.pedir("/v1/admin/payments")).json()).itens[0].id, "p1");
+  assertEquals(m.rpcs.find((x) => x.funcao === "admin_list_payments")!.args, { p_grupo: null });
+  await m.pedir("/v1/admin/payments?grupo=ESTORNADO");
+  assertEquals(m.rpcs.findLast((x) => x.funcao === "admin_list_payments")!.args, { p_grupo: "ESTORNADO" });
+  assertEquals((await m.pedir("/v1/admin/payments?grupo=OUTRO")).status, 400);
+});
+
+Deno.test("histórico: os cancelamentos feitos pela loja", async () => {
+  const m = await logado({ rpcExtra: (f) => (f === "admin_list_store_cancellations" ? [{ id: "r1", motivo: "Teste" }] : undefined) });
+  assertEquals((await (await m.pedir("/v1/admin/store-cancellations")).json())[0].motivo, "Teste");
+});

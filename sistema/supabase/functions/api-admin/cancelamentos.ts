@@ -1,4 +1,5 @@
-// Pedidos de cancelamento das clientes (regra 12): listar e decidir, sempre com motivo.
+// Pedidos de cancelamento das clientes (regra 12): listar e decidir, sempre com motivo. E os
+// cancelamentos feitos pela loja, para o histórico.
 // Aprovado encerra a reserva (T4) e devolve o estoque; recusado, ela segue no prazo.
 
 import type { Hono } from "hono";
@@ -16,6 +17,9 @@ export function rotasCancelamentos(app: Hono<VarsAdmin>, banco: Banco): void {
     if (!STATUS.includes(status)) throw new ErroDominio("VALIDATION_ERROR");
     return c.json(await chamar(banco, "admin_list_cancellation_requests", { p_status: status === "TODOS" ? null : status }));
   });
+
+  // Os cancelamentos feitos pela loja (0590), para o histórico da tela (0600)
+  app.get("/v1/admin/store-cancellations", async (c) => c.json(await chamar(banco, "admin_list_store_cancellations", {})));
 
   for (const [acao, funcao] of [["approve", "approve_cancellation"], ["reject", "reject_cancellation"]] as const) {
     app.post(`/v1/admin/cancellation-requests/:id/${acao}`, async (c) => {

@@ -87,7 +87,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
     { href: "/catalogo", rotulo: "Catálogo", icone: ICONES.catalogo, n: 0 },
     { href: "/estoque", rotulo: "Estoque", icone: ICONES.estoque, n: 0 },
     { href: "/promocoes", rotulo: "Promoções", icone: ICONES.promocoes, n: 0 },
-    { href: "/pagamentos", rotulo: "Pagamentos em análise", icone: ICONES.pagamentos, n: c?.acoes.pagamentosEmAnalise ?? 0 },
+    { href: "/pagamentos", rotulo: "Pagamentos", icone: ICONES.pagamentos, n: c?.acoes.pagamentosEmAnalise ?? 0 },
     { href: "/contestacoes", rotulo: "Contestações", icone: ICONES.contestacoes, n: c?.acoes.disputasAbertas ?? 0 },
     { href: "/bloqueados", rotulo: "Bloqueios", icone: ICONES.bloqueados, n: c?.acoes.telefonesBloqueados ?? 0 },
     { href: "/vip", rotulo: "Lista VIP", icone: ICONES.vip, n: 0 },
@@ -142,6 +142,10 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
               {c && (c.whatsapp.conectado
                 ? <span className="status-live">Operação online</span>
                 : <span className="status issue">WhatsApp desconectado</span>)}
+              {/* Acesso rápido (03/10, pedido da loja): o WhatsApp Web da loja numa aba nova, para responder as clientes */}
+              <a className="top-whats" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" title="Abrir o WhatsApp Web">
+                <Icone>{ICONES.whatsapp}</Icone>WhatsApp<span className="sr-only"> (abre o WhatsApp Web em outra aba)</span>
+              </a>
               <div className="avatar" role="img" aria-label="Loja T-shirt Club">TC</div>
             </div>
           </header>

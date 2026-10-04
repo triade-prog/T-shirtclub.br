@@ -99,7 +99,7 @@ O atendimento automático (menu, respostas rápidas e "falar com a equipe") resp
    Acompanhamento: se ninguém assumir o chamado em 20 minutos, a Clubinha avisa a cliente e vocês recebem o aviso de novo ("ainda espera a equipe"), só no horário de atendimento (das 8h às 20h, editável na aba Clubinha, com os minutos até o lembrete) e uma vez por chamado. A rotina é a "atendimento-acompanhamento" do pg_cron, a cada minuto; para parar só esta mensagem, desligue "Equipe demorou a responder" na aba Mensagens automáticas. Para não pedir a nota nem avisar a cliente da dúvida passada, desligue "Chamados".
    Mensagem que falhou (0570): a aba Envios mostra o motivo e "Tentar de novo", que volta a mensagem para a fila (fica na auditoria). Não volta a da reserva criada (o link da reserva sai do banco na primeira tentativa: a cliente vê a reserva pelo site ou mandando "minha reserva"), a vencida e a que já não vale para a reserva. Se o motivo for "pode ter saído" (a ferramenta não respondeu a tempo), confira no celular da loja antes de tentar de novo. Na tela da reserva (0580), a linha do tempo mostra as mensagens daquela reserva, com o mesmo "Tentar de novo".
 
-**Cancelar pela loja (0590).** Na tela da reserva, "Cancelar reserva" ou "Cancelar pedido" mostra antes o que vai acontecer e pede o motivo. Pedido pago pelo site: o estorno sai na hora pelo Mercado Pago e só depois o pedido é encerrado; se o Mercado Pago estiver fora do ar, nada muda e dá para tentar de novo (o estorno não sai duas vezes). Venda paga fora do site: devolva o valor à cliente por fora; o faturamento desconta no dia. Com contestação aberta ou PIX do frete em aberto, o botão explica o que esperar.
+**Cancelar pela loja (0590).** Na tela da reserva, "Cancelar reserva" ou "Cancelar pedido" mostra antes o que vai acontecer e pede o motivo. Pedido pago pelo site: o estorno sai na hora pelo Mercado Pago e só depois o pedido é encerrado; se o Mercado Pago estiver fora do ar, nada muda e dá para tentar de novo (o estorno não sai duas vezes). Venda paga fora do site: devolva o valor à cliente por fora; o faturamento desconta no dia. Com contestação aberta ou PIX do frete em aberto, o botão explica o que esperar. Depois, o cancelamento fica em **Cancelamentos → Histórico** (motivo, quem cancelou e o estorno) e o pagamento aparece como Estornado em **Pagamentos**.
 7. A mensagem de reserva expirada leva as peças que ainda estão à venda, com o link. Se a expiração bloqueou o número, ela sai sem o convite. O pós-entrega sai 2 dias depois da entrega, das 8h às 20h, e se desliga em "Pós-entrega" nas notificações.
 
 ## Mercado Pago fora do ar
@@ -115,7 +115,7 @@ e aplica o que o Mercado Pago confirmar quando voltar; pagamento aprovado depois
 **O que fazer:**
 1. Se for durante um lançamento, avise nas redes que o pagamento está instável e que ninguém perde a
    vez por isso enquanto a reserva estiver no prazo.
-2. Não mexa no banco. Quando o Mercado Pago voltar, acompanhe **Pagamentos em análise** no painel.
+2. Não mexa no banco. Quando o Mercado Pago voltar, acompanhe **Pagamentos → Em análise** no painel.
 3. Se a queda for longa (mais de 1 h), considere adiar o lançamento.
 
 ## Pagamento em análise
@@ -123,7 +123,7 @@ e aplica o que o Mercado Pago confirmar quando voltar; pagamento aprovado depois
 **Por quê:** pagamento aprovado depois do prazo, com valor diferente do da cobrança, ou de reserva que
 já tinha encerrado (ou de frete de uma cotação que mudou).
 
-**O que fazer (painel → Pagamentos em análise):**
+**O que fazer (painel → Pagamentos → Em análise):**
 1. Fale com a cliente pelo WhatsApp (ela recebe o aviso "a loja vai conferir").
 2. **Converter em pedido**: se as peças ainda estão disponíveis, nasce uma reserva nova já paga. Não
    vale para frete.

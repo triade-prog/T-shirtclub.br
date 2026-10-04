@@ -101,7 +101,7 @@ ol.list{list-style:none;margin:0;padding:0}
 .filter-chip:focus-visible,.k-btn:focus-visible,.board-wrap:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
 .board-wrap{overflow-x:auto;padding:3px 2px 22px;scrollbar-width:thin;border-radius:22px}
 .kanban{display:grid;grid-template-columns:repeat(5,minmax(262px,1fr));gap:14px;min-width:1370px;align-items:start}
-.kanban.entregas{grid-template-columns:repeat(7,minmax(262px,1fr));min-width:1920px}.kanban.entregas .lane{min-height:420px}.lane.destaque{border-color:var(--pink);box-shadow:0 0 0 3px var(--pink-soft)}
+.lane.destaque{border-color:var(--pink);box-shadow:0 0 0 3px var(--pink-soft)}
 .lane[data-lane="ESCOLHA"]{--lane-color:#d8cfcc}.lane[data-lane="FRETE"]{--lane-color:#f2dd3d}.lane[data-lane="PAGAR"]{--lane-color:#e8478a}.lane[data-lane="PREPARO"]{--lane-color:#a7d54b}.lane[data-lane="RETIRADA"]{--lane-color:#8fb9ff}.lane[data-lane="CAMINHO"]{--lane-color:#26201f}.lane[data-lane="ENTREGUE"]{--lane-color:#5f8f1c}.k-card.done{background:#fbfdf6}
 .k-endereco{font-size:11px;color:var(--muted);margin:9px 0 0;line-height:1.45;overflow-wrap:anywhere}.order-no a{color:inherit}.k-card .form-row.two{grid-template-columns:1fr}
 .lane{background:rgba(255,255,255,.58);border:1px solid var(--line);border-radius:22px;padding:12px;min-height:520px;position:relative}
@@ -136,7 +136,7 @@ ol.list{list-style:none;margin:0;padding:0}
 .kanban-footnote{display:flex;gap:10px;align-items:flex-start;margin-top:4px;padding:13px 15px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5}
 .kanban-footnote p{margin:0}.kanban-footnote strong{color:var(--ink)}
 .star-mark{font-family:var(--font-fraunces);font-size:18px;font-weight:900;color:var(--pink);line-height:1}
-@media(max-width:560px){.board-toolbar{padding:10px}.board-search{min-width:100%}.kanban{grid-template-columns:repeat(5,minmax(252px,82vw));min-width:0;scroll-snap-type:x mandatory}.kanban.entregas{grid-template-columns:repeat(7,minmax(252px,82vw));min-width:0}.lane{scroll-snap-align:start;min-height:0}}
+@media(max-width:560px){.board-toolbar{padding:10px}.board-search{min-width:100%}.kanban{grid-template-columns:repeat(5,minmax(252px,82vw));min-width:0;scroll-snap-type:x mandatory}.lane{scroll-snap-align:start;min-height:0}}
 @media(prefers-reduced-motion:reduce){.k-card,.k-card:hover{transition:none;transform:none}}
 
 /* ===== Dashboard comercial (protótipo 03) ===== */
@@ -408,24 +408,8 @@ ol.list{list-style:none;margin:0;padding:0}
 .ent-falta{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--lemon-soft);font-size:11.5px}
 .endereco-campos{margin-top:14px;border:0;padding:0}
 .endereco-campos legend{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);margin-bottom:6px}
-/* Entregas v2 (03/10): resumo no topo, colunas vazias fininhas (sem rolar para o lado no
-   computador), uma embaixo da outra no celular, e o cartão com peças, tempo na etapa e atalhos. */
-.ent-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.ent-kpi{display:inline-flex;align-items:baseline;gap:6px;min-height:44px;padding:11px 15px;border-radius:999px;border:1px solid var(--line);background:#fff;font:inherit;font-size:11.5px;font-weight:700;color:var(--muted)}
-.ent-kpi b{font-family:var(--font-baloo);font-size:17px;line-height:1;color:var(--ink)}
-button.ent-kpi{cursor:pointer}
-.ent-kpi.destaque{border-color:#e4c217;background:var(--lemon-soft);color:#5c4a00}
-.ent-kpi.ativo{background:var(--ink);border-color:var(--ink);color:#fff}.ent-kpi.ativo b{color:#fff}
-.ent-kpi.atrasado{border-color:rgba(238,74,42,.38);background:var(--tomato-soft);color:#9d2f18}.ent-kpi.atrasado b{color:#9d2f18}
-.ent-kpi-dica{font-size:9.5px;font-weight:600;margin-left:4px;text-decoration:underline;text-underline-offset:2px}
-.ent-kpi:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
-.kanban.entregas{display:flex;gap:12px;min-width:0;scroll-snap-type:none}
-.kanban.entregas .lane{flex:1 1 0;min-width:212px;min-height:380px}
-.kanban.entregas .lane.vazia{flex:0 0 58px;min-width:58px;padding:12px 6px;background:rgba(255,255,255,.35)}
-.lane.vazia .lane-head{flex-direction:column-reverse;align-items:center;gap:12px;padding:8px 0}
-.lane.vazia .lane-kicker{display:none}
-.lane.vazia .lane-title{writing-mode:vertical-rl;transform:rotate(180deg);font-size:13px;color:var(--muted);margin:0;white-space:nowrap}
-.lane.vazia .lane-count{color:var(--muted)}
+/* Entregas (03/10): o mesmo quadro da Operação; o cartão tem peças, tempo na etapa e atalhos. */
+.kanban.entregas .k-card-head{flex-wrap:wrap}.kanban.entregas .k-time{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .k-pecas{margin:0 0 9px;font-size:11px;line-height:1.4;color:var(--muted)}.k-pecas b{color:var(--ink)}
 .k-time.atencao{background:var(--lemon-soft);border-color:#e4c217;color:#5c4a00}
 .k-time.atrasado{background:var(--tomato-soft);border-color:rgba(238,74,42,.38);color:#9d2f18}
@@ -434,10 +418,14 @@ button.ent-kpi{cursor:pointer}
 .k-link{white-space:nowrap;display:inline-flex;align-items:center;min-height:44px;min-width:44px;padding:0 4px;border:0;background:none;font:inherit;font-size:11px;font-weight:800;color:var(--pink-dark);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .k-link:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
 .k-rodape{display:flex;justify-content:space-between;gap:8px;margin-top:8px;border-top:1px dashed var(--line)}
-.kanban-ajuda{margin-top:4px;padding:2px 15px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5}
-.kanban-ajuda summary{display:flex;align-items:center;min-height:44px;font-weight:800;color:var(--ink);cursor:pointer}
-.kanban-ajuda p{margin:0 0 12px}
-@media(max-width:820px){.kanban.entregas{flex-direction:column}.kanban.entregas .lane,.kanban.entregas .lane.vazia{flex:none;width:100%;min-width:0;min-height:0}
-  .kanban.entregas .lane.vazia{padding:8px 12px}.lane.vazia .lane-head{flex-direction:row;justify-content:space-between;padding:4px}
-  .lane.vazia .lane-title{writing-mode:horizontal-tb;transform:none;font-size:14px}.lane.vazia .lane-kicker{display:block}}
-.kanban.entregas .k-card-head{flex-wrap:wrap}.kanban.entregas .k-time{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+/* Acesso rápido ao WhatsApp no topo (03/10): ao lado de "Operação online", abre o WhatsApp Web numa aba nova */
+.top-whats{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 15px;border-radius:999px;background:#25d366;border:1px solid rgba(7,94,84,.25);color:#06302a;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .18s ease}
+.top-whats svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top-whats:hover{background:#1ebe5a}.top-whats:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+@media(max-width:820px){.top-whats{display:none}}
+/* Pagamentos (0600): o histórico com os filtros por grupo; a cor do número segue o grupo */
+.pag-filtros{margin:0 0 14px}
+.pag-lista{list-style:none;margin:0;padding:0}
+.pag-selos{display:flex;gap:7px;margin-top:7px;flex-wrap:wrap}
+.res-id.pag-aprovado{background:var(--green-soft);color:var(--green)}.res-id.pag-em_analise{background:var(--lemon-soft);color:#5c4a00}
+.res-id.pag-estornado,.res-id.pag-nao_pago{background:#f3eded;color:#7d676f}
