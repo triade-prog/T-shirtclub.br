@@ -118,11 +118,13 @@ select is((select i -> 'pecas' -> 0 ->> 'nome' from jsonb_array_elements(admin_l
 select ok((select (i ->> 'desde') is not null from jsonb_array_elements(admin_list_fulfillments()) i
             where i -> 'reserva' ->> 'id' = (select id::text from t where nome = 'dinheiro')), 'e desde quando está na etapa');
 
--- Cancelar a venda em dinheiro: devolve por fora e o faturamento desconta
+-- Cancelar a venda em dinheiro: devolve por fora. Desde a 0610, o pedido cancelado pela loja deixa
+-- de ser venda (nem pedido nem estorno): só a contestada, que segue de pé, conta.
 select is((admin_cancel_preview((select id from t where nome = 'dinheiro')) ->> 'devolverPorForaCentavos')::int, 4999, 'a venda em dinheiro devolve por fora');
 select admin_cancel_reservation(:admin, (select id from t where nome = 'dinheiro'), 'Cliente desistiu');
-select is((sales_totals(app_now() - interval '1 hour', app_now() + interval '1 hour') ->> 'estornosCentavos')::int, 9998,
-  'o faturamento desconta o estorno do Mercado Pago e a devolução em dinheiro');
+select is((select (v ->> 'pedidos', v ->> 'estornosCentavos', v ->> 'canceladosPelaLoja')::text
+             from sales_totals(app_now() - interval '1 hour', app_now() + interval '1 hour') v), '(1,0,2)',
+  'os 2 pedidos cancelados pela loja saem do faturamento, sem estorno descontado');
 
 select * from finish();
 rollback;

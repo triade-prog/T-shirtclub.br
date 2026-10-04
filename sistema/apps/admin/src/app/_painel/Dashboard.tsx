@@ -29,6 +29,8 @@ interface Totais {
   pedidosClub: number;
   reservasEncerradas: number;
   reservasPagas: number;
+  /** Pedidos pagos que a loja cancelou no período: ficam fora de todos os números (0610). */
+  canceladosPelaLoja?: number;
 }
 
 interface Comercial {
@@ -59,7 +61,10 @@ const pctTexto = (v: number) => `${v.toLocaleString("pt-BR", { maximumFractionDi
 
 /** "↑ 18%" / "↓ 4%" / "=" comparado com o período anterior; sem base, nada. */
 function Tendencia({ atual, anterior, sufixo, unidade = "pct" }: { atual: number; anterior: number; sufixo: string; unidade?: "pct" | "n" }) {
-  if (unidade === "pct" && anterior === 0) return <div className="kpi-trend"><span>{sufixo}</span></div>;
+  // Sem base: zero nos dois é "igual"; venda agora e nada antes não vira porcentagem
+  if (unidade === "pct" && anterior === 0) {
+    return <div className="kpi-trend">{atual === 0 ? <><span>=</span><span>vs. {sufixo}</span></> : <span>sem vendas para comparar ({sufixo})</span>}</div>;
+  }
   const diff = unidade === "pct" ? Math.round(((atual - anterior) / anterior) * 100) : atual - anterior;
   const classe = diff > 0 ? "up" : diff < 0 ? "down" : "";
   const seta = diff > 0 ? "↑" : diff < 0 ? "↓" : "=";
@@ -139,6 +144,9 @@ function Indicadores({ d, anterior }: { d: Comercial; anterior: string }) {
         <div className="kpi-label">Pedidos pagos</div>
         <div className="kpi-value">{a.pedidos}</div>
         <Tendencia atual={a.pedidos} anterior={b.pedidos} sufixo={anterior} unidade="n" />
+        {(a.canceladosPelaLoja ?? 0) > 0 && (
+          <div className="kpi-trend"><span>{a.canceladosPelaLoja} {a.canceladosPelaLoja === 1 ? "cancelado pela loja ficou" : "cancelados pela loja ficaram"} fora da conta</span></div>
+        )}
       </article>
       <article className="card kpi yellow">
         <div className="kpi-label">Ticket médio</div>
@@ -249,7 +257,7 @@ function Demonstrativo({ t }: { t: Totais }) {
   return (
     <article className="card list-card">
       <h2 className="card-title">Demonstrativo do período</h2>
-      <p className="card-sub">A venda conta na confirmação do pagamento.</p>
+      <p className="card-sub">A venda conta na confirmação do pagamento. Pedido cancelado pela loja não conta como venda, nem o estorno dele.</p>
       <div className="dre">
         {linha("Peças (preço de tabela)", t.pecasBrutaCentavos)}
         {linha("Frete cobrado", t.freteCentavos)}

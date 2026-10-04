@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(19);
 
 -- Histórico de cancelamentos da loja e de pagamentos no painel (0600).
 
@@ -72,6 +72,17 @@ select is((select e ->> 'idProvedor' from jsonb_array_elements(admin_list_paymen
   (select 'mp-' || left(p.id::text, 8) from payments p join t on t.id = p.reservation_id where t.nome = 'ok'), 'com o número do Mercado Pago');
 select is(array[payment_group('RECUSADO'), payment_group('CANCELADO'), payment_group('FALHOU'), payment_group('EM_ANALISE')],
   array['NAO_PAGO', 'NAO_PAGO', 'NAO_PAGO', 'EM_ANALISE'], 'recusado, cancelado e falhou ficam em Não pagos');
+
+-- ── Dashboard (0610): o pedido cancelado pela loja deixa de ser venda ──
+create temp table v as select sales_totals(app_now() - interval '1 hour', app_now() + interval '1 hour') as t;
+select is((select (t ->> 'pedidos', t ->> 'pecas', t ->> 'ticketMedioCentavos')::text from v), '(1,1,4999)',
+  'só o pedido que segue de pé conta: pedidos, peças e ticket');
+select is((select (t ->> 'estornosCentavos', t ->> 'receitaLiquidaCentavos')::text from v), '(0,4999)',
+  'o estorno do cancelado não é descontado de novo');
+select is((select (t ->> 'reservasPagas', t ->> 'reservasEncerradas')::text from v), '(1,1)', 'nem na conversão');
+select is((select (t ->> 'canceladosPelaLoja')::int from v), 1, 'a tela sabe quantos pedidos pagos a loja cancelou');
+select is((select (c ->> 'pecas')::int from jsonb_array_elements(admin_sales_dashboard('HOJE') -> 'colecoes') c), 1,
+  'as coleções também ficam sem o cancelado');
 
 select ok(not has_function_privilege('anon', 'admin_list_payments(text, integer)', 'execute')
           and not has_function_privilege('anon', 'admin_list_store_cancellations(integer)', 'execute'), 'fechado ao público');

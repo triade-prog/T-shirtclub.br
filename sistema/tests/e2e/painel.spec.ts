@@ -861,6 +861,32 @@ test("Cancelamentos e Pagamentos: o histórico com o cancelamento da loja e todo
   expect(axe.violations.map((v) => v.id)).toEqual([]);
 });
 
+// Dashboard (0610) com a api-admin simulada: o pedido pago que a loja cancelou fica fora da conta, e
+// zero hoje com zero ontem aparece como "igual", não solto.
+test("Dashboard: o pedido cancelado pela loja fica fora da conta", async ({ page, context }) => {
+  const totais = (extra: Record<string, unknown> = {}) => ({ pedidos: 0, pecasBrutaCentavos: 0, freteCentavos: 0, receitaBrutaCentavos: 0, descontosCentavos: 0,
+    estornosCentavos: 0, receitaLiquidaCentavos: 0, ticketMedioCentavos: null, pecas: 0, pedidosClub: 0, reservasEncerradas: 0, reservasPagas: 0, ...extra });
+  const comercial = {
+    periodo: "HOJE", atual: totais({ canceladosPelaLoja: 1 }), anterior: totais(), meta: null,
+    serie: Array.from({ length: 7 }, (_, i) => ({ dia: `2026-09-${String(27 + i).padStart(2, "0")}`, receitaLiquidaCentavos: 0 })),
+    colecoes: [], mix: { pagamento: {}, entrega: {}, tamanho: {} }, estoque: [], estoqueTotal: 0,
+    pulso: { ativas: 0, precisamDeAcao: 0, pagas: 0, freteParaCalcular: 0, entreguesHoje: 0 }, whatsapp: { conectado: true },
+  };
+  await context.addCookies([{ name: "__Host-painel", value: "x", domain: "localhost", path: "/", secure: true }]);
+  await page.route("**/api/v1/admin/**", async (rota) => {
+    const caminho = new URL(rota.request().url()).pathname.replace(/^\/api\//, "");
+    if (caminho === "v1/admin/comercial") return rota.fulfill({ json: comercial });
+    return rota.fulfill({ status: 404, json: { erro: { codigo: "NOT_FOUND" } } });
+  });
+  await page.goto(`${PAINEL}/`);
+  const kpis = page.getByRole("region", { name: "Indicadores principais" });
+  const pedidos = kpis.getByRole("article").filter({ hasText: "Pedidos pagos" });
+  await expect(pedidos).toContainText("1 cancelado pela loja ficou fora da conta");
+  await expect(kpis.getByRole("article").filter({ hasText: "Receita líquida" })).toContainText("=vs. ontem até agora");
+  await expect(kpis.getByRole("article").filter({ hasText: "Conversão" })).toContainText("—");
+  await expect(page.getByText("Pedido cancelado pela loja não conta como venda, nem o estorno dele.")).toBeVisible();
+});
+
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.
 test("Acessos: visitantes por dia, páginas, origens e aparelhos", async ({ page, context }) => {
   const dias = (n: number) => Array.from({ length: n }, (_, i) => ({ dia: `2026-09-${String(i + 1).padStart(2, "0")}`, visitas: i * 3, visitantes: i }));
