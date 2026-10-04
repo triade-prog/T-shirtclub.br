@@ -26,35 +26,44 @@ interface DaLoja {
 type Item = { tipo: "cliente"; em: string; p: Pedido } | { tipo: "loja"; em: string; c: DaLoja };
 
 export function Cancelamentos() {
-  const [filtro, setFiltro] = useState<"PENDENTE" | "TODOS">("PENDENTE");
-  const { dados, erro, recarregar } = useDados<Pedido[]>(`v1/admin/cancellation-requests?status=${filtro}`);
+  // Sem pedido pendente, a tela abre no Histórico (03/10: a loja abriu, viu "Nenhum pedido
+  // esperando decisão" e achou que o cancelamento feito não estava lá). A aba escolhida vale.
+  const [escolha, setEscolha] = useState<"PENDENTE" | "TODOS" | null>(null);
+  const pend = useDados<Pedido[]>("v1/admin/cancellation-requests?status=PENDENTE");
+  const filtro = escolha ?? (pend.dados?.length === 0 ? "TODOS" : "PENDENTE");
+  const todos = useDados<Pedido[]>(filtro === "TODOS" ? "v1/admin/cancellation-requests?status=TODOS" : null);
   const daLoja = useDados<DaLoja[]>("v1/admin/store-cancellations");
-  const pendentes = filtro === "PENDENTE" ? dados?.length ?? 0 : dados?.filter((p) => p.status === "PENDENTE").length ?? 0;
+  const pendentes = pend.dados?.length ?? 0;
+  const recarregar = () => { void pend.recarregar(); void todos.recarregar(); void daLoja.recarregar(); };
   // Histórico: os pedidos das clientes e os cancelamentos da loja, do mais recente ao mais antigo
-  const historico: Item[] | null = filtro === "TODOS" && dados && daLoja.dados
-    ? [...dados.map((p) => ({ tipo: "cliente" as const, em: p.decididoEm ?? p.solicitadoEm, p })),
+  const historico: Item[] | null = todos.dados && daLoja.dados
+    ? [...todos.dados.map((p) => ({ tipo: "cliente" as const, em: p.decididoEm ?? p.solicitadoEm, p })),
        ...daLoja.dados.map((c) => ({ tipo: "loja" as const, em: c.canceladaEm, c }))].sort((a, b) => b.em.localeCompare(a.em))
     : null;
 
   return (
     <Casca kicker="ATENDIMENTO" titulo="Cancelamentos" sub="Pedidos das clientes que esperam a decisão da loja e o histórico de tudo o que foi cancelado, inclusive pela loja.">
       <div className="tabs" role="group" aria-label="Filtrar pedidos">
-        <button type="button" className={`tab${filtro === "PENDENTE" ? " active" : ""}`} aria-pressed={filtro === "PENDENTE"} onClick={() => setFiltro("PENDENTE")}>
+        <button type="button" className={`tab${filtro === "PENDENTE" ? " active" : ""}`} aria-pressed={filtro === "PENDENTE"} onClick={() => setEscolha("PENDENTE")}>
           Pendentes {pendentes > 0 && <span className="n">{pendentes}</span>}
         </button>
-        <button type="button" className={`tab${filtro === "TODOS" ? " active" : ""}`} aria-pressed={filtro === "TODOS"} onClick={() => setFiltro("TODOS")}>Histórico</button>
+        <button type="button" className={`tab${filtro === "TODOS" ? " active" : ""}`} aria-pressed={filtro === "TODOS"} onClick={() => setEscolha("TODOS")}>
+          Histórico
+        </button>
       </div>
-      {filtro === "TODOS" ? (!historico ? <Carregando erro={erro ?? daLoja.erro} /> : historico.length === 0 ? (
+      {filtro === "TODOS" ? (!historico ? <Carregando erro={todos.erro ?? daLoja.erro} /> : historico.length === 0 ? (
         <p className="muted" style={{ fontSize: 12 }}>Nenhum cancelamento ainda.</p>
       ) : (
         <div className="list">
-          {historico.map((i) => i.tipo === "loja" ? <CartaoDaLoja key={`loja-${i.c.id}`} c={i.c} /> : <CartaoPedido key={i.p.id} p={i.p} aoDecidir={() => void recarregar()} />)}
+          {historico.map((i) => i.tipo === "loja" ? <CartaoDaLoja key={`loja-${i.c.id}`} c={i.c} /> : <CartaoPedido key={i.p.id} p={i.p} aoDecidir={recarregar} />)}
         </div>
-      )) : !dados ? <Carregando erro={erro} /> : dados.length === 0 ? (
-        <p className="muted" style={{ fontSize: 12 }}>{filtro === "PENDENTE" ? "Nenhum pedido esperando decisão." : "Nenhum pedido de cancelamento."}</p>
+      )) : !pend.dados ? <Carregando erro={pend.erro} /> : pend.dados.length === 0 ? (
+        <p className="muted" style={{ fontSize: 12 }}>
+          Nenhum pedido esperando decisão. <button type="button" className="btn-link" onClick={() => setEscolha("TODOS")}>Ver o histórico</button>
+        </p>
       ) : (
         <div className="list">
-          {dados.map((p) => <CartaoPedido key={p.id} p={p} aoDecidir={() => void recarregar()} />)}
+          {pend.dados.map((p) => <CartaoPedido key={p.id} p={p} aoDecidir={recarregar} />)}
         </div>
       )}
     </Casca>
