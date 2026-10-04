@@ -419,7 +419,11 @@ button.ent-kpi{cursor:pointer}
 .ent-kpi.atrasado{border-color:rgba(238,74,42,.38);background:var(--tomato-soft);color:#9d2f18}.ent-kpi.atrasado b{color:#9d2f18}
 .ent-kpi-dica{font-size:9.5px;font-weight:600;margin-left:4px;text-decoration:underline;text-underline-offset:2px}
 .ent-kpi:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
-.kanban.entregas{display:flex;gap:12px;min-width:0;scroll-snap-type:none}
+.kanban.entregas{display:flex;gap:12px;min-width:0;scroll-snap-type:none;align-items:stretch}
+/* A coluna cresce com os pedidos: com 1 ou 2 cartões ela tem a largura deles (o quadro não estica um cartão
+   sozinho); com 3 ou mais divide o espaço, e os cartões ficam lado a lado, na largura de sempre */
+.kanban.entregas .lane.cartoes-1{max-width:340px}.kanban.entregas .lane.cartoes-2{max-width:640px}
+.kanban.entregas .cards-stack{grid-template-columns:repeat(auto-fill,minmax(min(272px,100%),1fr));align-items:start}.kanban.entregas .empty-slot{grid-column:1/-1}
 .kanban.entregas .lane{flex:1 1 0;min-width:212px;min-height:380px}
 .kanban.entregas .lane.vazia{flex:0 0 58px;min-width:58px;padding:12px 6px;background:rgba(255,255,255,.35)}
 .lane.vazia .lane-head{flex-direction:column-reverse;align-items:center;gap:12px;padding:8px 0}
@@ -437,7 +441,7 @@ button.ent-kpi{cursor:pointer}
 .kanban-ajuda{margin-top:4px;padding:2px 15px;border-radius:16px;background:#fff;border:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5}
 .kanban-ajuda summary{display:flex;align-items:center;min-height:44px;font-weight:800;color:var(--ink);cursor:pointer}
 .kanban-ajuda p{margin:0 0 12px}
-@media(max-width:820px){.kanban.entregas{flex-direction:column}.kanban.entregas .lane,.kanban.entregas .lane.vazia{flex:none;width:100%;min-width:0;min-height:0}
+@media(max-width:820px){.kanban.entregas{flex-direction:column}.kanban.entregas .lane,.kanban.entregas .lane.vazia{flex:none;width:100%;min-width:0;min-height:0}.kanban.entregas .lane.cartoes-1,.kanban.entregas .lane.cartoes-2{max-width:none}
   .kanban.entregas .lane.vazia{padding:8px 12px}.lane.vazia .lane-head{flex-direction:row;justify-content:space-between;padding:4px}
   .lane.vazia .lane-title{writing-mode:horizontal-tb;transform:none;font-size:14px}.lane.vazia .lane-kicker{display:block}}
 .kanban.entregas .k-card-head{flex-wrap:wrap}.kanban.entregas .k-time{max-width:100%;overflow:hidden;text-overflow:ellipsis}

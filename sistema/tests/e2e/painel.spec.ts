@@ -783,6 +783,11 @@ test("Entregas e frete: Kanban por etapa, filtro, busca e ações do cartão", a
 
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(axe.violations.map((v) => v.id)).toEqual([]);
+
+  // No computador, a coluna com 1 ou 2 pedidos tem a largura dos cartões: o cartão não estica
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await expect.poll(async () => (await coluna("Pronto para retirada").boundingBox())?.width).toBeLessThanOrEqual(340);
+  expect((await coluna("Entregue").boundingBox())?.width).toBeLessThanOrEqual(640);
 });
 
 // Acessos (0520) com a api-admin simulada: resumo, gráfico por dia, páginas, origens e aparelhos.

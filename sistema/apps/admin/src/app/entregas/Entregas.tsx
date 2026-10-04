@@ -140,7 +140,7 @@ export function Entregas() {
                 const cartoes = todos.filter((f) => passa(f, filtro, busca));
                 const vazia = todos.length === 0 && alvo !== col.id;
                 return (
-                  <section key={col.id} className={`lane${vazia ? " vazia" : ""}${alvo === col.id ? " destaque" : ""}`} data-lane={col.id} aria-labelledby={`coluna-${col.id}`}>
+                  <section key={col.id} className={`lane${vazia ? " vazia" : ` cartoes-${Math.min(Math.max(cartoes.length, 1), 3)}`}${alvo === col.id ? " destaque" : ""}`} data-lane={col.id} aria-labelledby={`coluna-${col.id}`}>
                     <div className="lane-head">
                       <div>
                         <div className="lane-kicker">{COLUNAS.indexOf(col) + 1} · {DONO[col.dono]}</div>
