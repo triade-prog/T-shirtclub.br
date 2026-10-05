@@ -114,6 +114,10 @@ describe("o que a loja manda", () => {
     expect(balcao).toContain("R$ 119,99 · Dinheiro");
     expect(balcao).toContain("Você retira na loja. Avisamos por aqui assim que o pedido estiver pronto.");
     expect(balcao).not.toContain("Falta só escolher");
+    // Reserva do painel pelo link com o endereço guardado (0620): o frete vem a seguir
+    const combinada = mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1051, totalCentavos: 4999, forma: "PIX", entrega: "MOTOBOY" });
+    expect(combinada).toContain("A entrega vai por motoboy no endereço que você passou. Agora vamos calcular o frete e enviamos o valor por aqui.");
+    expect(combinada).not.toContain("Falta só escolher");
     expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1050, totalCentavos: 4999, forma: "PIX_DIRETO" })).toContain("PIX na conta da loja");
     expect(mensagemWhatsApp("pagamento_confirmado", { nome: "Marina", numero: 1050, totalCentavos: 4999, forma: "MAQUININHA" })).toContain("Falta só escolher");
     expect(mensagemWhatsApp("pagamento_em_analise", { numero: 1048 })).toBe(

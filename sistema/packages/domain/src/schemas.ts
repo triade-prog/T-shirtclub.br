@@ -295,8 +295,11 @@ export const reservaManualSchema = cotacaoManualSchema
     motivoDesconto: z.string().trim().max(200, "VALIDATION_ERROR").optional().transform((v) => v || undefined),
     /** O total que a tela mostrou: se o preço mudou no meio, a loja confere antes. */
     totalEsperadoCentavos: z.number().int().nonnegative(),
-    /** Motoboy ou envio já pago (0590): a loja preenche o endereço na hora. */
+    /**
+     * Motoboy ou envio (0590): a loja preenche o endereço na hora. Pelo link (0620), ele fica
+     * guardado e a entrega já nasce combinada quando a cliente paga.
+     */
     endereco: enderecoSchema.optional(),
   })
   .refine((r) => r.descontoManualCentavos === 0 || (r.motivoDesconto?.length ?? 0) >= 3, { message: "VALIDATION_ERROR", path: ["motivoDesconto"] })
-  .refine((r) => !r.endereco || (r.entrega !== "RETIRADA" && r.pagamento !== "LINK"), { message: "VALIDATION_ERROR", path: ["endereco"] });
+  .refine((r) => !r.endereco || r.entrega !== "RETIRADA", { message: "VALIDATION_ERROR", path: ["endereco"] });

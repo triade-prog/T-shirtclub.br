@@ -91,9 +91,11 @@ export function NovaReserva() {
     if (descontoCentavos === null) return setErro("Confira o desconto da loja, em reais (ex.: 10,00).");
     if (descontoCentavos > 0 && motivo.length < 3) return setErro("Escreva o motivo do desconto da loja: ele fica na auditoria.");
     if (!total) return setErro(falhaTotal ?? "Aguarde o total ser calculado.");
-    // Motoboy ou envio já pago (0590): o endereço vai junto; pelo link, a cliente informa no site
+    // Motoboy ou envio (0590): o endereço vai junto. Pelo link ele é opcional (0620): guardado, a
+    // entrega já fica combinada quando ela pagar; em branco, a cliente informa no site.
     let endereco: Endereco | undefined;
-    if (comEndereco) {
+    const emBranco = ["cep", "rua", "numero", "bairro"].every((n) => !String(f.get(n) ?? "").trim());
+    if (comEndereco && !(pagamento === "LINK" && emBranco)) {
       const lido = lerEndereco(f);
       if ("erro" in lido) return setErro(lido.erro);
       endereco = lido.endereco;
@@ -106,7 +108,7 @@ export function NovaReserva() {
   }
 
   const ajudaPagamento = PAGAMENTOS.find((p) => p.valor === pagamento)!.ajuda;
-  const comEndereco = entrega !== "RETIRADA" && pagamento !== "LINK";
+  const comEndereco = entrega !== "RETIRADA";
   return (
     <Casca kicker="PEDIDOS" titulo="Nova reserva" sub="Para quem pediu pelo WhatsApp, pelo Instagram ou na loja. O preço é o do site."
       acoes={<Link className="btn btn-ghost" href="/reservas">← Reservas</Link>}>
@@ -166,7 +168,7 @@ export function NovaReserva() {
             <Escolha name="entrega" rotulo="Entrega" value={entrega} onChange={(e) => setEntrega(e.target.value)}
               opcoes={[["RETIRADA", "Retirada na loja"], ["MOTOBOY", "Motoboy"], ["ENVIO", "Envio"]]}
               ajuda={entrega === "RETIRADA" ? "A cliente busca na loja com o código de retirada."
-                : pagamento === "LINK" ? "Pelo link, a cliente informa o endereço no site depois de pagar, e a loja calcula o frete."
+                : pagamento === "LINK" ? "Se ela já passou o endereço, preencha abaixo: quando ela pagar, a entrega fica combinada e a loja calcula o frete. Em branco, ela informa no site depois de pagar."
                 : "Preencha o endereço abaixo; depois a loja calcula o frete."} />
           </div>
           <fieldset className="field">

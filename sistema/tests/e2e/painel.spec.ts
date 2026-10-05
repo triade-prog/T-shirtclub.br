@@ -1129,15 +1129,59 @@ test("reserva: a loja informa o endereço do motoboy e copia para a etiqueta", a
   await expect(entrega.getByRole("button", { name: "Copiar endereço" })).toBeVisible();
 });
 
-test("nova reserva: motoboy já pago pede o endereço; pelo link, não", async ({ page, context }) => {
-  await simularWhatsapp(page, context, () => undefined);
+test("nova reserva: motoboy pede o endereço, já pago ou pelo link (pelo link, opcional)", async ({ page, context }) => {
+  const PECA = "11111111-1111-4111-8111-111111111111";
+  const enviados = await simularWhatsapp(page, context, (_m, caminho, corpo) => {
+    if (caminho === "v1/admin/products") {
+      return { itens: [{
+        id: PECA, codigo: "LIM-01", slug: "limone", nome: "Limone Amalfi", precoCentavos: 4999, colecaoId: "c1", ativo: true, publicado: true,
+        capa: null, fotos: 1, estoque: { total: 2, reservado: 0, vendido: 0, disponivel: 2 },
+        tamanhos: [{ id: "v1", tamanho: "UNICO", rotulo: "Único", ativa: true, disponivel: 2 }],
+      }], pagina: 1, porPagina: 20, total: 1 };
+    }
+    if (caminho === "v1/admin/reservations/quote") {
+      const manual = Number((corpo as { descontoManualCentavos?: number }).descontoManualCentavos ?? 0);
+      return { subtotalCentavos: 4999, descontoCentavos: 0, descontoManualCentavos: manual, totalCentavos: 4999 - manual, aplicada: null, cupom: null, linhas: [] };
+    }
+    if (caminho === "v1/admin/reservations") return { reserva: { id: "44444444-4444-4444-8444-444444444444", numero: 1050 } };
+    if (caminho === "v1/admin/reservations/44444444-4444-4444-8444-444444444444") {
+      return pedidoPago({ id: "44444444-4444-4444-8444-444444444444", numero: 1050, status: "RESERVADO", canal: "PAINEL", nome: "Ana Paula", pagaEm: null,
+        logistica: null, pagamentos: [], transicoes: [], enderecoPrevio: { cep: "46400000", rua: "R. Sátiro Santos", numero: "38", bairro: "Centro", cidade: "Caetité", uf: "BA" } });
+    }
+    return undefined;
+  });
   await page.goto(`${PAINEL}/reservas/nova`);
   await page.getByLabel("Entrega").selectOption("MOTOBOY");
-  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toHaveCount(0);
+  const grupo = page.getByRole("group", { name: "Endereço de entrega" });
+  // Pelo link (0620): o endereço aparece, opcional, e fica guardado até ela pagar
+  await expect(grupo).toBeVisible();
+  await expect(page.getByText("Se ela já passou o endereço, preencha abaixo")).toBeVisible();
   await page.getByLabel("Já pago em dinheiro").check();
-  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toBeVisible();
+  await expect(grupo).toBeVisible();
   await expect(page.getByLabel("Cidade")).toHaveValue("Caetité");
   await semViolacoes(page);
   await page.getByLabel("Cliente paga pelo link").check();
-  await expect(page.getByRole("group", { name: "Endereço de entrega" })).toHaveCount(0);
+
+  await page.getByLabel("Nome da cliente").fill("Ana Paula");
+  await page.getByLabel("WhatsApp da cliente").fill("(77) 99812-8809");
+  await page.getByRole("button", { name: "Adicionar Limone Amalfi, Único" }).click();
+  await expect(page.locator(".price-total")).toHaveText("R$ 49,99");
+  await page.getByLabel("Rua").fill("R. Sátiro Santos");
+  await page.getByRole("button", { name: "Criar reserva e enviar o link" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Confira o CEP" })).toBeVisible();
+  expect(enviados.filter((e) => e.caminho === "v1/admin/reservations")).toEqual([]);
+  await page.getByLabel("CEP").fill("46400-000");
+  await page.getByLabel("Número").fill("38");
+  await page.getByLabel("Bairro").fill("Centro");
+  await page.getByRole("button", { name: "Criar reserva e enviar o link" }).click();
+  await expect(page).toHaveURL(/\/reservas\/44444444-4444-4444-8444-444444444444$/);
+  expect(enviados.find((e) => e.caminho === "v1/admin/reservations")?.corpo).toMatchObject({
+    entrega: "MOTOBOY", pagamento: "LINK",
+    endereco: { cep: "46400000", rua: "R. Sátiro Santos", numero: "38", bairro: "Centro", cidade: "Caetité", uf: "BA" },
+  });
+  // A reserva mostra o endereço guardado enquanto espera o pagamento
+  const entrega = page.getByRole("article").filter({ has: page.getByRole("heading", { name: "Entrega", exact: true }) });
+  await expect(entrega).toContainText("quando ela pagar, a entrega fica combinada neste endereço");
+  await expect(entrega.locator("address")).toContainText("R. Sátiro Santos, 38");
+  await semViolacoes(page);
 });

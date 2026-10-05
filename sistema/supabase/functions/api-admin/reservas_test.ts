@@ -82,3 +82,20 @@ Deno.test("reserva manual: com desconto e motivo, vai paga para o banco", async 
   const p = enviado.p as Record<string, unknown>;
   assertEquals([p.pagamento, p.descontoManualCentavos, p.motivoDesconto, p.totalCentavos], ["MAQUININHA", 1999, "Cliente fiel", 10000]);
 });
+
+Deno.test("reserva manual pelo link com motoboy: o endereço fica guardado na reserva (0620)", async () => {
+  const chamadas: [string, Record<string, unknown>][] = [];
+  const base = catalogo();
+  const m = await logado({ rpcExtra: (funcao: string, args: Record<string, unknown>) => {
+    chamadas.push([funcao, args]);
+    return funcao === "admin_prefill_address" ? { ok: true } : base(funcao, args);
+  } });
+  const endereco = { cep: "46400-000", rua: "R. Sátiro Santos", numero: "38", bairro: "Centro", cidade: "Caetité", uf: "ba" };
+  const r = await m.pedir("/v1/admin/reservations", { ...reserva, entrega: "MOTOBOY", pagamento: "LINK", endereco, totalEsperadoCentavos: 11999 });
+  assertEquals(r.status, 201);
+  assertEquals((await r.json()).enderecoPendente, undefined);
+  const guardar = chamadas.find(([f]) => f === "admin_prefill_address")?.[1];
+  assertEquals(guardar?.p_reservation_id, "r1");
+  assertEquals((guardar?.p_address as Record<string, string>).uf, "BA");
+  assertEquals(chamadas.some(([f]) => f === "admin_set_fulfillment"), false);
+});

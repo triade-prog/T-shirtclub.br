@@ -29,6 +29,7 @@ export const EXEMPLOS_MENSAGENS: ExemploMensagem[] = [
   { modelo: "reserva_expirada", titulo: "Reserva expirada, com as peças já vendidas", p: { numero: 1048, expiradaEm: h("14:47"), nome: "Ana Paula", disponiveis: [] } },
   { modelo: "reserva_expirada", titulo: "Reserva expirada que bloqueou o número (sem convite)", p: { numero: 1048, expiradaEm: h("14:47"), pausada: true } },
   { modelo: "pagamento_confirmado", titulo: "Pagamento confirmado", p: { nome: "Ana Paula", numero: 1048, totalCentavos: 11999, forma: "PIX", pecas: 3 } },
+  { modelo: "pagamento_confirmado", titulo: "Pagamento confirmado: motoboy com o endereço da loja", p: { nome: "Ana Paula", numero: 1048, totalCentavos: 11999, forma: "PIX", pecas: 3, entrega: "MOTOBOY" } },
   { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: depois do prazo", p: { numero: 1048 } },
   { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: valor diferente", p: { numero: 1048, valorDivergente: true } },
   { modelo: "pagamento_em_analise", titulo: "Pagamento em análise: frete", p: { numero: 1048, frete: true } },
