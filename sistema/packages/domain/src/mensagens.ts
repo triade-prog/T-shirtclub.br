@@ -137,7 +137,8 @@ export interface ParametrosMensagem {
    */
   reserva_expirada: { numero: number; expiradaEm: Date; nome?: string; disponiveis?: PecaLink[]; pausada?: boolean };
   /** retirada: venda manual já paga com retirada combinada (0470): não pede para escolher a entrega. */
-  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: FormaPagamento; pecas?: number; retirada?: boolean };
+  /** entrega: motoboy ou envio já combinados com o endereço que a loja guardou na reserva (0620). */
+  pagamento_confirmado: { nome: string; numero: number; totalCentavos: number; forma: FormaPagamento; pecas?: number; retirada?: boolean; entrega?: "MOTOBOY" | "ENVIO" };
   pagamento_em_analise: { numero: number; frete?: boolean; valorDivergente?: boolean };
   telefone_bloqueado: Record<string, never>;
   telefone_liberado: Record<string, never>;
@@ -502,7 +503,9 @@ const MODELOS: { [M in Modelo]: Versoes<M> } = {
         "Pagamento confirmado! ✦",
         `${primeiroNome(p.nome)}, ${p.pecas === 1 ? "sua peça agora é sua" : "suas peças agora são suas"}. 💖`,
         `Pedido #${p.numero}\n${formatarReais(p.totalCentavos)} · ${ROTULO_FORMA[p.forma] ?? "PIX"}`,
-        p.retirada ? "Você retira na loja. Avisamos por aqui assim que o pedido estiver pronto." : `Falta só escolher como você quer receber:\n${SITE}`,
+        p.retirada ? "Você retira na loja. Avisamos por aqui assim que o pedido estiver pronto."
+          : p.entrega ? `A entrega vai por ${p.entrega === "MOTOBOY" ? "motoboy" : "envio"} no endereço que você passou. Agora vamos calcular o frete e enviamos o valor por aqui.`
+          : `Falta só escolher como você quer receber:\n${SITE}`,
       ),
   ],
   // "Não pague de novo" evita pagamento em dobro enquanto a loja confere.

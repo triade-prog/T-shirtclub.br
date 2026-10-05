@@ -138,10 +138,10 @@ describe("reserva manual pelo painel (0470)", () => {
     expect(reservaManualSchema.safeParse({ ...base, descontoManualCentavos: 500, motivoDesconto: "ok" }).success).toBe(false);
     expect(reservaManualSchema.safeParse({ ...base, descontoManualCentavos: 500, motivoDesconto: "Cliente fiel" }).success).toBe(true);
   });
-  it("endereço só para motoboy ou envio já pagos (0590)", () => {
+  it("endereço só para motoboy ou envio, pago ou pelo link (0590, 0620)", () => {
     const endereco = { cep: "46400-000", rua: "R. Sátiro Santos", numero: "38", bairro: "Centro", cidade: "Caetité", uf: "BA" };
     expect(reservaManualSchema.safeParse({ ...base, entrega: "MOTOBOY", pagamento: "DINHEIRO", endereco }).success).toBe(true);
-    expect(reservaManualSchema.safeParse({ ...base, entrega: "MOTOBOY", pagamento: "LINK", endereco }).success).toBe(false);
+    expect(reservaManualSchema.safeParse({ ...base, entrega: "MOTOBOY", pagamento: "LINK", endereco }).success).toBe(true);
     expect(reservaManualSchema.safeParse({ ...base, pagamento: "DINHEIRO", endereco }).success).toBe(false);
   });
 });

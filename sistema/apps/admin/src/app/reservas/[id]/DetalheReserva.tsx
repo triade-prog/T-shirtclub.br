@@ -49,6 +49,8 @@ interface Detalhe {
     outras?: { id: string; numero: number; status: string; totalCentavos: number; criadaEm: string }[];
     chamados?: Chamado[];
   };
+  /** Reserva do painel pelo link (0620): o endereço que a loja guardou até a cliente pagar. */
+  enderecoPrevio?: Endereco | null;
   /** Reserva manual pelo painel (0470): forma da venda já paga, quem cadastrou e o motivo do desconto. */
   forma?: FormaPagamento | null;
   manual?: { criadaPor?: string; motivoDesconto?: string } | null;
@@ -320,7 +322,15 @@ function Entrega({ r, atualizar }: { r: Detalhe; atualizar: () => void }) {
   return (
     <article className="card" aria-labelledby="entrega-titulo">
       <h2 id="entrega-titulo">Entrega</h2>
-      {r.status === "RESERVADO" ? (
+      {r.status === "RESERVADO" && r.enderecoPrevio ? (
+        <>
+          <p className="ent-modo"><b>{MODALIDADE[r.entrega ?? ""] ?? "A escolher"}</b> · quando ela pagar, a entrega fica combinada neste endereço</p>
+          <address className="ent-endereco">
+            <span>{r.nome}</span>
+            {linhasDoEndereco(r.enderecoPrevio).map((l) => <span key={l}>{l}</span>)}
+          </address>
+        </>
+      ) : r.status === "RESERVADO" ? (
         <p className="muted">{MODALIDADE[r.entrega ?? ""] ?? "A escolher"}. A entrega e o endereço são combinados depois do pagamento.</p>
       ) : !log ? (
         <p className="muted">Sem entrega: a reserva foi encerrada antes do pagamento.</p>

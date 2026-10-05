@@ -3,7 +3,7 @@
 import { Campo } from "./ui";
 
 // Endereço de entrega no painel (0590): os mesmos campos e regras do site (enderecoSchema e
-// address_ok no banco). Usado na Nova reserva (venda já paga com motoboy ou envio) e no quadro
+// address_ok no banco). Usado na Nova reserva (motoboy ou envio, paga ou pelo link) e no quadro
 // Entrega da reserva, para a loja preencher ou corrigir.
 
 export interface Endereco { cep: string; rua: string; numero: string; complemento?: string; bairro: string; cidade: string; uf: string }

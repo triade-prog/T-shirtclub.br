@@ -86,8 +86,18 @@ export function rotasReservaManual(app: Hono<VarsAdmin>, deps: DepsReservaManual
     });
     if (r.erro) throw new ErroDominio(ehCodigoErro(r.erro) ? r.erro : "INTERNAL_ERROR", r.detalhes);
     // Motoboy ou envio já pago com o endereço (0590): a entrega já sai combinada. Se não der, a
-    // reserva fica criada e a loja preenche o endereço na tela da reserva.
-    if (dados.endereco && dados.entrega !== "RETIRADA") {
+    // reserva fica criada e a loja preenche o endereço na tela da reserva. Pelo link (0620), o
+    // endereço fica guardado e a entrega nasce combinada quando ela pagar; se não der, a cliente
+    // informa no site, como antes.
+    if (dados.endereco && dados.entrega !== "RETIRADA" && dados.pagamento === "LINK") {
+      try {
+        await chamar(deps.banco, "admin_prefill_address", {
+          p_admin: c.get("admin").userId, p_reservation_id: r.reserva.id, p_address: dados.endereco,
+        });
+      } catch {
+        return c.json({ reserva: r.reserva, enderecoPendente: true }, 201);
+      }
+    } else if (dados.endereco && dados.entrega !== "RETIRADA") {
       try {
         await chamar(deps.banco, "admin_set_fulfillment", {
           p_admin: c.get("admin").userId, p_reservation_id: r.reserva.id, p_mode: dados.entrega, p_address: dados.endereco,
