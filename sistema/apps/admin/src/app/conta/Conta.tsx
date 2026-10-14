@@ -8,10 +8,12 @@ import { Casca } from "../_painel/Casca";
 import { Aviso, Botao, Campo, CampoCodigo, Carregando, Escolha, Selo } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
+import { Equipe } from "./Equipe";
 
 // Minha conta (tela 22 do protótipo; sem referência V4, no estilo do painel V4, D12, G7):
 // trocar a senha, aparelhos conectados, autenticadores e as metas de vendas da loja (D26). Para remover um autenticador, o
-// código vem de outro que continua cadastrado; a conta nunca fica sem o segundo fator.
+// código vem de outro que continua cadastrado; a conta nunca fica sem o segundo fator. A Equipe (0630) lista quem entra
+// no painel; só a dona da conta adiciona pessoas e cuida dos acessos.
 
 interface Fator { id: string; verificado: boolean; nome?: string; criadoEm?: string }
 interface Aparelho { id: string; criadaEm: string; ultimoUso: string; aparelho?: string; rede?: string; atual?: boolean }
@@ -29,7 +31,9 @@ export function Conta() {
   return (
     <Casca kicker="ACESSO" titulo="Minha conta" sub={dados ? `${dados.email ?? ""}${dados.nome ? ` · ${dados.nome}` : ""} · administradora` : undefined}>
       {!dados ? <Carregando erro={erro} /> : (
-        <div className="grid split">
+        <>
+        <Equipe />
+        <div className="grid split mt">
           <div className="stack">
             <TrocarSenha aoTrocar={() => void recarregar()} />
             <Aparelhos aparelhos={dados.aparelhos} aoEncerrar={() => void recarregar()} />
@@ -38,11 +42,12 @@ export function Conta() {
             <Metas />
             <Tamanhos />
             <Autenticadores fatores={dados.autenticadores} aoMudar={() => void recarregar()} />
-            <Aviso tipo="yellow" titulo="Esqueceu a senha?">
-              <p>Na tela de login, use &quot;Esqueci minha senha&quot;: o link de redefinição chega no e-mail da conta.</p>
+            <Aviso tipo="yellow" titulo="Esqueceu a senha ou perdeu o celular?">
+              <p>Peça à dona da conta, em Equipe, uma senha provisória nova ou para zerar o seu autenticador.</p>
             </Aviso>
           </div>
         </div>
+        </>
       )}
     </Casca>
   );

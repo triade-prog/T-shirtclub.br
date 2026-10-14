@@ -148,7 +148,12 @@ pedido não muda.
 **Perdeu um aparelho (tem o outro):** entre com o que sobrou → Minha conta → remova o autenticador
 perdido digitando o código do que continua → cadastre um novo. Mantenha sempre dois.
 
-**Perdeu os dois (técnico, só a dona do projeto no Supabase):**
+**Alguém da equipe perdeu os dois ou esqueceu a senha:** a dona da conta, em Minha conta → Equipe,
+usa "Zerar autenticador" (no próximo login ela cadastra de novo pelo QR code) ou "Senha provisória
+nova" (passe a senha pelo WhatsApp da pessoa; ela troca em Minha conta). Confirme antes que é mesmo
+ela pedindo, por telefone ou pessoalmente.
+
+**A dona perdeu os dois (técnico, no Supabase):**
 1. Confirme a identidade de quem pede (por telefone ou pessoalmente, nunca só por mensagem).
 2. No SQL Editor do Supabase:
    ```sql
@@ -157,6 +162,19 @@ perdido digitando o código do que continua → cadastre um novo. Mantenha sempr
    ```
 3. No próximo login, o painel pede para cadastrar o autenticador. Cadastre os dois aparelhos.
 4. Se houver qualquer suspeita de invasão, troque também a senha e siga [Incidente de dados](#incidente-de-dados-pessoais).
+
+## Equipe do painel (quem entra)
+
+Em Minha conta → Equipe (0630). Só a dona da conta (a primeira administradora) mexe:
+- **Adicionar pessoa:** nome, e-mail e uma senha provisória ("Gerar senha" cria uma forte). Passe a
+  senha pelo WhatsApp da pessoa, nunca por e-mail aberto ou grupo. No primeiro acesso ela cadastra o
+  autenticador e troca a senha em Minha conta. Um e-mail que já tinha cadastro sem acesso (um
+  convite do Supabase, por exemplo) recebe a senha e entra na equipe.
+- **Tirar acesso:** a pessoa sai do painel na hora (a próxima tela já recusa); nada do que ela fez
+  é apagado. "Devolver acesso" volta.
+- Todas da equipe veem e fazem tudo no painel; não há acesso só a uma parte.
+- Tudo fica na Auditoria (sem a senha). Não cadastre pelo Supabase: lá o "Send invitation" cria a
+  conta sem senha.
 
 ## Job atrasado ou falhando
 

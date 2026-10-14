@@ -1,6 +1,6 @@
 // Utilitário dos testes da api-admin: provedores falsos e login de dois fatores.
 
-import type { ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
+import type { GestaoEquipe, ProvedorAuth, SessaoAuth } from "../_shared/auth-admin.ts";
 import { ErroBanco, type Banco } from "../_shared/banco.ts";
 import { pagamentosFalso } from "../_shared/pagamentos.ts";
 import { whatsappFalso } from "../_shared/whatsapp.ts";
@@ -97,6 +97,22 @@ export function montar(cen: Cenario = {}) {
     },
   };
 
+  // Equipe (0630): a API de administração do Auth, falsa
+  const equipe: GestaoEquipe = {
+    criarUsuario: (email, senha) => {
+      chamadas.push(`equipe.criar:${email}`);
+      return Promise.resolve(senha.includes("123456") ? "FRACA" : email.startsWith("repetida@") ? "JA_EXISTE" : { id: "00000000-0000-4000-8000-0000000000e2" });
+    },
+    definirSenha: (id, senha) => {
+      chamadas.push(`equipe.senha:${id}`);
+      return Promise.resolve(senha.includes("123456") ? "FRACA" : "OK");
+    },
+    zerarAutenticadores: (id) => {
+      chamadas.push(`equipe.zerar:${id}`);
+      return Promise.resolve(1);
+    },
+  };
+
   const arquivosApagados: string[] = [];
   const revalidacoes: string[] = [];
   const pagamentos = pagamentosFalso();
@@ -112,6 +128,7 @@ export function montar(cen: Cenario = {}) {
       },
     },
     auth,
+    equipe,
     turnstile: { verificar: (token) => Promise.resolve(token === "ok" && (cen.turnstileOk ?? true)) },
     avisarBloqueio: (email) => {
       avisos.push(email);

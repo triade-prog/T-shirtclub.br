@@ -260,6 +260,19 @@ export const configAvisosSchema = z.object({
   desligados: z.array(z.enum(AVISOS_LOJA.map((a) => a.id) as [TipoAvisoLoja, ...TipoAvisoLoja[]])).max(AVISOS_LOJA.length).optional(),
 });
 
+/** POST /v1/admin/team (0630): a dona adiciona alguém à equipe, com uma senha provisória. */
+export const novaPessoaEquipeSchema = z.object({
+  nome: z.string().trim().min(2, "VALIDATION_ERROR").max(60, "VALIDATION_ERROR"),
+  email: z.string().trim().toLowerCase().pipe(z.email("VALIDATION_ERROR")).pipe(z.string().max(254)),
+  senha: senhaAdminSchema,
+});
+
+/** PUT /v1/admin/team/:id/password (0630) */
+export const senhaProvisoriaSchema = z.object({ senha: senhaAdminSchema });
+
+/** PUT /v1/admin/team/:id/active (0630) */
+export const acessoEquipeSchema = z.object({ ativo: z.boolean() });
+
 /** PUT /v1/admin/account/password (tela 22) */
 export const trocarSenhaSchema = z
   .object({ atual: z.string().min(1).max(128), nova: senhaAdminSchema })
