@@ -1186,8 +1186,8 @@ test("nova reserva: motoboy pede o endereço, já pago ou pelo link (pelo link, 
   await semViolacoes(page);
 });
 
-// Equipe (0630) em Minha conta: a dona adiciona alguém com senha provisória gerada e tira o acesso.
-test("conta: a dona cuida da equipe (adicionar com senha gerada, tirar acesso, zerar autenticador)", async ({ page, context }) => {
+// Equipe (0630) em Minha conta: a dona adiciona alguém (senha já gerada), tira o acesso e zera o autenticador.
+test("conta: a dona cuida da equipe (adicionar, dados de acesso, tirar acesso, zerar autenticador)", async ({ page, context }) => {
   const L = "00000000-0000-4000-8000-0000000000e3";
   const carol = { id: "00000000-0000-4000-8000-0000000000d1", nome: "Carol", email: "carol@loja.com", ativo: true, dona: true, voce: true, criadoEm: "2026-09-27T10:00:00.000Z", ultimoAcesso: "2026-10-14T10:00:00.000Z", autenticador: true };
   let pessoas = [carol, { id: L, nome: "Layana", email: "layana@2bee.net.br", ativo: true, dona: false, voce: false, criadoEm: "2026-10-14T14:24:00.000Z", autenticador: true }];
@@ -1205,38 +1205,48 @@ test("conta: a dona cuida da equipe (adicionar com senha gerada, tirar acesso, z
   });
   await page.goto(`${PAINEL}/conta`);
   const equipe = page.getByRole("region", { name: "Equipe" });
-  await expect(equipe.getByRole("list", { name: "Pessoas da equipe" }).getByRole("listitem")).toHaveCount(2);
-  await expect(equipe).toContainText("Carol (você)");
-  await expect(equipe).toContainText("layana@2bee.net.br · ainda não entrou");
+  const tabela = equipe.getByRole("table");
+  await expect(equipe).toContainText("2 pessoas com acesso ao painel");
+  await expect(tabela.getByRole("row", { name: /Layana/ })).toContainText("Nunca entrou");
+  await expect(tabela.getByRole("row", { name: /Carol/ })).toContainText("Dona");
   // A dona não mexe no próprio acesso
-  await expect(equipe.getByRole("button", { name: "Tirar o acesso de Carol" })).toHaveCount(0);
+  await expect(equipe.getByRole("button", { name: "Gerenciar Carol" })).toHaveCount(0);
+  await semViolacoes(page);
 
+  // Adicionar: a janela já vem com uma senha forte gerada
   await equipe.getByRole("button", { name: "Adicionar pessoa" }).click();
-  const form = equipe.getByRole("form", { name: "Adicionar pessoa à equipe" });
-  await form.getByLabel("Nome").fill("Bia");
-  await form.getByLabel("E-mail (para entrar no painel)").fill("bia@loja.com");
-  await form.getByRole("button", { name: "Adicionar à equipe" }).click();
-  await expect(form.getByRole("alert")).toContainText("pelo menos 12 caracteres");
-  await form.getByRole("button", { name: "Gerar senha" }).click();
-  const senha = await form.getByLabel("Senha provisória").inputValue();
+  const janela = page.getByRole("dialog", { name: "Adicionar pessoa" });
+  await janela.getByRole("button", { name: "Adicionar à equipe" }).click();
+  await expect(janela.getByRole("alert")).toContainText("Escreva o nome da pessoa.");
+  await janela.getByLabel("Nome").fill("Bia");
+  await janela.getByLabel("E-mail").fill("bia@loja.com");
+  const senha = await janela.getByLabel("Senha provisória").inputValue();
   expect(senha).toMatch(/^[A-Za-z2-9]{4}(-[A-Za-z2-9]{4}){3}$/);
   await semViolacoes(page);
-  await form.getByRole("button", { name: "Adicionar à equipe" }).click();
-  await expect(equipe.getByRole("status")).toContainText(`Bia entrou na equipe. Senha provisória: ${senha}`);
+  await janela.getByRole("button", { name: "Adicionar à equipe" }).click();
+  const pronta = page.getByRole("dialog", { name: "Bia entrou na equipe" });
+  await expect(pronta).toContainText(senha);
+  await expect(pronta).toContainText("bia@loja.com");
   expect(enviados.find((e) => e.caminho === "v1/admin/team")?.corpo).toEqual({ nome: "Bia", email: "bia@loja.com", senha });
-  await expect(equipe.getByRole("listitem").filter({ hasText: "Bia" })).toContainText("Falta o autenticador");
+  await pronta.getByRole("button", { name: "Concluir" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(tabela.getByRole("row", { name: /Bia/ })).toContainText("Aguardando 1º acesso");
 
-  await equipe.getByRole("button", { name: "Tirar o acesso de Layana" }).click();
-  await equipe.getByRole("group", { name: "Tirar o acesso de Layana" }).getByRole("button", { name: "Tirar acesso" }).click();
+  // Gerenciar: tirar o acesso e devolver
+  await equipe.getByRole("button", { name: "Gerenciar Layana" }).click();
+  const acoes = equipe.getByRole("group", { name: "Ações para Layana" });
+  await acoes.getByRole("button", { name: "Tirar acesso" }).click();
+  await acoes.getByRole("group", { name: "Tirar o acesso de Layana ao painel?" }).getByRole("button", { name: "Tirar acesso" }).click();
   await expect(equipe.getByRole("status")).toContainText("Layana saiu do painel");
-  await expect(equipe.getByRole("listitem").filter({ hasText: "Layana" })).toContainText("Sem acesso");
+  await expect(tabela.getByRole("row", { name: /Layana/ }).first()).toContainText("Sem acesso");
   expect(enviados.find((e) => e.caminho === `v1/admin/team/${L}/active`)?.corpo).toEqual({ ativo: false });
-  await equipe.getByRole("button", { name: "Devolver o acesso de Layana" }).click();
-  await expect(equipe.getByRole("listitem").filter({ hasText: "Layana" })).toContainText("Com autenticador");
+  await equipe.getByRole("button", { name: "Devolver acesso" }).click();
+  await expect(tabela.getByRole("row", { name: /Layana/ }).first()).toContainText("Ativa");
 
-  await equipe.getByRole("button", { name: "Zerar o autenticador de Layana" }).click();
-  await equipe.getByRole("group", { name: "Zerar o autenticador de Layana" }).getByRole("button", { name: "Zerar autenticador" }).click();
-  await expect(equipe.getByRole("status")).toContainText("O autenticador de Layana foi zerado");
+  // Zerar o autenticador
+  await equipe.getByRole("button", { name: "Zerar", exact: true }).click();
+  await equipe.getByRole("button", { name: "Zerar autenticador" }).click();
+  await expect(equipe.getByRole("status")).toContainText("Autenticador de Layana zerado");
   expect(enviados.some((e) => e.caminho === `v1/admin/team/${L}/reset-mfa`)).toBe(true);
   await semViolacoes(page);
 });
@@ -1256,6 +1266,7 @@ test("conta: quem não é a dona vê a equipe, sem os botões", async ({ page, c
   });
   await page.goto(`${PAINEL}/conta`);
   const equipe = page.getByRole("region", { name: "Equipe" });
-  await expect(equipe).toContainText("Layana (você)");
+  await expect(equipe.getByRole("row", { name: /Layana/ })).toContainText("você");
   await expect(equipe.getByRole("button")).toHaveCount(0);
+  await expect(equipe).toContainText("Só a dona da conta adiciona pessoas");
 });
