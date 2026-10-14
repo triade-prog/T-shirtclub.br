@@ -12,13 +12,14 @@ import { rotasPagamentosAdmin, type DepsPagamentosAdmin } from "./pagamentos.ts"
 import { rotasPainel, type DepsPainel } from "./painel.ts";
 import { rotasWhatsappAdmin } from "./whatsapp.ts";
 import { rotasConta } from "./conta.ts";
+import { rotasEquipe, type DepsEquipe } from "./equipe.ts";
 import { rotasComercial } from "./comercial.ts";
 import { rotasVipAdmin } from "./vip.ts";
 import { rotasReservaManual } from "./reservas.ts";
 import { rotasAcoesReserva } from "./reserva_acoes.ts";
 import { rotasAcessosAdmin } from "./acessos.ts";
 
-export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & {
+export type DepsAdmin = DepsAuthAdmin & DepsCatalogo & DepsPagamentosAdmin & DepsPainel & DepsEquipe & {
   /** Revalidação ao publicar; sem ela, a loja atualiza o catálogo em até 60 s. */
   loja?: AvisoLoja;
   /** Endereço da loja para o link da reserva manual (0470). */
@@ -58,6 +59,7 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
   rotasPainel(app, deps);
   rotasWhatsappAdmin(app, deps);
   rotasConta(app, deps);
+  rotasEquipe(app, deps);
   rotasComercial(app, deps);
   rotasVipAdmin(app, deps.banco);
   rotasAcessosAdmin(app, deps.banco);

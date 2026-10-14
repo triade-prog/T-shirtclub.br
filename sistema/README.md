@@ -105,6 +105,7 @@ Quando a Vercel recusa por limite ("rate limited"), passadas as 24 h use "Redepl
 2. No SQL Editor: `insert into admin_users (id, name) values ('<id do usuário>', 'Loja');`
 3. No primeiro login, o painel pede para cadastrar o aplicativo autenticador (QR code). Cadastre
    também um segundo aparelho, de reserva, em Minha conta.
+4. Ela vira a dona da conta (0630): as próximas pessoas entram por Minha conta → Equipe, sem SQL.
 
 ## Monitoramento
 

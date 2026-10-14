@@ -55,6 +55,8 @@ const ACAO: Record<string, string> = {
   "admin.login": "Entrou no painel", "admin.login.senha_errada": "Senha errada no login", "admin.login.bloqueado": "Login bloqueado por 15 minutos",
   "admin.senha.trocada": "Senha trocada", "admin.senha.atual_errada": "Senha atual errada ao trocar", "admin.aparelhos.encerrados": "Saiu dos outros aparelhos",
   "admin.autenticador.cadastrado": "Autenticador cadastrado", "admin.autenticador.removido": "Autenticador removido", "auth.sair": "Saiu do painel",
+  "admin.equipe.adicionada": "Pessoa adicionada à equipe", "admin.equipe.desativada": "Acesso ao painel tirado", "admin.equipe.reativada": "Acesso ao painel devolvido",
+  "admin.equipe.senha_provisoria": "Senha provisória nova", "admin.equipe.autenticador_zerado": "Autenticador zerado",
   "alerta.resolvido": "Alerta resolvido", "dados.purga": "Dados apagados pelo prazo de guarda",
 };
 export function textoAcao(acao: string): string {

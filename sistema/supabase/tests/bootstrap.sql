@@ -19,7 +19,12 @@ create extension if not exists pgtap with schema extensions;
 alter database postgres set search_path = public, extensions;
 -- O Supabase Auth cria auth.users; aqui só o mínimo para as chaves estrangeiras.
 create schema if not exists auth;
-create table if not exists auth.users (id uuid primary key, email text);
+create table if not exists auth.users (id uuid primary key, email text, created_at timestamptz default now(), last_sign_in_at timestamptz);
+-- Autenticadores do Auth (a Equipe, 0630, mostra quem já cadastrou o seu), com as colunas usadas.
+create table if not exists auth.mfa_factors (
+  id uuid primary key, user_id uuid not null, friendly_name text, factor_type text not null, status text not null,
+  created_at timestamptz not null, updated_at timestamptz not null
+);
 -- Sessões do Auth (Minha conta lista os aparelhos conectados), com as colunas usadas.
 create table if not exists auth.sessions (
   id uuid primary key, user_id uuid not null, created_at timestamptz, updated_at timestamptz, refreshed_at timestamp,

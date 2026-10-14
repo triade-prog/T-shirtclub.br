@@ -177,3 +177,65 @@ export function authGoTrue(url: string, apiKey: string, buscar: typeof fetch = f
     },
   };
 }
+
+/**
+ * Equipe do painel (0630): a dona cadastra e cuida das contas pela api-admin, com a chave de
+ * serviço (a API de administração do Auth). A senha vai direto para o Auth, sem passar pelo banco.
+ */
+export interface GestaoEquipe {
+  /** Usuário novo, já com o e-mail confirmado. JA_EXISTE: o e-mail já tem cadastro no Auth. */
+  criarUsuario(email: string, senha: string): Promise<{ id: string } | "JA_EXISTE" | "FRACA">;
+  /** Senha provisória nova (e o e-mail confirmado, para um convite que ficou pela metade). */
+  definirSenha(userId: string, senha: string): Promise<"OK" | "FRACA">;
+  /** Tira os autenticadores: no próximo login, o painel pede o QR code de novo. */
+  zerarAutenticadores(userId: string): Promise<number>;
+}
+
+export function equipeGoTrue(url: string, chaveServico: string, buscar: typeof fetch = fetch): GestaoEquipe {
+  async function chamar(caminho: string, metodo: string, corpo?: unknown): Promise<Response> {
+    return await buscar(`${url}/auth/v1/admin${caminho}`, {
+      method: metodo,
+      headers: { apikey: chaveServico, authorization: `Bearer ${chaveServico}`, "content-type": "application/json" },
+      body: corpo === undefined ? undefined : JSON.stringify(corpo),
+      signal: AbortSignal.timeout(8000),
+    });
+  }
+  /** Os erros de validação do Auth: e-mail repetido ou senha fraca (curta, comum ou vazada). */
+  async function recusa(r: Response): Promise<"JA_EXISTE" | "FRACA" | null> {
+    if (r.status !== 400 && r.status !== 422) return null;
+    const e = (await r.json().catch(() => ({}))) as { error_code?: string; msg?: string };
+    if (e.error_code === "email_exists" || e.error_code === "user_already_exists" || /already/i.test(e.msg ?? "")) return "JA_EXISTE";
+    if (e.error_code === "weak_password" || /password/i.test(e.msg ?? "")) return "FRACA";
+    return null;
+  }
+
+  return {
+    async criarUsuario(email, senha) {
+      const r = await chamar("/users", "POST", { email, password: senha, email_confirm: true });
+      const motivo = await recusa(r);
+      if (motivo) return motivo;
+      if (!r.ok) throw new Error(`Auth respondeu ${r.status}`);
+      const u = (await r.json()) as { id: string };
+      return { id: u.id };
+    },
+
+    async definirSenha(userId, senha) {
+      const r = await chamar(`/users/${encodeURIComponent(userId)}`, "PUT", { password: senha, email_confirm: true });
+      if ((await recusa(r)) === "FRACA") return "FRACA";
+      if (!r.ok) throw new Error(`Auth respondeu ${r.status}`);
+      return "OK";
+    },
+
+    async zerarAutenticadores(userId) {
+      const id = encodeURIComponent(userId);
+      const r = await chamar(`/users/${id}/factors`, "GET");
+      if (!r.ok) throw new Error(`Auth respondeu ${r.status}`);
+      const fatores = ((await r.json()) as { id: string; factor_type: string }[]).filter((f) => f.factor_type === "totp");
+      for (const f of fatores) {
+        const s = await chamar(`/users/${id}/factors/${encodeURIComponent(f.id)}`, "DELETE");
+        if (!s.ok) throw new Error(`Auth respondeu ${s.status}`);
+      }
+      return fatores.length;
+    },
+  };
+}

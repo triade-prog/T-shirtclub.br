@@ -1,7 +1,7 @@
 // API do painel (seção 11). Login com senha e autenticador (F2.4); as demais rotas exigem
 // a sessão de dois fatores.
 
-import { authGoTrue } from "../_shared/auth-admin.ts";
+import { authGoTrue, equipeGoTrue } from "../_shared/auth-admin.ts";
 import { storageSupabase } from "../_shared/armazenamento.ts";
 import { bancoPostgrest } from "../_shared/banco.ts";
 import { mercadoPago } from "../_shared/pagamentos.ts";
@@ -31,6 +31,8 @@ const app = criarApiAdmin(Deno.env.get("REPASSE_SEGREDO"), {
   armazenamento: storageSupabase(url, chaveServico),
   pagamentos: mercadoPago({ accessToken: exigir("MP_ACCESS_TOKEN"), urlWebhook: `${url}/functions/v1/webhook-payments`, emailPix: exigir("MP_EMAIL_PIX") }),
   auth: authGoTrue(url, exigir("SUPABASE_ANON_KEY")),
+  // Equipe do painel (0630): a API de administração do Auth, só pelas rotas da dona da conta
+  equipe: equipeGoTrue(url, chaveServico),
   turnstile: turnstileCloudflare(exigir("TURNSTILE_SECRET")),
   // O provedor de e-mail entra junto com o SMTP do projeto; até lá o aviso fica no log.
   avisarBloqueio: (_email, ate) => {

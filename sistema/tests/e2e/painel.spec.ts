@@ -1185,3 +1185,77 @@ test("nova reserva: motoboy pede o endereço, já pago ou pelo link (pelo link, 
   await expect(entrega.locator("address")).toContainText("R. Sátiro Santos, 38");
   await semViolacoes(page);
 });
+
+// Equipe (0630) em Minha conta: a dona adiciona alguém com senha provisória gerada e tira o acesso.
+test("conta: a dona cuida da equipe (adicionar com senha gerada, tirar acesso, zerar autenticador)", async ({ page, context }) => {
+  const L = "00000000-0000-4000-8000-0000000000e3";
+  const carol = { id: "00000000-0000-4000-8000-0000000000d1", nome: "Carol", email: "carol@loja.com", ativo: true, dona: true, voce: true, criadoEm: "2026-09-27T10:00:00.000Z", ultimoAcesso: "2026-10-14T10:00:00.000Z", autenticador: true };
+  let pessoas = [carol, { id: L, nome: "Layana", email: "layana@2bee.net.br", ativo: true, dona: false, voce: false, criadoEm: "2026-10-14T14:24:00.000Z", autenticador: true }];
+  const enviados = await simularWhatsapp(page, context, (metodo, caminho, corpo) => {
+    if (caminho === "v1/admin/account") return { email: "carol@loja.com", nome: "Carol", autenticadores: [{ id: "f1", verificado: true, nome: "Painel" }], aparelhos: [] };
+    if (caminho === "v1/admin/settings/metas") return { diaCentavos: 0, mesCentavos: 0, anoCentavos: 0 };
+    if (caminho === "v1/admin/settings/tamanhos") return { unico: "Único", plus: "Plus" };
+    if (caminho === "v1/admin/team" && metodo === "POST") {
+      const c = corpo as { nome: string; email: string };
+      pessoas = [...pessoas, { id: "n1", nome: c.nome, email: c.email, ativo: true, dona: false, voce: false, criadoEm: "2026-10-14T15:00:00.000Z", autenticador: false }];
+    }
+    if (caminho === `v1/admin/team/${L}/active`) pessoas = pessoas.map((p) => (p.id === L ? { ...p, ativo: (corpo as { ativo: boolean }).ativo } : p));
+    if (caminho.startsWith("v1/admin/team")) return { podeGerenciar: true, pessoas };
+    return undefined;
+  });
+  await page.goto(`${PAINEL}/conta`);
+  const equipe = page.getByRole("region", { name: "Equipe" });
+  await expect(equipe.getByRole("list", { name: "Pessoas da equipe" }).getByRole("listitem")).toHaveCount(2);
+  await expect(equipe).toContainText("Carol (você)");
+  await expect(equipe).toContainText("layana@2bee.net.br · ainda não entrou");
+  // A dona não mexe no próprio acesso
+  await expect(equipe.getByRole("button", { name: "Tirar o acesso de Carol" })).toHaveCount(0);
+
+  await equipe.getByRole("button", { name: "Adicionar pessoa" }).click();
+  const form = equipe.getByRole("form", { name: "Adicionar pessoa à equipe" });
+  await form.getByLabel("Nome").fill("Bia");
+  await form.getByLabel("E-mail (para entrar no painel)").fill("bia@loja.com");
+  await form.getByRole("button", { name: "Adicionar à equipe" }).click();
+  await expect(form.getByRole("alert")).toContainText("pelo menos 12 caracteres");
+  await form.getByRole("button", { name: "Gerar senha" }).click();
+  const senha = await form.getByLabel("Senha provisória").inputValue();
+  expect(senha).toMatch(/^[A-Za-z2-9]{4}(-[A-Za-z2-9]{4}){3}$/);
+  await semViolacoes(page);
+  await form.getByRole("button", { name: "Adicionar à equipe" }).click();
+  await expect(equipe.getByRole("status")).toContainText(`Bia entrou na equipe. Senha provisória: ${senha}`);
+  expect(enviados.find((e) => e.caminho === "v1/admin/team")?.corpo).toEqual({ nome: "Bia", email: "bia@loja.com", senha });
+  await expect(equipe.getByRole("listitem").filter({ hasText: "Bia" })).toContainText("Falta o autenticador");
+
+  await equipe.getByRole("button", { name: "Tirar o acesso de Layana" }).click();
+  await equipe.getByRole("group", { name: "Tirar o acesso de Layana" }).getByRole("button", { name: "Tirar acesso" }).click();
+  await expect(equipe.getByRole("status")).toContainText("Layana saiu do painel");
+  await expect(equipe.getByRole("listitem").filter({ hasText: "Layana" })).toContainText("Sem acesso");
+  expect(enviados.find((e) => e.caminho === `v1/admin/team/${L}/active`)?.corpo).toEqual({ ativo: false });
+  await equipe.getByRole("button", { name: "Devolver o acesso de Layana" }).click();
+  await expect(equipe.getByRole("listitem").filter({ hasText: "Layana" })).toContainText("Com autenticador");
+
+  await equipe.getByRole("button", { name: "Zerar o autenticador de Layana" }).click();
+  await equipe.getByRole("group", { name: "Zerar o autenticador de Layana" }).getByRole("button", { name: "Zerar autenticador" }).click();
+  await expect(equipe.getByRole("status")).toContainText("O autenticador de Layana foi zerado");
+  expect(enviados.some((e) => e.caminho === `v1/admin/team/${L}/reset-mfa`)).toBe(true);
+  await semViolacoes(page);
+});
+
+test("conta: quem não é a dona vê a equipe, sem os botões", async ({ page, context }) => {
+  await simularWhatsapp(page, context, (_m, caminho) => {
+    if (caminho === "v1/admin/account") return { email: "layana@2bee.net.br", nome: "Layana", autenticadores: [], aparelhos: [] };
+    if (caminho === "v1/admin/settings/metas") return { diaCentavos: 0, mesCentavos: 0, anoCentavos: 0 };
+    if (caminho === "v1/admin/settings/tamanhos") return { unico: "Único", plus: "Plus" };
+    if (caminho === "v1/admin/team") {
+      return { podeGerenciar: false, pessoas: [
+        { id: "a", nome: "Carol", email: "carol@loja.com", ativo: true, dona: true, voce: false, criadoEm: "2026-09-27T10:00:00.000Z", autenticador: true },
+        { id: "b", nome: "Layana", email: "layana@2bee.net.br", ativo: true, dona: false, voce: true, criadoEm: "2026-10-14T14:24:00.000Z", autenticador: true },
+      ] };
+    }
+    return undefined;
+  });
+  await page.goto(`${PAINEL}/conta`);
+  const equipe = page.getByRole("region", { name: "Equipe" });
+  await expect(equipe).toContainText("Layana (você)");
+  await expect(equipe.getByRole("button")).toHaveCount(0);
+});

@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "@std/assert";
-import { authGoTrue } from "./auth-admin.ts";
+import { authGoTrue, equipeGoTrue } from "./auth-admin.ts";
 import { bancoPostgrest, ErroBanco } from "./banco.ts";
 import { apagarCookie, gravarCookie, lerCookie } from "./cookies.ts";
 import { base64url } from "./cripto.ts";
@@ -86,6 +86,33 @@ Deno.test("GoTrue: Minha conta (e-mail e sessão do token, senha, sair dos outro
   assertEquals([pedidos.at(-1)!.url, pedidos.at(-1)!.init?.method], ["https://p.supabase.co/auth/v1/factors/f2", "DELETE"]);
   const fraca = authGoTrue("https://p.supabase.co", "anon", fetchFalso({ "/user": { status: 422, corpo: { error_code: "weak_password" } } }));
   assertEquals(await fraca.trocarSenha(token, "123456789012"), "FRACA");
+});
+
+Deno.test("GoTrue: equipe pela API de administração (cadastro confirmado, senha, e-mail repetido, autenticadores)", async () => {
+  const pedidos: { url: string; init?: RequestInit }[] = [];
+  const equipe = equipeGoTrue("https://p.supabase.co", "servico", fetchFalso({
+    "/admin/users": { status: 200, corpo: { id: "u9" } },
+    "/admin/users/u1": { status: 200, corpo: { id: "u1" } },
+    "/admin/users/u1/factors": { status: 200, corpo: [{ id: "f1", factor_type: "totp" }, { id: "p1", factor_type: "phone" }] },
+    "/admin/users/u1/factors/f1": { status: 200, corpo: {} },
+  }, pedidos));
+  assertEquals(await equipe.criarUsuario("bia@loja.com", "senha provisória"), { id: "u9" });
+  assertEquals(JSON.parse(String(pedidos[0]!.init!.body)), { email: "bia@loja.com", password: "senha provisória", email_confirm: true });
+  assertEquals((pedidos[0]!.init!.headers as Record<string, string>).authorization, "Bearer servico");
+  assertEquals(await equipe.definirSenha("u1", "outra senha longa"), "OK");
+  assertEquals([pedidos[1]!.init!.method, JSON.parse(String(pedidos[1]!.init!.body)).email_confirm], ["PUT", true]);
+  assertEquals(await equipe.zerarAutenticadores("u1"), 1);
+  assertEquals(pedidos.slice(2).map((p) => `${p.init!.method} ${p.url.replace("https://p.supabase.co/auth/v1", "")}`),
+    ["GET /admin/users/u1/factors", "DELETE /admin/users/u1/factors/f1"]);
+
+  const recusas = equipeGoTrue("https://p.supabase.co", "servico", fetchFalso({
+    "/admin/users": { status: 422, corpo: { error_code: "email_exists", msg: "A user with this email address has already been registered" } },
+    "/admin/users/u1": { status: 422, corpo: { error_code: "weak_password", msg: "Password is known to be weak" } },
+    "/admin/users/u2": { status: 500, corpo: {} },
+  }));
+  assertEquals(await recusas.criarUsuario("bia@loja.com", "senha provisória"), "JA_EXISTE");
+  assertEquals(await recusas.definirSenha("u1", "senha provisória"), "FRACA");
+  await assertRejects(() => recusas.definirSenha("u2", "senha provisória"));
 });
 
 Deno.test("banco: erro da função SQL chega com o código", async () => {

@@ -11,7 +11,8 @@ import { useEnvio } from "../_painel/useEnvio";
 
 // Minha conta (tela 22 do protótipo; sem referência V4, no estilo do painel V4, D12, G7):
 // trocar a senha, aparelhos conectados, autenticadores e as metas de vendas da loja (D26). Para remover um autenticador, o
-// código vem de outro que continua cadastrado; a conta nunca fica sem o segundo fator.
+// código vem de outro que continua cadastrado; a conta nunca fica sem o segundo fator. A Equipe (0630) lista quem entra
+// no painel; só a dona da conta adiciona pessoas e cuida dos acessos.
 
 interface Fator { id: string; verificado: boolean; nome?: string; criadoEm?: string }
 interface Aparelho { id: string; criadaEm: string; ultimoUso: string; aparelho?: string; rede?: string; atual?: boolean }
@@ -29,7 +30,9 @@ export function Conta() {
   return (
     <Casca kicker="ACESSO" titulo="Minha conta" sub={dados ? `${dados.email ?? ""}${dados.nome ? ` · ${dados.nome}` : ""} · administradora` : undefined}>
       {!dados ? <Carregando erro={erro} /> : (
-        <div className="grid split">
+        <>
+        <Equipe />
+        <div className="grid split mt">
           <div className="stack">
             <TrocarSenha aoTrocar={() => void recarregar()} />
             <Aparelhos aparelhos={dados.aparelhos} aoEncerrar={() => void recarregar()} />
@@ -38,11 +41,12 @@ export function Conta() {
             <Metas />
             <Tamanhos />
             <Autenticadores fatores={dados.autenticadores} aoMudar={() => void recarregar()} />
-            <Aviso tipo="yellow" titulo="Esqueceu a senha?">
-              <p>Na tela de login, use &quot;Esqueci minha senha&quot;: o link de redefinição chega no e-mail da conta.</p>
+            <Aviso tipo="yellow" titulo="Esqueceu a senha ou perdeu o celular?">
+              <p>Peça à dona da conta, em Equipe, uma senha provisória nova ou para zerar o seu autenticador.</p>
             </Aviso>
           </div>
         </div>
+        </>
       )}
     </Casca>
   );
@@ -285,5 +289,166 @@ function NovoFator({ aoCadastrar }: { aoCadastrar: () => void }) {
         <Botao variante="link" onClick={() => void desistir()}>Cancelar</Botao>
       </div>
     </form>
+  );
+}
+
+// ─── Equipe (0630) ──────────────────────────────────────────────────────────────────────
+
+interface Pessoa {
+  id: string; nome: string; email?: string; ativo: boolean; dona: boolean; voce: boolean;
+  criadoEm: string; ultimoAcesso?: string; autenticador: boolean;
+}
+interface DadosEquipe { podeGerenciar: boolean; pessoas: Pessoa[] }
+
+/** Senha provisória forte, sem letras que se confundem (l, 1, O, 0): "k7Qm-x2Rp-…". */
+function gerarSenha(): string {
+  const letras = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const sorteio = crypto.getRandomValues(new Uint32Array(16));
+  const s = Array.from(sorteio, (n) => letras[n % letras.length]).join("");
+  return s.match(/.{4}/g)!.join("-");
+}
+
+function textoDoErro(erro: string): string {
+  if (erro === mensagemDeErro("ALREADY_EXISTS")) return "Este e-mail já está na equipe.";
+  if (erro === mensagemDeErro("FORBIDDEN")) return "Só a dona da conta cuida da equipe.";
+  return erro;
+}
+
+/** Senha provisória: a dona digita ou gera, e passa para a pessoa por um canal dela. */
+function CampoSenhaProvisoria({ senha, setSenha }: { senha: string; setSenha: (s: string) => void }) {
+  return (
+    <div className="stack">
+      <Campo name="senha" rotulo="Senha provisória" autoComplete="off" spellCheck={false} maxLength={128} value={senha}
+        onChange={(e) => setSenha(e.target.value)} ajuda="Pelo menos 12 caracteres. Passe para ela pelo WhatsApp dela; no primeiro acesso, ela troca em Minha conta." />
+      <div className="actions"><Botao variante="ghost" onClick={() => setSenha(gerarSenha())}>Gerar senha</Botao></div>
+    </div>
+  );
+}
+
+function Equipe() {
+  const { dados, erro, recarregar } = useDados<DadosEquipe>("v1/admin/team");
+  const [adicionando, setAdicionando] = useState(false);
+  const [aviso, setAviso] = useState<React.ReactNode>(null);
+  return (
+    <section className="card" id="equipe" aria-labelledby="equipe-titulo">
+      <h2 id="equipe-titulo">Equipe</h2>
+      <p className="field-help">Quem entra no painel. Todas veem e fazem tudo no painel; só a dona da conta adiciona pessoas e cuida dos acessos.</p>
+      {!dados ? <Carregando erro={erro} /> : (
+        <>
+          <ul className="list mt" aria-label="Pessoas da equipe">
+            {dados.pessoas.map((p) => (
+              <li key={p.id} className="stack">
+                <div className="row">
+                  <span className="micro muted">{p.dona ? "Dona" : "Equipe"}</span>
+                  <div>
+                    <b>{p.nome}{p.voce ? " (você)" : ""}</b>
+                    <p className="meta">{p.email ?? "sem e-mail"} · {p.ultimoAcesso ? `último acesso em ${dataHora(p.ultimoAcesso)}` : "ainda não entrou"}</p>
+                  </div>
+                  <span className="actions">
+                    {!p.ativo ? <Selo tom="expired">Sem acesso</Selo>
+                      : p.autenticador ? <Selo tom="paid">Com autenticador</Selo> : <Selo tom="reserved">Falta o autenticador</Selo>}
+                  </span>
+                </div>
+                {dados.podeGerenciar && !p.dona && !p.voce && (
+                  <AcoesPessoa pessoa={p} aoMudar={(texto) => { setAviso(texto); void recarregar(); }} />
+                )}
+              </li>
+            ))}
+          </ul>
+          {aviso && <p className="field-help mt" role="status">{aviso}</p>}
+          {dados.podeGerenciar && (adicionando
+            ? <NovaPessoa aoCancelar={() => setAdicionando(false)} aoAdicionar={(texto) => { setAdicionando(false); setAviso(texto); void recarregar(); }} />
+            : <div className="actions mt"><Botao variante="citron" onClick={() => { setAviso(null); setAdicionando(true); }}>Adicionar pessoa</Botao></div>)}
+        </>
+      )}
+    </section>
+  );
+}
+
+function NovaPessoa({ aoCancelar, aoAdicionar }: { aoCancelar: () => void; aoAdicionar: (aviso: React.ReactNode) => void }) {
+  const [senha, setSenha] = useState("");
+  const [nome, setNome] = useState("");
+  const { ocupado, erro, setErro, enviar } = useEnvio(() => aoAdicionar(
+    <>{nome} entrou na equipe. Senha provisória: <code className="selecionavel">{senha}</code>. Passe para ela pelo WhatsApp dela; no primeiro acesso, ela cadastra o autenticador e troca a senha.</>,
+  ));
+
+  function salvar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const email = String(f.get("email") ?? "").trim();
+    if (nome.trim().length < 2) return setErro("Escreva o nome da pessoa.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErro("Confira o e-mail.");
+    if (senha.length < 12) return setErro("A senha provisória precisa ter pelo menos 12 caracteres. Use “Gerar senha”.");
+    void enviar(chamarApi("v1/admin/team", { nome: nome.trim(), email, senha }));
+  }
+
+  return (
+    <form className="decision" onSubmit={salvar} noValidate aria-label="Adicionar pessoa à equipe">
+      <div className="form-grid">
+        <Campo name="nome" rotulo="Nome" autoComplete="off" maxLength={60} value={nome} onChange={(e) => setNome(e.target.value)} />
+        <Campo name="email" type="email" rotulo="E-mail (para entrar no painel)" autoComplete="off" maxLength={254} />
+      </div>
+      <CampoSenhaProvisoria senha={senha} setSenha={setSenha} />
+      {erro && <p className="field-error" role="alert">{textoDoErro(erro)}</p>}
+      <div className="actions">
+        <Botao type="submit" carregando={ocupado}>Adicionar à equipe</Botao>
+        <Botao variante="link" onClick={aoCancelar}>Cancelar</Botao>
+      </div>
+    </form>
+  );
+}
+
+function AcoesPessoa({ pessoa: p, aoMudar }: { pessoa: Pessoa; aoMudar: (aviso: React.ReactNode) => void }) {
+  const [modo, setModo] = useState<null | "senha" | "autenticador" | "acesso">(null);
+  const [senha, setSenha] = useState("");
+  const feito = (aviso: React.ReactNode) => () => { setModo(null); setSenha(""); aoMudar(aviso); };
+  const senhaNova = useEnvio(feito(<>Senha provisória de {p.nome}: <code className="selecionavel">{senha}</code>. Passe para ela pelo WhatsApp dela.</>));
+  const zerar = useEnvio(feito(`O autenticador de ${p.nome} foi zerado: no próximo login, o painel mostra o QR code para ela cadastrar de novo.`));
+  const acesso = useEnvio(feito(p.ativo ? `${p.nome} saiu do painel e não entra mais até você devolver o acesso.` : `${p.nome} pode entrar no painel de novo.`));
+
+  if (!modo) {
+    return (
+      <div className="actions">
+        {p.ativo && <Botao variante="ghost" onClick={() => setModo("senha")} aria-label={`Senha provisória nova para ${p.nome}`}>Senha provisória nova</Botao>}
+        {p.ativo && p.autenticador && <Botao variante="ghost" onClick={() => setModo("autenticador")} aria-label={`Zerar o autenticador de ${p.nome}`}>Zerar autenticador</Botao>}
+        {p.ativo
+          ? <Botao variante="ghost" onClick={() => setModo("acesso")} aria-label={`Tirar o acesso de ${p.nome}`}>Tirar acesso</Botao>
+          : <Botao variante="ghost" carregando={acesso.ocupado} aria-label={`Devolver o acesso de ${p.nome}`}
+              onClick={() => void acesso.enviar(chamarApi(`v1/admin/team/${p.id}/active`, { ativo: true }, "PUT"))}>Devolver acesso</Botao>}
+        {acesso.erro && <p className="field-error" role="alert">{textoDoErro(acesso.erro)}</p>}
+      </div>
+    );
+  }
+  const voltar = <Botao variante="link" onClick={() => { setModo(null); setSenha(""); }}>Voltar</Botao>;
+  if (modo === "senha") {
+    return (
+      <form className="decision" noValidate aria-label={`Senha provisória nova para ${p.nome}`} onSubmit={(e) => {
+        e.preventDefault();
+        if (senha.length < 12) return senhaNova.setErro("A senha provisória precisa ter pelo menos 12 caracteres. Use “Gerar senha”.");
+        void senhaNova.enviar(chamarApi(`v1/admin/team/${p.id}/password`, { senha }, "PUT"));
+      }}>
+        <CampoSenhaProvisoria senha={senha} setSenha={setSenha} />
+        {senhaNova.erro && <p className="field-error" role="alert">{textoDoErro(senhaNova.erro)}</p>}
+        <div className="actions"><Botao type="submit" carregando={senhaNova.ocupado}>Salvar senha provisória</Botao>{voltar}</div>
+      </form>
+    );
+  }
+  const zerando = modo === "autenticador";
+  const envio = zerando ? zerar : acesso;
+  return (
+    <div className="decision" role="group" aria-label={zerando ? `Zerar o autenticador de ${p.nome}` : `Tirar o acesso de ${p.nome}`}>
+      <p className="field-help">{zerando
+        ? `Para quando ${p.nome} perdeu ou trocou de celular: o autenticador dela sai, e no próximo login o painel mostra o QR code para cadastrar de novo.`
+        : `${p.nome} sai do painel na hora e não entra mais até você devolver o acesso. Nada do que ela fez é apagado.`}</p>
+      {envio.erro && <p className="field-error" role="alert">{textoDoErro(envio.erro)}</p>}
+      <div className="actions">
+        <Botao variante="danger" carregando={envio.ocupado} onClick={() => void (zerando
+          ? zerar.enviar(chamarApi(`v1/admin/team/${p.id}/reset-mfa`, {}))
+          : acesso.enviar(chamarApi(`v1/admin/team/${p.id}/active`, { ativo: false }, "PUT")))}>
+          {zerando ? "Zerar autenticador" : "Tirar acesso"}
+        </Botao>
+        {voltar}
+      </div>
+    </div>
   );
 }
