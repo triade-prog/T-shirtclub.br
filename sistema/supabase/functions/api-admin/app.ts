@@ -42,7 +42,12 @@ export function criarApiAdmin(segredo: string | undefined, deps: DepsAdmin) {
     if (c.req.path.includes("/v1/admin/auth/")) return await next();
     return await exigirAdmin(deps)(c, next);
   });
-  app.get("/v1/admin/me", (c) => c.json({ userId: c.get("admin").userId }));
+  // Quem está logado: o topo do painel mostra as iniciais e o nome dela
+  app.get("/v1/admin/me", async (c) => {
+    const admin = c.get("admin");
+    const nome = await deps.banco.rpc<string | null>("admin_name", { p_id: admin.userId });
+    return c.json({ userId: admin.userId, nome: nome ?? null, email: admin.email ?? null });
+  });
   // Gravação do catálogo que deu certo: avisa a loja para ela não esperar os 60 s do cache.
   app.use("/v1/admin/*", async (c, next) => {
     await next();
