@@ -74,7 +74,7 @@ Deno.test("com o código do autenticador (aal2), o painel abre", async () => {
   const aal2 = cookieDe(certo);
   const me = await pedir("/v1/admin/me", undefined, aal2);
   assertEquals(me.status, 200);
-  assertEquals(await me.json(), { userId: ADMIN });
+  assertEquals(await me.json(), { userId: ADMIN, nome: "Carol", email: "loja@tshirtclub.pt" });
   assertEquals(auditoria, ["admin.login"]);
 });
 

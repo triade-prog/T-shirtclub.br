@@ -1192,6 +1192,7 @@ test("conta: a dona cuida da equipe (adicionar, dados de acesso, tirar acesso, z
   const carol = { id: "00000000-0000-4000-8000-0000000000d1", nome: "Carol", email: "carol@loja.com", ativo: true, dona: true, voce: true, criadoEm: "2026-09-27T10:00:00.000Z", ultimoAcesso: "2026-10-14T10:00:00.000Z", autenticador: true };
   let pessoas = [carol, { id: L, nome: "Layana", email: "layana@2bee.net.br", ativo: true, dona: false, voce: false, criadoEm: "2026-10-14T14:24:00.000Z", autenticador: true }];
   const enviados = await simularWhatsapp(page, context, (metodo, caminho, corpo) => {
+    if (caminho === "v1/admin/me") return { userId: carol.id, nome: "Carol Souza", email: "carol@loja.com" };
     if (caminho === "v1/admin/account") return { email: "carol@loja.com", nome: "Carol", autenticadores: [{ id: "f1", verificado: true, nome: "Painel" }], aparelhos: [] };
     if (caminho === "v1/admin/settings/metas") return { diaCentavos: 0, mesCentavos: 0, anoCentavos: 0 };
     if (caminho === "v1/admin/settings/tamanhos") return { unico: "Único", plus: "Plus" };
@@ -1206,6 +1207,10 @@ test("conta: a dona cuida da equipe (adicionar, dados de acesso, tirar acesso, z
   await page.goto(`${PAINEL}/conta`);
   const equipe = page.getByRole("region", { name: "Equipe" });
   const tabela = equipe.getByRole("table");
+  // No topo, as iniciais de quem está logado, que levam a Minha conta
+  const eu = page.getByRole("link", { name: "Minha conta: Carol Souza" });
+  await expect(eu).toHaveText("CS");
+  await expect(eu).toHaveAttribute("href", "/conta");
   await expect(equipe).toContainText("2 pessoas com acesso ao painel");
   await expect(tabela.getByRole("row", { name: /Layana/ })).toContainText("Nunca entrou");
   await expect(tabela.getByRole("row", { name: /Carol/ })).toContainText("Dona");

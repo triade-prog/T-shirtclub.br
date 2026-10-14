@@ -50,6 +50,8 @@ export function montar(cen: Cenario = {}) {
             return args.p_user_id === ADMIN && (cen.ativo ?? true);
           case "hit_rate_limit":
             return cen.limite?.(String(args.p_key)) ?? cen.limiteMfaOk ?? true;
+          case "admin_name":
+            return cen.rpcExtra?.(funcao, args) ?? "Carol";
           case "log_audit":
             auditoria.push(String(args.p_action));
             return 1;

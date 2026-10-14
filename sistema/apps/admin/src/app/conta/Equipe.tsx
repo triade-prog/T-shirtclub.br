@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { chamarApi, mensagemDeErro } from "@/lib/api";
+import { iniciais, tomDoNome } from "../_painel/pessoa";
 import { Botao, Campo, Carregando } from "../_painel/ui";
 import { useDados } from "../_painel/useDados";
 import { useEnvio } from "../_painel/useEnvio";
@@ -18,9 +19,6 @@ interface Pessoa {
 interface DadosEquipe { podeGerenciar: boolean; pessoas: Pessoa[] }
 interface Acesso { nome: string; email: string; senha: string }
 
-const iniciais = (nome: string) => nome.trim().split(/\s+/).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
-const TONS = ["pink", "lemon", "lav", "blue", "green"] as const;
-const tomDoNome = (nome: string) => TONS[[...nome].reduce((s, c) => s + c.charCodeAt(0), 0) % TONS.length];
 
 /** "Hoje, 10:10", "Ontem, 18:02" ou "12/10, 09:00". */
 function quando(iso: string): string {
@@ -110,7 +108,7 @@ function FragmentoPessoa({ p, gerenciavel, colunas, aberto, alternar, aoMudar }:
       <tr className={`${p.ativo ? "" : "eq-inativa"}${aberto ? " eq-aberta" : ""}`}>
         <td>
           <div className="eq-pessoa">
-            <span className={`eq-avatar ${tomDoNome(p.nome)}`} aria-hidden="true">{iniciais(p.nome)}</span>
+            <span className={`pessoa-av ${tomDoNome(p.nome)}`} aria-hidden="true">{iniciais(p.nome)}</span>
             <div>
               <b>{p.nome}{p.voce && <span className="eq-voce">você</span>}</b>
               <span className="eq-email">{p.email ?? "sem e-mail"}</span>

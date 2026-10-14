@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { chamarApi } from "@/lib/api";
 import { useMenuRecolhido } from "./MenuRecolhido";
+import { iniciais, tomDoNome } from "./pessoa";
 import { useDados } from "./useDados";
 import { useRepetir } from "./useRepetir";
 
@@ -61,6 +62,7 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
   const [aberto, setAberto] = useState(false);
   const { recolhido, alternar } = useMenuRecolhido();
   const { dados: c, recarregar } = useDados<Contagem>("v1/admin/dashboard");
+  const { dados: eu } = useDados<{ nome: string | null; email: string | null }>("v1/admin/me");
   useRepetir(() => void recarregar(), 30_000, true);
 
   // Menu do celular: com ele aberto, o resto fica inerte; fecha tocando fora, no Esc ou ao navegar.
@@ -146,7 +148,10 @@ export function Casca({ kicker, titulo, sub, topo, acoes, compacto, children }: 
               <a className="top-whats" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" title="Abrir o WhatsApp Web">
                 <Icone>{ICONES.whatsapp}</Icone>WhatsApp<span className="sr-only"> (abre o WhatsApp Web em outra aba)</span>
               </a>
-              <div className="avatar" role="img" aria-label="Loja T-shirt Club">TC</div>
+              {/* Quem está logado (14/10, pedido da loja): as iniciais dela, que levam a Minha conta */}
+              <Link className="top-conta" href="/conta" aria-label={eu?.nome ? `Minha conta: ${eu.nome}` : "Minha conta"} title={eu?.nome ? `${eu.nome}${eu.email ? ` · ${eu.email}` : ""}` : "Minha conta"}>
+                <span className={`pessoa-av${eu?.nome ? ` ${tomDoNome(eu.nome)}` : ""}`} aria-hidden="true">{eu?.nome ? iniciais(eu.nome) : ""}</span>
+              </Link>
             </div>
           </header>
           <main className="content" id="main">
