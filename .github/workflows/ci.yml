@@ -23,7 +23,7 @@ jobs:
     name: Lint, tipos e testes
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
@@ -41,7 +41,7 @@ jobs:
     name: Banco (pgTAP, concorrência e integração)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Node e pnpm só para o Deno do pacote npm, que roda a integração das Edge Functions.
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
@@ -62,7 +62,7 @@ jobs:
     env:
       CI: "true"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
@@ -85,7 +85,7 @@ jobs:
     name: Lighthouse no celular
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
@@ -106,7 +106,7 @@ jobs:
       run:
         working-directory: .
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - name: gitleaks
         run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest git /repo --redact --verbose --config /repo/.gitleaks.toml
