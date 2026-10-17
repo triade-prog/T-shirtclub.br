@@ -73,7 +73,7 @@ jobs:
         env: { MOSTRAR_COMPONENTES: "1", ORIGEM_IMAGENS: "http://127.0.0.1:4010" }
       - run: pnpm e2e
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorio-playwright
           path: |
@@ -96,7 +96,7 @@ jobs:
       - run: npx lhci autorun --config=lighthouserc.cjs
         env: { CHROME_PATH: /usr/bin/google-chrome }
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: lighthouse, path: sistema/.lighthouseci, retention-days: 7 }
 
   segredos:
