@@ -15,11 +15,11 @@
   },
   "peerDependencies": {
     "react": "^19",
-    "lucide-react": "^1.48.0"
+    "lucide-react": "^1.49.0"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.49.0",
     "react": "^19.3.0"
   }
 }
