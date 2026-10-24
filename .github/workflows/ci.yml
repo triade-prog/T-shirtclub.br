@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
         run: corepack enable && corepack install
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Node e pnpm só para o Deno do pacote npm, que roda a integração das Edge Functions.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
         run: corepack enable && corepack install
@@ -63,7 +63,7 @@ jobs:
       CI: "true"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
         run: corepack enable && corepack install
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: pnpm (versão do package.json, via corepack)
         run: corepack enable && corepack install
